@@ -1,0 +1,33 @@
+{
+  "name": "Zombie Baby #001",
+  "description": "Zombie Baby #001. Zombie Babies (c) Bok Consulting Pty Ltd 2021. Inspired by, but not affiliated with CryptoPunks & CryptoBabyPunks. https://zombiebabies.eth.link or https://bokkypoobah.github.io/ZombieBabies/",
+  "external_url": "https://zombiebabies.eth.link/#/1",
+  "image": "https://zombiebabies.eth.link/media/ZombieBaby_001.png",
+  "imageTransparentBG": "https://zombiebabies.eth.link/media/ZombieBaby_001_transparentbg.png",
+  "attributes": [
+    {
+      "trait_type": "Collection",
+      "value": "Zombie Babies"
+    },
+    {
+      "trait_type": "Generation",
+      "value": "2.0 Apr 2021"
+    },
+    {
+      "trait_type": "Parent",
+      "value": "Zombie #3636"
+    },
+    {
+      "trait_type": "Parent",
+      "value": "Zombie #4472"
+    },
+    {
+      "trait_type": "Attribute",
+      "value": "Front Goatee Dark"
+    },
+    {
+      "trait_type": "Attribute",
+      "value": "Purple Hair"
+    }
+  ]
+}
