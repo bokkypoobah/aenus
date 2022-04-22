@@ -10,6 +10,11 @@ Vue.component('nixdata', NixData);
 Vue.component('collectiondata', CollectionData);
 // Vue.component('flat-pickr', VueFlatpickr);
 
+// Huh?
+// Vue.component('graphqlclient', createClient({
+//   url: 'https://api.thegraph.com/subgraphs/name/ensdomains/ens' // , // your endpoint.
+// }));
+
 // hljs.registerLanguage('solidity', window.hljsDefineSolidity);
 // hljs.initHighlightingOnLoad();
 
@@ -60,6 +65,7 @@ const store = new Vuex.Store({
     nix: nixModule,
     weth: wethModule,
     admin: adminModule,
+    config: configModule,
     collections: collectionsModule,
   }
 });
@@ -201,3 +207,14 @@ const app = new Vue({
   //   "account": Account,
   },
 }).$mount('#app');
+
+// Huh?
+// Vue.component('graphqlclient', createClient({
+//   url: 'https://api.thegraph.com/subgraphs/name/ensdomains/ens' // , // your endpoint.
+// }));
+// Creates a villus client instance
+// const client = useClient({
+//   url: '/graphql', // your endpoint.
+// });
+// // Makes the villus client available to your app
+// app.use(client);

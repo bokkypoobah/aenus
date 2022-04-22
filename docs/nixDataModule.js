@@ -562,6 +562,121 @@ const nixDataModule = {
       }
 
       // Sync Nix Tokens based on new Token, and new Orders on existing Tokens
+      async function syncNames() {
+        logInfo("nixDataModule", "execWeb3.syncNames() - Hello: " + "e");
+
+        const BATCHSIZE = 10; // Max ?1000
+        const DELAYINMILLIS = 500;
+        const delay = ms => new Promise(res => setTimeout(res, ms));
+
+        // const query = `query retrieveDomains($domainName: String!) {
+        //   domains(where: {name: $domainName}) {
+        //     id
+        //     name
+        //     labelName
+        //     labelhash
+        //   }
+        // }`;
+
+        const query = `
+          query getRegistrations($id: ID!, $first: Int, $skip: Int, $orderBy: Registration_orderBy, $orderDirection: OrderDirection, $expiryDate: Int) {
+            account(id: $id) {
+              registrations(first: $first, skip: $skip, orderBy: $orderBy, orderDirection: $orderDirection, where: {expiryDate_gt: $expiryDate}) {
+                registrationDate
+                expiryDate
+                cost
+                registrant {
+                  id
+                  __typename
+                }
+                labelName
+                domain {
+                  labelName
+                  labelhash
+                  name
+                  isMigrated
+                  resolver {
+                    address
+                    coinTypes
+                    texts
+                    __typename
+                  }
+                  resolvedAddress {
+                    id
+                    __typename
+                  }
+                  parent {
+                    name
+                    __typename
+                  }
+                  __typename
+                }
+                events {
+                  id
+                  blockNumber
+                  transactionID
+                  __typename
+                }
+                __typename
+              }
+              __typename
+            }
+          }
+        `;
+        const url = "https://api.thegraph.com/subgraphs/name/ensdomains/ens";
+        const domainName = "bokky.eth";
+        const expiryDate = 1642582008;
+        const first = 1000;
+        const id = "0x000001f568875f378bf6d170b790967fe429c81a";
+        const skip = 1440;
+        const data = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify({
+            query,
+            variables: { id, first, skip, expiryDate },
+          })
+        }).then(response => response.json());
+        logInfo("nixDataModule", "execWeb3.syncNames() - data: " + JSON.stringify(data));
+
+
+        // fetch('/graphql', {
+        //   method: 'POST',
+        //   headers: {
+        //     'Content-Type': 'application/json',
+        //     'Accept': 'application/json',
+        //   },
+        //   body: JSON.stringify({
+        //     query,
+        //     variables: { dice, sides },
+        //   })
+        // })
+        //   .then(r => r.json())
+        //   .then(data => console.log('data returned:', data));
+
+        // const traitsAndImages = {};
+        // for (let i = 0; i < tokenIds.length; i += BATCHSIZE) {
+        //   let url = "https://testnets-api.opensea.io/api/v1/assets?asset_contract_address=" + collection.address + "\&order_direction=desc\&limit=50\&offset=0";
+        //   for (let j = i; j < i + BATCHSIZE && j < tokenIds.length; j++) {
+        //     url = url + "&token_ids=" + tokenIds[j];
+        //   }
+        //   console.log("url: " + JSON.stringify(url));
+        //   const data = await fetch(url).then(response => response.json());
+        //   if (data.assets && data.assets.length > 0) {
+        //     for (let assetIndex = 0; assetIndex < data.assets.length; assetIndex++) {
+        //       const asset = data.assets[assetIndex];
+        //       traitsAndImages[asset.token_id] = { metadataRetrieved: true, traits: asset.traits, image: asset.image_url };
+        //     }
+        //   }
+        //   await delay(DELAYINMILLIS);
+        // }
+
+      }
+
+      // Sync Nix Tokens based on new Token, and new Orders on existing Tokens
       async function syncNixTokens(provider, nix, nixHelper, erc721Helper, weth, updates, blockNumber, timestamp) {
         // logInfo("nixDataModule", "execWeb3.syncNixTokens() - nixTokens: " + JSON.stringify(Object.keys(updates.nixTokens)));
         // for (let collection of Object.keys(updates.nixOrders)) {
@@ -1072,14 +1187,15 @@ const nixDataModule = {
           const erc721Helper = new ethers.Contract(network.erc721HelperAddress, ERC721HELPERABI, provider);
           const erc721 = new ethers.Contract(TESTTOADZADDRESS, TESTTOADZABI, provider);
 
-          const updates = await getRecentEvents(provider, nix, erc721, weth, blockNumber);
-          await syncNixTokens(provider, nix, nixHelper, erc721Helper, weth, updates, blockNumber, timestamp);
-          await syncCollections(erc721Helper, updates, blockNumber, timestamp);
-          await syncNixOrders(provider, nix, nixHelper, weth, updates, blockNumber, timestamp);
-          await syncWeth(provider, nix, erc721Helper, weth, updates, blockNumber, timestamp);
-          await syncTraitsAndImages(updates);
-          await syncNixTrades(provider, nix, nixHelper, erc721, weth, updates, blockNumber, timestamp);
-          recalculate();
+          await syncNames();
+          // const updates = await getRecentEvents(provider, nix, erc721, weth, blockNumber);
+          // await syncNixTokens(provider, nix, nixHelper, erc721Helper, weth, updates, blockNumber, timestamp);
+          // await syncCollections(erc721Helper, updates, blockNumber, timestamp);
+          // await syncNixOrders(provider, nix, nixHelper, weth, updates, blockNumber, timestamp);
+          // await syncWeth(provider, nix, erc721Helper, weth, updates, blockNumber, timestamp);
+          // await syncTraitsAndImages(updates);
+          // await syncNixTrades(provider, nix, nixHelper, erc721, weth, updates, blockNumber, timestamp);
+          // recalculate();
 
           if (!state.nixRoyaltyEngine) {
             const nixRoyaltyEngine = await nix.royaltyEngine();

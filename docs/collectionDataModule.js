@@ -54,7 +54,7 @@ const CollectionData = {
   },
   methods: {
     async timeoutCallback() {
-      logInfo("CollectionData", "timeoutCallback() count: " + this.count);
+      // logInfo("CollectionData", "timeoutCallback() count: " + this.count);
       this.count++;
       var t = this;
       if (this.reschedule) {
@@ -70,7 +70,7 @@ const CollectionData = {
   mounted() {
     logInfo("CollectionData", "mounted()");
     this.reschedule = true;
-    logInfo("CollectionData", "Calling timeoutCallback()");
+    // logInfo("CollectionData", "Calling timeoutCallback()");
     this.timeoutCallback();
   },
 };

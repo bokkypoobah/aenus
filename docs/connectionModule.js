@@ -434,7 +434,7 @@ const Connection = {
             const provider = new ethers.providers.Web3Provider(window.ethereum);
             const network = await provider.getNetwork();
             store.dispatch('connection/setNetwork', network);
-            logInfo("Connection", "execWeb3() network: " + JSON.stringify(this.network));
+            logDebug("Connection", "execWeb3() network: " + JSON.stringify(this.network));
             const block = await provider.getBlock();
             store.dispatch('connection/setBlock', block);
             const signer = provider.getSigner()
@@ -468,10 +468,10 @@ const Connection = {
         }
       }
 
-      if (this.connected && this.network && this.network.chainId == 4) {
-        store.dispatch('nixData/execWeb3', { count: this.count, listenersInstalled: this.listenersInstalled });
+      if (this.connected && this.network && this.network.chainId == 1) {
+        // store.dispatch('nixData/execWeb3', { count: this.count, listenersInstalled: this.listenersInstalled });
         // console.log("1");
-        await store.dispatch('collectionData/execWeb3', { count: this.count, listenersInstalled: this.listenersInstalled });
+        // TODO await store.dispatch('collectionData/execWeb3', { count: this.count, listenersInstalled: this.listenersInstalled });
         // console.log("2");
         // console.log("3");
       }
@@ -587,7 +587,7 @@ const connectionModule = {
       state.connectionError = error;
     },
     setNetwork(state, network) {
-      logInfo("connectionModule", "mutations.setNetwork() - network.chainId: " + network.chainId);
+      // logInfo("connectionModule", "mutations.setNetwork() - network.chainId: " + network.chainId);
       if (state.network.chainId != network.chainId) {
         state.network.chainId = network.chainId;
         var networkDetails = getNetworkDetails(network.chainId);

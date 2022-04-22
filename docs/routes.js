@@ -1,4 +1,8 @@
 const routes = [{
+    path: '/config',
+    component: Config,
+    name: 'Config',
+  }, {
     path: '/admin',
     component: Admin,
     name: 'Admin',
