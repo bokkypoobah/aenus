@@ -66,6 +66,7 @@ const store = new Vuex.Store({
     weth: wethModule,
     admin: adminModule,
     config: configModule,
+    portfolio: portfolioModule,
     collections: collectionsModule,
   }
 });
@@ -143,6 +144,7 @@ const app = new Vue({
       store.dispatch('connection/setPowerOn', c == 'true' || c === true);
     }
     this.reschedule = true;
+    store.dispatch('config/loadGroups');
     this.timeoutCallback();
   },
   destroyed() {

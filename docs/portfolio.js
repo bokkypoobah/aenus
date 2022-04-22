@@ -1,4 +1,4 @@
-const Config = {
+const Portfolio = {
   template: `
     <div class="mt-5 pt-3">
       <b-card class="mt-5" header-class="warningheader" header="Web3 Connection And/Or Incorrect Network Detected" v-if="!powerOn || (network.chainId != 1 && network.chainId != 4)">
@@ -7,7 +7,7 @@ const Config = {
         </b-card-text>
       </b-card>
 
-      <b-card no-body header="Configuration" class="border-0" header-class="p-1" v-if="network.chainId == 1 || network.chainId == 4">
+      <b-card no-body header="Portfolio" class="border-0" header-class="p-1" v-if="network.chainId == 1 || network.chainId == 4">
         <b-card no-body class="border-0 m-0 mt-2">
           <b-card-body class="p-0">
 
@@ -52,6 +52,11 @@ const Config = {
                       <b-button size="sm" class="float-right m-0 p-0" href="#" @click="$bvModal.show('bv-modal-addgroup')" variant="link" v-b-popover.hover="'Add new group'"><b-icon-plus shift-v="-2" font-scale="1.4"></b-icon-plus></b-button>
                     </h6>
                   </template>
+
+                  <b-form-group label-cols="3" label-size="sm" label="Account Group">
+                    <b-form-select size="sm" v-model="selectedGroup" :options="groupOptions" class="w-50"></b-form-select>
+                  </b-form-group>
+
                   <div v-if="groups.length == 0">
                     <b-card-text>
                       Click on the + button to add a new group
@@ -124,6 +129,7 @@ const Config = {
     return {
       count: 0,
       reschedule: true,
+      selectedGroup: null,
       newGroupName: null,
       selectedGroupIndex: null,
       newAccount: null,
@@ -145,8 +151,63 @@ const Config = {
     groups() {
       return store.getters['config/groups'];
     },
+    groupOptions() {
+      const results = [];
+      if (store.getters['config/groups']) {
+        if (this.coinbase) {
+          results.push({ value: null, text: "Current account (" + this.coinbase + ")" });
+        }
+        let i = 0;
+        for (const group of store.getters['config/groups']) {
+          results.push({ value: i++, text: group.name });
+        }
+      }
+      return results;
+    },
+    tokensData() {
+      return store.getters['nixData/tokensData'];
+    },
+    tradeData() {
+      return store.getters['nixData/tradeData'];
+    },
   },
   methods: {
+    formatETH(e) {
+      try {
+        return e ? ethers.utils.commify(ethers.utils.formatEther(e)) : null;
+      } catch (err) {
+      }
+      return e.toFixed(9);
+    },
+    formatBuyOrSell(buyOrSell) {
+      return BUYORSELLSTRING[buyOrSell];
+    },
+    formatAnyOrAll(anyOrAll) {
+      return ANYORALLSTRING[anyOrAll];
+    },
+    formatOrderStatus(orderStatus) {
+      return ORDERSTATUSSTRING[orderStatus];
+    },
+    formatDate(d) {
+      if (d == 0) {
+        return "(no expiry)";
+      } else {
+        if (new RegExp('^[0-9]+$').test(d)) {
+          return new Date(parseInt(d) * 1000).toISOString(); // .substring(4);
+        } else {
+          return new Date(d).toDateString().substring(4);
+        }
+      }
+    },
+
+    setPowerOn() {
+      store.dispatch('connection/setPowerOn', true);
+      localStorage.setItem('powerOn', true);
+      var t = this;
+      setTimeout(function() {
+        t.statusSidebar = true;
+      }, 1500);
+    },
 
     newGroup(groupName) {
       // console.log("newGroup: " + JSON.stringify(groupName));
@@ -198,7 +259,7 @@ const Config = {
 
     deleteGroup(groupIndex, group) {
       // console.log("deleteGroup: " + groupIndex);
-      this.$bvModal.msgBoxConfirm('Delete group ' + (groupIndex+1) + '. ' + group.name + '?', {
+      this.$bvModal.msgBoxConfirm('Delete group ' + groupIndex + '. ' + group.name + '?', {
           title: 'Please Confirm',
           size: 'sm',
           buttonSize: 'sm',
@@ -245,7 +306,7 @@ const Config = {
     },
 
     async timeoutCallback() {
-      logDebug("Config", "timeoutCallback() count: " + this.count);
+      logDebug("Portfolio", "timeoutCallback() count: " + this.count);
 
       this.count++;
       var t = this;
@@ -257,13 +318,12 @@ const Config = {
     },
   },
   beforeDestroy() {
-    logDebug("Config", "beforeDestroy()");
+    logDebug("Portfolio", "beforeDestroy()");
   },
   mounted() {
-    logInfo("Config", "mounted() $route: " + JSON.stringify(this.$route.params));
+    logInfo("Portfolio", "mounted() $route: " + JSON.stringify(this.$route.params));
     this.reschedule = true;
-    // store.dispatch('config/loadGroups');
-    logDebug("Config", "Calling timeoutCallback()");
+    logDebug("Portfolio", "Calling timeoutCallback()");
     this.timeoutCallback();
     // this.loadNFTs();
   },
@@ -272,10 +332,25 @@ const Config = {
   },
 };
 
-const configModule = {
+const portfolioModule = {
   namespaced: true,
   state: {
-    groups: [],
+    groups: [
+      // {
+      //   name: "Group1",
+      //   accounts: [
+      //     "0x000001f568875F378Bf6d170B790967FE429C81A",
+      //     "0x00000217d2795F1Da57e392D2a5bC87125BAA38D"
+      //   ]
+      // },
+      // {
+      //   name: "Group2",
+      //   accounts: [
+      //     "0x000001f568875F378Bf6d170B790967FE429C81A",
+      //     "0x00000217d2795F1Da57e392D2a5bC87125BAA38D"
+      //   ]
+      // },
+    ],
     params: null,
     executing: false,
     executionQueue: [],
@@ -287,75 +362,75 @@ const configModule = {
   },
   mutations: {
     loadGroups(state) {
-      logInfo("configModule", "mutations.loadGroups()")
+      // logInfo("portfolioModule", "mutations.loadGroups()")
       if (localStorage.getItem('groups')) {
         state.groups = JSON.parse(localStorage.getItem('groups'));
-        // logInfo("configModule", "mutations.loadGroups(): " + JSON.stringify(state.groups));
+        // logInfo("portfolioModule", "mutations.loadGroups(): " + JSON.stringify(state.groups));
       }
     },
     // setGroups(state, g) {
-    //   logDebug("configModule", "mutations.setGroup('" + g + "')")
+    //   logDebug("portfolioModule", "mutations.setGroup('" + g + "')")
     //   state.groups = g;
     // },
     saveGroups(state) {
-      // logInfo("configModule", "mutations.saveGroups()");
+      // logInfo("portfolioModule", "mutations.saveGroups()");
       localStorage.setItem('groups', JSON.stringify(state.groups));
     },
     newGroup(state, groupName) {
-      logInfo("configModule", "mutations.newGroup(" + groupName + ")");
+      logInfo("portfolioModule", "mutations.newGroup(" + groupName + ")");
       state.groups.push( { name: groupName, accounts: [] });
     },
     newGroupAccount(state, { groupIndex, account }) {
-      logInfo("configModule", "mutations.newGroupAccount(" + groupIndex + ", " + account + ")");
+      logInfo("portfolioModule", "mutations.newGroupAccount(" + groupIndex + ", " + account + ")");
       state.groups[groupIndex].accounts.push(account);
     },
     deleteGroup(state, { groupIndex, group }) {
-      logInfo("configModule", "mutations.deleteGroup(" + groupIndex + ", " + JSON.stringify(group) + ")");
+      logInfo("portfolioModule", "mutations.deleteGroup(" + groupIndex + ", " + JSON.stringify(group) + ")");
       state.groups.splice(groupIndex, 1);
     },
     deleteAccountFromGroup(state, { groupIndex, accountIndex, account }) {
-      logInfo("configModule", "mutations.deleteAccountFromGroup(" + groupIndex + ", " + account + ")");
+      logInfo("portfolioModule", "mutations.deleteAccountFromGroup(" + groupIndex + ", " + account + ")");
       state.groups[groupIndex].accounts.splice(accountIndex, 1);
     },
     deQueue(state) {
-      logDebug("configModule", "deQueue(" + JSON.stringify(state.executionQueue) + ")");
+      logDebug("portfolioModule", "deQueue(" + JSON.stringify(state.executionQueue) + ")");
       state.executionQueue.shift();
     },
     updateParams(state, params) {
       state.params = params;
-      logDebug("configModule", "updateParams('" + params + "')")
+      logDebug("portfolioModule", "updateParams('" + params + "')")
     },
     updateExecuting(state, executing) {
       state.executing = executing;
-      logDebug("configModule", "updateExecuting(" + executing + ")")
+      logDebug("portfolioModule", "updateExecuting(" + executing + ")")
     },
   },
   actions: {
     loadGroups(context) {
-      logDebug("configModule", "actions.loadGroups()");
+      logDebug("portfolioModule", "actions.loadGroups()");
       context.commit('loadGroups');
     },
     // setGroups(context, g) {
-    //   logDebug("configModule", "actions.setGroups(" + JSON.stringify(g) + ")");
+    //   logDebug("portfolioModule", "actions.setGroups(" + JSON.stringify(g) + ")");
     //   context.commit('setGroups', g);
     // },
     newGroup(context, groupName) {
-      logInfo("configModule", "actions.newGroup(" + groupName + ")");
+      logInfo("portfolioModule", "actions.newGroup(" + groupName + ")");
       context.commit('newGroup', groupName);
       context.commit('saveGroups');
     },
     newGroupAccount(context, { groupIndex, account }) {
-      logInfo("configModule", "actions.newGroupAccount(" + groupIndex + ", " + account + ")");
+      logInfo("portfolioModule", "actions.newGroupAccount(" + groupIndex + ", " + account + ")");
       context.commit('newGroupAccount', { groupIndex, account });
       context.commit('saveGroups');
     },
     deleteGroup(context, { groupIndex, group }) {
-      logInfo("configModule", "actions.deleteGroup(" + groupIndex + ", " + JSON.stringify(group) + ")");
+      logInfo("portfolioModule", "actions.deleteGroup(" + groupIndex + ", " + JSON.stringify(group) + ")");
       context.commit('deleteGroup', { groupIndex, group });
       context.commit('saveGroups');
     },
     deleteAccountFromGroup(context, { groupIndex, accountIndex, account }) {
-      logInfo("configModule", "actions.deleteAccountFromGroup(" + groupIndex + ", " + account + ")");
+      logInfo("portfolioModule", "actions.deleteAccountFromGroup(" + groupIndex + ", " + account + ")");
       context.commit('deleteAccountFromGroup', { groupIndex, accountIndex, account });
       context.commit('saveGroups');
     },
