@@ -40,7 +40,7 @@ const Portfolio = {
                       <span>{{ data.index+1 }}</span>
                     </template>
                     <template #cell(name)="data">
-                      <span class="truncate">{{ data.item.name.substring(0, 128) }}</span>
+                      <span class="truncate">{{ data.item.name.substring(0, 64) }}</span>
                     </template>
                     <template #cell(registrationDate)="data">
                       {{ formatDate(data.item.registrationDate) }}
@@ -81,10 +81,11 @@ const Portfolio = {
       ],
 
       fields: [
-        { key: 'index', label: '#', thStyle: 'width: 25%;' },
-        { key: 'name', label: 'Name', thStyle: 'width: 25%;' },
-        { key: 'registrationDate', label: 'Registration', thStyle: 'width: 25%;' },
-        { key: 'expiryDate', label: 'Expiry', thStyle: 'width: 25%;' },
+        { key: 'index', label: '#', thStyle: 'width: 20%;' },
+        { key: 'name', label: 'Name', thStyle: 'width: 20%;' },
+        { key: 'registrationDate', label: 'Registration', thStyle: 'width: 20%;' },
+        { key: 'expiryDate', label: 'Expiry', thStyle: 'width: 20%;' },
+        { key: 'length', label: 'Length', thStyle: 'width: 20%;' },
       ],
     }
   },
@@ -119,11 +120,12 @@ const Portfolio = {
     },
     filteredResults() {
       const results = [];
+      var regexConst = this.search != null && this.search.length > 0 ? new RegExp(this.search) : null;
       for (result of Object.values(this.results)) {
         if (this.search == null || this.search.length == 0) {
           results.push(result);
         } else {
-          if (result.name == this.search) {
+          if (regexConst.test(result.name)) {
             results.push(result);
           }
         }
@@ -202,7 +204,7 @@ const Portfolio = {
 
     async retrieveNames() {
       console.log("retrieveNames");
-      const BATCHSIZE = 1000; // Max ?1000
+      const BATCHSIZE = 500; // Max ?1000
       const DELAYINMILLIS = 500;
       const url = "https://api.thegraph.com/subgraphs/name/ensdomains/ens";
       const delay = ms => new Promise(res => setTimeout(res, ms));
@@ -296,6 +298,7 @@ const Portfolio = {
               if (registration.domain.name == "jpmyorgan.eth") {
                 console.log(JSON.stringify(registration, null, 2));
               }
+              const length = registration.domain.name.indexOf("\.");
               results[registration.domain.name] = {
                 labelName: registration.labelName,
                 registrationDate: registration.registrationDate,
@@ -308,6 +311,7 @@ const Portfolio = {
                 resolver: registration.domain.resolver && registration.domain.resolver.address || null,
                 resolvedAddress: registration.domain.resolvedAddress && registration.domain.resolvedAddress.id || null,
                 parent: registration.domain.parent.name,
+                length: length,
               };
             }
             // this.results = results;
