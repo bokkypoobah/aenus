@@ -222,6 +222,7 @@ const Connection = {
               <b-link :href="network.explorer + 'token/' + network.wethAddress + '?=' + coinbase" class="card-link" target="_blank">{{ formatETH(wethBalance) }}</b-link>
             </b-col>
           </b-row>
+          <!--
           <b-row>
             <b-col cols="4" class="small">Nix WETH Allow</b-col>
             <b-col class="small truncate" cols="8">
@@ -240,12 +241,14 @@ const Connection = {
               <b-link :href="network.explorer + 'address/' + network.nixHelperAddress + '#code'" class="card-link" target="_blank">{{ network.nixHelperAddress == null ? '' : (network.nixHelperAddress.substring(0, 20) + '...') }}</b-link>
             </b-col>
           </b-row>
+          -->
           <b-row>
             <b-col cols="4" class="small">WETH</b-col>
             <b-col class="small truncate" cols="8">
               <b-link :href="network.explorer + 'token/' + network.wethAddress" class="card-link" target="_blank">{{ network.wethAddress == null ? '' : (network.wethAddress.substring(0, 20) + '...') }}</b-link>
             </b-col>
           </b-row>
+          <!--
           <b-row>
             <b-col cols="4" class="small">Royalty Engine</b-col>
             <b-col class="small truncate" cols="8">
@@ -258,6 +261,7 @@ const Connection = {
               <b-link :href="network.explorer + 'address/' + network.erc721HelperAddress + '#code'" class="card-link" target="_blank">{{ network.erc721HelperAddress == null ? '' : (network.erc721HelperAddress.substring(0, 20) + '...') }}</b-link>
             </b-col>
           </b-row>
+          -->
           <b-row v-show="Object.keys(faucets).length">
             <b-col cols="4" class="small">Faucet(s)</b-col>
             <b-col class="small truncate" cols="8">
