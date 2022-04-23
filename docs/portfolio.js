@@ -55,12 +55,17 @@ const Portfolio = {
                     </h6>
                   </template>
 
-                  <b-form-group label-cols="3" label-size="sm" label="Account Group">
+                  <b-form-group label-cols="2" label-size="sm" label="Account Group">
                     <b-form-select size="sm" v-model="selectedGroup" :options="groupOptions" class="w-50"></b-form-select>
                   </b-form-group>
-                  <b-form-group label-cols="3" label-size="sm" label="">
+                  <b-form-group label-cols="2" label-size="sm" label="">
                     <b-button size="sm" @click="retrieveNames" variant="warning">Retrieve Names</b-button>
                   </b-form-group>
+                  <b-form-group label-cols="2" label-size="sm" label="Sort">
+                    <b-form-select size="sm" v-model="sortOption" :options="sortOptions" class="w-25"></b-form-select>
+                  </b-form-group>
+
+
 
                   <b-table small :fields="fields" :items="filteredResults" responsive="sm">
                     <template #cell(index)="data">
@@ -158,10 +163,21 @@ const Portfolio = {
       count: 0,
       reschedule: true,
       selectedGroup: null,
+      sortOption: 'nameasc',
       results: [],
       newGroupName: null,
       selectedGroupIndex: null,
       newAccount: null,
+
+      sortOptions: [
+        { value: 'nameasc', text: 'Name Ascending' },
+        { value: 'namedsc', text: 'Name Descending' },
+        { value: 'expiryasc', text: 'Expiry Ascending' },
+        { value: 'expirydsc', text: 'Expiry Descending' },
+        { value: 'registrationasc', text: 'Registration Ascending' },
+        { value: 'registrationdsc', text: 'Registration Descending' },
+        { value: 'random', text: 'Random' },
+      ],
 
       fields: [
         { key: 'index', label: '#', thStyle: 'width: 25%;' },
@@ -205,6 +221,37 @@ const Portfolio = {
       for (result of Object.values(this.results)) {
         results.push(result);
       }
+
+      if (this.sortOption == 'nameasc') {
+        results.sort(function (a, b) {
+            return ('' + a.name).localeCompare(b.name);
+        })
+      } else if (this.sortOption == 'namedsc') {
+        results.sort(function (a, b) {
+            return ('' + b.name).localeCompare(a.name);
+        })
+      } else if (this.sortOption == 'expiryasc') {
+        results.sort((a, b) => {
+          return a.expiryDate - b.expiryDate;
+        });
+      } else if (this.sortOption == 'expirydsc') {
+        results.sort((a, b) => {
+          return b.expiryDate - a.expiryDate;
+        });
+      } else if (this.sortOption == 'registrationasc') {
+        results.sort((a, b) => {
+          return a.registrationDate - b.registrationDate;
+        });
+      } else if (this.sortOption == 'registrationdsc') {
+        results.sort((a, b) => {
+          return b.registrationDate - a.registrationDate;
+        });
+      } else {
+        results.sort(() => {
+          return Math.random() - 0.5;
+        });
+      }
+
       return results;
     },
   },
