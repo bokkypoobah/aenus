@@ -77,6 +77,7 @@ const Portfolio = {
         { value: 'expirydsc', text: 'Expiry Descending' },
         { value: 'registrationasc', text: 'Registration Ascending' },
         { value: 'registrationdsc', text: 'Registration Descending' },
+        { value: 'lengthname', text: 'Length Ascending, Name Ascending' },
         { value: 'random', text: 'Random' },
       ],
 
@@ -120,7 +121,21 @@ const Portfolio = {
     },
     filteredResults() {
       const results = [];
-      var regexConst = this.search != null && this.search.length > 0 ? new RegExp(this.search) : null;
+      // let regexConst = this.search != null && this.search.length > 0 ? new RegExp(this.search) : null;
+      // if (regexConst != null) {
+      //   console.log("Portfolio.filteredResults() - search: " + JSON.stringify(this.search));
+      //   console.log("Portfolio.filteredResults() - regexConst: " + JSON.stringify(regexConst.toString()));
+      // }
+      let regexConst = null;
+      if (this.search != null && this.search.length > 0) {
+        // let search = this.search.replace("$", "\\\$");
+        let search = this.search;
+        // let search = /god\$/;
+        regexConst = new RegExp(search);
+        // regexConst = /god/;
+        console.log("Portfolio.filteredResults() - search: " + JSON.stringify(search));
+        console.log("Portfolio.filteredResults() - regexConst: " + JSON.stringify(regexConst.toString()));
+      }
       for (result of Object.values(this.results)) {
         if (this.search == null || this.search.length == 0) {
           results.push(result);
@@ -154,6 +169,14 @@ const Portfolio = {
       } else if (this.sortOption == 'registrationdsc') {
         results.sort((a, b) => {
           return b.registrationDate - a.registrationDate;
+        });
+      } else if (this.sortOption == 'lengthname') {
+        results.sort((a, b) => {
+          if (a.length == b.length) {
+            return ('' + a.name).localeCompare(b.name);
+          } else {
+            return a.length - b.length;
+          }
         });
       } else {
         results.sort(() => {
