@@ -260,6 +260,14 @@ const Portfolio = {
                   __typename
                 }
                 parent {
+                  labelName
+                  labelhash
+                  name
+                  __typename
+                }
+                subdomains {
+                  labelName
+                  labelhash
                   name
                   __typename
                 }
@@ -310,7 +318,7 @@ const Portfolio = {
             })
           }).then(response => response.json());
           // if (skip == 0) {
-          //   logInfo("Portfolio", "retrieveNames() - data: " + JSON.stringify(data, null, 2));
+            // logInfo("Portfolio", "retrieveNames() - data: " + JSON.stringify(data, null, 2));
           // }
           const registrations = data.data.account.registrations || [];
           if (registrations.length == 0) {
