@@ -48,7 +48,7 @@ const Portfolio = {
                 <b-card class="mb-2">
                   <template #header>
                     <h6>
-                      Account Groups
+                      Registered ENS Names
                       <b-button size="sm" class="float-right m-0 p-0" href="#" @click="$bvModal.show('bv-modal-addgroup')" variant="link" v-b-popover.hover="'Add new group'"><b-icon-plus shift-v="-2" font-scale="1.4"></b-icon-plus></b-button>
                     </h6>
                   </template>
@@ -60,6 +60,9 @@ const Portfolio = {
                     <b-button size="sm" @click="retrieveNames" variant="warning">Retrieve Names</b-button>
                   </b-form-group>
 
+                  {{ results }}
+
+                  <!--
                   <div v-if="groups.length == 0">
                     <b-card-text>
                       Click on the + button to add a new group
@@ -85,6 +88,7 @@ const Portfolio = {
                       </div>
                     </b-card>
                   </div>
+                  -->
                 </b-card>
                 <!--
                 <b-card header="Old stuff" class="mb-2">
@@ -133,6 +137,7 @@ const Portfolio = {
       count: 0,
       reschedule: true,
       selectedGroup: null,
+      results: [],
       newGroupName: null,
       selectedGroupIndex: null,
       newAccount: null,
@@ -316,6 +321,7 @@ const Portfolio = {
                 parent: registration.domain.parent.name,
               };
             }
+            this.results = results;
           }
           skip += BATCHSIZE;
         }
