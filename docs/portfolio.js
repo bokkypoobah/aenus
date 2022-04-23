@@ -11,40 +11,6 @@ const Portfolio = {
         <b-card no-body class="border-0 m-0 mt-2">
           <b-card-body class="p-0">
 
-            <!--
-            <b-modal id="bv-modal-addgroup" size="lg" hide-footer title-class="m-0 p-0" header-class="m-1 p-1" body-class="m-1 p-1">
-              <template v-slot:modal-title>
-                Add New Group
-              </template>
-              <b-card-body class="m-0 p-0">
-                <b-card-text class="mt-5">
-                  <b-form-group label-cols="3" label-size="sm" label="New Group" description="New group name">
-                    <b-form-input size="sm" v-model="newGroupName" class="w-50"></b-form-input>
-                  </b-form-group>
-                  <b-form-group label-cols="3" label-size="sm" label="">
-                    <b-button size="sm" @click="$bvModal.hide('bv-modal-addgroup'); newGroup(newGroupName); newGroupName = null;" :disabled="newGroupName == null || newGroupName.length == 0" variant="warning">Add</b-button>
-                  </b-form-group>
-                </b-card-text>
-              </b-card-body>
-            </b-modal>
-
-            <b-modal id="bv-modal-addaccount" size="lg" hide-footer title-class="m-0 p-0" header-class="m-1 p-1" body-class="m-1 p-1">
-              <template v-slot:modal-title>
-                Add New Account To Group {{ groups[selectedGroupIndex].name }}
-              </template>
-              <b-card-body class="m-0 p-0">
-                <b-card-text class="mt-5">
-                  <b-form-group label-cols="3" label-size="sm" label="New Account">
-                    <b-form-input size="sm" v-model="newAccount" class="w-50"></b-form-input>
-                  </b-form-group>
-                  <b-form-group label-cols="3" label-size="sm" label="">
-                    <b-button size="sm" @click="newGroupAccount(selectedGroupIndex, newAccount); $bvModal.hide('bv-modal-addaccount')" :disabled="newAccount == null || newAccount.length == 0" variant="warning">Add</b-button>
-                  </b-form-group>
-                </b-card-text>
-              </b-card-body>
-            </b-modal>
-            -->
-
             <div>
               <b-card no-body class="mt-2">
                 <b-card class="mb-2">
@@ -64,12 +30,17 @@ const Portfolio = {
                   <b-form-group label-cols="2" label-size="sm" label="Sort">
                     <b-form-select size="sm" v-model="sortOption" :options="sortOptions" class="w-25"></b-form-select>
                   </b-form-group>
-
-
+                  <b-form-group label-cols="2" label-size="sm" label="Search">
+                    <!-- <b-form-input type="text" size="sm" @change="recalculate('searchTokenId')" v-model.trim="settings.searchTokenId" debounce="600" placeholder="🔍 ID1, ID2-ID3, ..."></b-form-input> -->
+                    <b-form-input type="text" size="sm" v-model.trim="search" debounce="600" class="w-25" placeholder="🔍 name"></b-form-input>
+                  </b-form-group>
 
                   <b-table small :fields="fields" :items="filteredResults" responsive="sm">
                     <template #cell(index)="data">
-                      {{ data.index+1 }}
+                      <span>{{ data.index+1 }}</span>
+                    </template>
+                    <template #cell(name)="data">
+                      <span class="truncate">{{ data.item.name.substring(0, 128) }}</span>
                     </template>
                     <template #cell(registrationDate)="data">
                       {{ formatDate(data.item.registrationDate) }}
@@ -78,78 +49,7 @@ const Portfolio = {
                       {{ formatDate(data.item.expiryDate) }}
                     </template>
                   </b-table>
-
-                  <!--
-                  {{ filteredResults }}
-
-                  <hr />
-                  <br />
-
-                  {{ results }}
-                  -->
-
-                  <!--
-                  <div v-if="groups.length == 0">
-                    <b-card-text>
-                      Click on the + button to add a new group
-                    </b-card-text>
-                  </div>
-                  <div v-for="(group, groupIndex) in groups">
-                    <b-card class="mb-2">
-                      <template #header>
-                        <h6>
-                          {{ groupIndex+1 }}. <em>{{ group.name }}</em>
-                          <b-button size="sm" class="m-0 p-0" @click="deleteGroup(groupIndex, group)" variant="link" v-b-popover.hover="'Delete ' + group.name + '!'"><b-icon-trash style="color: #ff0000;" shift-v="+1" font-scale="1.0"></b-icon-trash></b-button>
-                          <b-button size="sm" class="float-right m-0 p-0" href="#" @click="selectedGroupIndex = groupIndex; $bvModal.show('bv-modal-addaccount')" variant="link" v-b-popover.hover="'Add new account'"><b-icon-plus shift-v="+1" font-scale="1.4"></b-icon-plus></b-button>
-                        </h6>
-                      </template>
-                      <div v-if="group.accounts.length == 0">
-                        <b-card-text>
-                          Click on the + button to add a new account
-                        </b-card-text>
-                      </div>
-                      <div v-for="(account, accountIndex) in group.accounts">
-                        {{ accountIndex+1 }}. {{ account }}
-                        <b-button size="sm" class="float-right m-0 p-0" @click="deleteAccountFromGroup(groupIndex, accountIndex, account)" variant="link" v-b-popover.hover="'Delete account ' + account + '!'"><b-icon-trash style="color: #ff0000;" shift-v="+1" font-scale="1.0"></b-icon-trash></b-button>
-                      </div>
-                    </b-card>
-                  </div>
-                  -->
                 </b-card>
-                <!--
-                <b-card header="Old stuff" class="mb-2">
-                  <b-card-text>
-                    <b-form-group label-cols="3" label-size="sm" label="Transfer Nix ownership to" description="e.g. 0x123456...">
-                      <b-form-input size="sm" v-model="admin.transferTo" class="w-50"></b-form-input>
-                    </b-form-group>
-                  </b-card-text>
-                  <b-form-group label-cols="3" label-size="sm" label="">
-                    <b-button size="sm" @click="transferOwnership" variant="warning">Transfer Ownership</b-button>
-                  </b-form-group>
-                  <b-form-group label-cols="3" label-size="sm" label="Data">
-                    <b-form-textarea size="sm" rows="10" v-model="JSON.stringify(admin, null, 2)" class="w-50"></b-form-textarea>
-                  </b-form-group>
-                </b-card>
-                <b-card header="Withdraw ETH, ERC-20 And ERC-721 Tokens From Nix" class="mb-2">
-                  <b-card-text>
-                    <b-form-group label-cols="3" label-size="sm" label="Token" description="Blank for ETH, address for ERC-20 or ERC-721. e.g., 0xD000F000Aa1F8accbd5815056Ea32A54777b2Fc4 for TestToadz">
-                      <b-form-input size="sm" v-model="admin.token" class="w-50"></b-form-input>
-                    </b-form-group>
-                    <b-form-group label-cols="3" label-size="sm" label="Tokens" description="Tokens in raw format, for ETH and ERC-20. e.g., 3500000000000000000 for 3.5 with 18dp. Set to 0 or null for full balance">
-                      <b-form-input size="sm" v-model="admin.tokens" class="w-50"></b-form-input>
-                    </b-form-group>
-                    <b-form-group label-cols="3" label-size="sm" label="Token Id" description="ERC-721 Token Id. e.g., 3">
-                      <b-form-input size="sm" v-model="admin.tokenId" class="w-50"></b-form-input>
-                    </b-form-group>
-                  </b-card-text>
-                  <b-form-group label-cols="3" label-size="sm" label="">
-                    <b-button size="sm" @click="withdraw" variant="warning">Withdraw</b-button>
-                  </b-form-group>
-                  <b-form-group label-cols="3" label-size="sm" label="Data">
-                    <b-form-textarea size="sm" rows="10" v-model="JSON.stringify(admin, null, 2)" class="w-50"></b-form-textarea>
-                  </b-form-group>
-                </b-card>
-                -->
               </b-card>
             </div>
 
@@ -164,6 +64,7 @@ const Portfolio = {
       reschedule: true,
       selectedGroup: null,
       sortOption: 'nameasc',
+      search: null,
       results: [],
       newGroupName: null,
       selectedGroupIndex: null,
@@ -219,7 +120,13 @@ const Portfolio = {
     filteredResults() {
       const results = [];
       for (result of Object.values(this.results)) {
-        results.push(result);
+        if (this.search == null || this.search.length == 0) {
+          results.push(result);
+        } else {
+          if (result.name == this.search) {
+            results.push(result);
+          }
+        }
       }
 
       if (this.sortOption == 'nameasc') {
