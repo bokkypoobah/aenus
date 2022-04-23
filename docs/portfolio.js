@@ -56,6 +56,9 @@ const Portfolio = {
                   <b-form-group label-cols="3" label-size="sm" label="Account Group">
                     <b-form-select size="sm" v-model="selectedGroup" :options="groupOptions" class="w-50"></b-form-select>
                   </b-form-group>
+                  <b-form-group label-cols="3" label-size="sm" label="">
+                    <b-button size="sm" @click="retrieveNames" variant="warning">Retrieve Names</b-button>
+                  </b-form-group>
 
                   <div v-if="groups.length == 0">
                     <b-card-text>
@@ -153,22 +156,16 @@ const Portfolio = {
     },
     groupOptions() {
       const results = [];
-      if (store.getters['config/groups']) {
+      if (this.groups) {
         if (this.coinbase) {
           results.push({ value: null, text: "Current account (" + this.coinbase + ")" });
         }
         let i = 0;
-        for (const group of store.getters['config/groups']) {
+        for (const group of this.groups) {
           results.push({ value: i++, text: group.name });
         }
       }
       return results;
-    },
-    tokensData() {
-      return store.getters['nixData/tokensData'];
-    },
-    tradeData() {
-      return store.getters['nixData/tradeData'];
     },
   },
   methods: {
@@ -207,6 +204,123 @@ const Portfolio = {
       setTimeout(function() {
         t.statusSidebar = true;
       }, 1500);
+    },
+
+    async retrieveNames() {
+      console.log("retrieveNames");
+      const BATCHSIZE = 1000; // Max ?1000
+      const DELAYINMILLIS = 500;
+      const url = "https://api.thegraph.com/subgraphs/name/ensdomains/ens";
+      const delay = ms => new Promise(res => setTimeout(res, ms));
+
+      const query = `
+        query getRegistrations($id: ID!, $first: Int, $skip: Int, $orderBy: Registration_orderBy, $orderDirection: OrderDirection, $expiryDate: Int) {
+          account(id: $id) {
+            registrations(first: $first, skip: $skip, orderBy: $orderBy, orderDirection: $orderDirection, where: {expiryDate_gt: $expiryDate}) {
+              registrationDate
+              expiryDate
+              cost
+              registrant {
+                id
+                __typename
+              }
+              labelName
+              domain {
+                labelName
+                labelhash
+                name
+                isMigrated
+                resolver {
+                  address
+                  coinTypes
+                  texts
+                  __typename
+                }
+                resolvedAddress {
+                  id
+                  __typename
+                }
+                parent {
+                  name
+                  __typename
+                }
+                __typename
+              }
+              events {
+                id
+                blockNumber
+                transactionID
+                __typename
+              }
+              __typename
+            }
+            __typename
+          }
+        }
+      `;
+
+      let accounts;
+      if (this.selectedGroup == null) {
+        accounts = [ this.coinbase ];
+      } else {
+        let group = this.groups[this.selectedGroup];
+        accounts = group.accounts;
+      }
+      logInfo("Portfolio", "retrieveNames() - accounts: " + JSON.stringify(accounts));
+      // const expiryDate = parseInt(new Date().valueOf() / 1000);
+      const expiryDate = 1642582008;
+      logInfo("Portfolio", "retrieveNames() - expiryDate: " + JSON.stringify(expiryDate));
+      const results = {};
+      for (account of accounts) {
+        logInfo("Portfolio", "retrieveNames() - account: " + JSON.stringify(account));
+        const first = BATCHSIZE;
+        const id = account.toLowerCase();
+        let skip = 0;
+        // console.log(JSON.stringify({ query, variables: { id, first, skip, expiryDate } }));
+        let completed = false;
+        while (!completed) {
+          const data = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: JSON.stringify({
+              query,
+              variables: { id, first, skip, expiryDate },
+            })
+          }).then(response => response.json());
+          // if (skip == 0) {
+          //   logInfo("Portfolio", "retrieveNames() - data: " + JSON.stringify(data, null, 2));
+          // }
+          const registrations = data.data.account.registrations || [];
+          if (registrations.length == 0) {
+            completed = true;
+          } else {
+            for (registration of registrations) {
+              // console.log(registration.labelName);
+              if (registration.domain.name == "jpmyorgan.eth") {
+                console.log(JSON.stringify(registration, null, 2));
+              }
+              results[registration.domain.name] = {
+                labelName: registration.labelName,
+                registrationDate: registration.registrationDate,
+                expiryDate: registration.expiryDate,
+                cost: registration.cost,
+                registrant: registration.registrant.id,
+                labelhash: registration.domain.labelhash,
+                name: registration.domain.name,
+                isMigrated: registration.domain.isMigrated,
+                resolver: registration.domain.resolver && registration.domain.resolver.address || null,
+                resolvedAddress: registration.domain.resolvedAddress && registration.domain.resolvedAddress.id || null,
+                parent: registration.domain.parent.name,
+              };
+            }
+          }
+          skip += BATCHSIZE;
+        }
+      }
+      // logInfo("Portfolio", "retrieveNames() - results: " + JSON.stringify(results, null, 2));
     },
 
     newGroup(groupName) {
