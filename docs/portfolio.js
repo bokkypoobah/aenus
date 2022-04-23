@@ -209,7 +209,7 @@ const Portfolio = {
         return "(no expiry)";
       } else {
         if (new RegExp('^[0-9]+$').test(d)) {
-          return new Date(parseInt(d) * 1000).toISOString(); // .substring(4);
+          return new Date(parseInt(d) * 1000).toISOString().replace('T', ' ').replace('.000Z', ''); // .substring(4);
         } else {
           return new Date(d).toDateString().substring(4);
         }
@@ -318,7 +318,7 @@ const Portfolio = {
             })
           }).then(response => response.json());
           // if (skip == 0) {
-            // logInfo("Portfolio", "retrieveNames() - data: " + JSON.stringify(data, null, 2));
+            logInfo("Portfolio", "retrieveNames() - data: " + JSON.stringify(data, null, 2));
           // }
           const registrations = data.data.account.registrations || [];
           if (registrations.length == 0) {
