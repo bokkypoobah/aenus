@@ -11,6 +11,7 @@ const Portfolio = {
         <b-card no-body class="border-0 m-0 mt-2">
           <b-card-body class="p-0">
 
+            <!--
             <b-modal id="bv-modal-addgroup" size="lg" hide-footer title-class="m-0 p-0" header-class="m-1 p-1" body-class="m-1 p-1">
               <template v-slot:modal-title>
                 Add New Group
@@ -42,6 +43,7 @@ const Portfolio = {
                 </b-card-text>
               </b-card-body>
             </b-modal>
+            -->
 
             <div>
               <b-card no-body class="mt-2">
@@ -60,7 +62,26 @@ const Portfolio = {
                     <b-button size="sm" @click="retrieveNames" variant="warning">Retrieve Names</b-button>
                   </b-form-group>
 
+                  <b-table small :fields="fields" :items="filteredResults" responsive="sm">
+                    <template #cell(index)="data">
+                      {{ data.index+1 }}
+                    </template>
+                    <template #cell(registrationDate)="data">
+                      {{ formatDate(data.item.registrationDate) }}
+                    </template>
+                    <template #cell(expiryDate)="data">
+                      {{ formatDate(data.item.expiryDate) }}
+                    </template>
+                  </b-table>
+
+                  <!--
+                  {{ filteredResults }}
+
+                  <hr />
+                  <br />
+
                   {{ results }}
+                  -->
 
                   <!--
                   <div v-if="groups.length == 0">
@@ -141,6 +162,13 @@ const Portfolio = {
       newGroupName: null,
       selectedGroupIndex: null,
       newAccount: null,
+
+      fields: [
+        { key: 'index', label: '#', thStyle: 'width: 25%;' },
+        { key: 'name', label: 'Name', thStyle: 'width: 25%;' },
+        { key: 'registrationDate', label: 'Registration', thStyle: 'width: 25%;' },
+        { key: 'expiryDate', label: 'Expiry', thStyle: 'width: 25%;' },
+      ],
     }
   },
   computed: {
@@ -169,6 +197,13 @@ const Portfolio = {
         for (const group of this.groups) {
           results.push({ value: i++, text: group.name });
         }
+      }
+      return results;
+    },
+    filteredResults() {
+      const results = [];
+      for (result of Object.values(this.results)) {
+        results.push(result);
       }
       return results;
     },
@@ -321,12 +356,13 @@ const Portfolio = {
                 parent: registration.domain.parent.name,
               };
             }
-            this.results = results;
+            // this.results = results;
           }
           skip += BATCHSIZE;
         }
       }
-      // logInfo("Portfolio", "retrieveNames() - results: " + JSON.stringify(results, null, 2));
+      this.results = results;
+      logInfo("Portfolio", "retrieveNames() - results: " + JSON.stringify(results, null, 2));
     },
 
     newGroup(groupName) {
