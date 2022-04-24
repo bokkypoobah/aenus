@@ -1,7 +1,7 @@
 const Search = {
   template: `
     <div class="mt-5 pt-3">
-      <b-card class="mt-5" header-class="warningheader" header="Web3 Connection And/Or Incorrect Network Detected" v-if="!powerOn || network.chainId != 1">
+      <b-card class="mt-5" header-class="warningheader" header="Web3 Connection And/Or Incorrect Network Detected" v-if="false && (!powerOn || network.chainId != 1)">
         <b-card-text>
           Please install the MetaMask extension, connect to the Ethereum mainnet and refresh this page. Then click the [Power] button on the top right.
         </b-card-text>
@@ -20,22 +20,90 @@ const Search = {
                     </h6>
                   </template>
 
+                  <b-row v-if="settings.searchOption == 'single'">
+                    <b-col cols="2" class="m-0 p-1 text-right">
+                      ENS name
+                    </b-col>
+                    <b-col cols="6" class="m-0 p-1">
+                      <b-form-input t6pe="text" size="sm" v-model.trim="settings.searchString" placeholder="🔍 {name1}[.eth] {name2}[.eth], {name3}[.eth] ..."></b-form-input>
+                    </b-col>
+                    <b-col cols="2" class="m-0 p-1">
+                    </b-col>
+                  </b-row>
+                  <b-row v-if="settings.searchOption == 'owned'">
+                    <b-col cols="2" class="m-0 p-1 text-right">
+                      Account or ENS name
+                    </b-col>
+                    <b-col cols="6" class="m-0 p-1">
+                      <b-form-input type="text" size="sm" v-model.trim="settings.searchString" placeholder="🔍 0x012345... 0x123456..., {name1}[.eth] {name2}[.eth] ..."></b-form-input>
+                    </b-col>
+                    <b-col cols="2" class="m-0 p-1">
+                    </b-col>
+                  </b-row>
+                  <b-row v-if="settings.searchOption == 'group'">
+                    <b-col cols="2" class="m-0 p-1 text-right">
+                      Account Group
+                    </b-col>
+                    <b-col cols="6" class="m-0 p-1">
+                      <b-form-select size="sm" v-model="settings.selectedGroup" :options="groupOptions" v-b-popover.hover="'Set up groups in Config'" ></b-form-select>
+                    </b-col>
+                    <b-col cols="2" class="m-0 p-1">
+                    </b-col>
+                  </b-row>
+                  <b-row>
+                    <b-col cols="2" class="m-0 p-1 text-right">
+                      Search By
+                    </b-col>
+                    <b-col cols="6" class="m-0 p-1">
+                      <b-form-radio-group v-model="settings.searchOption" :options="searchOptions">
+                      </b-form-radio-group>
+                    </b-col>
+                  </b-row>
+                  <b-row>
+                    <b-col cols="2" class="m-0 p-1 text-right">
+                    </b-col>
+                    <b-col cols="6" class="m-0 p-1">
+                      <b-button size="sm" @click="retrieveNames" :disabled="retrievingMessage != null" variant="warning">{{ retrievingMessage ? retrievingMessage : 'Retrieve Names'}}</b-button>
+                    </b-col>
+                  </b-row>
+                  <b-row>
+                    <b-col cols="2" class="m-0 p-1 text-right">
+                      Filter
+                    </b-col>
+                    <b-col cols="4" class="m-0 p-1">
+                      <b-form-input type="text" size="sm" v-model.trim="settings.filter" debounce="600" class="w-100" placeholder="🔍 name"></b-form-input>
+                    </b-col>
+                    <b-col cols="2" class="m-0 p-1">
+                      {{ filteredResults.length + ' of ' + Object.keys(results).length }}
+                    </b-col>
+                  </b-row>
+
+                  <!--
+                  <br />
+                  <br />
+                  <br />
+
                   <b-form-group label-cols="2" label-size="sm" label="Account Group">
-                    <b-form-select size="sm" v-model="selectedGroup" :options="groupOptions" class="w-50"></b-form-select>
+                    <b-form-select size="sm" v-model="settings.selectedGroup" :options="groupOptions" class="w-50"></b-form-select>
                   </b-form-group>
                   <b-form-group label-cols="2" label-size="sm" label="">
                     <b-button size="sm" @click="retrieveNames" :disabled="retrievingMessage != null" variant="warning">{{ retrievingMessage ? retrievingMessage : 'Retrieve Names'}}</b-button>
                   </b-form-group>
+                  -->
                   <!--
                   <b-form-group label-cols="2" label-size="sm" label="Sort">
                     <b-form-select size="sm" v-model="sortOption" :options="sortOptions" class="w-25"></b-form-select>
                   </b-form-group>
                   -->
-                  <b-form-group label-cols="2" label-size="sm" label="Search" :description="filteredResults.length + ' of ' + Object.keys(results).length">
-                    <b-form-input type="text" size="sm" v-model.trim="search" debounce="600" class="w-25" placeholder="🔍 name"></b-form-input>
+                  <!--
+                  <b-form-group label-cols="2" label-size="sm" label="Filter" :description="filteredResults.length + ' of ' + Object.keys(results).length">
+                    <b-form-input type="text" size="sm" v-model.trim="settings.filter" debounce="600" class="w-25" placeholder="🔍 name"></b-form-input>
                   </b-form-group>
+                  -->
 
-                  <b-table small striped hover :fields="fields" :items="filteredResults" responsive="sm">
+                  <hr />
+
+                  <b-table small striped hover :fields="fields" :items="filteredResults" responsive="sm" class="mt-3">
                     <template #cell(index)="data">
                       <span>{{ data.index+1 }}</span>
                     </template>
@@ -84,9 +152,20 @@ const Search = {
     return {
       count: 0,
       reschedule: true,
-      selectedGroup: null,
+
+      settings: {
+        searchOption: 'owned',
+        searchString: null, // 'mrfahrenheit, fahrenheit.eth 0x287F9b46dceA520D829c874b0AF01f4fbfeF9243',
+        selectedGroup: null,
+        filter: null,
+      },
+      searchOptions: [
+        { value: 'single', text: 'Single Name(s)' },
+        { value: 'owned', text: 'Owned Names' },
+        { value: 'group', text: 'Account Groups' },
+      ],
+
       sortOption: 'expiryasc',
-      search: null,
       retrievingMessage: null,
       results: [],
 
@@ -132,6 +211,8 @@ const Search = {
       if (this.groups) {
         if (this.coinbase) {
           results.push({ value: null, text: "Current account (" + this.coinbase + ")" });
+        } else {
+          results.push({ value: null, text: "Connect your web3 wallet & create your groups in Config" });
         }
         let i = 0;
         for (const group of this.groups) {
@@ -148,17 +229,17 @@ const Search = {
       //   console.log("Search.filteredResults() - regexConst: " + JSON.stringify(regexConst.toString()));
       // }
       let regexConst = null;
-      if (this.search != null && this.search.length > 0) {
+      if (this.settings.filter != null && this.settings.filter.length > 0) {
         // let search = this.search.replace("$", "\\\$");
-        let search = this.search;
-        // let search = /god\$/;
-        regexConst = new RegExp(search);
+        let filter = this.settings.filter;
+        // let filter = /god\$/;
+        regexConst = new RegExp(filter);
         // regexConst = /god/;
-        // console.log("Search.filteredResults() - search: " + JSON.stringify(search));
+        // console.log("Search.filteredResults() - filter: " + JSON.stringify(filter));
         // console.log("Search.filteredResults() - regexConst: " + JSON.stringify(regexConst.toString()));
       }
       for (result of Object.values(this.results)) {
-        if (this.search == null || this.search.length == 0) {
+        if (this.settings.filter == null || this.settings.filter.length == 0) {
           results.push(result);
         } else {
           if (regexConst.test(result.name)) {
@@ -247,13 +328,56 @@ const Search = {
     },
 
     async retrieveNames() {
-      console.log("retrieveNames");
       const BATCHSIZE = 500; // Max ?1000
       const DELAYINMILLIS = 500;
       const url = "https://api.thegraph.com/subgraphs/name/ensdomains/ens";
       const delay = ms => new Promise(res => setTimeout(res, ms));
 
-      const query = `
+      const nameQuery = `
+        query getRegistrations($labelNames: [String!]!) {
+          registrations(where: {labelName_in: $labelNames}) {
+            registrationDate
+            expiryDate
+            cost
+            registrant {
+              id
+            }
+            labelName
+            domain {
+              labelName
+              labelhash
+              name
+              isMigrated
+              resolver {
+                address
+                coinTypes
+                texts
+              }
+              resolvedAddress {
+                id
+              }
+              parent {
+                labelName
+                labelhash
+                name
+              }
+              subdomains {
+                labelName
+                labelhash
+                name
+              }
+            }
+            events {
+              id
+              blockNumber
+              transactionID
+              __typename
+            }
+          }
+        }
+      `;
+
+      const ownedQuery = `
         query getRegistrations($id: ID!, $first: Int, $skip: Int, $orderBy: Registration_orderBy, $orderDirection: OrderDirection, $expiryDate: Int) {
           account(id: $id) {
             registrations(first: $first, skip: $skip, orderBy: $orderBy, orderDirection: $orderDirection, where: {expiryDate_gt: $expiryDate}) {
@@ -299,77 +423,139 @@ const Search = {
         }
       `;
 
-      let accounts;
-      if (this.selectedGroup == null) {
-        accounts = [ this.coinbase ];
-      } else {
-        let group = this.groups[this.selectedGroup];
-        accounts = group.accounts;
-      }
-      logInfo("Search", "retrieveNames() - accounts: " + JSON.stringify(accounts));
+      const results = {};
       const now = parseInt(new Date().valueOf() / 1000);
       const expiryDate = parseInt(now) - 90 * 24 * 60 * 60;
       const warningDate = parseInt(now) + 90 * 24 * 60 * 60;
-      logInfo("Search", "retrieveNames() - expiryDate: " + expiryDate + " = " + new Date(expiryDate * 1000));
-      const results = {};
-      for (account of accounts) {
-        logInfo("Search", "retrieveNames() - account: " + JSON.stringify(account));
-        const first = BATCHSIZE;
-        const id = account.toLowerCase();
-        let skip = 0;
-        // console.log(JSON.stringify({ query, variables: { id, first, skip, expiryDate } }));
-        let completed = false;
-        let records = 0;
-        while (!completed) {
-          const data = await fetch(url, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-            },
-            body: JSON.stringify({
-              query,
-              variables: { id, first, skip, expiryDate },
-            })
-          }).then(response => response.json());
-          // if (skip == 0) {
-            // logInfo("Search", "retrieveNames() - data: " + JSON.stringify(data, null, 2));
-          // }
-          const registrations = data.data.account.registrations || [];
-          if (registrations.length == 0) {
-            completed = true;
-          } else {
-            records = records + registrations.length;
-            this.retrievingMessage = "Retrieved " + records;
-            for (registration of registrations) {
-              console.log(registration.domain.name);
-              if (registration.domain.name == "mrfahrenheit.eth") {
-                console.log(JSON.stringify(registration, null, 2));
-              }
-              const length = registration.domain.name.indexOf("\.");
-              results[registration.domain.name] = {
-                labelName: registration.labelName,
-                registrationDate: registration.registrationDate,
-                expiryDate: registration.expiryDate,
-                cost: registration.cost,
-                registrant: registration.registrant.id,
-                labelhash: registration.domain.labelhash,
-                tokenId: new BigNumber(registration.domain.labelhash.substring(2), 16).toFixed(0),
-                name: registration.domain.name,
-                isMigrated: registration.domain.isMigrated,
-                resolver: registration.domain.resolver && registration.domain.resolver.address || null,
-                resolvedAddress: registration.domain.resolvedAddress && registration.domain.resolvedAddress.id || null,
-                parent: registration.domain.parent.name,
-                length: length,
-                warn: registration.expiryDate < now ? 'red' : registration.expiryDate < warningDate ? 'orange' : null,
-                hasAvatar: registration.domain.resolver && registration.domain.resolver.texts && registration.domain.resolver.texts.includes("avatar"),
-              };
-              // const test = { ...results[registration.domain.name], name: undefined };
-              // console.log(JSON.stringify(test, null, 2));
-            }
-            // this.results = results;
+
+      let searchForAccounts = [];
+      if (this.settings.searchOption == 'single' || this.settings.searchOption == 'owned') {
+        console.log("Here: " + this.settings.searchString);
+
+        // TODO: Cater for 0x1234...5678.eth ENS names
+        const searchForLabelNames = this.settings.searchString.split(/[, \t]+/)
+          .map(function(item) { return item.replace('.eth', '').toLowerCase().trim(); })
+          .filter(function (name) { return ! (name.length == 42 && name.substring(0, 2) == '0x'); });
+        logInfo("Search", "retrieveNames() - searchForLabelNames: " + JSON.stringify(searchForLabelNames, null, 2));
+
+        searchForAccounts = this.settings.searchString.split(/[, \t]+/)
+          .map(function(item) { return item.replace('.eth', '').toLowerCase().trim(); })
+          .filter(function (name) { return name.length == 42 && name.substring(0, 2) == '0x'; });
+        logInfo("Search", "retrieveNames() - searchForAccounts: " + JSON.stringify(searchForAccounts, null, 2));
+
+        const data = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify({
+            query: nameQuery,
+            variables: { labelNames: searchForLabelNames },
+          })
+        }).then(response => response.json());
+        // logInfo("Search", "retrieveNames() - data: " + JSON.stringify(data, null, 2));
+        const registrations = data.data.registrations || [];
+        const registrantMap = {};
+        // logInfo("Search", "retrieveNames() - registrations: " + JSON.stringify(registrations, null, 2));
+        for (registration of registrations) {
+          console.log(registration.domain.name);
+          logInfo("Search", "retrieveNames() - registration: " + JSON.stringify(registration, null, 2));
+          if (this.settings.searchOption == 'owned') {
+            registrantMap[registration.registrant.id] = true;
           }
-          skip += BATCHSIZE;
+          results[registration.domain.name] = {
+            labelName: registration.labelName,
+            registrationDate: registration.registrationDate,
+            expiryDate: registration.expiryDate,
+            cost: registration.cost,
+            registrant: registration.registrant.id,
+            labelhash: registration.domain.labelhash,
+            tokenId: new BigNumber(registration.domain.labelhash.substring(2), 16).toFixed(0),
+            name: registration.domain.name,
+            isMigrated: registration.domain.isMigrated,
+            resolver: registration.domain.resolver && registration.domain.resolver.address || null,
+            resolvedAddress: registration.domain.resolvedAddress && registration.domain.resolvedAddress.id || null,
+            parent: registration.domain.parent.name,
+            length: registration.domain.name.indexOf("\."),
+            warn: registration.expiryDate < now ? 'red' : registration.expiryDate < warningDate ? 'orange' : null,
+            hasAvatar: registration.domain.resolver && registration.domain.resolver.texts && registration.domain.resolver.texts.includes("avatar"),
+          };
+        }
+        logInfo("Search", "retrieveNames() - registrantMap: " + JSON.stringify(registrantMap, null, 2));
+        searchForAccounts = [ ...searchForAccounts, ...Object.keys(registrantMap) ];
+        logInfo("Search", "retrieveNames() - searchForAccounts: " + JSON.stringify(searchForAccounts, null, 2));
+      }
+
+      if (this.settings.searchOption != 'single') {
+        if (this.settings.selectedGroup == null) {
+          if (this.coinbase != null) {
+            searchForAccounts = [ ...searchForAccounts, this.coinbase ];
+          }
+        } else {
+          let group = this.groups[this.settings.selectedGroup];
+          searchForAccounts = [ ...searchForAccounts, ...group.accounts ];
+        }
+        logInfo("Search", "retrieveNames() - searchForAccounts: " + JSON.stringify(searchForAccounts));
+        logInfo("Search", "retrieveNames() - expiryDate: " + expiryDate + " = " + new Date(expiryDate * 1000));
+        for (account of searchForAccounts) {
+          logInfo("Search", "retrieveNames() - account: " + JSON.stringify(account));
+          const first = BATCHSIZE;
+          const id = account.toLowerCase();
+          let skip = 0;
+          // console.log(JSON.stringify({ query, variables: { id, first, skip, expiryDate } }));
+          let completed = false;
+          let records = 0;
+          while (!completed) {
+            const data = await fetch(url, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+              },
+              body: JSON.stringify({
+                query: ownedQuery,
+                variables: { id, first, skip, expiryDate },
+              })
+            }).then(response => response.json());
+            // if (skip == 0) {
+              // logInfo("Search", "retrieveNames() - data: " + JSON.stringify(data, null, 2));
+            // }
+            const registrations = data.data.account.registrations || [];
+            if (registrations.length == 0) {
+              completed = true;
+            } else {
+              records = records + registrations.length;
+              this.retrievingMessage = "Retrieved " + records;
+              for (registration of registrations) {
+                // console.log(registration.domain.name);
+                if (registration.domain.name == "mrfahrenheit.eth") {
+                  console.log(JSON.stringify(registration, null, 2));
+                }
+                results[registration.domain.name] = {
+                  labelName: registration.labelName,
+                  registrationDate: registration.registrationDate,
+                  expiryDate: registration.expiryDate,
+                  cost: registration.cost,
+                  registrant: registration.registrant.id,
+                  labelhash: registration.domain.labelhash,
+                  tokenId: new BigNumber(registration.domain.labelhash.substring(2), 16).toFixed(0),
+                  name: registration.domain.name,
+                  isMigrated: registration.domain.isMigrated,
+                  resolver: registration.domain.resolver && registration.domain.resolver.address || null,
+                  resolvedAddress: registration.domain.resolvedAddress && registration.domain.resolvedAddress.id || null,
+                  parent: registration.domain.parent.name,
+                  length: registration.domain.name.indexOf("\."),
+                  warn: registration.expiryDate < now ? 'red' : registration.expiryDate < warningDate ? 'orange' : null,
+                  hasAvatar: registration.domain.resolver && registration.domain.resolver.texts && registration.domain.resolver.texts.includes("avatar"),
+                };
+                // const test = { ...results[registration.domain.name], name: undefined };
+                // console.log(JSON.stringify(test, null, 2));
+              }
+              // this.results = results;
+            }
+            skip += BATCHSIZE;
+          }
         }
       }
       this.results = results;
