@@ -40,7 +40,18 @@ const Portfolio = {
                       <span>{{ data.index+1 }}</span>
                     </template>
                     <template #cell(name)="data">
-                      <span class="truncate">{{ data.item.name.substring(0, 64) }}</span>
+                      {{ data.item.name.substring(0, 64) }}
+                      <font size="-2">
+                        <b-link :href="'https://app.ens.domains/name/' + data.item.name" v-b-popover.hover="'View in app.ens.domains'" target="_blank">
+                          ENS
+                        </b-link>
+                        <b-link :href="'https://opensea.io/assets/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + data.item.tokenId" v-b-popover.hover="'View in opensea.io'" target="_blank">
+                          OS
+                        </b-link>
+                        <b-link :href="'https://looksrare.org/collections/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + data.item.tokenId" v-b-popover.hover="'View in looksrare.org'" target="_blank">
+                          LR
+                        </b-link>
+                      </font>
                     </template>
                     <template #cell(registrationDate)="data">
                       {{ formatDate(data.item.registrationDate) }}
@@ -82,11 +93,11 @@ const Portfolio = {
       ],
 
       fields: [
-        { key: 'index', label: '#', thStyle: 'width: 20%;' },
-        { key: 'name', label: 'Name', thStyle: 'width: 20%;' },
+        { key: 'index', label: '#', thStyle: 'width: 10%;' },
+        { key: 'name', label: 'Name', thStyle: 'width: 40%;' },
         { key: 'registrationDate', label: 'Registration', thStyle: 'width: 20%;' },
         { key: 'expiryDate', label: 'Expiry', thStyle: 'width: 20%;' },
-        { key: 'length', label: 'Length', thStyle: 'width: 20%;' },
+        { key: 'length', label: 'Length', thStyle: 'width: 10%;' },
       ],
     }
   },
@@ -296,7 +307,7 @@ const Portfolio = {
       logInfo("Portfolio", "retrieveNames() - accounts: " + JSON.stringify(accounts));
       // const expiryDate = parseInt(new Date().valueOf() / 1000);
       const expiryDate = 1642582008;
-      logInfo("Portfolio", "retrieveNames() - expiryDate: " + JSON.stringify(expiryDate));
+      logInfo("Portfolio", "retrieveNames() - expiryDate: " + expiryDate + " = " + new Date(expiryDate * 1000));
       const results = {};
       for (account of accounts) {
         logInfo("Portfolio", "retrieveNames() - account: " + JSON.stringify(account));
@@ -318,7 +329,7 @@ const Portfolio = {
             })
           }).then(response => response.json());
           // if (skip == 0) {
-            logInfo("Portfolio", "retrieveNames() - data: " + JSON.stringify(data, null, 2));
+            // logInfo("Portfolio", "retrieveNames() - data: " + JSON.stringify(data, null, 2));
           // }
           const registrations = data.data.account.registrations || [];
           if (registrations.length == 0) {
@@ -337,6 +348,7 @@ const Portfolio = {
                 cost: registration.cost,
                 registrant: registration.registrant.id,
                 labelhash: registration.domain.labelhash,
+                tokenId: new BigNumber(registration.domain.labelhash.substring(2), 16).toFixed(0),
                 name: registration.domain.name,
                 isMigrated: registration.domain.isMigrated,
                 resolver: registration.domain.resolver && registration.domain.resolver.address || null,
