@@ -259,7 +259,6 @@ const Search = {
               cost
               registrant {
                 id
-                __typename
               }
               labelName
               domain {
@@ -271,25 +270,20 @@ const Search = {
                   address
                   coinTypes
                   texts
-                  __typename
                 }
                 resolvedAddress {
                   id
-                  __typename
                 }
                 parent {
                   labelName
                   labelhash
                   name
-                  __typename
                 }
                 subdomains {
                   labelName
                   labelhash
                   name
-                  __typename
                 }
-                __typename
               }
               events {
                 id
@@ -297,9 +291,7 @@ const Search = {
                 transactionID
                 __typename
               }
-              __typename
             }
-            __typename
           }
         }
       `;
@@ -381,101 +373,101 @@ const Search = {
       // logInfo("Search", "retrieveNames() - results: " + JSON.stringify(results, null, 2));
     },
 
-    newGroup(groupName) {
-      // console.log("newGroup: " + JSON.stringify(groupName));
-      this.$bvModal.msgBoxConfirm('Add new group ' + groupName + '?', {
-          title: 'Please Confirm',
-          size: 'sm',
-          buttonSize: 'sm',
-          okVariant: 'danger',
-          okTitle: 'Yes',
-          cancelTitle: 'No',
-          footerClass: 'p-2',
-          hideHeaderClose: false,
-          centered: true
-        })
-        .then(async value1 => {
-          if (value1) {
-            event.preventDefault();
-            store.dispatch('config/newGroup', groupName);
-          }
-        })
-        .catch(err => {
-          // An error occurred
-        });
-    },
+    // newGroup(groupName) {
+    //   // console.log("newGroup: " + JSON.stringify(groupName));
+    //   this.$bvModal.msgBoxConfirm('Add new group ' + groupName + '?', {
+    //       title: 'Please Confirm',
+    //       size: 'sm',
+    //       buttonSize: 'sm',
+    //       okVariant: 'danger',
+    //       okTitle: 'Yes',
+    //       cancelTitle: 'No',
+    //       footerClass: 'p-2',
+    //       hideHeaderClose: false,
+    //       centered: true
+    //     })
+    //     .then(async value1 => {
+    //       if (value1) {
+    //         event.preventDefault();
+    //         store.dispatch('config/newGroup', groupName);
+    //       }
+    //     })
+    //     .catch(err => {
+    //       // An error occurred
+    //     });
+    // },
 
-    newGroupAccount(groupIndex, account) {
-      // console.log("newGroupAccount: " + groupIndex + ", " + account);
-      this.$bvModal.msgBoxConfirm('Add new account ' + account + ' to group ' + this.groups[groupIndex].name + '?', {
-          title: 'Please Confirm',
-          size: 'lg',
-          buttonSize: 'sm',
-          okVariant: 'danger',
-          okTitle: 'Yes',
-          cancelTitle: 'No',
-          footerClass: 'p-2',
-          hideHeaderClose: false,
-          centered: true
-        })
-        .then(async value1 => {
-          if (value1) {
-            event.preventDefault();
-            store.dispatch('config/newGroupAccount', { groupIndex, account });
-          }
-        })
-        .catch(err => {
-          // An error occurred
-        });
-    },
+    // newGroupAccount(groupIndex, account) {
+    //   // console.log("newGroupAccount: " + groupIndex + ", " + account);
+    //   this.$bvModal.msgBoxConfirm('Add new account ' + account + ' to group ' + this.groups[groupIndex].name + '?', {
+    //       title: 'Please Confirm',
+    //       size: 'lg',
+    //       buttonSize: 'sm',
+    //       okVariant: 'danger',
+    //       okTitle: 'Yes',
+    //       cancelTitle: 'No',
+    //       footerClass: 'p-2',
+    //       hideHeaderClose: false,
+    //       centered: true
+    //     })
+    //     .then(async value1 => {
+    //       if (value1) {
+    //         event.preventDefault();
+    //         store.dispatch('config/newGroupAccount', { groupIndex, account });
+    //       }
+    //     })
+    //     .catch(err => {
+    //       // An error occurred
+    //     });
+    // },
 
-    deleteGroup(groupIndex, group) {
-      // console.log("deleteGroup: " + groupIndex);
-      this.$bvModal.msgBoxConfirm('Delete group ' + groupIndex + '. ' + group.name + '?', {
-          title: 'Please Confirm',
-          size: 'sm',
-          buttonSize: 'sm',
-          okVariant: 'danger',
-          okTitle: 'Yes',
-          cancelTitle: 'No',
-          footerClass: 'p-2',
-          hideHeaderClose: false,
-          centered: true
-        })
-        .then(async value1 => {
-          if (value1) {
-            event.preventDefault();
-            store.dispatch('config/deleteGroup', { groupIndex, group });
-          }
-        })
-        .catch(err => {
-          // An error occurred
-        });
-    },
+    // deleteGroup(groupIndex, group) {
+    //   // console.log("deleteGroup: " + groupIndex);
+    //   this.$bvModal.msgBoxConfirm('Delete group ' + groupIndex + '. ' + group.name + '?', {
+    //       title: 'Please Confirm',
+    //       size: 'sm',
+    //       buttonSize: 'sm',
+    //       okVariant: 'danger',
+    //       okTitle: 'Yes',
+    //       cancelTitle: 'No',
+    //       footerClass: 'p-2',
+    //       hideHeaderClose: false,
+    //       centered: true
+    //     })
+    //     .then(async value1 => {
+    //       if (value1) {
+    //         event.preventDefault();
+    //         store.dispatch('config/deleteGroup', { groupIndex, group });
+    //       }
+    //     })
+    //     .catch(err => {
+    //       // An error occurred
+    //     });
+    // },
 
-    deleteAccountFromGroup(groupIndex, accountIndex, account) {
-      // console.log("deleteAccountFromGroup: " + groupIndex + ", " + accountIndex + ", " + account);
-      this.$bvModal.msgBoxConfirm('Delete account ' + account + ' from group ' + this.groups[groupIndex].name + '?', {
-          title: 'Please Confirm',
-          size: 'lg',
-          buttonSize: 'sm',
-          okVariant: 'danger',
-          okTitle: 'Yes',
-          cancelTitle: 'No',
-          footerClass: 'p-2',
-          hideHeaderClose: false,
-          centered: true
-        })
-        .then(async value1 => {
-          if (value1) {
-            event.preventDefault();
-            store.dispatch('config/deleteAccountFromGroup', { groupIndex, accountIndex, account });
-          }
-        })
-        .catch(err => {
-          // An error occurred
-        });
-    },
+    // deleteAccountFromGroup(groupIndex, accountIndex, account) {
+    //   // console.log("deleteAccountFromGroup: " + groupIndex + ", " + accountIndex + ", " + account);
+    //   this.$bvModal.msgBoxConfirm('Delete account ' + account + ' from group ' + this.groups[groupIndex].name + '?', {
+    //       title: 'Please Confirm',
+    //       size: 'lg',
+    //       buttonSize: 'sm',
+    //       okVariant: 'danger',
+    //       okTitle: 'Yes',
+    //       cancelTitle: 'No',
+    //       footerClass: 'p-2',
+    //       hideHeaderClose: false,
+    //       centered: true
+    //     })
+    //     .then(async value1 => {
+    //       if (value1) {
+    //         event.preventDefault();
+    //         store.dispatch('config/deleteAccountFromGroup', { groupIndex, accountIndex, account });
+    //       }
+    //     })
+    //     .catch(err => {
+    //       // An error occurred
+    //     });
+    // },
 
     async timeoutCallback() {
       logDebug("Search", "timeoutCallback() count: " + this.count);
@@ -518,79 +510,71 @@ const searchModule = {
     executionQueue: state => state.executionQueue,
   },
   mutations: {
-    loadGroups(state) {
-      // logInfo("searchModule", "mutations.loadGroups()")
-      if (localStorage.getItem('groups')) {
-        state.groups = JSON.parse(localStorage.getItem('groups'));
-        // logInfo("searchModule", "mutations.loadGroups(): " + JSON.stringify(state.groups));
-      }
-    },
-    // setGroups(state, g) {
-    //   logDebug("searchModule", "mutations.setGroup('" + g + "')")
-    //   state.groups = g;
+    // loadGroups(state) {
+    //   // logInfo("searchModule", "mutations.loadGroups()")
+    //   if (localStorage.getItem('groups')) {
+    //     state.groups = JSON.parse(localStorage.getItem('groups'));
+    //     // logInfo("searchModule", "mutations.loadGroups(): " + JSON.stringify(state.groups));
+    //   }
     // },
-    saveGroups(state) {
-      // logInfo("searchModule", "mutations.saveGroups()");
-      localStorage.setItem('groups', JSON.stringify(state.groups));
-    },
-    newGroup(state, groupName) {
-      logInfo("searchModule", "mutations.newGroup(" + groupName + ")");
-      state.groups.push( { name: groupName, accounts: [] });
-    },
-    newGroupAccount(state, { groupIndex, account }) {
-      logInfo("searchModule", "mutations.newGroupAccount(" + groupIndex + ", " + account + ")");
-      state.groups[groupIndex].accounts.push(account);
-    },
-    deleteGroup(state, { groupIndex, group }) {
-      logInfo("searchModule", "mutations.deleteGroup(" + groupIndex + ", " + JSON.stringify(group) + ")");
-      state.groups.splice(groupIndex, 1);
-    },
-    deleteAccountFromGroup(state, { groupIndex, accountIndex, account }) {
-      logInfo("searchModule", "mutations.deleteAccountFromGroup(" + groupIndex + ", " + account + ")");
-      state.groups[groupIndex].accounts.splice(accountIndex, 1);
-    },
-    deQueue(state) {
-      logDebug("searchModule", "deQueue(" + JSON.stringify(state.executionQueue) + ")");
-      state.executionQueue.shift();
-    },
-    updateParams(state, params) {
-      state.params = params;
-      logDebug("searchModule", "updateParams('" + params + "')")
-    },
-    updateExecuting(state, executing) {
-      state.executing = executing;
-      logDebug("searchModule", "updateExecuting(" + executing + ")")
-    },
+    // saveGroups(state) {
+    //   // logInfo("searchModule", "mutations.saveGroups()");
+    //   localStorage.setItem('groups', JSON.stringify(state.groups));
+    // },
+    // newGroup(state, groupName) {
+    //   logInfo("searchModule", "mutations.newGroup(" + groupName + ")");
+    //   state.groups.push( { name: groupName, accounts: [] });
+    // },
+    // newGroupAccount(state, { groupIndex, account }) {
+    //   logInfo("searchModule", "mutations.newGroupAccount(" + groupIndex + ", " + account + ")");
+    //   state.groups[groupIndex].accounts.push(account);
+    // },
+    // deleteGroup(state, { groupIndex, group }) {
+    //   logInfo("searchModule", "mutations.deleteGroup(" + groupIndex + ", " + JSON.stringify(group) + ")");
+    //   state.groups.splice(groupIndex, 1);
+    // },
+    // deleteAccountFromGroup(state, { groupIndex, accountIndex, account }) {
+    //   logInfo("searchModule", "mutations.deleteAccountFromGroup(" + groupIndex + ", " + account + ")");
+    //   state.groups[groupIndex].accounts.splice(accountIndex, 1);
+    // },
+    // deQueue(state) {
+    //   logDebug("searchModule", "deQueue(" + JSON.stringify(state.executionQueue) + ")");
+    //   state.executionQueue.shift();
+    // },
+    // updateParams(state, params) {
+    //   state.params = params;
+    //   logDebug("searchModule", "updateParams('" + params + "')")
+    // },
+    // updateExecuting(state, executing) {
+    //   state.executing = executing;
+    //   logDebug("searchModule", "updateExecuting(" + executing + ")")
+    // },
   },
   actions: {
-    loadGroups(context) {
-      logDebug("searchModule", "actions.loadGroups()");
-      context.commit('loadGroups');
-    },
-    // setGroups(context, g) {
-    //   logDebug("searchModule", "actions.setGroups(" + JSON.stringify(g) + ")");
-    //   context.commit('setGroups', g);
+    // loadGroups(context) {
+    //   logDebug("searchModule", "actions.loadGroups()");
+    //   context.commit('loadGroups');
     // },
-    newGroup(context, groupName) {
-      logInfo("searchModule", "actions.newGroup(" + groupName + ")");
-      context.commit('newGroup', groupName);
-      context.commit('saveGroups');
-    },
-    newGroupAccount(context, { groupIndex, account }) {
-      logInfo("searchModule", "actions.newGroupAccount(" + groupIndex + ", " + account + ")");
-      context.commit('newGroupAccount', { groupIndex, account });
-      context.commit('saveGroups');
-    },
-    deleteGroup(context, { groupIndex, group }) {
-      logInfo("searchModule", "actions.deleteGroup(" + groupIndex + ", " + JSON.stringify(group) + ")");
-      context.commit('deleteGroup', { groupIndex, group });
-      context.commit('saveGroups');
-    },
-    deleteAccountFromGroup(context, { groupIndex, accountIndex, account }) {
-      logInfo("searchModule", "actions.deleteAccountFromGroup(" + groupIndex + ", " + account + ")");
-      context.commit('deleteAccountFromGroup', { groupIndex, accountIndex, account });
-      context.commit('saveGroups');
-    },
+    // newGroup(context, groupName) {
+    //   logInfo("searchModule", "actions.newGroup(" + groupName + ")");
+    //   context.commit('newGroup', groupName);
+    //   context.commit('saveGroups');
+    // },
+    // newGroupAccount(context, { groupIndex, account }) {
+    //   logInfo("searchModule", "actions.newGroupAccount(" + groupIndex + ", " + account + ")");
+    //   context.commit('newGroupAccount', { groupIndex, account });
+    //   context.commit('saveGroups');
+    // },
+    // deleteGroup(context, { groupIndex, group }) {
+    //   logInfo("searchModule", "actions.deleteGroup(" + groupIndex + ", " + JSON.stringify(group) + ")");
+    //   context.commit('deleteGroup', { groupIndex, group });
+    //   context.commit('saveGroups');
+    // },
+    // deleteAccountFromGroup(context, { groupIndex, accountIndex, account }) {
+    //   logInfo("searchModule", "actions.deleteAccountFromGroup(" + groupIndex + ", " + account + ")");
+    //   context.commit('deleteAccountFromGroup', { groupIndex, accountIndex, account });
+    //   context.commit('saveGroups');
+    // },
 
   },
 };
