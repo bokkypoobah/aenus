@@ -3,9 +3,9 @@ const routes = [{
     component: Config,
     name: 'Config',
   }, {
-    path: '/portfolio',
-    component: Portfolio,
-    name: 'Portfolio',
+    path: '/search',
+    component: Search,
+    name: 'Search',
   // }, {
   //   path: '/admin',
   //   component: Admin,
@@ -32,7 +32,7 @@ const routes = [{
   //   name: '',
   }, {
     path: '*',
-    component: Portfolio,
+    component: Search,
     name: ''
   }
 ];

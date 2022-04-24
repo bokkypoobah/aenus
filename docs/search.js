@@ -1,4 +1,4 @@
-const Portfolio = {
+const Search = {
   template: `
     <div class="mt-5 pt-3">
       <b-card class="mt-5" header-class="warningheader" header="Web3 Connection And/Or Incorrect Network Detected" v-if="!powerOn || network.chainId != 1">
@@ -7,7 +7,7 @@ const Portfolio = {
         </b-card-text>
       </b-card>
 
-      <b-card no-body header="Portfolio" class="border-0" header-class="p-1" v-if="network.chainId == 1 || network.chainId == 4">
+      <b-card no-body header="Search" class="border-0" header-class="p-1" v-if="network.chainId == 1 || network.chainId == 4">
         <b-card no-body class="border-0 m-0 mt-2">
           <b-card-body class="p-0">
 
@@ -17,7 +17,6 @@ const Portfolio = {
                   <template #header>
                     <h6>
                       Registered ENS Names
-                      <b-button size="sm" class="float-right m-0 p-0" href="#" @click="$bvModal.show('bv-modal-addgroup')" variant="link" v-b-popover.hover="'Add new group'"><b-icon-plus shift-v="-2" font-scale="1.4"></b-icon-plus></b-button>
                     </h6>
                   </template>
 
@@ -77,9 +76,6 @@ const Portfolio = {
       sortOption: 'nameasc',
       search: null,
       results: [],
-      newGroupName: null,
-      selectedGroupIndex: null,
-      newAccount: null,
 
       sortOptions: [
         { value: 'nameasc', text: 'Name Ascending' },
@@ -134,8 +130,8 @@ const Portfolio = {
       const results = [];
       // let regexConst = this.search != null && this.search.length > 0 ? new RegExp(this.search) : null;
       // if (regexConst != null) {
-      //   console.log("Portfolio.filteredResults() - search: " + JSON.stringify(this.search));
-      //   console.log("Portfolio.filteredResults() - regexConst: " + JSON.stringify(regexConst.toString()));
+      //   console.log("Search.filteredResults() - search: " + JSON.stringify(this.search));
+      //   console.log("Search.filteredResults() - regexConst: " + JSON.stringify(regexConst.toString()));
       // }
       let regexConst = null;
       if (this.search != null && this.search.length > 0) {
@@ -144,8 +140,8 @@ const Portfolio = {
         // let search = /god\$/;
         regexConst = new RegExp(search);
         // regexConst = /god/;
-        console.log("Portfolio.filteredResults() - search: " + JSON.stringify(search));
-        console.log("Portfolio.filteredResults() - regexConst: " + JSON.stringify(regexConst.toString()));
+        console.log("Search.filteredResults() - search: " + JSON.stringify(search));
+        console.log("Search.filteredResults() - regexConst: " + JSON.stringify(regexConst.toString()));
       }
       for (result of Object.values(this.results)) {
         if (this.search == null || this.search.length == 0) {
@@ -304,13 +300,13 @@ const Portfolio = {
         let group = this.groups[this.selectedGroup];
         accounts = group.accounts;
       }
-      logInfo("Portfolio", "retrieveNames() - accounts: " + JSON.stringify(accounts));
+      logInfo("Search", "retrieveNames() - accounts: " + JSON.stringify(accounts));
       // const expiryDate = parseInt(new Date().valueOf() / 1000);
       const expiryDate = 1642582008;
-      logInfo("Portfolio", "retrieveNames() - expiryDate: " + expiryDate + " = " + new Date(expiryDate * 1000));
+      logInfo("Search", "retrieveNames() - expiryDate: " + expiryDate + " = " + new Date(expiryDate * 1000));
       const results = {};
       for (account of accounts) {
-        logInfo("Portfolio", "retrieveNames() - account: " + JSON.stringify(account));
+        logInfo("Search", "retrieveNames() - account: " + JSON.stringify(account));
         const first = BATCHSIZE;
         const id = account.toLowerCase();
         let skip = 0;
@@ -329,7 +325,7 @@ const Portfolio = {
             })
           }).then(response => response.json());
           // if (skip == 0) {
-            // logInfo("Portfolio", "retrieveNames() - data: " + JSON.stringify(data, null, 2));
+            // logInfo("Search", "retrieveNames() - data: " + JSON.stringify(data, null, 2));
           // }
           const registrations = data.data.account.registrations || [];
           if (registrations.length == 0) {
@@ -363,7 +359,7 @@ const Portfolio = {
         }
       }
       this.results = results;
-      logInfo("Portfolio", "retrieveNames() - results: " + JSON.stringify(results, null, 2));
+      logInfo("Search", "retrieveNames() - results: " + JSON.stringify(results, null, 2));
     },
 
     newGroup(groupName) {
@@ -463,7 +459,7 @@ const Portfolio = {
     },
 
     async timeoutCallback() {
-      logDebug("Portfolio", "timeoutCallback() count: " + this.count);
+      logDebug("Search", "timeoutCallback() count: " + this.count);
 
       this.count++;
       var t = this;
@@ -475,12 +471,12 @@ const Portfolio = {
     },
   },
   beforeDestroy() {
-    logDebug("Portfolio", "beforeDestroy()");
+    logDebug("Search", "beforeDestroy()");
   },
   mounted() {
-    logInfo("Portfolio", "mounted() $route: " + JSON.stringify(this.$route.params));
+    logInfo("Search", "mounted() $route: " + JSON.stringify(this.$route.params));
     this.reschedule = true;
-    logDebug("Portfolio", "Calling timeoutCallback()");
+    logDebug("Search", "Calling timeoutCallback()");
     this.timeoutCallback();
     // this.loadNFTs();
   },
@@ -489,7 +485,7 @@ const Portfolio = {
   },
 };
 
-const portfolioModule = {
+const searchModule = {
   namespaced: true,
   state: {
     groups: [
@@ -519,75 +515,75 @@ const portfolioModule = {
   },
   mutations: {
     loadGroups(state) {
-      // logInfo("portfolioModule", "mutations.loadGroups()")
+      // logInfo("searchModule", "mutations.loadGroups()")
       if (localStorage.getItem('groups')) {
         state.groups = JSON.parse(localStorage.getItem('groups'));
-        // logInfo("portfolioModule", "mutations.loadGroups(): " + JSON.stringify(state.groups));
+        // logInfo("searchModule", "mutations.loadGroups(): " + JSON.stringify(state.groups));
       }
     },
     // setGroups(state, g) {
-    //   logDebug("portfolioModule", "mutations.setGroup('" + g + "')")
+    //   logDebug("searchModule", "mutations.setGroup('" + g + "')")
     //   state.groups = g;
     // },
     saveGroups(state) {
-      // logInfo("portfolioModule", "mutations.saveGroups()");
+      // logInfo("searchModule", "mutations.saveGroups()");
       localStorage.setItem('groups', JSON.stringify(state.groups));
     },
     newGroup(state, groupName) {
-      logInfo("portfolioModule", "mutations.newGroup(" + groupName + ")");
+      logInfo("searchModule", "mutations.newGroup(" + groupName + ")");
       state.groups.push( { name: groupName, accounts: [] });
     },
     newGroupAccount(state, { groupIndex, account }) {
-      logInfo("portfolioModule", "mutations.newGroupAccount(" + groupIndex + ", " + account + ")");
+      logInfo("searchModule", "mutations.newGroupAccount(" + groupIndex + ", " + account + ")");
       state.groups[groupIndex].accounts.push(account);
     },
     deleteGroup(state, { groupIndex, group }) {
-      logInfo("portfolioModule", "mutations.deleteGroup(" + groupIndex + ", " + JSON.stringify(group) + ")");
+      logInfo("searchModule", "mutations.deleteGroup(" + groupIndex + ", " + JSON.stringify(group) + ")");
       state.groups.splice(groupIndex, 1);
     },
     deleteAccountFromGroup(state, { groupIndex, accountIndex, account }) {
-      logInfo("portfolioModule", "mutations.deleteAccountFromGroup(" + groupIndex + ", " + account + ")");
+      logInfo("searchModule", "mutations.deleteAccountFromGroup(" + groupIndex + ", " + account + ")");
       state.groups[groupIndex].accounts.splice(accountIndex, 1);
     },
     deQueue(state) {
-      logDebug("portfolioModule", "deQueue(" + JSON.stringify(state.executionQueue) + ")");
+      logDebug("searchModule", "deQueue(" + JSON.stringify(state.executionQueue) + ")");
       state.executionQueue.shift();
     },
     updateParams(state, params) {
       state.params = params;
-      logDebug("portfolioModule", "updateParams('" + params + "')")
+      logDebug("searchModule", "updateParams('" + params + "')")
     },
     updateExecuting(state, executing) {
       state.executing = executing;
-      logDebug("portfolioModule", "updateExecuting(" + executing + ")")
+      logDebug("searchModule", "updateExecuting(" + executing + ")")
     },
   },
   actions: {
     loadGroups(context) {
-      logDebug("portfolioModule", "actions.loadGroups()");
+      logDebug("searchModule", "actions.loadGroups()");
       context.commit('loadGroups');
     },
     // setGroups(context, g) {
-    //   logDebug("portfolioModule", "actions.setGroups(" + JSON.stringify(g) + ")");
+    //   logDebug("searchModule", "actions.setGroups(" + JSON.stringify(g) + ")");
     //   context.commit('setGroups', g);
     // },
     newGroup(context, groupName) {
-      logInfo("portfolioModule", "actions.newGroup(" + groupName + ")");
+      logInfo("searchModule", "actions.newGroup(" + groupName + ")");
       context.commit('newGroup', groupName);
       context.commit('saveGroups');
     },
     newGroupAccount(context, { groupIndex, account }) {
-      logInfo("portfolioModule", "actions.newGroupAccount(" + groupIndex + ", " + account + ")");
+      logInfo("searchModule", "actions.newGroupAccount(" + groupIndex + ", " + account + ")");
       context.commit('newGroupAccount', { groupIndex, account });
       context.commit('saveGroups');
     },
     deleteGroup(context, { groupIndex, group }) {
-      logInfo("portfolioModule", "actions.deleteGroup(" + groupIndex + ", " + JSON.stringify(group) + ")");
+      logInfo("searchModule", "actions.deleteGroup(" + groupIndex + ", " + JSON.stringify(group) + ")");
       context.commit('deleteGroup', { groupIndex, group });
       context.commit('saveGroups');
     },
     deleteAccountFromGroup(context, { groupIndex, accountIndex, account }) {
-      logInfo("portfolioModule", "actions.deleteAccountFromGroup(" + groupIndex + ", " + account + ")");
+      logInfo("searchModule", "actions.deleteAccountFromGroup(" + groupIndex + ", " + account + ")");
       context.commit('deleteAccountFromGroup', { groupIndex, accountIndex, account });
       context.commit('saveGroups');
     },
