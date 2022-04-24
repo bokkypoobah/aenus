@@ -24,7 +24,7 @@ const Search = {
                     <b-form-select size="sm" v-model="selectedGroup" :options="groupOptions" class="w-50"></b-form-select>
                   </b-form-group>
                   <b-form-group label-cols="2" label-size="sm" label="">
-                    <b-button size="sm" @click="retrieveNames" variant="warning">Retrieve Names</b-button>
+                    <b-button size="sm" @click="retrieveNames" :disabled="retrievingMessage != null" variant="warning">{{ retrievingMessage ? retrievingMessage : 'Retrieve Names'}}</b-button>
                   </b-form-group>
                   <!--
                   <b-form-group label-cols="2" label-size="sm" label="Sort">
@@ -34,6 +34,7 @@ const Search = {
                   <b-form-group label-cols="2" label-size="sm" label="Search">
                     <b-form-input type="text" size="sm" v-model.trim="search" debounce="600" class="w-25" placeholder="🔍 name"></b-form-input>
                   </b-form-group>
+
 
                   <b-table small striped hover :fields="fields" :items="filteredResults" responsive="sm">
                     <template #cell(index)="data">
@@ -83,6 +84,7 @@ const Search = {
       selectedGroup: null,
       sortOption: 'expiryasc',
       search: null,
+      retrievingMessage: null,
       results: [],
 
       sortOptions: [
@@ -149,8 +151,8 @@ const Search = {
         // let search = /god\$/;
         regexConst = new RegExp(search);
         // regexConst = /god/;
-        console.log("Search.filteredResults() - search: " + JSON.stringify(search));
-        console.log("Search.filteredResults() - regexConst: " + JSON.stringify(regexConst.toString()));
+        // console.log("Search.filteredResults() - search: " + JSON.stringify(search));
+        // console.log("Search.filteredResults() - regexConst: " + JSON.stringify(regexConst.toString()));
       }
       for (result of Object.values(this.results)) {
         if (this.search == null || this.search.length == 0) {
@@ -243,7 +245,7 @@ const Search = {
 
     async retrieveNames() {
       console.log("retrieveNames");
-      const BATCHSIZE = 500; // Max ?1000
+      const BATCHSIZE = 200; // Max ?1000
       const DELAYINMILLIS = 500;
       const url = "https://api.thegraph.com/subgraphs/name/ensdomains/ens";
       const delay = ms => new Promise(res => setTimeout(res, ms));
@@ -322,6 +324,7 @@ const Search = {
         let skip = 0;
         // console.log(JSON.stringify({ query, variables: { id, first, skip, expiryDate } }));
         let completed = false;
+        let records = 0;
         while (!completed) {
           const data = await fetch(url, {
             method: 'POST',
@@ -341,6 +344,8 @@ const Search = {
           if (registrations.length == 0) {
             completed = true;
           } else {
+            records = records + registrations.length;
+            this.retrievingMessage = "Retrieved " + records;
             for (registration of registrations) {
               // console.log(registration.labelName);
               if (registration.domain.name == "jpmyorgan.eth") {
@@ -372,6 +377,7 @@ const Search = {
         }
       }
       this.results = results;
+      this.retrievingMessage = null;
       // logInfo("Search", "retrieveNames() - results: " + JSON.stringify(results, null, 2));
     },
 
