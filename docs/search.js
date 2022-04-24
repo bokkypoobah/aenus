@@ -248,7 +248,7 @@ const Search = {
 
     async retrieveNames() {
       console.log("retrieveNames");
-      const BATCHSIZE = 200; // Max ?1000
+      const BATCHSIZE = 500; // Max ?1000
       const DELAYINMILLIS = 500;
       const url = "https://api.thegraph.com/subgraphs/name/ensdomains/ens";
       const delay = ms => new Promise(res => setTimeout(res, ms));
@@ -342,7 +342,7 @@ const Search = {
             records = records + registrations.length;
             this.retrievingMessage = "Retrieved " + records;
             for (registration of registrations) {
-              // console.log(registration.labelName);
+              console.log(registration.domain.name);
               if (registration.domain.name == "mrfahrenheit.eth") {
                 console.log(JSON.stringify(registration, null, 2));
               }
