@@ -31,10 +31,9 @@ const Search = {
                     <b-form-select size="sm" v-model="sortOption" :options="sortOptions" class="w-25"></b-form-select>
                   </b-form-group>
                   -->
-                  <b-form-group label-cols="2" label-size="sm" label="Search">
+                  <b-form-group label-cols="2" label-size="sm" label="Search" :description="filteredResults.length + ' of ' + Object.keys(results).length">
                     <b-form-input type="text" size="sm" v-model.trim="search" debounce="600" class="w-25" placeholder="🔍 name"></b-form-input>
                   </b-form-group>
-
 
                   <b-table small striped hover :fields="fields" :items="filteredResults" responsive="sm">
                     <template #cell(index)="data">
@@ -499,13 +498,13 @@ const Search = {
 const searchModule = {
   namespaced: true,
   state: {
-    groups: [],
+    // groups: [],
     params: null,
     executing: false,
     executionQueue: [],
   },
   getters: {
-    groups: state => state.groups,
+    // groups: state => state.groups,
     params: state => state.params,
     executionQueue: state => state.executionQueue,
   },
