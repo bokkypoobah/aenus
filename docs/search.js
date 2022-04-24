@@ -26,37 +26,45 @@ const Search = {
                   <b-form-group label-cols="2" label-size="sm" label="">
                     <b-button size="sm" @click="retrieveNames" variant="warning">Retrieve Names</b-button>
                   </b-form-group>
+                  <!--
                   <b-form-group label-cols="2" label-size="sm" label="Sort">
                     <b-form-select size="sm" v-model="sortOption" :options="sortOptions" class="w-25"></b-form-select>
                   </b-form-group>
+                  -->
                   <b-form-group label-cols="2" label-size="sm" label="Search">
-                    <!-- <b-form-input type="text" size="sm" @change="recalculate('searchTokenId')" v-model.trim="settings.searchTokenId" debounce="600" placeholder="🔍 ID1, ID2-ID3, ..."></b-form-input> -->
                     <b-form-input type="text" size="sm" v-model.trim="search" debounce="600" class="w-25" placeholder="🔍 name"></b-form-input>
                   </b-form-group>
 
-                  <b-table small :fields="fields" :items="filteredResults" responsive="sm">
+                  <b-table small striped hover :fields="fields" :items="filteredResults" responsive="sm">
                     <template #cell(index)="data">
                       <span>{{ data.index+1 }}</span>
                     </template>
                     <template #cell(name)="data">
                       {{ data.item.name.substring(0, 64) }}
-                      <font size="-2">
-                        <b-link :href="'https://app.ens.domains/name/' + data.item.name" v-b-popover.hover="'View in app.ens.domains'" target="_blank">
-                          ENS
-                        </b-link>
-                        <b-link :href="'https://opensea.io/assets/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + data.item.tokenId" v-b-popover.hover="'View in opensea.io'" target="_blank">
-                          OS
-                        </b-link>
-                        <b-link :href="'https://looksrare.org/collections/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + data.item.tokenId" v-b-popover.hover="'View in looksrare.org'" target="_blank">
-                          LR
-                        </b-link>
-                      </font>
+                    </template>
+                    <template #cell(expiryDate)="data">
+                      <div v-if="data.item.warn">
+                        <font :color="data.item.warn">
+                          {{ formatDate(data.item.expiryDate) }}
+                        </font>
+                      </div>
+                      <div v-else>
+                        {{ formatDate(data.item.expiryDate) }}
+                      </div>
                     </template>
                     <template #cell(registrationDate)="data">
                       {{ formatDate(data.item.registrationDate) }}
                     </template>
-                    <template #cell(expiryDate)="data">
-                      {{ formatDate(data.item.expiryDate) }}
+                    <template #cell(links)="data">
+                      <b-link :href="'https://app.ens.domains/name/' + data.item.name" v-b-popover.hover="'View in app.ens.domains'" target="_blank">
+                        ENS
+                      </b-link>
+                      <b-link :href="'https://opensea.io/assets/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + data.item.tokenId" v-b-popover.hover="'View in opensea.io'" target="_blank">
+                        OS
+                      </b-link>
+                      <b-link :href="'https://looksrare.org/collections/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + data.item.tokenId" v-b-popover.hover="'View in looksrare.org'" target="_blank">
+                        LR
+                      </b-link>
                     </template>
                   </b-table>
                 </b-card>
@@ -73,7 +81,7 @@ const Search = {
       count: 0,
       reschedule: true,
       selectedGroup: null,
-      sortOption: 'nameasc',
+      sortOption: 'expiryasc',
       search: null,
       results: [],
 
@@ -89,11 +97,12 @@ const Search = {
       ],
 
       fields: [
-        { key: 'index', label: '#', thStyle: 'width: 10%;' },
-        { key: 'name', label: 'Name', thStyle: 'width: 40%;' },
-        { key: 'registrationDate', label: 'Registration', thStyle: 'width: 20%;' },
-        { key: 'expiryDate', label: 'Expiry', thStyle: 'width: 20%;' },
-        { key: 'length', label: 'Length', thStyle: 'width: 10%;' },
+        { key: 'index', label: '#', thStyle: 'width: 5%;' },
+        { key: 'name', label: 'Name', thStyle: 'width: 40%;', sortable: true },
+        { key: 'expiryDate', label: 'Expiry (UTC)', thStyle: 'width: 15%;', sortable: true },
+        { key: 'registrationDate', label: 'Registration (UTC)', thStyle: 'width: 15%;', sortable: true },
+        { key: 'length', label: 'Length', thStyle: 'width: 10%;', sortable: true },
+        { key: 'links', label: 'Links', thStyle: 'width: 10%;' },
       ],
     }
   },
@@ -301,8 +310,9 @@ const Search = {
         accounts = group.accounts;
       }
       logInfo("Search", "retrieveNames() - accounts: " + JSON.stringify(accounts));
-      // const expiryDate = parseInt(new Date().valueOf() / 1000);
-      const expiryDate = 1642582008;
+      const now = parseInt(new Date().valueOf() / 1000);
+      const expiryDate = parseInt(now) - 90 * 24 * 60 * 60;
+      const warningDate = parseInt(now) + 90 * 24 * 60 * 60;
       logInfo("Search", "retrieveNames() - expiryDate: " + expiryDate + " = " + new Date(expiryDate * 1000));
       const results = {};
       for (account of accounts) {
@@ -351,7 +361,10 @@ const Search = {
                 resolvedAddress: registration.domain.resolvedAddress && registration.domain.resolvedAddress.id || null,
                 parent: registration.domain.parent.name,
                 length: length,
+                warn: registration.expiryDate < now ? 'red' : registration.expiryDate < warningDate ? 'orange' : null,
               };
+              // const test = { ...results[registration.domain.name], name: undefined };
+              // console.log(JSON.stringify(test, null, 2));
             }
             // this.results = results;
           }
@@ -359,7 +372,7 @@ const Search = {
         }
       }
       this.results = results;
-      logInfo("Search", "retrieveNames() - results: " + JSON.stringify(results, null, 2));
+      // logInfo("Search", "retrieveNames() - results: " + JSON.stringify(results, null, 2));
     },
 
     newGroup(groupName) {
@@ -488,22 +501,7 @@ const Search = {
 const searchModule = {
   namespaced: true,
   state: {
-    groups: [
-      // {
-      //   name: "Group1",
-      //   accounts: [
-      //     "0x000001f568875F378Bf6d170B790967FE429C81A",
-      //     "0x00000217d2795F1Da57e392D2a5bC87125BAA38D"
-      //   ]
-      // },
-      // {
-      //   name: "Group2",
-      //   accounts: [
-      //     "0x000001f568875F378Bf6d170B790967FE429C81A",
-      //     "0x00000217d2795F1Da57e392D2a5bC87125BAA38D"
-      //   ]
-      // },
-    ],
+    groups: [],
     params: null,
     executing: false,
     executionQueue: [],
