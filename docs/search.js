@@ -487,14 +487,16 @@ const Search = {
         logInfo("Search", "retrieveNames() - searchForAccounts: " + JSON.stringify(searchForAccounts, null, 2));
       }
 
-      if (this.settings.searchOption != 'single') {
-        if (this.settings.selectedGroup == null) {
-          if (this.coinbase != null && this.settings.searchOption != 'owned') {
-            searchForAccounts = [ ...searchForAccounts, this.coinbase ];
+      if (this.settings.searchOption == 'owned' || this.settings.searchOption == 'group') {
+        if (this.settings.searchOption == 'group') {
+          if (this.settings.selectedGroup == null) {
+            if (this.coinbase != null) {
+              searchForAccounts = [ ...searchForAccounts, this.coinbase ];
+            }
+          } else {
+            let group = this.groups[this.settings.selectedGroup];
+            searchForAccounts = [ ...searchForAccounts, ...group.accounts ];
           }
-        } else {
-          let group = this.groups[this.settings.selectedGroup];
-          searchForAccounts = [ ...searchForAccounts, ...group.accounts ];
         }
         logInfo("Search", "retrieveNames() - searchForAccounts: " + JSON.stringify(searchForAccounts));
         logInfo("Search", "retrieveNames() - expiryDate: " + expiryDate + " = " + new Date(expiryDate * 1000));
