@@ -7,7 +7,7 @@ const Config = {
         </b-card-text>
       </b-card>
 
-      <b-card no-body header="Configuration" class="border-0" header-class="p-1" v-if="network.chainId == 1 || network.chainId == 4">
+      <b-card no-body header="Configuration" class="border-0" header-class="p-1">
         <b-card no-body class="border-0 m-0 mt-2">
           <b-card-body class="p-0">
 
