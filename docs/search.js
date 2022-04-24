@@ -41,6 +41,10 @@ const Search = {
                     </template>
                     <template #cell(name)="data">
                       {{ data.item.name.substring(0, 64) }}
+
+                      <div v-if="data.item.hasAvatar">
+                        <b-img-lazy :width="'100%'" :src="'https://metadata.ens.domains/mainnet/avatar/' + data.item.name" />
+                      </div>
                     </template>
                     <template #cell(expiryDate)="data">
                       <div v-if="data.item.warn">
@@ -339,7 +343,7 @@ const Search = {
             this.retrievingMessage = "Retrieved " + records;
             for (registration of registrations) {
               // console.log(registration.labelName);
-              if (registration.domain.name == "jpmyorgan.eth") {
+              if (registration.domain.name == "mrfahrenheit.eth") {
                 console.log(JSON.stringify(registration, null, 2));
               }
               const length = registration.domain.name.indexOf("\.");
@@ -358,6 +362,7 @@ const Search = {
                 parent: registration.domain.parent.name,
                 length: length,
                 warn: registration.expiryDate < now ? 'red' : registration.expiryDate < warningDate ? 'orange' : null,
+                hasAvatar: registration.domain.resolver && registration.domain.resolver.texts && registration.domain.resolver.texts.includes("avatar"),
               };
               // const test = { ...results[registration.domain.name], name: undefined };
               // console.log(JSON.stringify(test, null, 2));
