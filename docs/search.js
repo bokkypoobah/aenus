@@ -489,7 +489,7 @@ const Search = {
 
       if (this.settings.searchOption != 'single') {
         if (this.settings.selectedGroup == null) {
-          if (this.coinbase != null) {
+          if (this.coinbase != null && this.settings.searchOption != 'owned') {
             searchForAccounts = [ ...searchForAccounts, this.coinbase ];
           }
         } else {
