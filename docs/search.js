@@ -586,112 +586,13 @@ const Search = {
       // logInfo("Search", "retrieveNames() - results: " + JSON.stringify(results, null, 2));
     },
 
-    // newGroup(groupName) {
-    //   // console.log("newGroup: " + JSON.stringify(groupName));
-    //   this.$bvModal.msgBoxConfirm('Add new group ' + groupName + '?', {
-    //       title: 'Please Confirm',
-    //       size: 'sm',
-    //       buttonSize: 'sm',
-    //       okVariant: 'danger',
-    //       okTitle: 'Yes',
-    //       cancelTitle: 'No',
-    //       footerClass: 'p-2',
-    //       hideHeaderClose: false,
-    //       centered: true
-    //     })
-    //     .then(async value1 => {
-    //       if (value1) {
-    //         event.preventDefault();
-    //         store.dispatch('config/newGroup', groupName);
-    //       }
-    //     })
-    //     .catch(err => {
-    //       // An error occurred
-    //     });
-    // },
-
-    // newGroupAccount(groupIndex, account) {
-    //   // console.log("newGroupAccount: " + groupIndex + ", " + account);
-    //   this.$bvModal.msgBoxConfirm('Add new account ' + account + ' to group ' + this.groups[groupIndex].name + '?', {
-    //       title: 'Please Confirm',
-    //       size: 'lg',
-    //       buttonSize: 'sm',
-    //       okVariant: 'danger',
-    //       okTitle: 'Yes',
-    //       cancelTitle: 'No',
-    //       footerClass: 'p-2',
-    //       hideHeaderClose: false,
-    //       centered: true
-    //     })
-    //     .then(async value1 => {
-    //       if (value1) {
-    //         event.preventDefault();
-    //         store.dispatch('config/newGroupAccount', { groupIndex, account });
-    //       }
-    //     })
-    //     .catch(err => {
-    //       // An error occurred
-    //     });
-    // },
-
-    // deleteGroup(groupIndex, group) {
-    //   // console.log("deleteGroup: " + groupIndex);
-    //   this.$bvModal.msgBoxConfirm('Delete group ' + groupIndex + '. ' + group.name + '?', {
-    //       title: 'Please Confirm',
-    //       size: 'sm',
-    //       buttonSize: 'sm',
-    //       okVariant: 'danger',
-    //       okTitle: 'Yes',
-    //       cancelTitle: 'No',
-    //       footerClass: 'p-2',
-    //       hideHeaderClose: false,
-    //       centered: true
-    //     })
-    //     .then(async value1 => {
-    //       if (value1) {
-    //         event.preventDefault();
-    //         store.dispatch('config/deleteGroup', { groupIndex, group });
-    //       }
-    //     })
-    //     .catch(err => {
-    //       // An error occurred
-    //     });
-    // },
-
-    // deleteAccountFromGroup(groupIndex, accountIndex, account) {
-    //   // console.log("deleteAccountFromGroup: " + groupIndex + ", " + accountIndex + ", " + account);
-    //   this.$bvModal.msgBoxConfirm('Delete account ' + account + ' from group ' + this.groups[groupIndex].name + '?', {
-    //       title: 'Please Confirm',
-    //       size: 'lg',
-    //       buttonSize: 'sm',
-    //       okVariant: 'danger',
-    //       okTitle: 'Yes',
-    //       cancelTitle: 'No',
-    //       footerClass: 'p-2',
-    //       hideHeaderClose: false,
-    //       centered: true
-    //     })
-    //     .then(async value1 => {
-    //       if (value1) {
-    //         event.preventDefault();
-    //         store.dispatch('config/deleteAccountFromGroup', { groupIndex, accountIndex, account });
-    //       }
-    //     })
-    //     .catch(err => {
-    //       // An error occurred
-    //     });
-    // },
-
     exportNames() {
-      // logInfo("Search", "exportNames()");
-
       const rows = [
           ["Number", "labelName", "name", "registrationDate", "expiryDate", "cost (ETH)", "registrant", "resolver", "resolvedAddress"],
       ];
-      // console.log("rows: " + JSON.stringify(rows, null, 2));
+      const timestamp = new Date(parseInt((new Date).getTime()/1000)*1000).toISOString().replace('T', '-').replaceAll(':', '-').replace('.000Z', '');
       let i = 1;
       for (const result of this.filteredResults) {
-        // console.log(JSON.stringify(result, null, 2));
         rows.push([
           i,
           result.labelName,
@@ -705,7 +606,6 @@ const Search = {
         ]);
         i++;
       }
-      // console.log("rows: " + JSON.stringify(rows, null, 2));
 
       // {
       //   "labelName": "bokky",
@@ -725,22 +625,13 @@ const Search = {
       //   "hasAvatar": true
       // }
 
-      // let csvContent = "data:text/csv;charset=utf-8,";
-      // rows.forEach(function(rowArray) {
-      //     let row = rowArray.join(",");
-      //     csvContent += row + "\r\n";
-      // });
-      let csvContent = "data:text/csv;charset=utf-8,"
-          + rows.map(e => e.join(",")).join("\n");
-      // console.log("csvContent: " + JSON.stringify(csvContent, null, 2));
-
+      let csvContent = "data:text/csv;charset=utf-8," + rows.map(e => e.join(",")).join("\n");
       var encodedUri = encodeURI(csvContent);
       var link = document.createElement("a");
       link.setAttribute("href", encodedUri);
-      link.setAttribute("download", "ensutil_export.csv");
+      link.setAttribute("download", "ensutil_export-" + timestamp + ".csv");
       document.body.appendChild(link); // Required for FF
-      link.click(); // This will download the data file named "my_data.csv".
-      // logInfo("Search", "exportNames() completed");
+      link.click(); // This will download the data with the specified file name
     },
 
     async timeoutCallback() {
