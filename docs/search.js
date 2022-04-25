@@ -161,8 +161,8 @@ const Search = {
       reschedule: true,
 
       settings: {
-        searchOption: 'single', // 'owned',
-        searchString: 'bokky', // null, // 'mrfahrenheit, fahrenheit.eth 0x287F9b46dceA520D829c874b0AF01f4fbfeF9243',
+        searchOption: 'owned',
+        searchString: null,
         selectedGroup: null,
         filter: null,
       },
