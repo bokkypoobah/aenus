@@ -10,12 +10,18 @@ const Docs = {
           <em>ensutils</em> is being built as a tool to manage your ENS domain names.
 
           <br />
+          <br />
 
           <em>ensutils</em> uses data from the <a href="https://thegraph.com/hosted-service/subgraph/ensdomains/ens" target="_blank">ENS subgraph</a>.
 
+          The code can be found in <a href="https://github.com/bokkypoobah/ensutils" target="_blank">https://github.com/bokkypoobah/ensutils</a>.
+
+          This dapp can be accessed at <a href="https://bokkypoobah.github.io/ensutils/" target="_blank">https://bokkypoobah.github.io/ensutils/</a>.
+
+          <br />
           <br />
 
-          Set up groups of accounts in the <b>Config</b> menu, and use this in your search filter.
+          You can set up groups of accounts in the <b>Config</b> menu, and use these in your search filter to view your names across multiple accounts.
 
         <b-card-text>
 

@@ -136,13 +136,16 @@ const Search = {
                     </template>
                     <template #cell(links)="data">
                       <b-link :href="'https://app.ens.domains/name/' + data.item.name" v-b-popover.hover="'View in app.ens.domains'" target="_blank">
-                        ENS
+                        ens
                       </b-link>
                       <b-link :href="'https://opensea.io/assets/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + data.item.tokenId" v-b-popover.hover="'View in opensea.io'" target="_blank">
-                        OS
+                        os
                       </b-link>
                       <b-link :href="'https://looksrare.org/collections/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + data.item.tokenId" v-b-popover.hover="'View in looksrare.org'" target="_blank">
-                        LR
+                        lr
+                      </b-link>
+                      <b-link :href="'https://etherscan.io/enslookup-search?search=' + data.item.name" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                        es
                       </b-link>
                     </template>
                   </b-table>
