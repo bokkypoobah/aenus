@@ -13,6 +13,10 @@ const Docs = {
 
           <em>ensutils</em> uses data from the <a href="https://thegraph.com/hosted-service/subgraph/ensdomains/ens" target="_blank">ENS subgraph</a>.
 
+          <br />
+
+          Set up groups of accounts in the <b>Config</b> menu, and use this in your search filter.
+
         <b-card-text>
 
 
