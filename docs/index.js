@@ -6,8 +6,8 @@ Vue.use(Vuex);
 // Vue.component('apexchart', VueApexCharts);
 Vue.component('connection', Connection);
 // Vue.component('tokens', Tokens);
-Vue.component('nixdata', NixData);
-Vue.component('collectiondata', CollectionData);
+// Vue.component('nixdata', NixData);
+// Vue.component('collectiondata', CollectionData);
 // Vue.component('flat-pickr', VueFlatpickr);
 
 // Huh?
@@ -59,15 +59,15 @@ const store = new Vuex.Store({
   },
   modules: {
     connection: connectionModule,
-    nixData: nixDataModule,
-    collectionData: collectionDataModule,
+    // nixData: nixDataModule,
+    // collectionData: collectionDataModule,
     welcome: welcomeModule,
-    nix: nixModule,
+    // nix: nixModule,
     weth: wethModule,
-    admin: adminModule,
+    // admin: adminModule,
     config: configModule,
     portfolio: searchModule,
-    collections: collectionsModule,
+    // collections: collectionsModule,
   }
 });
 
