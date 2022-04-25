@@ -62,8 +62,8 @@ const Search = {
                   <b-row>
                     <b-col cols="2" class="m-0 p-1 text-right">
                     </b-col>
-                    <b-col cols="6" class="m-0 p-1">
-                      <b-button size="sm" @click="retrieveNames" :disabled="retrievingMessage != null" variant="warning">{{ retrievingMessage ? retrievingMessage : 'Retrieve Names'}}</b-button>
+                    <b-col cols="4" class="m-0 p-1">
+                      <b-button size="sm" @click="retrieveNames" :disabled="retrievingMessage != null" variant="primary">{{ retrievingMessage ? retrievingMessage : 'Retrieve Names'}}</b-button>
                     </b-col>
                   </b-row>
                   <b-row>
@@ -73,8 +73,11 @@ const Search = {
                     <b-col cols="4" class="m-0 p-1">
                       <b-form-input type="text" size="sm" v-model.trim="settings.filter" debounce="600" class="w-100" placeholder="🔍 name"></b-form-input>
                     </b-col>
-                    <b-col cols="2" class="m-0 p-1">
+                    <b-col cols="1" class="m-0 p-1">
                       {{ filteredResults.length + ' of ' + Object.keys(results).length }}
+                    </b-col>
+                    <b-col cols="1" class="m-0 p-1">
+                      <b-button size="sm" @click="exportNames" :disabled="Object.keys(results).length == 0" variant="primary">Export</b-button>
                     </b-col>
                   </b-row>
 
@@ -158,8 +161,8 @@ const Search = {
       reschedule: true,
 
       settings: {
-        searchOption: 'owned',
-        searchString: null, // 'mrfahrenheit, fahrenheit.eth 0x287F9b46dceA520D829c874b0AF01f4fbfeF9243',
+        searchOption: 'single', // 'owned',
+        searchString: 'bokky', // null, // 'mrfahrenheit, fahrenheit.eth 0x287F9b46dceA520D829c874b0AF01f4fbfeF9243',
         selectedGroup: null,
         filter: null,
       },
@@ -341,6 +344,7 @@ const Search = {
       const nameQuery = `
         query getRegistrations($labelNames: [String!]!) {
           registrations(where: {labelName_in: $labelNames}) {
+            id
             registrationDate
             expiryDate
             cost
@@ -349,6 +353,7 @@ const Search = {
             }
             labelName
             domain {
+              id
               labelName
               labelhash
               name
@@ -386,6 +391,7 @@ const Search = {
         query getRegistrations($id: ID!, $first: Int, $skip: Int, $orderBy: Registration_orderBy, $orderDirection: OrderDirection, $expiryDate: Int) {
           account(id: $id) {
             registrations(first: $first, skip: $skip, orderBy: $orderBy, orderDirection: $orderDirection, where: {expiryDate_gt: $expiryDate}) {
+              id
               registrationDate
               expiryDate
               cost
@@ -394,6 +400,7 @@ const Search = {
               }
               labelName
               domain {
+                id
                 labelName
                 labelhash
                 name
@@ -430,6 +437,11 @@ const Search = {
 
       // history.pushState({}, null, `${this.$route.path}#${encodeURIComponent(params)}`);
       // history.pushState({}, null, `${this.$route.path}#blah`);
+
+      console.log("navigator.userAgent: " + navigator.userAgent);
+      console.log("isMobile: " + (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)));
+
+         // if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
 
       const results = {};
       const now = parseInt(new Date().valueOf() / 1000);
@@ -669,6 +681,67 @@ const Search = {
     //       // An error occurred
     //     });
     // },
+
+    exportNames() {
+      // logInfo("Search", "exportNames()");
+
+      const rows = [
+          ["Number", "labelName", "name", "registrationDate", "expiryDate", "cost (ETH)", "registrant", "resolver", "resolvedAddress"],
+      ];
+      // console.log("rows: " + JSON.stringify(rows, null, 2));
+      let i = 1;
+      for (const result of this.filteredResults) {
+        // console.log(JSON.stringify(result, null, 2));
+        rows.push([
+          i,
+          result.labelName,
+          result.name,
+          new Date(parseInt(result.registrationDate) * 1000).toISOString().replace('T', ' ').replace('.000Z', ''),
+          new Date(parseInt(result.expiryDate) * 1000).toISOString().replace('T', ' ').replace('.000Z', ''),
+          ethers.utils.formatEther(result.cost),
+          result.registrant,
+          result.resolver,
+          result.resolvedAddress,
+        ]);
+        i++;
+      }
+      // console.log("rows: " + JSON.stringify(rows, null, 2));
+
+      // {
+      //   "labelName": "bokky",
+      //   "registrationDate": "1614410042",
+      //   "expiryDate": "1929979562",
+      //   "cost": "33631707879475471",
+      //   "registrant": "0x000001f568875f378bf6d170b790967fe429c81a",
+      //   "labelhash": "0x65866a6eb5c8f037f7c6581ad7ccf01c56180be616e8525fafc20c42ccbdf300",
+      //   "tokenId": "45921089783441287948523296213926136503333819594691056126355172308341959291648",
+      //   "name": "bokky.eth",
+      //   "isMigrated": true,
+      //   "resolver": "0x4976fb03c32e5b8cfe2b6ccb31c09ba78ebaba41",
+      //   "resolvedAddress": "0x000001f568875f378bf6d170b790967fe429c81a",
+      //   "parent": "eth",
+      //   "length": 5,
+      //   "warn": null,
+      //   "hasAvatar": true
+      // }
+
+      // let csvContent = "data:text/csv;charset=utf-8,";
+      // rows.forEach(function(rowArray) {
+      //     let row = rowArray.join(",");
+      //     csvContent += row + "\r\n";
+      // });
+      let csvContent = "data:text/csv;charset=utf-8,"
+          + rows.map(e => e.join(",")).join("\n");
+      // console.log("csvContent: " + JSON.stringify(csvContent, null, 2));
+
+      var encodedUri = encodeURI(csvContent);
+      var link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "ensutil_export.csv");
+      document.body.appendChild(link); // Required for FF
+      link.click(); // This will download the data file named "my_data.csv".
+      // logInfo("Search", "exportNames() completed");
+    },
 
     async timeoutCallback() {
       logDebug("Search", "timeoutCallback() count: " + this.count);
