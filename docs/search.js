@@ -428,6 +428,9 @@ const Search = {
         }
       `;
 
+      // history.pushState({}, null, `${this.$route.path}#${encodeURIComponent(params)}`);
+      history.pushState({}, null, `${this.$route.path}#blah`);
+
       const results = {};
       const now = parseInt(new Date().valueOf() / 1000);
       const expiryDate = parseInt(now) - 90 * 24 * 60 * 60;
