@@ -11,7 +11,8 @@ const Config = {
         <b-card no-body class="border-0 m-0 mt-2">
           <b-card-body class="p-0">
 
-            <b-modal id="bv-modal-addgroup" size="lg" hide-footer title-class="m-0 p-0" header-class="m-1 p-1" body-class="m-1 p-1">
+            <!-- <b-modal id="bv-modal-addgroup" size="lg" hide-footer title-class="m-0 p-0" header-class="m-1 p-1" body-class="m-1 p-1"> -->
+            <b-modal id="bv-modal-addgroup" size="lg" hide-footer>
               <template v-slot:modal-title>
                 Add New Group
               </template>
@@ -27,7 +28,8 @@ const Config = {
               </b-card-body>
             </b-modal>
 
-            <b-modal id="bv-modal-addaccount" size="lg" hide-footer title-class="m-0 p-0" header-class="m-1 p-1" body-class="m-1 p-1">
+            <!-- <b-modal id="bv-modal-addaccount" size="lg" hide-footer title-class="m-0 p-0" header-class="m-1 p-1" body-class="m-1 p-1"> -->
+            <b-modal id="bv-modal-addaccount" size="lg" hide-footer>
               <template v-slot:modal-title>
                 Add New Account To Group {{ groups[selectedGroupIndex].name }}
               </template>
