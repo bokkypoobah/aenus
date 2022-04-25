@@ -20,6 +20,15 @@ const Search = {
                     </h6>
                   </template>
 
+                  <b-row>
+                    <b-col cols="2" class="m-0 p-1 text-right">
+                      Search By
+                    </b-col>
+                    <b-col cols="6" class="m-0 p-1">
+                      <b-form-radio-group v-model="settings.searchOption" :options="searchOptions">
+                      </b-form-radio-group>
+                    </b-col>
+                  </b-row>
                   <b-row v-if="settings.searchOption == 'single'">
                     <b-col cols="2" class="m-0 p-1 text-right">
                       ENS name
@@ -48,15 +57,6 @@ const Search = {
                       <b-form-select size="sm" v-model="settings.selectedGroup" :options="groupOptions" v-b-popover.hover="'Set up groups in Config'" ></b-form-select>
                     </b-col>
                     <b-col cols="2" class="m-0 p-1">
-                    </b-col>
-                  </b-row>
-                  <b-row>
-                    <b-col cols="2" class="m-0 p-1 text-right">
-                      Search By
-                    </b-col>
-                    <b-col cols="6" class="m-0 p-1">
-                      <b-form-radio-group v-model="settings.searchOption" :options="searchOptions">
-                      </b-form-radio-group>
                     </b-col>
                   </b-row>
                   <b-row>
@@ -438,10 +438,8 @@ const Search = {
       // history.pushState({}, null, `${this.$route.path}#${encodeURIComponent(params)}`);
       // history.pushState({}, null, `${this.$route.path}#blah`);
 
-      console.log("navigator.userAgent: " + navigator.userAgent);
-      console.log("isMobile: " + (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)));
-
-         // if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+      // console.log("navigator.userAgent: " + navigator.userAgent);
+      // console.log("isMobile: " + (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)));
 
       const results = {};
       const now = parseInt(new Date().valueOf() / 1000);
@@ -450,18 +448,18 @@ const Search = {
 
       let searchForAccounts = [];
       if (this.settings.searchOption == 'single' || this.settings.searchOption == 'owned') {
-        console.log("Here: " + this.settings.searchString);
+        // console.log("Here: " + this.settings.searchString);
 
         // TODO: Cater for 0x1234...5678.eth ENS names
         const searchForLabelNames = this.settings.searchString.split(/[, \t]+/)
           .map(function(item) { return item.replace('.eth', '').toLowerCase().trim(); })
           .filter(function (name) { return ! (name.length == 42 && name.substring(0, 2) == '0x'); });
-        logInfo("Search", "retrieveNames() - searchForLabelNames: " + JSON.stringify(searchForLabelNames, null, 2));
+        // logInfo("Search", "retrieveNames() - searchForLabelNames: " + JSON.stringify(searchForLabelNames, null, 2));
 
         searchForAccounts = this.settings.searchString.split(/[, \t]+/)
           .map(function(item) { return item.replace('.eth', '').toLowerCase().trim(); })
           .filter(function (name) { return name.length == 42 && name.substring(0, 2) == '0x'; });
-        logInfo("Search", "retrieveNames() - searchForAccounts: " + JSON.stringify(searchForAccounts, null, 2));
+        // logInfo("Search", "retrieveNames() - searchForAccounts: " + JSON.stringify(searchForAccounts, null, 2));
 
         const data = await fetch(url, {
           method: 'POST',
@@ -479,8 +477,8 @@ const Search = {
         const registrantMap = {};
         // logInfo("Search", "retrieveNames() - registrations: " + JSON.stringify(registrations, null, 2));
         for (registration of registrations) {
-          console.log(registration.domain.name);
-          logInfo("Search", "retrieveNames() - registration: " + JSON.stringify(registration, null, 2));
+          // console.log(registration.domain.name);
+          // logInfo("Search", "retrieveNames() - registration: " + JSON.stringify(registration, null, 2));
           if (this.settings.searchOption == 'owned') {
             registrantMap[registration.registrant.id] = true;
           }
@@ -502,9 +500,9 @@ const Search = {
             hasAvatar: registration.domain.resolver && registration.domain.resolver.texts && registration.domain.resolver.texts.includes("avatar"),
           };
         }
-        logInfo("Search", "retrieveNames() - registrantMap: " + JSON.stringify(registrantMap, null, 2));
+        // logInfo("Search", "retrieveNames() - registrantMap: " + JSON.stringify(registrantMap, null, 2));
         searchForAccounts = [ ...searchForAccounts, ...Object.keys(registrantMap) ];
-        logInfo("Search", "retrieveNames() - searchForAccounts: " + JSON.stringify(searchForAccounts, null, 2));
+        // logInfo("Search", "retrieveNames() - searchForAccounts: " + JSON.stringify(searchForAccounts, null, 2));
       }
 
       if (this.settings.searchOption == 'owned' || this.settings.searchOption == 'group') {
@@ -518,11 +516,11 @@ const Search = {
             searchForAccounts = [ ...searchForAccounts, ...group.accounts ];
           }
         }
-        logInfo("Search", "retrieveNames() - searchForAccounts: " + JSON.stringify(searchForAccounts));
-        logInfo("Search", "retrieveNames() - expiryDate: " + expiryDate + " = " + new Date(expiryDate * 1000));
+        // logInfo("Search", "retrieveNames() - searchForAccounts: " + JSON.stringify(searchForAccounts));
+        // logInfo("Search", "retrieveNames() - expiryDate: " + expiryDate + " = " + new Date(expiryDate * 1000));
         this.retrievingMessage = "Retrieving";
         for (account of searchForAccounts) {
-          logInfo("Search", "retrieveNames() - account: " + JSON.stringify(account));
+          // logInfo("Search", "retrieveNames() - account: " + JSON.stringify(account));
           const first = BATCHSIZE;
           const id = account.toLowerCase();
           let skip = 0;
@@ -588,7 +586,7 @@ const Search = {
 
     exportNames() {
       const rows = [
-          ["Number", "labelName", "name", "registrationDate", "expiryDate", "cost (ETH)", "registrant", "resolver", "resolvedAddress"],
+          ["No", "Label Name", "Name", "Registration Date", "Expiry Date", "Cost (ETH)", "Registrant", "Resolver", "Resolved Address"],
       ];
       const timestamp = new Date(parseInt((new Date).getTime()/1000)*1000).toISOString().replace('T', '-').replaceAll(':', '-').replace('.000Z', '');
       let i = 1;

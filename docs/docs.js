@@ -3,24 +3,44 @@ const Docs = {
     <div class="mt-5 pt-3">
       <b-card no-body class="border-0">
         <b-card no-body class="border-0 m-0 mt-2">
+
+        <b-card-text class="m-2 p-2">
+          <h5 ref="info_top" class="mb-1">Welcome</h5>
+
+          <em>ensutils</em> is being built as a tool to manage your ENS domain names.
+
+          <br />
+
+          <em>ensutils</em> uses data from the <a href="https://thegraph.com/hosted-service/subgraph/ensdomains/ens" target="_blank">ENS subgraph</a>.
+
+        <b-card-text>
+
+
+
+
           <!-- <b-tabs v-model="section" pills card vertical end nav-class="m-1 p-1" active-tab-class="m-1 mt-2 p-1"> -->
 
             <!-- Info -->
-            <!-- <b-tab title="Info" @click.prevent="updateRouterParamsSectionTopic('info', 'top')"> -->
+            <!-- <b-tab title="Documentation" @click.prevent="updateRouterParamsSectionTopic('info', 'top')"> -->
               <b-card-text>
+                <!--
                 <h5 ref="info_top" class="mb-3">Info</h5>
+                -->
 
+                <!--
                 <a href="https://isotile.com/a/0xbeeef66749b64afe43bbc9475635eb510cfe4922" target="_blank">https://isotile.com/a/0xbeeef66749b64afe43bbc9475635eb510cfe4922</a>
                 <br />
                 <iframe src="https://isotile.com/a/0xbeeef66749b64afe43bbc9475635eb510cfe4922" style="width: 400px; height: 200px;"></iframe>
 
                 <br />
                 <a href="https://opensea.io/accounts/beeef.nftpostcard.eth" target="_blank">https://opensea.io/accounts/beeef.nftpostcard.eth</a>
+                -->
                 <!--
                 <br />
                 <iframe src="https://opensea.io/accounts/beeef.nftpostcard.eth" style="width: 400px; height: 200px;"></iframe>
                 -->
 
+                <!--
                 <br />
                 <a href="https://isotile.com/a/0x000001f568875f378bf6d170b790967fe429c81a" target="_blank">https://isotile.com/a/0x000001f568875f378bf6d170b790967fe429c81a</a>
                 <br />
@@ -28,6 +48,7 @@ const Docs = {
 
                 <br />
                 <a href="https://opensea.io/accounts/bokkypoobah.eth" target="_blank">https://opensea.io/accounts/bokkypoobah.eth</a>
+                -->
                 <!--
                 <br />
                 <iframe src="https://opensea.io/accounts/bokkypoobah.eth" style="width: 400px; height: 200px;"></iframe>
@@ -35,6 +56,7 @@ const Docs = {
 
 
                 <!-- <b-card no-body class="border-0"> -->
+                <!--
                   <p>We, <b-link href="https://www.larvalabs.com/cryptopunks/details/3636" target="_blank">#3636 <b-avatar variant="light" size="3.0rem" src="https://www.larvalabs.com/public/images/cryptopunks/punk3636.png"></b-avatar></b-link> and
                   <b-link href="https://www.larvalabs.com/cryptopunks/details/4472" target="_blank">#4472 <b-avatar variant="light" size="3.0rem" src="https://www.larvalabs.com/public/images/cryptopunks/punk4472.png"></b-avatar></b-link>, Zombie Xtreme High Yield cultivators have been travelling through space and time collecting digital subjects to build a menagerie.</p>
                   <div class="m-5">
@@ -92,11 +114,14 @@ const Docs = {
                         </b-carousel-slide>
                       </b-carousel>
                     </div>
+                    -->
                   <!-- </b-card> -->
 
+                  <!--
                   <p>We have now deployed an Xtreme High Yield Zombie Baby <b-link :href="explorer + 'address/token.zombiebabies.eth#code'" target="_blank">ERC-1155 Non-Fungible Token</b-link> (NFT), and a <b-link :href="explorer + 'address/adoption.zombiebabies.eth#code'" target="_blank">Zombie Baby Adoption Centre</b-link> on the Ethereum blockchain, for our immortal Zombie Babies to spread throughout SpaceTime.</p>
 
                   <p><b-link to="/">Adopt</b-link> the next available Zombie Babies (one of #0 to #7) for free (+ transaction fee), or adopt a clowder of Zombie Babies (all of #0 to #7) for 0.05 ETH (+ transaction fee).</p>
+                  -->
 
 
                 <!--
@@ -108,12 +133,14 @@ const Docs = {
             <!-- Links -->
             <!-- <b-tab title="Links" @click.prevent="updateRouterParamsSectionTopic('links', 'top')"> -->
 
+              <!--
               <b-card-text>
                 <h5 ref="links_top" class="mb-3">Links</h5>
                 <p>GitHub NFTPostcardApp: <b-link href="https://github.com/bokkypoobah/NFTPostcardApp" target="_blank">https://github.com/bokkypoobah/NFTPostcardApp</b-link></p>
                 <p>GitHub ERC-1155 NFT: <b-link href="https://github.com/bokkypoobah/NFT" target="_blank">https://github.com/bokkypoobah/NFT</b-link></p>
                 <p>Twitter: <b-link href="https://twitter.com/BokkyPooBah" target="_blank">https://twitter.com/BokkyPooBah</b-link></p>
               </b-card-text>
+              -->
             <!-- </b-tab> -->
 
             <!-- How To -->
