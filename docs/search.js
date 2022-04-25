@@ -107,12 +107,16 @@ const Search = {
                     <template #cell(index)="data">
                       <span>{{ data.index+1 }}</span>
                     </template>
-                    <template #cell(name)="data">
-                      {{ data.item.name.substring(0, 64) }}
-
+                    <template #cell(image)="data">
+                      <b-img :width="'100%'" :src="'https://metadata.ens.domains/mainnet/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + data.item.tokenId + '/image'"></b-img>
+                      <!--
                       <div v-if="data.item.hasAvatar">
                         <b-img-lazy :width="'100%'" :src="'https://metadata.ens.domains/mainnet/avatar/' + data.item.name" />
                       </div>
+                      -->
+                    </template>
+                    <template #cell(name)="data">
+                      {{ data.item.name.substring(0, 64) }}
                     </template>
                     <template #cell(expiryDate)="data">
                       <div v-if="data.item.warn">
@@ -182,7 +186,8 @@ const Search = {
 
       fields: [
         { key: 'index', label: '#', thStyle: 'width: 5%;' },
-        { key: 'name', label: 'Name', thStyle: 'width: 40%;', sortable: true },
+        { key: 'image', label: 'Image', thStyle: 'width: 10%;', sortable: true },
+        { key: 'name', label: 'Name', thStyle: 'width: 30%;', sortable: true },
         { key: 'expiryDate', label: 'Expiry (UTC)', thStyle: 'width: 15%;', sortable: true },
         { key: 'registrationDate', label: 'Registration (UTC)', thStyle: 'width: 15%;', sortable: true },
         { key: 'length', label: 'Length', thStyle: 'width: 10%;', sortable: true },
@@ -500,6 +505,7 @@ const Search = {
         }
         logInfo("Search", "retrieveNames() - searchForAccounts: " + JSON.stringify(searchForAccounts));
         logInfo("Search", "retrieveNames() - expiryDate: " + expiryDate + " = " + new Date(expiryDate * 1000));
+        this.retrievingMessage = "Retrieving";
         for (account of searchForAccounts) {
           logInfo("Search", "retrieveNames() - account: " + JSON.stringify(account));
           const first = BATCHSIZE;
