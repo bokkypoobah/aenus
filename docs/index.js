@@ -63,7 +63,7 @@ const store = new Vuex.Store({
     // collectionData: collectionDataModule,
     welcome: welcomeModule,
     // nix: nixModule,
-    weth: wethModule,
+    // weth: wethModule,
     // admin: adminModule,
     config: configModule,
     portfolio: searchModule,
