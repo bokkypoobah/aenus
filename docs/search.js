@@ -7,165 +7,155 @@ const Search = {
         </b-card-text>
       </b-card>
 
-      <b-card no-body header="Search" class="border-0" header-class="p-1">
-        <b-card no-body class="border-0 m-0 mt-2">
-          <b-card-body class="p-0">
+      <b-card no-body header="Search Registered ENS Names" class="border-0" header-class="p-1">
+        <b-card class="mb-2 mt-2">
+          <template #header>
+            <h6>
+              Registered ENS Names
+            </h6>
+          </template>
 
-            <div>
-              <b-card no-body class="mt-2">
-                <b-card class="mb-2">
-                  <template #header>
-                    <h6>
-                      Registered ENS Names
-                    </h6>
-                  </template>
+          <b-row>
+            <b-col cols="2" class="m-0 p-1 text-right">
+              Search By
+            </b-col>
+            <b-col cols="6" class="m-0 p-1">
+              <b-form-radio-group v-model="settings.searchOption" :options="searchOptions">
+              </b-form-radio-group>
+            </b-col>
+          </b-row>
+          <b-row v-if="settings.searchOption == 'single'">
+            <b-col cols="2" class="m-0 p-1 text-right">
+              ENS name
+            </b-col>
+            <b-col cols="6" class="m-0 p-1">
+              <b-form-input t6pe="text" size="sm" v-model.trim="settings.searchString" placeholder="🔍 {name1}[.eth] {name2}[.eth], {name3}[.eth] ..."></b-form-input>
+            </b-col>
+            <b-col cols="2" class="m-0 p-1">
+            </b-col>
+          </b-row>
+          <b-row v-if="settings.searchOption == 'owned'">
+            <b-col cols="2" class="m-0 p-1 text-right">
+              Account or ENS name
+            </b-col>
+            <b-col cols="6" class="m-0 p-1">
+              <b-form-input type="text" size="sm" v-model.trim="settings.searchString" placeholder="🔍 0x012345... 0x123456..., {name1}[.eth] {name2}[.eth] ..."></b-form-input>
+            </b-col>
+            <b-col cols="2" class="m-0 p-1">
+            </b-col>
+          </b-row>
+          <b-row v-if="settings.searchOption == 'group'">
+            <b-col cols="2" class="m-0 p-1 text-right">
+              Account Group
+            </b-col>
+            <b-col cols="6" class="m-0 p-1">
+              <b-form-select size="sm" v-model="settings.selectedGroup" :options="groupOptions" v-b-popover.hover="'Set up groups in Config'" ></b-form-select>
+            </b-col>
+            <b-col cols="2" class="m-0 p-1">
+            </b-col>
+          </b-row>
+          <b-row>
+            <b-col cols="2" class="m-0 p-1 text-right">
+            </b-col>
+            <b-col cols="4" class="m-0 p-1">
+              <b-button size="sm" @click="retrieveNames" :disabled="retrievingMessage != null" variant="primary">{{ retrievingMessage ? retrievingMessage : 'Retrieve Names'}}</b-button>
+            </b-col>
+          </b-row>
+          <b-row>
+            <b-col cols="2" class="m-0 p-1 text-right">
+              Filter
+            </b-col>
+            <b-col cols="4" class="m-0 p-1">
+              <b-form-input type="text" size="sm" v-model.trim="settings.filter" debounce="600" class="w-100" placeholder="🔍 name"></b-form-input>
+            </b-col>
+            <b-col cols="1" class="m-0 p-1">
+              {{ filteredResults.length + ' of ' + Object.keys(results).length }}
+            </b-col>
+            <b-col cols="1" class="m-0 p-1">
+              <b-button size="sm" @click="exportNames" :disabled="Object.keys(results).length == 0" variant="primary">Export</b-button>
+            </b-col>
+          </b-row>
 
-                  <b-row>
-                    <b-col cols="2" class="m-0 p-1 text-right">
-                      Search By
-                    </b-col>
-                    <b-col cols="6" class="m-0 p-1">
-                      <b-form-radio-group v-model="settings.searchOption" :options="searchOptions">
-                      </b-form-radio-group>
-                    </b-col>
-                  </b-row>
-                  <b-row v-if="settings.searchOption == 'single'">
-                    <b-col cols="2" class="m-0 p-1 text-right">
-                      ENS name
-                    </b-col>
-                    <b-col cols="6" class="m-0 p-1">
-                      <b-form-input t6pe="text" size="sm" v-model.trim="settings.searchString" placeholder="🔍 {name1}[.eth] {name2}[.eth], {name3}[.eth] ..."></b-form-input>
-                    </b-col>
-                    <b-col cols="2" class="m-0 p-1">
-                    </b-col>
-                  </b-row>
-                  <b-row v-if="settings.searchOption == 'owned'">
-                    <b-col cols="2" class="m-0 p-1 text-right">
-                      Account or ENS name
-                    </b-col>
-                    <b-col cols="6" class="m-0 p-1">
-                      <b-form-input type="text" size="sm" v-model.trim="settings.searchString" placeholder="🔍 0x012345... 0x123456..., {name1}[.eth] {name2}[.eth] ..."></b-form-input>
-                    </b-col>
-                    <b-col cols="2" class="m-0 p-1">
-                    </b-col>
-                  </b-row>
-                  <b-row v-if="settings.searchOption == 'group'">
-                    <b-col cols="2" class="m-0 p-1 text-right">
-                      Account Group
-                    </b-col>
-                    <b-col cols="6" class="m-0 p-1">
-                      <b-form-select size="sm" v-model="settings.selectedGroup" :options="groupOptions" v-b-popover.hover="'Set up groups in Config'" ></b-form-select>
-                    </b-col>
-                    <b-col cols="2" class="m-0 p-1">
-                    </b-col>
-                  </b-row>
-                  <b-row>
-                    <b-col cols="2" class="m-0 p-1 text-right">
-                    </b-col>
-                    <b-col cols="4" class="m-0 p-1">
-                      <b-button size="sm" @click="retrieveNames" :disabled="retrievingMessage != null" variant="primary">{{ retrievingMessage ? retrievingMessage : 'Retrieve Names'}}</b-button>
-                    </b-col>
-                  </b-row>
-                  <b-row>
-                    <b-col cols="2" class="m-0 p-1 text-right">
-                      Filter
-                    </b-col>
-                    <b-col cols="4" class="m-0 p-1">
-                      <b-form-input type="text" size="sm" v-model.trim="settings.filter" debounce="600" class="w-100" placeholder="🔍 name"></b-form-input>
-                    </b-col>
-                    <b-col cols="1" class="m-0 p-1">
-                      {{ filteredResults.length + ' of ' + Object.keys(results).length }}
-                    </b-col>
-                    <b-col cols="1" class="m-0 p-1">
-                      <b-button size="sm" @click="exportNames" :disabled="Object.keys(results).length == 0" variant="primary">Export</b-button>
-                    </b-col>
-                  </b-row>
+          <!--
+          <br />
+          <br />
+          <br />
 
-                  <!--
-                  <br />
-                  <br />
-                  <br />
+          <b-form-group label-cols="2" label-size="sm" label="Account Group">
+            <b-form-select size="sm" v-model="settings.selectedGroup" :options="groupOptions" class="w-50"></b-form-select>
+          </b-form-group>
+          <b-form-group label-cols="2" label-size="sm" label="">
+            <b-button size="sm" @click="retrieveNames" :disabled="retrievingMessage != null" variant="warning">{{ retrievingMessage ? retrievingMessage : 'Retrieve Names'}}</b-button>
+          </b-form-group>
+          -->
+          <!--
+          <b-form-group label-cols="2" label-size="sm" label="Sort">
+            <b-form-select size="sm" v-model="sortOption" :options="sortOptions" class="w-25"></b-form-select>
+          </b-form-group>
+          -->
+          <!--
+          <b-form-group label-cols="2" label-size="sm" label="Filter" :description="filteredResults.length + ' of ' + Object.keys(results).length">
+            <b-form-input type="text" size="sm" v-model.trim="settings.filter" debounce="600" class="w-25" placeholder="🔍 name"></b-form-input>
+          </b-form-group>
+          -->
 
-                  <b-form-group label-cols="2" label-size="sm" label="Account Group">
-                    <b-form-select size="sm" v-model="settings.selectedGroup" :options="groupOptions" class="w-50"></b-form-select>
-                  </b-form-group>
-                  <b-form-group label-cols="2" label-size="sm" label="">
-                    <b-button size="sm" @click="retrieveNames" :disabled="retrievingMessage != null" variant="warning">{{ retrievingMessage ? retrievingMessage : 'Retrieve Names'}}</b-button>
-                  </b-form-group>
-                  -->
-                  <!--
-                  <b-form-group label-cols="2" label-size="sm" label="Sort">
-                    <b-form-select size="sm" v-model="sortOption" :options="sortOptions" class="w-25"></b-form-select>
-                  </b-form-group>
-                  -->
-                  <!--
-                  <b-form-group label-cols="2" label-size="sm" label="Filter" :description="filteredResults.length + ' of ' + Object.keys(results).length">
-                    <b-form-input type="text" size="sm" v-model.trim="settings.filter" debounce="600" class="w-25" placeholder="🔍 name"></b-form-input>
-                  </b-form-group>
-                  -->
+          <hr />
 
-                  <hr />
-
-                  <b-table small striped hover :fields="fields" :items="filteredResults" responsive="sm" class="mt-3">
-                    <template #cell(index)="data">
-                      <span>{{ data.index+1 }}</span>
-                    </template>
-                    <template #cell(image)="data">
-                      <b-img :width="'100%'" :src="'https://metadata.ens.domains/mainnet/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + data.item.tokenId + '/image'"></b-img>
-                      <!--
-                      <div v-if="data.item.hasAvatar">
-                        <b-img-lazy :width="'100%'" :src="'https://metadata.ens.domains/mainnet/avatar/' + data.item.name" />
-                      </div>
-                      -->
-                    </template>
-                    <template #cell(name)="data">
-                      {{ data.item.name.substring(0, 64) }}
-                    </template>
-                    <template #cell(expiryDate)="data">
-                      <div v-if="data.item.warn">
-                        <font :color="data.item.warn">
-                          {{ formatDate(data.item.expiryDate) }}
-                        </font>
-                      </div>
-                      <div v-else>
-                        {{ formatDate(data.item.expiryDate) }}
-                      </div>
-                    </template>
-                    <template #cell(registrationDate)="data">
-                      {{ formatDate(data.item.registrationDate) }}
-                    </template>
-                    <template #cell(links)="data">
-                      <b-link :href="'https://app.ens.domains/name/' + data.item.name" v-b-popover.hover="'View in app.ens.domains'" target="_blank">
-                        ens
-                      </b-link>
-                      <b-link :href="'https://opensea.io/assets/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + data.item.tokenId" v-b-popover.hover="'View in opensea.io'" target="_blank">
-                        osea
-                      </b-link>
-                      <b-link :href="'https://looksrare.org/collections/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + data.item.tokenId" v-b-popover.hover="'View in looksrare.org'" target="_blank">
-                        lrare
-                      </b-link>
-                      <b-link :href="'https://etherscan.io/enslookup-search?search=' + data.item.name" v-b-popover.hover="'View in etherscan.io'" target="_blank">
-                        escan
-                      </b-link>
-                      <b-link :href="'https://duckduckgo.com/?q=' + data.item.labelName" v-b-popover.hover="'Search name in duckduckgo.com'" target="_blank">
-                        ddg
-                      </b-link>
-                      <b-link :href="'https://wikipedia.org/wiki/' + data.item.labelName" v-b-popover.hover="'Search name in wikipedia.org'" target="_blank">
-                        wiki
-                      </b-link>
-                      <b-link :href="'https://en.wiktionary.org/wiki/' + data.item.labelName" v-b-popover.hover="'Search name in wiktionary.org'" target="_blank">
-                        wikt
-                      </b-link>
-                      <b-link :href="'https://thesaurus.yourdictionary.com/' + data.item.labelName" v-b-popover.hover="'Search name in thesaurus.yourdictionary.com'" target="_blank">
-                        thes
-                      </b-link>
-                    </template>
-                  </b-table>
-                </b-card>
-              </b-card>
-            </div>
-
-          </b-card-body>
+          <b-table small striped hover :fields="fields" :items="filteredResults" responsive="sm" class="mt-3">
+            <template #cell(index)="data">
+              <span>{{ data.index+1 }}</span>
+            </template>
+            <template #cell(image)="data">
+              <b-img :width="'100%'" :src="'https://metadata.ens.domains/mainnet/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + data.item.tokenId + '/image'"></b-img>
+              <!--
+              <div v-if="data.item.hasAvatar">
+                <b-img-lazy :width="'100%'" :src="'https://metadata.ens.domains/mainnet/avatar/' + data.item.name" />
+              </div>
+              -->
+            </template>
+            <template #cell(name)="data">
+              {{ data.item.name.substring(0, 64) }}
+            </template>
+            <template #cell(expiryDate)="data">
+              <div v-if="data.item.warn">
+                <font :color="data.item.warn">
+                  {{ formatDate(data.item.expiryDate) }}
+                </font>
+              </div>
+              <div v-else>
+                {{ formatDate(data.item.expiryDate) }}
+              </div>
+            </template>
+            <template #cell(registrationDate)="data">
+              {{ formatDate(data.item.registrationDate) }}
+            </template>
+            <template #cell(links)="data">
+              <b-link :href="'https://app.ens.domains/name/' + data.item.name" v-b-popover.hover="'View in app.ens.domains'" target="_blank">
+                ens
+              </b-link>
+              <b-link :href="'https://opensea.io/assets/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + data.item.tokenId" v-b-popover.hover="'View in opensea.io'" target="_blank">
+                osea
+              </b-link>
+              <b-link :href="'https://looksrare.org/collections/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + data.item.tokenId" v-b-popover.hover="'View in looksrare.org'" target="_blank">
+                lrare
+              </b-link>
+              <b-link :href="'https://etherscan.io/enslookup-search?search=' + data.item.name" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                escan
+              </b-link>
+              <b-link :href="'https://duckduckgo.com/?q=' + data.item.labelName" v-b-popover.hover="'Search name in duckduckgo.com'" target="_blank">
+                ddg
+              </b-link>
+              <b-link :href="'https://wikipedia.org/wiki/' + data.item.labelName" v-b-popover.hover="'Search name in wikipedia.org'" target="_blank">
+                wiki
+              </b-link>
+              <b-link :href="'https://en.wiktionary.org/wiki/' + data.item.labelName" v-b-popover.hover="'Search name in wiktionary.org'" target="_blank">
+                wikt
+              </b-link>
+              <b-link :href="'https://thesaurus.yourdictionary.com/' + data.item.labelName" v-b-popover.hover="'Search name in thesaurus.yourdictionary.com'" target="_blank">
+                thes
+              </b-link>
+            </template>
+          </b-table>
         </b-card>
       </b-card>
     </div>
