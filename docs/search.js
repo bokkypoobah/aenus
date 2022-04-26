@@ -358,7 +358,7 @@ const Search = {
 
       const nameQuery = `
         query getRegistrations($labelNames: [String!]!) {
-          registrations(where: {labelName_in: $labelNames}) {
+          registrations(first: 1000, orderBy: labelName, orderDirection: asc, where: {labelName_in: $labelNames}) {
             id
             registrationDate
             expiryDate
@@ -557,7 +557,7 @@ const Search = {
             // if (skip == 0) {
               // logInfo("Search", "retrieveNames() - data: " + JSON.stringify(data, null, 2));
             // }
-            const registrations = data.data.account.registrations || [];
+            const registrations = data.data.account && data.data.account.registrations || [];
             if (registrations.length == 0) {
               completed = true;
             } else {
