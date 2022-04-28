@@ -7,60 +7,77 @@ const Search = {
         </b-card-text>
       </b-card>
 
-      <b-card no-body header="Search Registered ENS Names" class="border-0" header-class="p-1">
-        <b-card class="mb-2 mt-2">
-          <template #header>
-            <h6>
-              Registered ENS Names
-            </h6>
-          </template>
 
-          <b-row>
-            <b-col cols="2" class="m-0 p-1 text-right">
-              Search By
-            </b-col>
-            <b-col cols="6" class="m-0 p-1">
-              <b-form-radio-group v-model="settings.searchOption" :options="searchOptions">
-              </b-form-radio-group>
-            </b-col>
-          </b-row>
-          <b-row v-if="settings.searchOption == 'single'">
-            <b-col cols="2" class="m-0 p-1 text-right">
-              ENS name
-            </b-col>
-            <b-col cols="6" class="m-0 p-1">
-              <b-form-input t6pe="text" size="sm" v-model.trim="settings.searchString" placeholder="🔍 {name1}[.eth] {name2}[.eth], {name3}[.eth] ..."></b-form-input>
-            </b-col>
-            <b-col cols="2" class="m-0 p-1">
-            </b-col>
-          </b-row>
-          <b-row v-if="settings.searchOption == 'owned'">
-            <b-col cols="2" class="m-0 p-1 text-right">
-              Account or ENS name
-            </b-col>
-            <b-col cols="6" class="m-0 p-1">
-              <b-form-input type="text" size="sm" v-model.trim="settings.searchString" placeholder="🔍 0x012345... 0x123456..., {name1}[.eth] {name2}[.eth] ..."></b-form-input>
-            </b-col>
-            <b-col cols="2" class="m-0 p-1">
-            </b-col>
-          </b-row>
-          <b-row v-if="settings.searchOption == 'group'">
-            <b-col cols="2" class="m-0 p-1 text-right">
-              Account Group
-            </b-col>
-            <b-col cols="6" class="m-0 p-1">
-              <b-form-select size="sm" v-model="settings.selectedGroup" :options="groupOptions" v-b-popover.hover="'Set up groups in Config'" ></b-form-select>
-            </b-col>
-            <b-col cols="2" class="m-0 p-1">
-            </b-col>
-          </b-row>
-          <b-row>
-            <b-col cols="2" class="m-0 p-1 text-right">
-            </b-col>
-            <b-col cols="4" class="m-0 p-1">
-              <b-button size="sm" @click="retrieveNames" :disabled="retrievingMessage != null" variant="primary">{{ retrievingMessage ? retrievingMessage : 'Retrieve Names'}}</b-button>
-            </b-col>
-          </b-row>
+      <b-card no-body header="Search Registered ENS Names" class="border-0" header-class="p-0">
+
+        <b-card no-body class="p-0 mt-2">
+          <b-tabs card align="left" no-body active-tab-class="m-1 p-1" v-model="settings.searchTabIndex">
+            <b-tab title="Names" active>
+            </b-tab>
+            <b-tab title="By Owner">
+            </b-tab>
+            <b-tab title="By Groups">
+            </b-tab>
+            <!--
+            <b-tab title="1k Club">
+              <p>I'm the second tab</p>
+            </b-tab>
+            <b-tab title="10k Club">
+              <p>I'm the second tab</p>
+            </b-tab>
+            -->
+          </b-tabs>
+
+          <div v-if="settings.searchTabIndex == 0">
+            <b-row>
+              <b-col cols="2" class="m-0 p-1 text-right">
+                Name
+              </b-col>
+              <b-col cols="4" class="m-0 p-1">
+                <b-form-input t6pe="text" size="sm" v-model.trim="settings.searchString" placeholder="🔍 {name1}[.eth] {name2}[.eth], {name3}[.eth] ..."></b-form-input>
+              </b-col>
+              <b-col cols="2" class="m-0 p-1">
+                <b-button size="sm" @click="retrieveNames" :disabled="retrievingMessage != null" variant="primary">{{ retrievingMessage ? retrievingMessage : 'Search'}}</b-button>
+              </b-col>
+            </b-row>
+          </div>
+          <div v-if="settings.searchTabIndex == 1">
+            <b-row>
+              <b-col cols="2" class="m-0 p-1 text-right">
+                Name or Address
+              </b-col>
+              <b-col cols="4" class="m-0 p-1">
+                <b-form-input type="text" size="sm" v-model.trim="settings.searchString" placeholder="🔍 0x012345... 0x123456..., {name1}[.eth] {name2}[.eth] ..."></b-form-input>
+              </b-col>
+              <b-col cols="2" class="m-0 p-1">
+                <b-button size="sm" @click="retrieveNames" :disabled="retrievingMessage != null" variant="primary">{{ retrievingMessage ? retrievingMessage : 'Search'}}</b-button>
+              </b-col>
+            </b-row>
+          </div>
+          <div v-if="settings.searchTabIndex == 2">
+            <b-row>
+              <b-col cols="2" class="m-0 p-1 text-right">
+                Account Group
+              </b-col>
+              <b-col cols="4" class="m-0 p-1">
+                <b-form-select size="sm" v-model="settings.selectedGroup" :options="groupOptions" v-b-popover.hover="'Set up groups in Config'" ></b-form-select>
+              </b-col>
+              <b-col cols="2" class="m-0 p-1">
+                <b-button size="sm" @click="retrieveNames" :disabled="retrievingMessage != null" variant="primary">{{ retrievingMessage ? retrievingMessage : 'Search'}}</b-button>
+              </b-col>
+            </b-row>
+          </div>
+          <div v-if="settings.searchTabIndex == 3">
+            <b-card-text>
+              Hello 3
+            </b-card-text>
+          </div>
+          <div v-if="settings.searchTabIndex == 4">
+            <b-card-text>
+              Hello 4
+            </b-card-text>
+          </div>
+
           <b-row>
             <b-col cols="2" class="m-0 p-1 text-right">
               Filter
@@ -72,34 +89,22 @@ const Search = {
               {{ filteredResults.length + ' of ' + Object.keys(results).length }}
             </b-col>
             <b-col cols="1" class="m-0 p-1">
-              <b-button size="sm" @click="exportNames" :disabled="Object.keys(results).length == 0" variant="primary">Export</b-button>
             </b-col>
           </b-row>
 
-          <!--
-          <br />
-          <br />
-          <br />
-
-          <b-form-group label-cols="2" label-size="sm" label="Account Group">
-            <b-form-select size="sm" v-model="settings.selectedGroup" :options="groupOptions" class="w-50"></b-form-select>
-          </b-form-group>
-          <b-form-group label-cols="2" label-size="sm" label="">
-            <b-button size="sm" @click="retrieveNames" :disabled="retrievingMessage != null" variant="warning">{{ retrievingMessage ? retrievingMessage : 'Retrieve Names'}}</b-button>
-          </b-form-group>
-          -->
-          <!--
-          <b-form-group label-cols="2" label-size="sm" label="Sort">
-            <b-form-select size="sm" v-model="sortOption" :options="sortOptions" class="w-25"></b-form-select>
-          </b-form-group>
-          -->
-          <!--
-          <b-form-group label-cols="2" label-size="sm" label="Filter" :description="filteredResults.length + ' of ' + Object.keys(results).length">
-            <b-form-input type="text" size="sm" v-model.trim="settings.filter" debounce="600" class="w-25" placeholder="🔍 name"></b-form-input>
-          </b-form-group>
-          -->
-
-          <hr />
+          <b-row>
+            <b-col cols="2" class="m-0 p-1 text-right">
+              Sort
+            </b-col>
+            <b-col cols="4" class="m-0 p-1">
+              <b-form-select size="sm" v-model="sortOption" :options="sortOptions" class="w-100"></b-form-select>
+            </b-col>
+            <b-col cols="1" class="m-0 p-1">
+            </b-col>
+            <b-col cols="1" class="m-0 p-1">
+              <b-button size="sm" @click="exportNames" :disabled="Object.keys(results).length == 0" variant="primary">Export</b-button>
+            </b-col>
+          </b-row>
 
           <b-table small striped hover :fields="fields" :items="filteredResults" responsive="sm" class="mt-3">
             <template #cell(index)="data">
@@ -162,6 +167,7 @@ const Search = {
               </b-link>
             </template>
           </b-table>
+
         </b-card>
       </b-card>
     </div>
@@ -172,16 +178,11 @@ const Search = {
       reschedule: true,
 
       settings: {
-        searchOption: 'owned',
+        searchTabIndex: 0,
         searchString: null,
         selectedGroup: null,
         filter: null,
       },
-      searchOptions: [
-        { value: 'single', text: 'Single Name(s)' },
-        { value: 'owned', text: 'Owned Names' },
-        { value: 'group', text: 'Account Groups' },
-      ],
 
       sortOption: 'expiryasc',
       retrievingMessage: null,
@@ -200,11 +201,11 @@ const Search = {
 
       fields: [
         { key: 'index', label: '#', thStyle: 'width: 5%;' },
-        { key: 'image', label: 'Image', thStyle: 'width: 10%;', sortable: true },
-        { key: 'name', label: 'Name', thStyle: 'width: 30%;', sortable: true },
-        { key: 'expiryDate', label: 'Expiry (UTC)', thStyle: 'width: 15%;', sortable: true },
-        { key: 'registrationDate', label: 'Registration (UTC)', thStyle: 'width: 15%;', sortable: true },
-        { key: 'length', label: 'Length', thStyle: 'width: 10%;', sortable: true },
+        { key: 'image', label: 'Image', thStyle: 'width: 10%;', sortable: false },
+        { key: 'name', label: 'Name', thStyle: 'width: 30%;', sortable: false },
+        { key: 'expiryDate', label: 'Expiry (UTC)', thStyle: 'width: 15%;', sortable: false },
+        { key: 'registrationDate', label: 'Registration (UTC)', thStyle: 'width: 15%;', sortable: false },
+        { key: 'length', label: 'Length', thStyle: 'width: 10%;', sortable: false },
         { key: 'links', label: 'Links', thStyle: 'width: 10%;' },
       ],
     }
@@ -458,7 +459,7 @@ const Search = {
       const warningDate = parseInt(now) + 90 * 24 * 60 * 60;
 
       let searchForAccounts = [];
-      if (this.settings.searchOption == 'single' || this.settings.searchOption == 'owned') {
+      if (this.settings.searchTabIndex == 0 || this.settings.searchTabIndex == 1) {
         // console.log("Here: " + this.settings.searchString);
 
         // TODO: Cater for 0x1234...5678.eth ENS names
@@ -490,7 +491,7 @@ const Search = {
         for (registration of registrations) {
           // console.log(registration.domain.name);
           // logInfo("Search", "retrieveNames() - registration: " + JSON.stringify(registration, null, 2));
-          if (this.settings.searchOption == 'owned') {
+          if (this.settings.searchTabIndex == 1) {
             registrantMap[registration.registrant.id] = true;
           }
           results[registration.domain.name] = {
@@ -516,8 +517,8 @@ const Search = {
         // logInfo("Search", "retrieveNames() - searchForAccounts: " + JSON.stringify(searchForAccounts, null, 2));
       }
 
-      if (this.settings.searchOption == 'owned' || this.settings.searchOption == 'group') {
-        if (this.settings.searchOption == 'group') {
+      if (this.settings.searchTabIndex == 1 || this.settings.searchTabIndex == 2) {
+        if (this.settings.searchTabIndex == 2) {
           if (this.settings.selectedGroup == null) {
             if (this.coinbase != null) {
               searchForAccounts = [ ...searchForAccounts, this.coinbase ];
