@@ -8,7 +8,7 @@ const Search = {
       </b-card>
 
 
-      <b-card no-body header="Search Registered ENS Names" class="border-0" header-class="p-0">
+      <b-card no-body header="Search Registered Names" class="border-0" header-class="p-0">
 
         <b-card no-body class="p-0 mt-2">
           <b-tabs card align="left" no-body active-tab-class="m-1 p-1" v-model="settings.searchTabIndex">
