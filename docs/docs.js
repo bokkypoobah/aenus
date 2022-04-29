@@ -7,16 +7,22 @@ const Docs = {
         <b-card-text class="m-2 p-2">
           <h5 ref="info_top" class="mb-1">Welcome</h5>
 
-          <em>ensutils</em> is being built as a tool to manage your ENS domain names.
+          <em>aenus</em>, advanced ens utilities, is being built as a tool to manage your ENS domain names.
 
           <br />
           <br />
 
-          <em>ensutils</em> uses data from the <a href="https://thegraph.com/hosted-service/subgraph/ensdomains/ens" target="_blank">ENS subgraph</a>.
+          <em>aenus</em> uses data from the <a href="https://thegraph.com/hosted-service/subgraph/ensdomains/ens" target="_blank">ENS subgraph</a>.
 
-          The code can be found in <a href="https://github.com/bokkypoobah/ensutils" target="_blank">https://github.com/bokkypoobah/ensutils</a>.
+          <br />
+          <br />
 
-          This dapp can be accessed at <a href="https://bokkypoobah.github.io/ensutils/" target="_blank">https://bokkypoobah.github.io/ensutils/</a>.
+          The code can be found in <a href="https://github.com/bokkypoobah/aenus" target="_blank">https://github.com/bokkypoobah/aenus</a>.
+
+          <br />
+          <br />
+
+          This dapp can be accessed at <a href="https://bokkypoobah.github.io/aenus/" target="_blank">https://bokkypoobah.github.io/aenus/</a>.
 
           <br />
           <br />
