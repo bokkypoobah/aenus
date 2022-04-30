@@ -149,7 +149,7 @@ const Search = {
                       <p>
                         <span v-for="item in filteredResults">
                           <span v-if="item.length == 3">
-                            {{ item.name }}
+                            {{ item.labelName }}
                           </span>
                         </span>
                       </p>
@@ -164,7 +164,7 @@ const Search = {
                       <p>
                         <span v-for="item in filteredResults">
                           <span v-if="item.length == 4">
-                            {{ item.name }}
+                            {{ item.labelName }}
                           </span>
                         </span>
                       </p>
@@ -179,7 +179,7 @@ const Search = {
                       <p>
                         <span v-for="item in filteredResults">
                           <span v-if="item.length >= 5">
-                            {{ item.name }}
+                            {{ item.labelName }}
                           </span>
                         </span>
                       </p>
