@@ -1,14 +1,14 @@
 const Config = {
   template: `
-    <div class="mt-5 pt-3">
+    <div class="mt-5 pt-3 pl-1 pr-1">
       <b-card class="mt-5" header-class="warningheader" header="Web3 Connection And/Or Incorrect Network Detected" v-if="false && (!powerOn || network.chainId != 1)">
         <b-card-text>
         Please install the MetaMask extension, connect to the Ethereum mainnet and refresh this page. Then click the [Power] button on the top right.
         </b-card-text>
       </b-card>
 
-      <b-card no-body header="Configuration" class="border-0" header-class="p-1">
-        <!-- <b-modal id="bv-modal-addgroup" size="lg" hide-footer title-class="m-0 p-0" header-class="m-1 p-1" body-class="m-1 p-1"> -->
+      <b-card no-body header="Configuration" class="border-0" header-class="p-0">
+
         <b-modal id="bv-modal-addgroup" size="lg" hide-footer>
           <template v-slot:modal-title>
             Add New Group
@@ -25,7 +25,6 @@ const Config = {
           </b-card-body>
         </b-modal>
 
-        <!-- <b-modal id="bv-modal-addaccount" size="lg" hide-footer title-class="m-0 p-0" header-class="m-1 p-1" body-class="m-1 p-1"> -->
         <b-modal id="bv-modal-addaccount" size="lg" hide-footer>
           <template v-slot:modal-title>
             Add New Account To Group {{ groups[selectedGroupIndex].name }}
@@ -42,75 +41,44 @@ const Config = {
           </b-card-body>
         </b-modal>
 
-        <div>
-            <b-card class="mt-2 mb-2">
+        <b-card class="m-1 p-1">
+          <template #header>
+            <h6>
+              Account Groups
+              <b-button size="sm" class="float-right m-0 p-0" href="#" @click="$bvModal.show('bv-modal-addgroup')" variant="link" v-b-popover.hover="'Add new group'"><b-icon-plus shift-v="-2" font-scale="1.4"></b-icon-plus></b-button>
+            </h6>
+          </template>
+          <div v-if="groups.length == 0">
+            <b-card-text>
+              Organise your ETH accounts (not ENS names) into groups. Use these groups in your ENS searches.
+
+              <br />
+              <br />
+
+              Click on the + button to add a new group.
+            </b-card-text>
+          </div>
+          <div v-for="(group, groupIndex) in groups">
+            <b-card class="mb-2">
               <template #header>
                 <h6>
-                  Account Groups
-                  <b-button size="sm" class="float-right m-0 p-0" href="#" @click="$bvModal.show('bv-modal-addgroup')" variant="link" v-b-popover.hover="'Add new group'"><b-icon-plus shift-v="-2" font-scale="1.4"></b-icon-plus></b-button>
+                  {{ groupIndex+1 }}. <em>{{ group.name }}</em>
+                  <b-button size="sm" class="m-0 p-0" @click="deleteGroup(groupIndex, group)" variant="link" v-b-popover.hover="'Delete ' + group.name + '!'"><b-icon-trash style="color: #ff0000;" shift-v="+1" font-scale="1.0"></b-icon-trash></b-button>
+                  <b-button size="sm" class="float-right m-0 p-0" href="#" @click="selectedGroupIndex = groupIndex; $bvModal.show('bv-modal-addaccount')" variant="link" v-b-popover.hover="'Add new account'"><b-icon-plus shift-v="+1" font-scale="1.4"></b-icon-plus></b-button>
                 </h6>
               </template>
-              <div v-if="groups.length == 0">
+              <div v-if="group.accounts.length == 0">
                 <b-card-text>
-                  Click on the + button to add a new group
+                  Click on the + button to add a new account
                 </b-card-text>
               </div>
-              <div v-for="(group, groupIndex) in groups">
-                <b-card class="mb-2">
-                  <template #header>
-                    <h6>
-                      {{ groupIndex+1 }}. <em>{{ group.name }}</em>
-                      <b-button size="sm" class="m-0 p-0" @click="deleteGroup(groupIndex, group)" variant="link" v-b-popover.hover="'Delete ' + group.name + '!'"><b-icon-trash style="color: #ff0000;" shift-v="+1" font-scale="1.0"></b-icon-trash></b-button>
-                      <b-button size="sm" class="float-right m-0 p-0" href="#" @click="selectedGroupIndex = groupIndex; $bvModal.show('bv-modal-addaccount')" variant="link" v-b-popover.hover="'Add new account'"><b-icon-plus shift-v="+1" font-scale="1.4"></b-icon-plus></b-button>
-                    </h6>
-                  </template>
-                  <div v-if="group.accounts.length == 0">
-                    <b-card-text>
-                      Click on the + button to add a new account
-                    </b-card-text>
-                  </div>
-                  <div v-for="(account, accountIndex) in group.accounts">
-                    {{ accountIndex+1 }}. {{ account }}
-                    <b-button size="sm" class="float-right m-0 p-0" @click="deleteAccountFromGroup(groupIndex, accountIndex, account)" variant="link" v-b-popover.hover="'Delete account ' + account + '!'"><b-icon-trash style="color: #ff0000;" shift-v="+1" font-scale="1.0"></b-icon-trash></b-button>
-                  </div>
-                </b-card>
+              <div v-for="(account, accountIndex) in group.accounts">
+                {{ accountIndex+1 }}. {{ account }}
+                <b-button size="sm" class="float-right m-0 p-0" @click="deleteAccountFromGroup(groupIndex, accountIndex, account)" variant="link" v-b-popover.hover="'Delete account ' + account + '!'"><b-icon-trash style="color: #ff0000;" shift-v="+1" font-scale="1.0"></b-icon-trash></b-button>
               </div>
             </b-card>
-            <!--
-            <b-card header="Old stuff" class="mb-2">
-              <b-card-text>
-                <b-form-group label-cols="3" label-size="sm" label="Transfer Nix ownership to" description="e.g. 0x123456...">
-                  <b-form-input size="sm" v-model="admin.transferTo" class="w-50"></b-form-input>
-                </b-form-group>
-              </b-card-text>
-              <b-form-group label-cols="3" label-size="sm" label="">
-                <b-button size="sm" @click="transferOwnership" variant="warning">Transfer Ownership</b-button>
-              </b-form-group>
-              <b-form-group label-cols="3" label-size="sm" label="Data">
-                <b-form-textarea size="sm" rows="10" v-model="JSON.stringify(admin, null, 2)" class="w-50"></b-form-textarea>
-              </b-form-group>
-            </b-card>
-            <b-card header="Withdraw ETH, ERC-20 And ERC-721 Tokens From Nix" class="mb-2">
-              <b-card-text>
-                <b-form-group label-cols="3" label-size="sm" label="Token" description="Blank for ETH, address for ERC-20 or ERC-721. e.g., 0xD000F000Aa1F8accbd5815056Ea32A54777b2Fc4 for TestToadz">
-                  <b-form-input size="sm" v-model="admin.token" class="w-50"></b-form-input>
-                </b-form-group>
-                <b-form-group label-cols="3" label-size="sm" label="Tokens" description="Tokens in raw format, for ETH and ERC-20. e.g., 3500000000000000000 for 3.5 with 18dp. Set to 0 or null for full balance">
-                  <b-form-input size="sm" v-model="admin.tokens" class="w-50"></b-form-input>
-                </b-form-group>
-                <b-form-group label-cols="3" label-size="sm" label="Token Id" description="ERC-721 Token Id. e.g., 3">
-                  <b-form-input size="sm" v-model="admin.tokenId" class="w-50"></b-form-input>
-                </b-form-group>
-              </b-card-text>
-              <b-form-group label-cols="3" label-size="sm" label="">
-                <b-button size="sm" @click="withdraw" variant="warning">Withdraw</b-button>
-              </b-form-group>
-              <b-form-group label-cols="3" label-size="sm" label="Data">
-                <b-form-textarea size="sm" rows="10" v-model="JSON.stringify(admin, null, 2)" class="w-50"></b-form-textarea>
-              </b-form-group>
-            </b-card>
-            -->
-        </div>
+          </div>
+        </b-card>
 
       </b-card>
     </div>

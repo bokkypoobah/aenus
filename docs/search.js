@@ -1,173 +1,257 @@
 const Search = {
   template: `
-    <div class="mt-5 pt-3">
+    <div class="mt-5 pt-3 pl-1 pr-1">
       <b-card class="mt-5" header-class="warningheader" header="Web3 Connection And/Or Incorrect Network Detected" v-if="false && (!powerOn || network.chainId != 1)">
         <b-card-text>
           Please install the MetaMask extension, connect to the Ethereum mainnet and refresh this page. Then click the [Power] button on the top right.
         </b-card-text>
       </b-card>
 
+      <b-card no-body header="Search Registered ENS Names" class="border-0" header-class="p-0">
 
-      <b-card no-body header="Search Registered Names" class="border-0" header-class="p-0">
+        <b-card no-body class="p-0 mt-1">
 
-        <b-card no-body class="p-0 mt-2">
-          <b-tabs card align="left" no-body active-tab-class="m-1 p-1" v-model="settings.searchTabIndex">
-            <b-tab title="Names" active>
+          <b-tabs card align="left" no-body active-tab-class="m-0 p-0" v-model="settings.searchTabIndex">
+            <b-tab title="By Name" active>
             </b-tab>
             <b-tab title="By Owner">
             </b-tab>
-            <b-tab title="By Groups">
+            <b-tab title="By Group">
             </b-tab>
             <!--
-            <b-tab title="1k Club">
-              <p>I'm the second tab</p>
-            </b-tab>
-            <b-tab title="10k Club">
-              <p>I'm the second tab</p>
+            <b-tab title="Digits">
             </b-tab>
             -->
           </b-tabs>
 
-          <div v-if="settings.searchTabIndex == 0">
+          <b-card-body class="m-1 p-1">
+            <div v-if="settings.searchTabIndex == 0">
+              <b-row>
+                <b-col cols="3" class="m-0 p-1 text-right">
+                  Name
+                </b-col>
+                <b-col cols="4" class="m-0 p-1">
+                  <b-form-input t6pe="text" size="sm" v-model.trim="settings.searchString" placeholder="🔍 {name1}[.eth] {name2}[.eth], {name3}[.eth] ..."></b-form-input>
+                </b-col>
+                <b-col cols="4" class="m-0 p-1">
+                  <b-button size="sm" @click="retrieveNames" :disabled="retrievingMessage != null" variant="primary">{{ retrievingMessage ? retrievingMessage : 'Search'}}</b-button>
+                </b-col>
+              </b-row>
+            </div>
+
+            <div v-if="settings.searchTabIndex == 1">
+              <b-row>
+                <b-col cols="3" class="m-0 p-1 text-right">
+                  Name/addr
+                </b-col>
+                <b-col cols="4" class="m-0 p-1">
+                  <b-form-input type="text" size="sm" v-model.trim="settings.searchString" placeholder="🔍 0x012345... 0x123456..., {name1}[.eth] {name2}[.eth] ..."></b-form-input>
+                </b-col>
+                <b-col cols="4" class="m-0 p-1">
+                  <b-button size="sm" @click="retrieveNames" :disabled="retrievingMessage != null" variant="primary">{{ retrievingMessage ? retrievingMessage : 'Search'}}</b-button>
+                </b-col>
+              </b-row>
+            </div>
+            <div v-if="settings.searchTabIndex == 2">
+              <b-row>
+                <b-col cols="3" class="m-0 p-1 text-right">
+                  Group
+                </b-col>
+                <b-col cols="4" class="m-0 p-1">
+                  <b-form-select size="sm" v-model="settings.selectedGroup" :options="groupOptions" v-b-popover.hover="'Set up groups in Config'"></b-form-select>
+                </b-col>
+                <b-col cols="4" class="m-0 p-1">
+                  <b-button size="sm" @click="retrieveNames" :disabled="retrievingMessage != null" variant="primary">{{ retrievingMessage ? retrievingMessage : 'Search'}}</b-button>
+                </b-col>
+              </b-row>
+            </div>
+            <div v-if="settings.searchTabIndex == 3">
+              <b-card-text>
+                Hello 3
+              </b-card-text>
+            </div>
+            <div v-if="settings.searchTabIndex == 4">
+              <b-card-text>
+                Hello 4
+              </b-card-text>
+            </div>
+
             <b-row>
-              <b-col cols="2" class="m-0 p-1 text-right">
-                Name
+              <b-col cols="3" class="m-0 p-1 text-right">
+                Filter
               </b-col>
               <b-col cols="4" class="m-0 p-1">
-                <b-form-input t6pe="text" size="sm" v-model.trim="settings.searchString" placeholder="🔍 {name1}[.eth] {name2}[.eth], {name3}[.eth] ..."></b-form-input>
-              </b-col>
-              <b-col cols="2" class="m-0 p-1">
-                <b-button size="sm" @click="retrieveNames" :disabled="retrievingMessage != null" variant="primary">{{ retrievingMessage ? retrievingMessage : 'Search'}}</b-button>
-              </b-col>
-            </b-row>
-          </div>
-          <div v-if="settings.searchTabIndex == 1">
-            <b-row>
-              <b-col cols="2" class="m-0 p-1 text-right">
-                Name or Address
+                <b-form-input type="text" size="sm" v-model.trim="settings.filter" debounce="600" class="w-100" placeholder="🔍 name"></b-form-input>
               </b-col>
               <b-col cols="4" class="m-0 p-1">
-                <b-form-input type="text" size="sm" v-model.trim="settings.searchString" placeholder="🔍 0x012345... 0x123456..., {name1}[.eth] {name2}[.eth] ..."></b-form-input>
-              </b-col>
-              <b-col cols="2" class="m-0 p-1">
-                <b-button size="sm" @click="retrieveNames" :disabled="retrievingMessage != null" variant="primary">{{ retrievingMessage ? retrievingMessage : 'Search'}}</b-button>
+                {{ filteredResults.length + ' of ' + Object.keys(results).length }}
               </b-col>
             </b-row>
-          </div>
-          <div v-if="settings.searchTabIndex == 2">
+
             <b-row>
-              <b-col cols="2" class="m-0 p-1 text-right">
-                Account Group
+              <b-col cols="3" class="m-0 p-1 text-right">
+                Sort
               </b-col>
               <b-col cols="4" class="m-0 p-1">
-                <b-form-select size="sm" v-model="settings.selectedGroup" :options="groupOptions" v-b-popover.hover="'Set up groups in Config'" ></b-form-select>
+                <b-form-select size="sm" v-model="sortOption" :options="sortOptions" class="w-100"></b-form-select>
               </b-col>
-              <b-col cols="2" class="m-0 p-1">
-                <b-button size="sm" @click="retrieveNames" :disabled="retrievingMessage != null" variant="primary">{{ retrievingMessage ? retrievingMessage : 'Search'}}</b-button>
+              <b-col cols="4" class="m-0 p-1">
+                <b-button size="sm" @click="exportNames" :disabled="Object.keys(results).length == 0" variant="primary">Export</b-button>
               </b-col>
             </b-row>
-          </div>
-          <div v-if="settings.searchTabIndex == 3">
-            <b-card-text>
-              Hello 3
-            </b-card-text>
-          </div>
-          <div v-if="settings.searchTabIndex == 4">
-            <b-card-text>
-              Hello 4
-            </b-card-text>
-          </div>
+            </b-card-body>
+          </b-card>
 
-          <b-row>
-            <b-col cols="2" class="m-0 p-1 text-right">
-              Filter
-            </b-col>
-            <b-col cols="4" class="m-0 p-1">
-              <b-form-input type="text" size="sm" v-model.trim="settings.filter" debounce="600" class="w-100" placeholder="🔍 name"></b-form-input>
-            </b-col>
-            <b-col cols="1" class="m-0 p-1">
-              {{ filteredResults.length + ' of ' + Object.keys(results).length }}
-            </b-col>
-            <b-col cols="1" class="m-0 p-1">
-            </b-col>
-          </b-row>
+          <b-card no-body class="p-0 mt-1">
 
-          <b-row>
-            <b-col cols="2" class="m-0 p-1 text-right">
-              Sort
-            </b-col>
-            <b-col cols="4" class="m-0 p-1">
-              <b-form-select size="sm" v-model="sortOption" :options="sortOptions" class="w-100"></b-form-select>
-            </b-col>
-            <b-col cols="1" class="m-0 p-1">
-            </b-col>
-            <b-col cols="1" class="m-0 p-1">
-              <b-button size="sm" @click="exportNames" :disabled="Object.keys(results).length == 0" variant="primary">Export</b-button>
-            </b-col>
-          </b-row>
-
-          <b-table small striped hover :fields="fields" :items="filteredResults" responsive="sm" class="mt-3">
-            <template #cell(index)="data">
-              <span>{{ data.index+1 }}</span>
-            </template>
-            <template #cell(image)="data">
-              <b-img :width="'100%'" :src="'https://metadata.ens.domains/mainnet/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + data.item.tokenId + '/image'"></b-img>
+            <b-tabs card align="left" no-body active-tab-class="m-0 p-0" v-model="settings.resultsTabIndex">
+              <b-tab title="Text" active>
+              </b-tab>
+              <b-tab title="Table">
+              </b-tab>
               <!--
-              <div v-if="data.item.hasAvatar">
-                <b-img-lazy :width="'100%'" :src="'https://metadata.ens.domains/mainnet/avatar/' + data.item.name" />
-              </div>
+              <b-tab title="By Groups">
+              </b-tab>
+              <b-tab title="Digits">
+              </b-tab>
               -->
-            </template>
-            <template #cell(name)="data">
-              {{ data.item.name.substring(0, 64) }}
-            </template>
-            <template #cell(expiryDate)="data">
-              <div v-if="data.item.warn">
-                <font :color="data.item.warn">
-                  {{ formatDate(data.item.expiryDate) }}
-                </font>
-              </div>
-              <div v-else>
-                {{ formatDate(data.item.expiryDate) }}
-              </div>
-            </template>
-            <template #cell(registrationDate)="data">
-              {{ formatDate(data.item.registrationDate) }}
-            </template>
-            <template #cell(links)="data">
-              <b-link :href="'https://app.ens.domains/name/' + data.item.name" v-b-popover.hover="'View in app.ens.domains'" target="_blank">
-                ens
-              </b-link>
-              <b-link :href="'https://opensea.io/assets/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + data.item.tokenId" v-b-popover.hover="'View in opensea.io'" target="_blank">
-                os
-              </b-link>
-              <b-link :href="'https://looksrare.org/collections/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + data.item.tokenId" v-b-popover.hover="'View in looksrare.org'" target="_blank">
-                lr
-              </b-link>
-              <b-link :href="'https://etherscan.io/enslookup-search?search=' + data.item.name" v-b-popover.hover="'View in etherscan.io'" target="_blank">
-                es
-              </b-link>
-              <b-link :href="'https://duckduckgo.com/?q=' + data.item.labelName" v-b-popover.hover="'Search name in duckduckgo.com'" target="_blank">
-                ddg
-              </b-link>
-              <b-link :href="'https://www.google.com/search?q=' + data.item.labelName" v-b-popover.hover="'Search name in google.com'" target="_blank">
-                g
-              </b-link>
-              <b-link :href="'https://twitter.com/search?q=' + data.item.name" v-b-popover.hover="'Search name in twitter.com'" target="_blank">
-                t
-              </b-link>
-              <b-link :href="'https://wikipedia.org/wiki/' + data.item.labelName" v-b-popover.hover="'Search name in wikipedia.org'" target="_blank">
-                wiki
-              </b-link>
-              <b-link :href="'https://en.wiktionary.org/wiki/' + data.item.labelName" v-b-popover.hover="'Search name in wiktionary.org'" target="_blank">
-                wikt
-              </b-link>
-              <b-link :href="'https://thesaurus.yourdictionary.com/' + data.item.labelName" v-b-popover.hover="'Search name in thesaurus.yourdictionary.com'" target="_blank">
-                thes
-              </b-link>
-            </template>
-          </b-table>
+            </b-tabs>
 
+            <div v-if="settings.resultsTabIndex == 0">
+              <b-card-body class="m-1 p-1">
+                <div v-if="filteredResults.length == 0">
+                  <div v-if="settings.searchTabIndex == 0">
+                    Enter a comma or space separated list of ENS names to search for and click Search. <em>.eth</em> is optional
+                  </div>
+                  <div v-if="settings.searchTabIndex == 1">
+                    Enter a comma or space separated list of ENS name or ETH addresses to search for and click Search. <em>.eth</em> is optional
+                  </div>
+                  <div v-if="settings.searchTabIndex == 2">
+                    Select an account group to search for and click Search
+                  </div>
+                </div>
+                <div v-else>
+
+                  <b-row>
+                    <b-col cols="1" class="m-0 p-1 text-right">
+                      Characters
+                    </b-col>
+                    <b-col cols="auto" class="m-0 p-1">
+                      Names
+                    </b-col>
+                  </b-row>
+
+                  <b-row>
+                    <b-col cols="1" class="m-0 p-1 text-right">
+                      3
+                    </b-col>
+                    <b-col cols="auto" class="m-0 p-1">
+                      <p>
+                        <span v-for="item in filteredResults">
+                          <span v-if="item.length == 3">
+                            {{ item.name }}
+                          </span>
+                        </span>
+                      </p>
+                    </b-col>
+                  </b-row>
+
+                  <b-row>
+                    <b-col cols="1" class="m-0 p-1 text-right">
+                      4
+                    </b-col>
+                    <b-col cols="auto" class="m-0 p-1">
+                      <p>
+                        <span v-for="item in filteredResults">
+                          <span v-if="item.length == 4">
+                            {{ item.name }}
+                          </span>
+                        </span>
+                      </p>
+                    </b-col>
+                  </b-row>
+
+                  <b-row>
+                    <b-col cols="1" class="m-0 p-1 text-right">
+                      5+
+                    </b-col>
+                    <b-col cols="auto" class="m-0 p-1">
+                      <p>
+                        <span v-for="item in filteredResults">
+                          <span v-if="item.length >= 5">
+                            {{ item.name }}
+                          </span>
+                        </span>
+                      </p>
+                    </b-col>
+                  </b-row>
+                </div>
+              </b-card-body>
+            </div>
+
+            <div v-if="settings.resultsTabIndex == 1">
+              <b-table small striped hover :fields="fields" :items="filteredResults" responsive="sm" class="mt-3">
+                <template #cell(index)="data">
+                  <span>{{ data.index+1 }}</span>
+                </template>
+                <template #cell(image)="data">
+                  <b-img :width="'100%'" :src="'https://metadata.ens.domains/mainnet/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + data.item.tokenId + '/image'"></b-img>
+                  <div v-if="data.item.hasAvatar">
+                    <b-img-lazy :width="'100%'" :src="'https://metadata.ens.domains/mainnet/avatar/' + data.item.name" />
+                  </div>
+                </template>
+                <template #cell(name)="data">
+                  {{ data.item.name.substring(0, 64) }}
+                </template>
+                <template #cell(expiryDate)="data">
+                  <div v-if="data.item.warn">
+                    <font :color="data.item.warn">
+                      {{ formatDate(data.item.expiryDate) }}
+                    </font>
+                  </div>
+                  <div v-else>
+                    {{ formatDate(data.item.expiryDate) }}
+                  </div>
+                </template>
+                <template #cell(registrationDate)="data">
+                  {{ formatDate(data.item.registrationDate) }}
+                </template>
+                <template #cell(links)="data">
+                  <b-link :href="'https://app.ens.domains/name/' + data.item.name" v-b-popover.hover="'View in app.ens.domains'" target="_blank">
+                    ens
+                  </b-link>
+                  <b-link :href="'https://opensea.io/assets/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + data.item.tokenId" v-b-popover.hover="'View in opensea.io'" target="_blank">
+                    os
+                  </b-link>
+                  <b-link :href="'https://looksrare.org/collections/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + data.item.tokenId" v-b-popover.hover="'View in looksrare.org'" target="_blank">
+                    lr
+                  </b-link>
+                  <b-link :href="'https://etherscan.io/enslookup-search?search=' + data.item.name" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                    es
+                  </b-link>
+                  <b-link :href="'https://duckduckgo.com/?q=' + data.item.labelName" v-b-popover.hover="'Search name in duckduckgo.com'" target="_blank">
+                    ddg
+                  </b-link>
+                  <b-link :href="'https://www.google.com/search?q=' + data.item.labelName" v-b-popover.hover="'Search name in google.com'" target="_blank">
+                    g
+                  </b-link>
+                  <b-link :href="'https://twitter.com/search?q=' + data.item.name" v-b-popover.hover="'Search name in twitter.com'" target="_blank">
+                    t
+                  </b-link>
+                  <b-link :href="'https://wikipedia.org/wiki/' + data.item.labelName" v-b-popover.hover="'Search name in wikipedia.org'" target="_blank">
+                    wiki
+                  </b-link>
+                  <b-link :href="'https://en.wiktionary.org/wiki/' + data.item.labelName" v-b-popover.hover="'Search name in wiktionary.org'" target="_blank">
+                    wikt
+                  </b-link>
+                  <b-link :href="'https://thesaurus.yourdictionary.com/' + data.item.labelName" v-b-popover.hover="'Search name in thesaurus.yourdictionary.com'" target="_blank">
+                    thes
+                  </b-link>
+                </template>
+              </b-table>
+            </div>
+
+          </b-card-body>
         </b-card>
       </b-card>
     </div>
@@ -182,6 +266,8 @@ const Search = {
         searchString: null,
         selectedGroup: null,
         filter: null,
+
+        resultsTabIndex: 0,
       },
 
       sortOption: 'expiryasc',
@@ -388,6 +474,15 @@ const Search = {
                 labelhash
                 name
               }
+              owner {
+                id
+              }
+              events {
+                id
+                blockNumber
+                transactionID
+                __typename
+              }
             }
             events {
               id
@@ -434,6 +529,15 @@ const Search = {
                   labelName
                   labelhash
                   name
+                }
+                owner {
+                  id
+                }
+                events {
+                  id
+                  blockNumber
+                  transactionID
+                  __typename
                 }
               }
               events {
@@ -562,7 +666,7 @@ const Search = {
               this.retrievingMessage = "Retrieved " + records;
               for (registration of registrations) {
                 // console.log(registration.domain.name);
-                if (registration.domain.name == "mrfahrenheit.eth") {
+                if (registration.domain.name == "morningnews.eth") {
                   console.log(JSON.stringify(registration, null, 2));
                 }
                 results[registration.domain.name] = {
