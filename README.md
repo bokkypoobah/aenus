@@ -1,7 +1,6 @@
-# ensutils
-ENS Utils
+# aenus - Advanced ENS utilities
 
-UI (WIP): https://bokkypoobah.github.io/ensutils/
+UI (WIP): https://bokkypoobah.github.io/aenus/
 
 ---
 
