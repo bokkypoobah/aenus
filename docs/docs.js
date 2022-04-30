@@ -7,7 +7,7 @@ const Docs = {
         <b-card-text class="m-2 p-2">
           <h5 ref="info_top" class="mb-1">Welcome</h5>
 
-          <em>aenus</em>, advanced ens utilities, is being built as a tool to manage your ENS domain names.
+          <em>aenus</em>, Advanced ENS utilities, is being built as a tool to help manage your ENS domain names.
 
           <br />
           <br />
