@@ -103,11 +103,12 @@ const Search = {
           </b-card>
 
           <b-card no-body class="p-0 mt-1">
-
             <b-tabs card align="left" no-body active-tab-class="m-0 p-0" v-model="settings.resultsTabIndex">
               <b-tab title="Text" active>
               </b-tab>
               <b-tab title="Table">
+              </b-tab>
+              <b-tab title="Not Found" :disabled="namesNotFound.length == 0">
               </b-tab>
               <!--
               <b-tab title="By Groups">
@@ -251,6 +252,21 @@ const Search = {
               </b-table>
             </div>
 
+            <div v-if="settings.resultsTabIndex == 2">
+              <b-card-text class="m-2 p-2">
+                <b-row v-for="(name, index) in namesNotFound">
+                  <b-col cols="1" class="text-right">
+                    {{ index+1 }}
+                  </b-col>
+                  <b-col cols="6">
+                    <b-link :href="'https://app.ens.domains/name/' + name + '.eth'" v-b-popover.hover="'Register in app.ens.domains'" target="_blank">
+                      {{ name + '.eth' }}
+                    </b-link>
+                  </b-col>
+                </b-row>
+              </b-card-text>
+            </div>
+
           </b-card-body>
         </b-card>
       </b-card>
@@ -272,6 +288,7 @@ const Search = {
 
       sortOption: 'expiryasc',
       retrievingMessage: null,
+      namesNotFound: [],
       results: [],
 
       sortOptions: [
@@ -564,17 +581,15 @@ const Search = {
 
       let searchForAccounts = [];
       if (this.settings.searchTabIndex == 0 || this.settings.searchTabIndex == 1) {
-        // console.log("Here: " + this.settings.searchString);
-
-        // TODO: Cater for 0x1234...5678.eth ENS names
-        const searchForLabelNames = this.settings.searchString.split(/[, \t]+/)
-          .map(function(item) { return item.replace('.eth', '').toLowerCase().trim(); })
-          .filter(function (name) { return ! (name.length == 42 && name.substring(0, 2) == '0x'); });
-        // logInfo("Search", "retrieveNames() - searchForLabelNames: " + JSON.stringify(searchForLabelNames, null, 2));
-
-        searchForAccounts = this.settings.searchString.split(/[, \t]+/)
-          .map(function(item) { return item.replace('.eth', '').toLowerCase().trim(); })
+        const searchForNames = this.settings.searchString.split(/[, \t\n]+/)
+          .map(function(name) { return name.toLowerCase().trim(); })
+          .filter(function (name) { return !(name.length == 42 && name.substring(0, 2) == '0x'); })
+          .map(function(name) { return name.replace('.eth', ''); });
+        searchForAccounts = this.settings.searchString.split(/[, \t\n]+/)
+          .map(function(name) { return name.toLowerCase().trim(); })
           .filter(function (name) { return name.length == 42 && name.substring(0, 2) == '0x'; });
+        // logInfo("Search", "retrieveNames() - searchString: " + this.settings.searchString);
+        // logInfo("Search", "retrieveNames() - searchForNames: " + JSON.stringify(searchForNames, null, 2));
         // logInfo("Search", "retrieveNames() - searchForAccounts: " + JSON.stringify(searchForAccounts, null, 2));
 
         const data = await fetch(url, {
@@ -585,7 +600,7 @@ const Search = {
           },
           body: JSON.stringify({
             query: nameQuery,
-            variables: { labelNames: searchForLabelNames },
+            variables: { labelNames: searchForNames },
           })
         }).then(response => response.json());
         // logInfo("Search", "retrieveNames() - data: " + JSON.stringify(data, null, 2));
@@ -616,6 +631,17 @@ const Search = {
             hasAvatar: registration.domain.resolver && registration.domain.resolver.texts && registration.domain.resolver.texts.includes("avatar"),
           };
         }
+        // logInfo("Search", "retrieveNames() - results: " + JSON.stringify(Object.keys(results), null, 2));
+        const namesFound = Object.keys(results).map(function(name) { return name.replace('.eth', ''); });
+        // logInfo("Search", "retrieveNames() - namesFound: " + JSON.stringify(namesFound, null, 2));
+        this.namesNotFound = searchForNames.filter(name => !namesFound.includes(name));
+        // logInfo("Search", "retrieveNames() - namesNotFound: " + JSON.stringify(this.namesNotFound, null, 2));
+        this.namesNotFound.sort(function (a, b) {
+            return ('' + a).localeCompare(b);
+        })
+        // logInfo("Search", "retrieveNames() - namesNotFound sorted: " + JSON.stringify(this.namesNotFound, null, 2));
+
+        // logInfo("Search", "retrieveNames() - namesNotFound: " + JSON.stringify(this.namesNotFound, null, 2));
         // logInfo("Search", "retrieveNames() - registrantMap: " + JSON.stringify(registrantMap, null, 2));
         searchForAccounts = [ ...searchForAccounts, ...Object.keys(registrantMap) ];
         // logInfo("Search", "retrieveNames() - searchForAccounts: " + JSON.stringify(searchForAccounts, null, 2));
