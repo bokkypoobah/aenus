@@ -76,7 +76,29 @@ const Search = {
                     Digit Set
                   </b-col>
                   <b-col cols="4" class="m-0 p-1">
-                    <b-form-select size="sm" v-model="settings.selectedDigit" :options="digitOptions" class="w-50"></b-form-select>
+                    <b-form-select size="sm" v-model="settings.selectedDigit" :options="digitOptions" class="w-100"></b-form-select>
+                  </b-col>
+                  <b-col cols="4" class="m-0 p-1">
+                  </b-col>
+                </b-row>
+
+                <b-row>
+                  <b-col cols="3" class="m-0 p-1 text-right">
+                    Prefix
+                  </b-col>
+                  <b-col cols="4" class="m-0 p-1">
+                    <b-form-input type="text" size="sm" v-model.trim="settings.digitPrefix" placeholder="optional prefix, e.g., 'mr'" class="w-100"></b-form-input>
+                  </b-col>
+                  <b-col cols="4" class="m-0 p-1">
+                  </b-col>
+                </b-row>
+
+                <b-row>
+                  <b-col cols="3" class="m-0 p-1 text-right">
+                    Postfix
+                  </b-col>
+                  <b-col cols="4" class="m-0 p-1">
+                    <b-form-input type="text" size="sm" v-model.trim="settings.digitPostfix" placeholder="optional postfix, e.g., 'abc'" class="w-100"></b-form-input>
                   </b-col>
                   <b-col cols="4" class="m-0 p-1">
                   </b-col>
@@ -87,7 +109,7 @@ const Search = {
                     From
                   </b-col>
                   <b-col cols="4" class="m-0 p-1">
-                    <b-form-input type="text" size="sm" v-model.trim="settings.digitRange[settings.selectedDigit].from" class="w-50"></b-form-input>
+                    <b-form-input type="text" size="sm" v-model.trim="settings.digitRange[settings.selectedDigit].from" class="w-100"></b-form-input>
                   </b-col>
                   <b-col cols="4" class="m-0 p-1">
                   </b-col>
@@ -98,13 +120,13 @@ const Search = {
                     To
                   </b-col>
                   <b-col cols="4" class="m-0 p-1">
-                    <b-form-input type="text" size="sm" v-model.trim="settings.digitRange[settings.selectedDigit].to" class="w-50"></b-form-input>
+                    <b-form-input type="text" size="sm" v-model.trim="settings.digitRange[settings.selectedDigit].to" class="w-100"></b-form-input>
                   </b-col>
                   <b-col cols="4" class="m-0 p-1">
-                    <b-button size="sm" @click="scanDigits(settings.selectedDigit, settings.digitRange[settings.selectedDigit].from, settings.digitRange[settings.selectedDigit].to, settings.digitRange[settings.selectedDigit].length)" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
-                    <scan v-if="searchMessage != null">
+                    <b-button size="sm" @click="scanDigits(settings.selectedDigit, settings.digitRange[settings.selectedDigit].from, settings.digitRange[settings.selectedDigit].to, settings.digitRange[settings.selectedDigit].length, settings.digitPrefix, settings.digitPostfix)" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
+                    <span v-if="searchMessage != null">
                       <b-button size="sm" @click="stopScan" variant="primary">Stop Scan</b-button>
-                    </scan>
+                    </span>
                   </b-col>
                 </b-row>
 
@@ -228,10 +250,12 @@ const Search = {
                   <span>{{ data.index+1 }}</span>
                 </template>
                 <template #cell(image)="data">
+                  <!--
                   <b-img :width="'100%'" :src="'https://metadata.ens.domains/mainnet/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + data.item.tokenId + '/image'"></b-img>
                   <div v-if="data.item.hasAvatar">
                     <b-img-lazy :width="'100%'" :src="'https://metadata.ens.domains/mainnet/avatar/' + data.item.name" />
                   </div>
+                  -->
                 </template>
                 <template #cell(name)="data">
                   {{ data.item.name.substring(0, 64) }}
@@ -315,9 +339,21 @@ const Search = {
         searchString: null,
         selectedGroup: null,
         selectedDigit: 'digit999',
+        digitPrefix: null,
+        digitPostfix: null,
         filter: null,
 
         digitRange: {
+          'digit9': {
+            from: 0,
+            to: 9,
+            length: 1,
+          },
+          'digit99': {
+            from: 0,
+            to: 99,
+            length: 2,
+          },
           'digit999': {
             from: 0,
             to: 999,
@@ -344,14 +380,16 @@ const Search = {
       },
 
       digitOptions: [
-        { value: 'digit999', text: '000 - 999' },
-        { value: 'digit9999', text: '0000 - 9999' },
-        { value: 'digit99999', text: '00000 - 99999' },
-        { value: 'digit999999', text: '000000 - 999999' },
+        { value: 'digit9', text: '0 to 9, prefix/postfix required for min 3 length' },
+        { value: 'digit99', text: '00 to 99, prefix/postfix required for min 3 length' },
+        { value: 'digit999', text: '000 to 999' },
+        { value: 'digit9999', text: '0000 to 9999' },
+        { value: 'digit99999', text: '00000 to 99999' },
+        { value: 'digit999999', text: '000000 to 999999' },
         // { value: 'nameasc', text: '0-0 - 9-9' },
       ],
 
-      sortOption: 'expiryasc',
+      sortOption: 'nameasc',
       results: [],
 
       sortOptions: [
@@ -549,9 +587,9 @@ const Search = {
       store.dispatch('search/search', { searchType, searchString, searchGroup } );
     },
 
-    async scanDigits(selectedDigit, scanFrom, scanTo, length) {
-      console.log("search: " + selectedDigit + ", " + scanFrom + ", " + scanTo + ", " + length);
-      store.dispatch('search/scanDigits', { selectedDigit, scanFrom, scanTo, length } );
+    async scanDigits(selectedDigit, scanFrom, scanTo, length, digitPrefix, digitPostfix) {
+      console.log("search: " + selectedDigit + ", " + scanFrom + ", " + scanTo + ", " + length + ", " + digitPrefix + ", " + digitPostfix);
+      store.dispatch('search/scanDigits', { selectedDigit, scanFrom, scanTo, length, digitPrefix, digitPostfix } );
     },
 
     async stopScan() {
@@ -796,10 +834,10 @@ const searchModule = {
       state.stopScan = true;
     },
 
-    async scanDigits(state, { selectedDigit, scanFrom, scanTo, length } ) {
-      const generateRangeZeroPad = (start, stop, step, length) => Array.from({ length: (stop - start) / step + 1}, (_, i) => (parseInt(start) + (i * step)).toString().padStart(length, '0'));
+    async scanDigits(state, { selectedDigit, scanFrom, scanTo, length, digitPrefix, digitPostfix } ) {
+      const generateRangeZeroPad = (start, stop, step, length, digitPrefix, digitPostfix) => Array.from({ length: (stop - start) / step + 1}, (_, i) => (digitPrefix || '') + (parseInt(start) + (i * step)).toString().padStart(length, '0') + (digitPostfix || ''));
 
-      logInfo("searchModule", "mutations.scanDigits(): " + selectedDigit + ", " + scanFrom + ", " + scanTo + ", " + length);
+      logInfo("searchModule", "mutations.scanDigits(): " + selectedDigit + ", " + scanFrom + ", " + scanTo + ", " + length + ", " + digitPrefix + ", " + digitPostfix);
       const results = {};
       const now = parseInt(new Date().valueOf() / 1000);
       const expiryDate = parseInt(now) - 90 * 24 * 60 * 60;
@@ -811,8 +849,8 @@ const searchModule = {
         // logInfo("searchModule", "mutations.scanDigits() - iBatch: " + iBatch);
         const max = (parseInt(iBatch) + ENSSUBGRAPHBATCHSCANSIZE - 1) < scanTo ? parseInt(iBatch) + ENSSUBGRAPHBATCHSCANSIZE - 1: scanTo;
         // logInfo("searchModule", "mutations.scanDigits() - from: " + iBatch + " to " + max);
-        const numbers = generateRangeZeroPad(iBatch, max, 1, length);
-        // logInfo("searchModule", "mutations.scanDigits() - numbers: " + numbers);
+        const numbers = generateRangeZeroPad(iBatch, max, 1, length, digitPrefix, digitPostfix);
+        logInfo("searchModule", "mutations.scanDigits() - numbers: " + numbers);
 
         // console.log(JSON.stringify({ ENSSUBGRAPHNAMEQUERY, variables: { labelNames: numbers } }));
 
@@ -827,7 +865,7 @@ const searchModule = {
             variables: { labelNames: numbers },
           })
         }).then(response => response.json());
-        // logInfo("searchModule", "mutations.search() - data: " + JSON.stringify(data, null, 2));
+        logInfo("searchModule", "mutations.search() - data: " + JSON.stringify(data, null, 2));
         const registrations = data.data.registrations || [];
         records = records + registrations.length;
         state.message = "Retrieved " + records;
@@ -870,9 +908,9 @@ const searchModule = {
       // logInfo("searchModule", "actions.search(): " + searchType + ", " + searchString + ", " + searchGroup);
       context.commit('search', { searchType, searchString, searchGroup } );
     },
-    scanDigits(context, { selectedDigit, scanFrom, scanTo, length } ) {
-      logInfo("searchModule", "actions.scanDigits(): " + selectedDigit + ", " + scanFrom + ", " + scanTo + ", " + length);
-      context.commit('scanDigits', { selectedDigit, scanFrom, scanTo, length } );
+    scanDigits(context, { selectedDigit, scanFrom, scanTo, length, digitPrefix, digitPostfix } ) {
+      logInfo("searchModule", "actions.scanDigits(): " + selectedDigit + ", " + scanFrom + ", " + scanTo + ", " + length + ", " + digitPrefix + ", " + digitPostfix);
+      context.commit('scanDigits', { selectedDigit, scanFrom, scanTo, length, digitPrefix, digitPostfix } );
     },
     stopScan(context) {
       logInfo("searchModule", "actions.stopScan()");
