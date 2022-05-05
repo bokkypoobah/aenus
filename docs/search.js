@@ -99,11 +99,13 @@ const Search = {
                 <b-button size="sm" @click="exportNames" :disabled="Object.keys(results).length == 0" variant="primary">Export</b-button>
               </b-col>
             </b-row>
-            </b-card-body>
-          </b-card>
+          </b-card-body>
+        </b-card>
 
-          <b-card no-body class="p-0 mt-1">
+        <!-- Results Section -->
+        <b-card no-body class="p-0 mt-1">
 
+          <b-card-body class="m-1 p-1">
             <b-tabs card align="left" no-body active-tab-class="m-0 p-0" v-model="settings.resultsTabIndex">
               <b-tab title="Text" active>
               </b-tab>
@@ -111,84 +113,72 @@ const Search = {
               </b-tab>
               <b-tab title="Not Found" :disabled="namesNotFound.length == 0">
               </b-tab>
-              <!--
-              <b-tab title="By Groups">
-              </b-tab>
-              <b-tab title="Digits">
-              </b-tab>
-              -->
             </b-tabs>
 
             <div v-if="settings.resultsTabIndex == 0">
-              <b-card-body class="m-1 p-1">
-                <div v-if="filteredResults.length == 0">
-                  <div v-if="settings.searchTabIndex == 0">
-                    Enter a comma or space separated list of ENS names to search for and click Search. <em>.eth</em> is optional
-                  </div>
-                  <div v-if="settings.searchTabIndex == 1">
-                    Enter a comma or space separated list of ENS name or ETH addresses to search for and click Search. <em>.eth</em> is optional
-                  </div>
-                  <div v-if="settings.searchTabIndex == 2">
-                    Select an account group to search for and click Search
-                  </div>
+              <div v-if="filteredResults.length == 0">
+                <div v-if="settings.searchTabIndex == 0">
+                  Enter a comma or space separated list of ENS names to search for and click Search. <em>.eth</em> is optional
                 </div>
-                <div v-else>
-
-                  <b-row>
-                    <b-col cols="1" class="m-0 p-1 text-right">
-                      Characters
-                    </b-col>
-                    <b-col cols="auto" class="m-0 p-1">
-                      Names
-                    </b-col>
-                  </b-row>
-
-                  <b-row>
-                    <b-col cols="1" class="m-0 p-1 text-right">
-                      3
-                    </b-col>
-                    <b-col cols="auto" class="m-0 p-1">
-                      <p>
-                        <span v-for="item in filteredResults">
-                          <span v-if="item.length == 3">
-                            {{ item.labelName }}
-                          </span>
-                        </span>
-                      </p>
-                    </b-col>
-                  </b-row>
-
-                  <b-row>
-                    <b-col cols="1" class="m-0 p-1 text-right">
-                      4
-                    </b-col>
-                    <b-col cols="auto" class="m-0 p-1">
-                      <p>
-                        <span v-for="item in filteredResults">
-                          <span v-if="item.length == 4">
-                            {{ item.labelName }}
-                          </span>
-                        </span>
-                      </p>
-                    </b-col>
-                  </b-row>
-
-                  <b-row>
-                    <b-col cols="1" class="m-0 p-1 text-right">
-                      5+
-                    </b-col>
-                    <b-col cols="auto" class="m-0 p-1">
-                      <p>
-                        <span v-for="item in filteredResults">
-                          <span v-if="item.length >= 5">
-                            {{ item.labelName }}
-                          </span>
-                        </span>
-                      </p>
-                    </b-col>
-                  </b-row>
+                <div v-if="settings.searchTabIndex == 1">
+                  Enter a comma or space separated list of ENS name or ETH addresses to search for and click Search. <em>.eth</em> is optional
                 </div>
-              </b-card-body>
+                <div v-if="settings.searchTabIndex == 2">
+                  Select an account group to search for and click Search
+                </div>
+              </div>
+              <div v-else>
+                <b-row>
+                  <b-col cols="1" class="m-0 p-1 text-right">
+                    Characters
+                  </b-col>
+                  <b-col cols="auto" class="m-0 p-1">
+                    Names
+                  </b-col>
+                </b-row>
+                <b-row>
+                  <b-col cols="1" class="m-0 p-1 text-right">
+                    3
+                  </b-col>
+                  <b-col cols="auto" class="m-0 p-1">
+                    <p>
+                      <span v-for="item in filteredResults">
+                        <span v-if="item.length == 3">
+                          {{ item.labelName }}
+                        </span>
+                      </span>
+                    </p>
+                  </b-col>
+                </b-row>
+                <b-row>
+                  <b-col cols="1" class="m-0 p-1 text-right">
+                    4
+                  </b-col>
+                  <b-col cols="auto" class="m-0 p-1">
+                    <p>
+                      <span v-for="item in filteredResults">
+                        <span v-if="item.length == 4">
+                          {{ item.labelName }}
+                        </span>
+                      </span>
+                    </p>
+                  </b-col>
+                </b-row>
+                <b-row>
+                  <b-col cols="1" class="m-0 p-1 text-right">
+                    5+
+                  </b-col>
+                  <b-col cols="auto" class="m-0 p-1">
+                    <p>
+                      <span v-for="item in filteredResults">
+                        <span v-if="item.length >= 5">
+                          {{ item.labelName }}
+                        </span>
+                      </span>
+                    </p>
+                  </b-col>
+                </b-row>
+              </div>
             </div>
 
             <div v-if="settings.resultsTabIndex == 1">
@@ -270,6 +260,7 @@ const Search = {
 
           </b-card-body>
         </b-card>
+
       </b-card>
     </div>
   `,
@@ -282,10 +273,19 @@ const Search = {
         searchTabIndex: 0,
         searchString: null,
         selectedGroup: null,
+        selectedDigit: 'digit999',
         filter: null,
 
         resultsTabIndex: 0,
       },
+
+      digitOptions: [
+        { value: 'digit999', text: '000 - 999' },
+        { value: 'digit9999', text: '0000 - 9999' },
+        { value: 'digit99999', text: '00000 - 99999' },
+        { value: 'digit999999', text: '000000 - 999999' },
+        // { value: 'nameasc', text: '0-0 - 9-9' },
+      ],
 
       sortOption: 'expiryasc',
       results: [],
