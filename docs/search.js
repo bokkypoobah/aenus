@@ -280,7 +280,7 @@ const Search = {
 
       settings: {
         searchTabIndex: 0,
-        searchString: "test test432 test321", // null,
+        searchString: null,
         selectedGroup: null,
         filter: null,
 
