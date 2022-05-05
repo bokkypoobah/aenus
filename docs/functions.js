@@ -5,7 +5,7 @@ const DEFAULTEXPIRYUTCDAYOFWEEK = 5; // Friday moment.js
 const DEFAULTTYPE = 0xff;
 const DEFAULTDECIMAL = 0xff;
 const ENSSUBGRAPHURL = "https://api.thegraph.com/subgraphs/name/ensdomains/ens";
-const ENSSUBGRAPHBATCHSIZE = 500;
+const ENSSUBGRAPHBATCHSIZE = 250;
 const ENSSUBGRAPHBATCHSCANSIZE = 250;
 
 const ENSSUBGRAPHNAMEQUERY = `

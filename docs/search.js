@@ -136,7 +136,7 @@ const Search = {
                 <b-form-select size="sm" v-model="sortOption" :options="sortOptions" class="w-100"></b-form-select>
               </b-col>
               <b-col cols="4" class="m-0 p-1">
-                <b-button size="sm" @click="exportNames" :disabled="Object.keys(results).length == 0" variant="primary">Export</b-button>
+                <b-button size="sm" @click="exportNames" :disabled="Object.keys(searchResults).length == 0" variant="primary">Export</b-button>
               </b-col>
             </b-row>
           </b-card-body>
