@@ -459,7 +459,7 @@ const Search = {
     },
 
     async search(searchType, searchString, searchGroup) {
-      console.log("search: " + searchType + ", " + searchString + ", " + searchGroup);
+      // console.log("search: " + searchType + ", " + searchString + ", " + searchGroup);
       store.dispatch('search/search', { searchType, searchString, searchGroup } );
     },
 
