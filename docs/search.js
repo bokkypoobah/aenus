@@ -18,10 +18,8 @@ const Search = {
             </b-tab>
             <b-tab title="By Group">
             </b-tab>
-            <!--
-            <b-tab title="Digits">
+            <b-tab title="Scan Digits">
             </b-tab>
-            -->
           </b-tabs>
 
           <b-card-body class="m-1 p-1">
@@ -67,7 +65,43 @@ const Search = {
             </div>
             <div v-if="settings.searchTabIndex == 3">
               <b-card-text>
-                Hello 3
+                <b-row>
+                  <b-col cols="3" class="m-0 p-1 text-right">
+                    Group
+                  </b-col>
+                  <b-col cols="4" class="m-0 p-1">
+                    <b-form-select size="sm" v-model="settings.selectedDigit" :options="digitOptions" class="w-50"></b-form-select>
+                  </b-col>
+                  <b-col cols="4" class="m-0 p-1">
+                  </b-col>
+                </b-row>
+
+                <b-row>
+                  <b-col cols="3" class="m-0 p-1 text-right">
+                    From
+                  </b-col>
+                  <b-col cols="4" class="m-0 p-1">
+                    <b-form-input type="text" size="sm" v-model.trim="settings.digitRange[settings.selectedDigit].from" class="w-50"></b-form-input>
+                  </b-col>
+                  <b-col cols="4" class="m-0 p-1">
+                  </b-col>
+                </b-row>
+
+                <b-row>
+                  <b-col cols="3" class="m-0 p-1 text-right">
+                    To
+                  </b-col>
+                  <b-col cols="4" class="m-0 p-1">
+                    <b-form-input type="text" size="sm" v-model.trim="settings.digitRange[settings.selectedDigit].to" class="w-50"></b-form-input>
+                  </b-col>
+                  <b-col cols="4" class="m-0 p-1">
+                    <b-button size="sm" @click="scanDigits(settings.selectedDigit, settings.digitRange[settings.selectedDigit].from, settings.digitRange[settings.selectedDigit].to, settings.digitRange[settings.selectedDigit].length)" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
+                    <scan v-if="searchMessage != null">
+                      <b-button size="sm" @click="stopScan" variant="primary">Stop Scan</b-button>
+                    </scan>
+                  </b-col>
+                </b-row>
+
               </b-card-text>
             </div>
             <div v-if="settings.searchTabIndex == 4">
@@ -276,6 +310,29 @@ const Search = {
         selectedDigit: 'digit999',
         filter: null,
 
+        digitRange: {
+          'digit999': {
+            from: 0,
+            to: 999,
+            length: 3,
+          },
+          'digit9999': {
+            from: 0,
+            to: 9999,
+            length: 4,
+          },
+          'digit99999': {
+            from: 0,
+            to: 99999,
+            length: 5,
+          },
+          'digit999999': {
+            from: 0,
+            to: 999999,
+            length: 6,
+          },
+        },
+
         resultsTabIndex: 0,
       },
 
@@ -463,6 +520,16 @@ const Search = {
       store.dispatch('search/search', { searchType, searchString, searchGroup } );
     },
 
+    async scanDigits(selectedDigit, scanFrom, scanTo, length) {
+      console.log("search: " + selectedDigit + ", " + scanFrom + ", " + scanTo + ", " + length);
+      store.dispatch('search/scanDigits', { selectedDigit, scanFrom, scanTo, length } );
+    },
+
+    async stopScan() {
+      console.log("stopScan");
+      store.dispatch('search/stopScan');
+    },
+
     exportNames() {
       const rows = [
           ["No", "Label Name", "Name", "Registration Date", "Expiry Date", "Cost (ETH)", "Registrant", "Resolver", "Resolved Address"],
@@ -526,6 +593,7 @@ const searchModule = {
     results: [],
     namesNotFound: [],
     message: null,
+    stopScan: false,
 
     params: null,
     executing: false,
@@ -541,123 +609,8 @@ const searchModule = {
   mutations: {
     async search(state, { searchType, searchString, searchGroup } ) {
       logInfo("searchModule", "mutations.search(): " + searchType + ", " + searchString + ", " + searchGroup);
-
-      const BATCHSIZE = 500; // Max ?1000
       // const DELAYINMILLIS = 500;
-      const url = "https://api.thegraph.com/subgraphs/name/ensdomains/ens";
       // const delay = ms => new Promise(res => setTimeout(res, ms));
-
-      const nameQuery = `
-        query getRegistrations($labelNames: [String!]!) {
-          registrations(first: 1000, orderBy: labelName, orderDirection: asc, where: {labelName_in: $labelNames}) {
-            id
-            registrationDate
-            expiryDate
-            cost
-            registrant {
-              id
-            }
-            labelName
-            domain {
-              id
-              labelName
-              labelhash
-              name
-              isMigrated
-              resolver {
-                address
-                coinTypes
-                texts
-              }
-              resolvedAddress {
-                id
-              }
-              parent {
-                labelName
-                labelhash
-                name
-              }
-              subdomains {
-                labelName
-                labelhash
-                name
-              }
-              owner {
-                id
-              }
-              events {
-                id
-                blockNumber
-                transactionID
-                __typename
-              }
-            }
-            events {
-              id
-              blockNumber
-              transactionID
-              __typename
-            }
-          }
-        }
-      `;
-
-      const ownedQuery = `
-        query getRegistrations($id: ID!, $first: Int, $skip: Int, $orderBy: Registration_orderBy, $orderDirection: OrderDirection, $expiryDate: Int) {
-          account(id: $id) {
-            registrations(first: $first, skip: $skip, orderBy: $orderBy, orderDirection: $orderDirection, where: {expiryDate_gt: $expiryDate}) {
-              id
-              registrationDate
-              expiryDate
-              cost
-              registrant {
-                id
-              }
-              labelName
-              domain {
-                id
-                labelName
-                labelhash
-                name
-                isMigrated
-                resolver {
-                  address
-                  coinTypes
-                  texts
-                }
-                resolvedAddress {
-                  id
-                }
-                parent {
-                  labelName
-                  labelhash
-                  name
-                }
-                subdomains {
-                  labelName
-                  labelhash
-                  name
-                }
-                owner {
-                  id
-                }
-                events {
-                  id
-                  blockNumber
-                  transactionID
-                  __typename
-                }
-              }
-              events {
-                id
-                blockNumber
-                transactionID
-                __typename
-              }
-            }
-          }
-        }
-      `;
 
       const results = {};
       const now = parseInt(new Date().valueOf() / 1000);
@@ -677,14 +630,14 @@ const searchModule = {
         // logInfo("searchModule", "mutations.search() - searchForNames: " + JSON.stringify(searchForNames, null, 2));
         // logInfo("searchModule", "mutations.search() - searchForAccounts: " + JSON.stringify(searchForAccounts, null, 2));
 
-        const data = await fetch(url, {
+        const data = await fetch(ENSSUBGRAPHURL, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
           },
           body: JSON.stringify({
-            query: nameQuery,
+            query: ENSSUBGRAPHNAMEQUERY,
             variables: { labelNames: searchForNames },
           })
         }).then(response => response.json());
@@ -748,21 +701,21 @@ const searchModule = {
         state.message = "Retrieving";
         for (account of searchForAccounts) {
           // logInfo("searchModule", "mutations.search() - account: " + JSON.stringify(account));
-          const first = BATCHSIZE;
+          const first = ENSSUBGRAPHBATCHSIZE;
           const id = account.toLowerCase();
           let skip = 0;
           // console.log(JSON.stringify({ query, variables: { id, first, skip, expiryDate } }));
           let completed = false;
           let records = 0;
           while (!completed) {
-            const data = await fetch(url, {
+            const data = await fetch(ENSSUBGRAPHURL, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
               },
               body: JSON.stringify({
-                query: ownedQuery,
+                query: ENSSUBGRAPHOWNEDQUERY,
                 variables: { id, first, skip, expiryDate },
               })
             }).then(response => response.json());
@@ -799,7 +752,7 @@ const searchModule = {
               }
               // this.results = results;
             }
-            skip += BATCHSIZE;
+            skip += ENSSUBGRAPHBATCHSIZE;
           }
         }
       }
@@ -808,11 +761,92 @@ const searchModule = {
       // logInfo("searchModule", "mutations.search() - results: " + JSON.stringify(results, null, 2));
 
     },
+
+    stopScan(state) {
+      state.stopScan = true;
+    },
+
+    async scanDigits(state, { selectedDigit, scanFrom, scanTo, length } ) {
+      const generateRangeZeroPad = (start, stop, step, length) => Array.from({ length: (stop - start) / step + 1}, (_, i) => (parseInt(start) + (i * step)).toString().padStart(length, '0'));
+
+      logInfo("searchModule", "mutations.scanDigits(): " + selectedDigit + ", " + scanFrom + ", " + scanTo + ", " + length);
+      const results = {};
+      const now = parseInt(new Date().valueOf() / 1000);
+      const expiryDate = parseInt(now) - 90 * 24 * 60 * 60;
+      const warningDate = parseInt(now) + 90 * 24 * 60 * 60;
+      state.message = "Retrieving";
+      state.namesNotFound = [];
+      let records = 0;
+      for (let iBatch = scanFrom; iBatch < scanTo && !state.stopScan; iBatch = parseInt(iBatch) + ENSSUBGRAPHBATCHSCANSIZE) {
+        // logInfo("searchModule", "mutations.scanDigits() - iBatch: " + iBatch);
+        const max = (parseInt(iBatch) + ENSSUBGRAPHBATCHSCANSIZE - 1) < scanTo ? parseInt(iBatch) + ENSSUBGRAPHBATCHSCANSIZE - 1: scanTo;
+        // logInfo("searchModule", "mutations.scanDigits() - from: " + iBatch + " to " + max);
+        const numbers = generateRangeZeroPad(iBatch, max, 1, length);
+        // logInfo("searchModule", "mutations.scanDigits() - numbers: " + numbers);
+
+        // console.log(JSON.stringify({ ENSSUBGRAPHNAMEQUERY, variables: { labelNames: numbers } }));
+
+        const data = await fetch(ENSSUBGRAPHURL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify({
+            query: ENSSUBGRAPHNAMEQUERY,
+            variables: { labelNames: numbers },
+          })
+        }).then(response => response.json());
+        // logInfo("searchModule", "mutations.search() - data: " + JSON.stringify(data, null, 2));
+        const registrations = data.data.registrations || [];
+        records = records + registrations.length;
+        state.message = "Retrieved " + records;
+        for (registration of registrations) {
+          results[registration.domain.name] = {
+            labelName: registration.labelName,
+            registrationDate: registration.registrationDate,
+            expiryDate: registration.expiryDate,
+            cost: registration.cost,
+            registrant: registration.registrant.id,
+            labelhash: registration.domain.labelhash,
+            tokenId: new BigNumber(registration.domain.labelhash.substring(2), 16).toFixed(0),
+            name: registration.domain.name,
+            isMigrated: registration.domain.isMigrated,
+            resolver: registration.domain.resolver && registration.domain.resolver.address || null,
+            resolvedAddress: registration.domain.resolvedAddress && registration.domain.resolvedAddress.id || null,
+            parent: registration.domain.parent.name,
+            length: registration.domain.name.indexOf("\."),
+            warn: registration.expiryDate < now ? 'red' : registration.expiryDate < warningDate ? 'orange' : null,
+            hasAvatar: registration.domain.resolver && registration.domain.resolver.texts && registration.domain.resolver.texts.includes("avatar"),
+          };
+        }
+        const namesFound = Object.keys(results).map(function(name) { return name.replace('.eth', ''); });
+        // logInfo("searchModule", "mutations.scanDigits() - namesFound: " + JSON.stringify(namesFound, null, 2));
+        const namesNotFound = numbers.filter(name => !namesFound.includes(name));
+        // logInfo("searchModule", "mutations.scanDigits() - namesNotFound: " + JSON.stringify(namesNotFound, null, 2));
+        state.namesNotFound.push(...namesNotFound);
+        // logInfo("searchModule", "mutations.scanDigits() - all namesNotFound: " + JSON.stringify(state.namesNotFound, null, 2));
+      }
+      state.results = results;
+      state.message = null;
+      state.stopScan = false;
+      state.namesNotFound.sort(function (a, b) {
+          return ('' + a).localeCompare(b);
+      })
+    },
   },
   actions: {
     search(context, { searchType, searchString, searchGroup } ) {
       // logInfo("searchModule", "actions.search(): " + searchType + ", " + searchString + ", " + searchGroup);
-      context.commit('search', { searchType, searchString, searchGroup });
+      context.commit('search', { searchType, searchString, searchGroup } );
+    },
+    scanDigits(context, { selectedDigit, scanFrom, scanTo, length } ) {
+      logInfo("searchModule", "actions.scanDigits(): " + selectedDigit + ", " + scanFrom + ", " + scanTo + ", " + length);
+      context.commit('scanDigits', { selectedDigit, scanFrom, scanTo, length } );
+    },
+    stopScan(context) {
+      logInfo("searchModule", "actions.stopScan()");
+      context.commit('stopScan');
     },
   },
 };

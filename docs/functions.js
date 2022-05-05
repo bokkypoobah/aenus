@@ -1,9 +1,124 @@
-var ADDRESS0 = "0x0000000000000000000000000000000000000000";
-var MILLISPERDAY = 60 * 60 * 24 * 1000;
-var DEFAULTEXPIRYUTCHOUR = 8;
-var DEFAULTEXPIRYUTCDAYOFWEEK = 5; // Friday moment.js
-var DEFAULTTYPE = 0xff;
-var DEFAULTDECIMAL = 0xff;
+const ADDRESS0 = "0x0000000000000000000000000000000000000000";
+const MILLISPERDAY = 60 * 60 * 24 * 1000;
+const DEFAULTEXPIRYUTCHOUR = 8;
+const DEFAULTEXPIRYUTCDAYOFWEEK = 5; // Friday moment.js
+const DEFAULTTYPE = 0xff;
+const DEFAULTDECIMAL = 0xff;
+const ENSSUBGRAPHURL = "https://api.thegraph.com/subgraphs/name/ensdomains/ens";
+const ENSSUBGRAPHBATCHSIZE = 500;
+const ENSSUBGRAPHBATCHSCANSIZE = 250;
+
+const ENSSUBGRAPHNAMEQUERY = `
+  query getRegistrations($labelNames: [String!]!) {
+    registrations(first: 1000, orderBy: labelName, orderDirection: asc, where: {labelName_in: $labelNames}) {
+      id
+      registrationDate
+      expiryDate
+      cost
+      registrant {
+        id
+      }
+      labelName
+      domain {
+        id
+        labelName
+        labelhash
+        name
+        isMigrated
+        resolver {
+          address
+          coinTypes
+          texts
+        }
+        resolvedAddress {
+          id
+        }
+        parent {
+          labelName
+          labelhash
+          name
+        }
+        subdomains {
+          labelName
+          labelhash
+          name
+        }
+        owner {
+          id
+        }
+        events {
+          id
+          blockNumber
+          transactionID
+          __typename
+        }
+      }
+      events {
+        id
+        blockNumber
+        transactionID
+        __typename
+      }
+    }
+  }
+`;
+
+const ENSSUBGRAPHOWNEDQUERY = `
+  query getRegistrations($id: ID!, $first: Int, $skip: Int, $orderBy: Registration_orderBy, $orderDirection: OrderDirection, $expiryDate: Int) {
+    account(id: $id) {
+      registrations(first: $first, skip: $skip, orderBy: $orderBy, orderDirection: $orderDirection, where: {expiryDate_gt: $expiryDate}) {
+        id
+        registrationDate
+        expiryDate
+        cost
+        registrant {
+          id
+        }
+        labelName
+        domain {
+          id
+          labelName
+          labelhash
+          name
+          isMigrated
+          resolver {
+            address
+            coinTypes
+            texts
+          }
+          resolvedAddress {
+            id
+          }
+          parent {
+            labelName
+            labelhash
+            name
+          }
+          subdomains {
+            labelName
+            labelhash
+            name
+          }
+          owner {
+            id
+          }
+          events {
+            id
+            blockNumber
+            transactionID
+            __typename
+          }
+        }
+        events {
+          id
+          blockNumber
+          transactionID
+          __typename
+        }
+      }
+    }
+  }
+`;
 
 function formatNumber(n) {
     return n == null ? "" : n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
