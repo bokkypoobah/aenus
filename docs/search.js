@@ -47,9 +47,9 @@ const Search = {
                 </b-col>
                 <b-col cols="4" class="m-0 p-1">
                   <b-button size="sm" @click="search('owner', settings.searchString, settings.selectedGroup)" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
-                  <scan v-if="searchMessage != null">
+                  <span v-if="searchMessage != null">
                     <b-button size="sm" @click="stopScan" variant="primary">Stop Scan</b-button>
-                  </scan>
+                  </span>
                 </b-col>
               </b-row>
             </div>
@@ -63,9 +63,9 @@ const Search = {
                 </b-col>
                 <b-col cols="4" class="m-0 p-1">
                   <b-button size="sm" @click="search('group', settings.searchString, settings.selectedGroup)" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
-                  <scan v-if="searchMessage != null">
+                  <span v-if="searchMessage != null">
                     <b-button size="sm" @click="stopScan" variant="primary">Stop Scan</b-button>
-                  </scan>
+                  </span>
                 </b-col>
               </b-row>
             </div>
@@ -147,7 +147,7 @@ const Search = {
 
           <b-card-body class="m-1 p-1">
             <b-tabs card align="left" no-body active-tab-class="m-0 p-0" v-model="settings.resultsTabIndex">
-              <b-tab title="Text" active>
+              <b-tab title="Summary" active>
               </b-tab>
               <b-tab title="Table">
               </b-tab>
@@ -168,61 +168,62 @@ const Search = {
                 </div>
               </div>
               <div v-else>
-                <b-row>
-                  <b-col cols="1" class="m-0 p-1 text-right">
-                    Characters
-                  </b-col>
-                  <b-col cols="auto" class="m-0 p-1">
-                    Names
-                  </b-col>
-                </b-row>
-                <b-row>
-                  <b-col cols="1" class="m-0 p-1 text-right">
-                    3
-                  </b-col>
-                  <b-col cols="auto" class="m-0 p-1">
-                    <p>
-                      <span v-for="item in filteredResults">
-                        <span v-if="item.length == 3">
-                          {{ item.labelName }}
-                        </span>
-                      </span>
-                    </p>
-                  </b-col>
-                </b-row>
-                <b-row>
-                  <b-col cols="1" class="m-0 p-1 text-right">
-                    4
-                  </b-col>
-                  <b-col cols="auto" class="m-0 p-1">
-                    <p>
-                      <span v-for="item in filteredResults">
-                        <span v-if="item.length == 4">
-                          {{ item.labelName }}
-                        </span>
-                      </span>
-                    </p>
-                  </b-col>
-                </b-row>
-                <b-row>
-                  <b-col cols="1" class="m-0 p-1 text-right">
-                    5+
-                  </b-col>
-                  <b-col cols="auto" class="m-0 p-1">
-                    <p>
-                      <span v-for="item in filteredResults">
-                        <span v-if="item.length >= 5">
-                          {{ item.labelName }}
-                        </span>
-                      </span>
-                    </p>
-                  </b-col>
-                </b-row>
+                <b-table small striped hover :fields="textFields" :items="summary" responsive="sm" class="mt-3">
+                  <template #cell(names)="data">
+                    <span v-for="(result, resultIndex) in data.item.results" :key="resultIndex">
+                      <b-button :id="'popover-target-' + result.length + '-' + resultIndex" variant="link" class="m-0 p-0">
+                        {{ result.labelName }}
+                      </b-button>
+                      <b-popover :target="'popover-target-' + result.length + '-' + resultIndex" placement="right">
+                        <template #title>{{ result.name }} links</template>
+                        <b-link :href="'https://app.ens.domains/name/' + result.name" v-b-popover.hover="'View in app.ens.domains'" target="_blank">
+                          ENS
+                        </b-link>
+                        <br />
+                        <b-link :href="'https://opensea.io/assets/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + result.tokenId" v-b-popover.hover="'View in opensea.io'" target="_blank">
+                          OpenSea
+                        </b-link>
+                        <br />
+                        <b-link :href="'https://looksrare.org/collections/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + result.tokenId" v-b-popover.hover="'View in looksrare.org'" target="_blank">
+                          LooksRare
+                        </b-link>
+                        <br />
+                        <b-link :href="'https://etherscan.io/enslookup-search?search=' + result.name" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                          EtherScan
+                        </b-link>
+                        <br />
+                        <b-link :href="'https://duckduckgo.com/?q=' + result.labelName" v-b-popover.hover="'Search name in duckduckgo.com'" target="_blank">
+                          DuckDuckGo
+                        </b-link>
+                        <br />
+                        <b-link :href="'https://www.google.com/search?q=' + result.labelName" v-b-popover.hover="'Search name in google.com'" target="_blank">
+                          Google
+                        </b-link>
+                        <br />
+                        <b-link :href="'https://twitter.com/search?q=' + result.name" v-b-popover.hover="'Search name in twitter.com'" target="_blank">
+                          Twitter
+                        </b-link>
+                        <br />
+                        <b-link :href="'https://wikipedia.org/wiki/' + result.labelName" v-b-popover.hover="'Search name in wikipedia.org'" target="_blank">
+                          Wikipedia
+                        </b-link>
+                        <br />
+                        <b-link :href="'https://en.wiktionary.org/wiki/' + result.labelName" v-b-popover.hover="'Search name in wiktionary.org'" target="_blank">
+                          Wiktionary
+                        </b-link>
+                        <br />
+                        <b-link :href="'https://thesaurus.yourdictionary.com/' + result.labelName" v-b-popover.hover="'Search name in thesaurus.yourdictionary.com'" target="_blank">
+                          Thesaurus
+                        </b-link>
+                      </b-popover>
+                    </span>
+                  </template>
+                </b-table>
               </div>
             </div>
 
             <div v-if="settings.resultsTabIndex == 1">
-              <b-table small striped hover :fields="fields" :items="filteredResults" responsive="sm" class="mt-3">
+              <b-table small striped hover :fields="resultsFields" :items="filteredResults" responsive="sm" class="mt-3">
                 <template #cell(index)="data">
                   <span>{{ data.index+1 }}</span>
                 </template>
@@ -364,7 +365,7 @@ const Search = {
         { value: 'random', text: 'Random' },
       ],
 
-      fields: [
+      resultsFields: [
         { key: 'index', label: '#', thStyle: 'width: 5%;' },
         { key: 'image', label: 'Image', thStyle: 'width: 10%;', sortable: false },
         { key: 'name', label: 'Name', thStyle: 'width: 30%;', sortable: false },
@@ -372,6 +373,10 @@ const Search = {
         { key: 'registrationDate', label: 'Registration (UTC)', thStyle: 'width: 15%;', sortable: false },
         { key: 'length', label: 'Length', thStyle: 'width: 10%;', sortable: false },
         { key: 'links', label: 'Links', thStyle: 'width: 10%;' },
+      ],
+      textFields: [
+        { key: 'lengthGroup', label: 'Length', thStyle: 'width: 10%;' },
+        { key: 'names', label: 'Names', thStyle: 'width: 90%;' },
       ],
     }
   },
@@ -480,6 +485,24 @@ const Search = {
         });
       }
 
+      return results;
+    },
+    summary() {
+      // const results = [];
+      const collator = {};
+      for (result of Object.values(this.filteredResults)) {
+        const lengthGroup = result.length >= 5 ? "5+" : result.length;
+        if (!collator[lengthGroup]) {
+          collator[lengthGroup] = [result];
+        } else {
+          collator[lengthGroup].push(result);
+        }
+      }
+      const results = [];
+      for (const key of Object.keys(collator)) {
+        const value = collator[key];
+        results.push( { lengthGroup: key, results: value } );
+      }
       return results;
     },
   },
