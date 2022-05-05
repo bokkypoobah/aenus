@@ -31,10 +31,10 @@ const Search = {
                   Name
                 </b-col>
                 <b-col cols="4" class="m-0 p-1">
-                  <b-form-input t6pe="text" size="sm" v-model.trim="settings.searchString" placeholder="🔍 {name1}[.eth] {name2}[.eth], {name3}[.eth] ..."></b-form-input>
+                  <b-form-input type="text" size="sm" v-model.trim="settings.searchString" placeholder="🔍 {name1}[.eth] {name2}[.eth], {name3}[.eth] ..."></b-form-input>
                 </b-col>
                 <b-col cols="4" class="m-0 p-1">
-                  <b-button size="sm" @click="retrieveNames" :disabled="retrievingMessage != null" variant="primary">{{ retrievingMessage ? retrievingMessage : 'Search'}}</b-button>
+                  <b-button size="sm" @click="search('name', settings.searchString, settings.selectedGroup)" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
                 </b-col>
               </b-row>
             </div>
@@ -48,7 +48,7 @@ const Search = {
                   <b-form-input type="text" size="sm" v-model.trim="settings.searchString" placeholder="🔍 0x012345... 0x123456..., {name1}[.eth] {name2}[.eth] ..."></b-form-input>
                 </b-col>
                 <b-col cols="4" class="m-0 p-1">
-                  <b-button size="sm" @click="retrieveNames" :disabled="retrievingMessage != null" variant="primary">{{ retrievingMessage ? retrievingMessage : 'Search'}}</b-button>
+                  <b-button size="sm" @click="search('owner', settings.searchString, settings.selectedGroup)" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
                 </b-col>
               </b-row>
             </div>
@@ -61,7 +61,7 @@ const Search = {
                   <b-form-select size="sm" v-model="settings.selectedGroup" :options="groupOptions" v-b-popover.hover="'Set up groups in Config'"></b-form-select>
                 </b-col>
                 <b-col cols="4" class="m-0 p-1">
-                  <b-button size="sm" @click="retrieveNames" :disabled="retrievingMessage != null" variant="primary">{{ retrievingMessage ? retrievingMessage : 'Search'}}</b-button>
+                  <b-button size="sm" @click="search('group', settings.searchString, settings.selectedGroup)" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
                 </b-col>
               </b-row>
             </div>
@@ -84,7 +84,7 @@ const Search = {
                 <b-form-input type="text" size="sm" v-model.trim="settings.filter" debounce="600" class="w-100" placeholder="🔍 name"></b-form-input>
               </b-col>
               <b-col cols="4" class="m-0 p-1">
-                {{ filteredResults.length + ' of ' + Object.keys(results).length }}
+                {{ filteredResults.length + ' of ' + Object.keys(searchResults).length }}
               </b-col>
             </b-row>
 
@@ -103,6 +103,7 @@ const Search = {
           </b-card>
 
           <b-card no-body class="p-0 mt-1">
+
             <b-tabs card align="left" no-body active-tab-class="m-0 p-0" v-model="settings.resultsTabIndex">
               <b-tab title="Text" active>
               </b-tab>
@@ -254,7 +255,7 @@ const Search = {
 
             <div v-if="settings.resultsTabIndex == 2">
               <b-card-text class="m-2 p-2">
-                <b-row v-for="(name, index) in namesNotFound">
+                <b-row v-for="(name, index) in namesNotFound" :key="index">
                   <b-col cols="1" class="text-right">
                     {{ index+1 }}
                   </b-col>
@@ -279,7 +280,7 @@ const Search = {
 
       settings: {
         searchTabIndex: 0,
-        searchString: null,
+        searchString: "test test432 test321", // null,
         selectedGroup: null,
         filter: null,
 
@@ -287,8 +288,6 @@ const Search = {
       },
 
       sortOption: 'expiryasc',
-      retrievingMessage: null,
-      namesNotFound: [],
       results: [],
 
       sortOptions: [
@@ -326,6 +325,15 @@ const Search = {
     network() {
       return store.getters['connection/network'];
     },
+    searchResults() {
+      return store.getters['search/results'];
+    },
+    namesNotFound() {
+      return store.getters['search/namesNotFound'];
+    },
+    searchMessage() {
+      return store.getters['search/message'];
+    },
     groups() {
       return store.getters['config/groups'];
     },
@@ -361,7 +369,7 @@ const Search = {
         // console.log("Search.filteredResults() - filter: " + JSON.stringify(filter));
         // console.log("Search.filteredResults() - regexConst: " + JSON.stringify(regexConst.toString()));
       }
-      for (result of Object.values(this.results)) {
+      for (result of Object.values(this.searchResults)) {
         if (this.settings.filter == null || this.settings.filter.length == 0) {
           results.push(result);
         } else {
@@ -450,11 +458,94 @@ const Search = {
       }, 1500);
     },
 
-    async retrieveNames() {
+    async search(searchType, searchString, searchGroup) {
+      console.log("search: " + searchType + ", " + searchString + ", " + searchGroup);
+      store.dispatch('search/search', { searchType, searchString, searchGroup } );
+    },
+
+    exportNames() {
+      const rows = [
+          ["No", "Label Name", "Name", "Registration Date", "Expiry Date", "Cost (ETH)", "Registrant", "Resolver", "Resolved Address"],
+      ];
+      const timestamp = new Date(parseInt((new Date).getTime()/1000)*1000).toISOString().replace('T', '-').replaceAll(':', '-').replace('.000Z', '');
+      let i = 1;
+      for (const result of this.filteredResults) {
+        rows.push([
+          i,
+          result.labelName,
+          result.name,
+          new Date(parseInt(result.registrationDate) * 1000).toISOString().replace('T', ' ').replace('.000Z', ''),
+          new Date(parseInt(result.expiryDate) * 1000).toISOString().replace('T', ' ').replace('.000Z', ''),
+          ethers.utils.formatEther(result.cost),
+          result.registrant,
+          result.resolver,
+          result.resolvedAddress,
+        ]);
+        i++;
+      }
+
+      let csvContent = "data:text/csv;charset=utf-8," + rows.map(e => e.join(",")).join("\n");
+      var encodedUri = encodeURI(csvContent);
+      var link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "ensutil_export-" + timestamp + ".csv");
+      document.body.appendChild(link); // Required for FF
+      link.click(); // This will download the data with the specified file name
+    },
+
+    async timeoutCallback() {
+      logDebug("Search", "timeoutCallback() count: " + this.count);
+
+      this.count++;
+      var t = this;
+      if (this.reschedule) {
+        setTimeout(function() {
+          t.timeoutCallback();
+        }, 15000);
+      }
+    },
+  },
+  beforeDestroy() {
+    logDebug("Search", "beforeDestroy()");
+  },
+  mounted() {
+    logInfo("Search", "mounted() $route: " + JSON.stringify(this.$route.params));
+    this.reschedule = true;
+    logDebug("Search", "Calling timeoutCallback()");
+    this.timeoutCallback();
+    // this.loadNFTs();
+  },
+  destroyed() {
+    this.reschedule = false;
+  },
+};
+
+const searchModule = {
+  namespaced: true,
+  state: {
+    results: [],
+    namesNotFound: [],
+    message: null,
+
+    params: null,
+    executing: false,
+    executionQueue: [],
+  },
+  getters: {
+    results: state => state.results,
+    namesNotFound: state => state.namesNotFound,
+    message: state => state.message,
+    params: state => state.params,
+    executionQueue: state => state.executionQueue,
+  },
+  mutations: {
+    async search(state, { searchType, searchString, searchGroup } ) {
+      logInfo("searchModule", "mutations.search(): " + searchType + ", " + searchString + ", " + searchGroup);
+
       const BATCHSIZE = 500; // Max ?1000
-      const DELAYINMILLIS = 500;
+      // const DELAYINMILLIS = 500;
       const url = "https://api.thegraph.com/subgraphs/name/ensdomains/ens";
-      const delay = ms => new Promise(res => setTimeout(res, ms));
+      // const delay = ms => new Promise(res => setTimeout(res, ms));
 
       const nameQuery = `
         query getRegistrations($labelNames: [String!]!) {
@@ -568,29 +659,23 @@ const Search = {
         }
       `;
 
-      // history.pushState({}, null, `${this.$route.path}#${encodeURIComponent(params)}`);
-      // history.pushState({}, null, `${this.$route.path}#blah`);
-
-      // console.log("navigator.userAgent: " + navigator.userAgent);
-      // console.log("isMobile: " + (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)));
-
       const results = {};
       const now = parseInt(new Date().valueOf() / 1000);
       const expiryDate = parseInt(now) - 90 * 24 * 60 * 60;
       const warningDate = parseInt(now) + 90 * 24 * 60 * 60;
 
       let searchForAccounts = [];
-      if (this.settings.searchTabIndex == 0 || this.settings.searchTabIndex == 1) {
-        const searchForNames = this.settings.searchString.split(/[, \t\n]+/)
+      if (searchType == 'name' || searchType == 'owner') {
+        const searchForNames = searchString == null ? [] : searchString.split(/[, \t\n]+/)
           .map(function(name) { return name.toLowerCase().trim(); })
           .filter(function (name) { return !(name.length == 42 && name.substring(0, 2) == '0x'); })
           .map(function(name) { return name.replace('.eth', ''); });
-        searchForAccounts = this.settings.searchString.split(/[, \t\n]+/)
+        searchForAccounts = searchString == null ? [] : searchString.split(/[, \t\n]+/)
           .map(function(name) { return name.toLowerCase().trim(); })
           .filter(function (name) { return name.length == 42 && name.substring(0, 2) == '0x'; });
-        // logInfo("Search", "retrieveNames() - searchString: " + this.settings.searchString);
-        // logInfo("Search", "retrieveNames() - searchForNames: " + JSON.stringify(searchForNames, null, 2));
-        // logInfo("Search", "retrieveNames() - searchForAccounts: " + JSON.stringify(searchForAccounts, null, 2));
+        // logInfo("searchModule", "mutations.search() - searchString: " + searchString);
+        // logInfo("searchModule", "mutations.search() - searchForNames: " + JSON.stringify(searchForNames, null, 2));
+        // logInfo("searchModule", "mutations.search() - searchForAccounts: " + JSON.stringify(searchForAccounts, null, 2));
 
         const data = await fetch(url, {
           method: 'POST',
@@ -603,14 +688,13 @@ const Search = {
             variables: { labelNames: searchForNames },
           })
         }).then(response => response.json());
-        // logInfo("Search", "retrieveNames() - data: " + JSON.stringify(data, null, 2));
+        // logInfo("searchModule", "mutations.search() - data: " + JSON.stringify(data, null, 2));
         const registrations = data.data.registrations || [];
         const registrantMap = {};
-        // logInfo("Search", "retrieveNames() - registrations: " + JSON.stringify(registrations, null, 2));
+        // logInfo("searchModule", "mutations.search() - registrations: " + JSON.stringify(registrations, null, 2));
         for (registration of registrations) {
-          // console.log(registration.domain.name);
-          // logInfo("Search", "retrieveNames() - registration: " + JSON.stringify(registration, null, 2));
-          if (this.settings.searchTabIndex == 1) {
+          // logInfo("searchModule", "mutations.search() - registration: " + JSON.stringify(registration, null, 2));
+          if (searchType == 'owner') {
             registrantMap[registration.registrant.id] = true;
           }
           results[registration.domain.name] = {
@@ -631,38 +715,39 @@ const Search = {
             hasAvatar: registration.domain.resolver && registration.domain.resolver.texts && registration.domain.resolver.texts.includes("avatar"),
           };
         }
-        // logInfo("Search", "retrieveNames() - results: " + JSON.stringify(Object.keys(results), null, 2));
+        // logInfo("searchModule", "mutations.search() - results: " + JSON.stringify(Object.keys(results), null, 2));
         const namesFound = Object.keys(results).map(function(name) { return name.replace('.eth', ''); });
-        // logInfo("Search", "retrieveNames() - namesFound: " + JSON.stringify(namesFound, null, 2));
-        this.namesNotFound = searchForNames.filter(name => !namesFound.includes(name));
-        // logInfo("Search", "retrieveNames() - namesNotFound: " + JSON.stringify(this.namesNotFound, null, 2));
-        this.namesNotFound.sort(function (a, b) {
+        // logInfo("searchModule", "mutations.search() - namesFound: " + JSON.stringify(namesFound, null, 2));
+        state.namesNotFound = searchForNames.filter(name => !namesFound.includes(name));
+        // logInfo("searchModule", "mutations.search() - namesNotFound: " + JSON.stringify(state.namesNotFound, null, 2));
+        state.namesNotFound.sort(function (a, b) {
             return ('' + a).localeCompare(b);
         })
-        // logInfo("Search", "retrieveNames() - namesNotFound sorted: " + JSON.stringify(this.namesNotFound, null, 2));
+        // logInfo("searchModule", "mutations.search() - namesNotFound sorted: " + JSON.stringify(state.namesNotFound, null, 2));
+        // logInfo("searchModule", "mutations.search() - registrantMap sorted: " + JSON.stringify(registrantMap, null, 2));
 
-        // logInfo("Search", "retrieveNames() - namesNotFound: " + JSON.stringify(this.namesNotFound, null, 2));
-        // logInfo("Search", "retrieveNames() - registrantMap: " + JSON.stringify(registrantMap, null, 2));
         searchForAccounts = [ ...searchForAccounts, ...Object.keys(registrantMap) ];
-        // logInfo("Search", "retrieveNames() - searchForAccounts: " + JSON.stringify(searchForAccounts, null, 2));
+        // logInfo("searchModule", "mutations.search() - searchForAccounts: " + JSON.stringify(searchForAccounts, null, 2));
+      } else {
+        state.namesNotFound = [];
       }
 
-      if (this.settings.searchTabIndex == 1 || this.settings.searchTabIndex == 2) {
-        if (this.settings.searchTabIndex == 2) {
-          if (this.settings.selectedGroup == null) {
-            if (this.coinbase != null) {
-              searchForAccounts = [ ...searchForAccounts, this.coinbase ];
+      if (searchType == 'owner' || searchType == 'group') {
+        if (searchType == 'group') {
+          if (searchGroup == null) {
+            if (store.getters['connection/coinbase'] != null) {
+              searchForAccounts = [ ...searchForAccounts, store.getters['connection/coinbase'] ];
             }
           } else {
-            let group = this.groups[this.settings.selectedGroup];
+            let group = store.getters['config/groups'][searchGroup];
             searchForAccounts = [ ...searchForAccounts, ...group.accounts ];
           }
         }
-        // logInfo("Search", "retrieveNames() - searchForAccounts: " + JSON.stringify(searchForAccounts));
-        // logInfo("Search", "retrieveNames() - expiryDate: " + expiryDate + " = " + new Date(expiryDate * 1000));
-        this.retrievingMessage = "Retrieving";
+        // logInfo("searchModule", "mutations.search() - searchForAccounts: " + JSON.stringify(searchForAccounts));
+        // logInfo("searchModule", "mutations.search() - expiryDate: " + expiryDate + " = " + new Date(expiryDate * 1000));
+        state.message = "Retrieving";
         for (account of searchForAccounts) {
-          // logInfo("Search", "retrieveNames() - account: " + JSON.stringify(account));
+          // logInfo("searchModule", "mutations.search() - account: " + JSON.stringify(account));
           const first = BATCHSIZE;
           const id = account.toLowerCase();
           let skip = 0;
@@ -682,19 +767,18 @@ const Search = {
               })
             }).then(response => response.json());
             // if (skip == 0) {
-              // logInfo("Search", "retrieveNames() - data: " + JSON.stringify(data, null, 2));
+            //   logInfo("searchModule", "mutations.search() - data: " + JSON.stringify(data, null, 2));
             // }
             const registrations = data.data.account && data.data.account.registrations || [];
             if (registrations.length == 0) {
               completed = true;
             } else {
               records = records + registrations.length;
-              this.retrievingMessage = "Retrieved " + records;
+              state.message = "Retrieved " + records;
               for (registration of registrations) {
-                // console.log(registration.domain.name);
-                if (registration.domain.name == "morningnews.eth") {
-                  console.log(JSON.stringify(registration, null, 2));
-                }
+                // if (registration.domain.name == "morningnews.eth") {
+                //   console.log(JSON.stringify(registration, null, 2));
+                // }
                 results[registration.domain.name] = {
                   labelName: registration.labelName,
                   registrationDate: registration.registrationDate,
@@ -712,8 +796,6 @@ const Search = {
                   warn: registration.expiryDate < now ? 'red' : registration.expiryDate < warningDate ? 'orange' : null,
                   hasAvatar: registration.domain.resolver && registration.domain.resolver.texts && registration.domain.resolver.texts.includes("avatar"),
                 };
-                // const test = { ...results[registration.domain.name], name: undefined };
-                // console.log(JSON.stringify(test, null, 2));
               }
               // this.results = results;
             }
@@ -721,165 +803,23 @@ const Search = {
           }
         }
       }
-      this.results = results;
-      this.retrievingMessage = null;
-      // logInfo("Search", "retrieveNames() - results: " + JSON.stringify(results, null, 2));
+      state.results = results;
+      state.message = null;
+      // logInfo("searchModule", "mutations.search() - results: " + JSON.stringify(results, null, 2));
+
     },
-
-    exportNames() {
-      const rows = [
-          ["No", "Label Name", "Name", "Registration Date", "Expiry Date", "Cost (ETH)", "Registrant", "Resolver", "Resolved Address"],
-      ];
-      const timestamp = new Date(parseInt((new Date).getTime()/1000)*1000).toISOString().replace('T', '-').replaceAll(':', '-').replace('.000Z', '');
-      let i = 1;
-      for (const result of this.filteredResults) {
-        rows.push([
-          i,
-          result.labelName,
-          result.name,
-          new Date(parseInt(result.registrationDate) * 1000).toISOString().replace('T', ' ').replace('.000Z', ''),
-          new Date(parseInt(result.expiryDate) * 1000).toISOString().replace('T', ' ').replace('.000Z', ''),
-          ethers.utils.formatEther(result.cost),
-          result.registrant,
-          result.resolver,
-          result.resolvedAddress,
-        ]);
-        i++;
-      }
-
-      // {
-      //   "labelName": "bokky",
-      //   "registrationDate": "1614410042",
-      //   "expiryDate": "1929979562",
-      //   "cost": "33631707879475471",
-      //   "registrant": "0x000001f568875f378bf6d170b790967fe429c81a",
-      //   "labelhash": "0x65866a6eb5c8f037f7c6581ad7ccf01c56180be616e8525fafc20c42ccbdf300",
-      //   "tokenId": "45921089783441287948523296213926136503333819594691056126355172308341959291648",
-      //   "name": "bokky.eth",
-      //   "isMigrated": true,
-      //   "resolver": "0x4976fb03c32e5b8cfe2b6ccb31c09ba78ebaba41",
-      //   "resolvedAddress": "0x000001f568875f378bf6d170b790967fe429c81a",
-      //   "parent": "eth",
-      //   "length": 5,
-      //   "warn": null,
-      //   "hasAvatar": true
-      // }
-
-      let csvContent = "data:text/csv;charset=utf-8," + rows.map(e => e.join(",")).join("\n");
-      var encodedUri = encodeURI(csvContent);
-      var link = document.createElement("a");
-      link.setAttribute("href", encodedUri);
-      link.setAttribute("download", "ensutil_export-" + timestamp + ".csv");
-      document.body.appendChild(link); // Required for FF
-      link.click(); // This will download the data with the specified file name
-    },
-
-    async timeoutCallback() {
-      logDebug("Search", "timeoutCallback() count: " + this.count);
-
-      this.count++;
-      var t = this;
-      if (this.reschedule) {
-        setTimeout(function() {
-          t.timeoutCallback();
-        }, 15000);
-      }
-    },
-  },
-  beforeDestroy() {
-    logDebug("Search", "beforeDestroy()");
-  },
-  mounted() {
-    logInfo("Search", "mounted() $route: " + JSON.stringify(this.$route.params));
-    this.reschedule = true;
-    logDebug("Search", "Calling timeoutCallback()");
-    this.timeoutCallback();
-    // this.loadNFTs();
-  },
-  destroyed() {
-    this.reschedule = false;
-  },
-};
-
-const searchModule = {
-  namespaced: true,
-  state: {
-    // groups: [],
-    params: null,
-    executing: false,
-    executionQueue: [],
-  },
-  getters: {
-    // groups: state => state.groups,
-    params: state => state.params,
-    executionQueue: state => state.executionQueue,
-  },
-  mutations: {
-    // loadGroups(state) {
-    //   // logInfo("searchModule", "mutations.loadGroups()")
-    //   if (localStorage.getItem('groups')) {
-    //     state.groups = JSON.parse(localStorage.getItem('groups'));
-    //     // logInfo("searchModule", "mutations.loadGroups(): " + JSON.stringify(state.groups));
-    //   }
-    // },
-    // saveGroups(state) {
-    //   // logInfo("searchModule", "mutations.saveGroups()");
-    //   localStorage.setItem('groups', JSON.stringify(state.groups));
-    // },
-    // newGroup(state, groupName) {
-    //   logInfo("searchModule", "mutations.newGroup(" + groupName + ")");
-    //   state.groups.push( { name: groupName, accounts: [] });
-    // },
-    // newGroupAccount(state, { groupIndex, account }) {
-    //   logInfo("searchModule", "mutations.newGroupAccount(" + groupIndex + ", " + account + ")");
-    //   state.groups[groupIndex].accounts.push(account);
-    // },
-    // deleteGroup(state, { groupIndex, group }) {
-    //   logInfo("searchModule", "mutations.deleteGroup(" + groupIndex + ", " + JSON.stringify(group) + ")");
-    //   state.groups.splice(groupIndex, 1);
-    // },
-    // deleteAccountFromGroup(state, { groupIndex, accountIndex, account }) {
-    //   logInfo("searchModule", "mutations.deleteAccountFromGroup(" + groupIndex + ", " + account + ")");
-    //   state.groups[groupIndex].accounts.splice(accountIndex, 1);
-    // },
-    // deQueue(state) {
-    //   logDebug("searchModule", "deQueue(" + JSON.stringify(state.executionQueue) + ")");
-    //   state.executionQueue.shift();
-    // },
-    // updateParams(state, params) {
-    //   state.params = params;
-    //   logDebug("searchModule", "updateParams('" + params + "')")
-    // },
-    // updateExecuting(state, executing) {
-    //   state.executing = executing;
-    //   logDebug("searchModule", "updateExecuting(" + executing + ")")
-    // },
   },
   actions: {
-    // loadGroups(context) {
-    //   logDebug("searchModule", "actions.loadGroups()");
-    //   context.commit('loadGroups');
-    // },
-    // newGroup(context, groupName) {
-    //   logInfo("searchModule", "actions.newGroup(" + groupName + ")");
-    //   context.commit('newGroup', groupName);
-    //   context.commit('saveGroups');
-    // },
-    // newGroupAccount(context, { groupIndex, account }) {
-    //   logInfo("searchModule", "actions.newGroupAccount(" + groupIndex + ", " + account + ")");
-    //   context.commit('newGroupAccount', { groupIndex, account });
-    //   context.commit('saveGroups');
-    // },
-    // deleteGroup(context, { groupIndex, group }) {
-    //   logInfo("searchModule", "actions.deleteGroup(" + groupIndex + ", " + JSON.stringify(group) + ")");
-    //   context.commit('deleteGroup', { groupIndex, group });
-    //   context.commit('saveGroups');
-    // },
-    // deleteAccountFromGroup(context, { groupIndex, accountIndex, account }) {
-    //   logInfo("searchModule", "actions.deleteAccountFromGroup(" + groupIndex + ", " + account + ")");
-    //   context.commit('deleteAccountFromGroup', { groupIndex, accountIndex, account });
-    //   context.commit('saveGroups');
-    // },
-
+    search(context, { searchType, searchString, searchGroup } ) {
+      // logInfo("searchModule", "actions.search(): " + searchType + ", " + searchString + ", " + searchGroup);
+      context.commit('search', { searchType, searchString, searchGroup });
+    },
   },
 };
+
+
+// history.pushState({}, null, `${this.$route.path}#${encodeURIComponent(params)}`);
+// history.pushState({}, null, `${this.$route.path}#blah`);
+
+// console.log("navigator.userAgent: " + navigator.userAgent);
+// console.log("isMobile: " + (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)));

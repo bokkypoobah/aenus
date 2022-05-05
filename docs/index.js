@@ -66,7 +66,7 @@ const store = new Vuex.Store({
     // weth: wethModule,
     // admin: adminModule,
     config: configModule,
-    portfolio: searchModule,
+    search: searchModule,
     // collections: collectionsModule,
   }
 });
