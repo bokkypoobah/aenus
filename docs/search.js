@@ -29,7 +29,7 @@ const Search = {
                   Name
                 </b-col>
                 <b-col cols="4" class="m-0 p-1">
-                  <b-form-input type="text" size="sm" v-model.trim="settings.searchString" placeholder="🔍 {name1}[.eth] {name2}[.eth], {name3}[.eth] ..."></b-form-input>
+                  <b-form-textarea size="sm" v-model.trim="settings.searchString" placeholder="🔍 {name1}[.eth] {name2}[.eth], {name3}[.eth]\n{name4}[.eth] ..." rows="3" max-rows="100"></b-form-textarea>
                 </b-col>
                 <b-col cols="4" class="m-0 p-1">
                   <b-button size="sm" @click="search('name', settings.searchString, settings.selectedGroup)" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
@@ -43,10 +43,13 @@ const Search = {
                   Name/addr
                 </b-col>
                 <b-col cols="4" class="m-0 p-1">
-                  <b-form-input type="text" size="sm" v-model.trim="settings.searchString" placeholder="🔍 0x012345... 0x123456..., {name1}[.eth] {name2}[.eth] ..."></b-form-input>
+                  <b-form-textarea size="sm" v-model.trim="settings.searchString" placeholder="🔍 0x012345... 0x123456..., {name1}[.eth]\n{name2}[.eth] ..." rows="3" max-rows="100"></b-form-textarea>
                 </b-col>
                 <b-col cols="4" class="m-0 p-1">
                   <b-button size="sm" @click="search('owner', settings.searchString, settings.selectedGroup)" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
+                  <scan v-if="searchMessage != null">
+                    <b-button size="sm" @click="stopScan" variant="primary">Stop Scan</b-button>
+                  </scan>
                 </b-col>
               </b-row>
             </div>
@@ -60,6 +63,9 @@ const Search = {
                 </b-col>
                 <b-col cols="4" class="m-0 p-1">
                   <b-button size="sm" @click="search('group', settings.searchString, settings.selectedGroup)" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
+                  <scan v-if="searchMessage != null">
+                    <b-button size="sm" @click="stopScan" variant="primary">Stop Scan</b-button>
+                  </scan>
                 </b-col>
               </b-row>
             </div>
@@ -67,7 +73,7 @@ const Search = {
               <b-card-text>
                 <b-row>
                   <b-col cols="3" class="m-0 p-1 text-right">
-                    Group
+                    Digit Set
                   </b-col>
                   <b-col cols="4" class="m-0 p-1">
                     <b-form-select size="sm" v-model="settings.selectedDigit" :options="digitOptions" class="w-50"></b-form-select>
@@ -145,7 +151,7 @@ const Search = {
               </b-tab>
               <b-tab title="Table">
               </b-tab>
-              <b-tab title="Not Found" :disabled="namesNotFound.length == 0">
+              <b-tab title="Not Registered" :disabled="notRegistered.length == 0">
               </b-tab>
             </b-tabs>
 
@@ -279,7 +285,7 @@ const Search = {
 
             <div v-if="settings.resultsTabIndex == 2">
               <b-card-text class="m-2 p-2">
-                <b-row v-for="(name, index) in namesNotFound" :key="index">
+                <b-row v-for="(name, index) in notRegistered" :key="index">
                   <b-col cols="1" class="text-right">
                     {{ index+1 }}
                   </b-col>
@@ -385,8 +391,8 @@ const Search = {
     searchResults() {
       return store.getters['search/results'];
     },
-    namesNotFound() {
-      return store.getters['search/namesNotFound'];
+    notRegistered() {
+      return store.getters['search/notRegistered'];
     },
     searchMessage() {
       return store.getters['search/message'];
@@ -591,7 +597,7 @@ const searchModule = {
   namespaced: true,
   state: {
     results: [],
-    namesNotFound: [],
+    notRegistered: [],
     message: null,
     stopScan: false,
 
@@ -601,7 +607,7 @@ const searchModule = {
   },
   getters: {
     results: state => state.results,
-    namesNotFound: state => state.namesNotFound,
+    notRegistered: state => state.notRegistered,
     message: state => state.message,
     params: state => state.params,
     executionQueue: state => state.executionQueue,
@@ -671,18 +677,18 @@ const searchModule = {
         // logInfo("searchModule", "mutations.search() - results: " + JSON.stringify(Object.keys(results), null, 2));
         const namesFound = Object.keys(results).map(function(name) { return name.replace('.eth', ''); });
         // logInfo("searchModule", "mutations.search() - namesFound: " + JSON.stringify(namesFound, null, 2));
-        state.namesNotFound = searchForNames.filter(name => !namesFound.includes(name));
-        // logInfo("searchModule", "mutations.search() - namesNotFound: " + JSON.stringify(state.namesNotFound, null, 2));
-        state.namesNotFound.sort(function (a, b) {
+        state.notRegistered = searchForNames.filter(name => !namesFound.includes(name));
+        // logInfo("searchModule", "mutations.search() - notRegistered: " + JSON.stringify(state.notRegistered, null, 2));
+        state.notRegistered.sort(function (a, b) {
             return ('' + a).localeCompare(b);
         })
-        // logInfo("searchModule", "mutations.search() - namesNotFound sorted: " + JSON.stringify(state.namesNotFound, null, 2));
+        // logInfo("searchModule", "mutations.search() - notRegistered sorted: " + JSON.stringify(state.notRegistered, null, 2));
         // logInfo("searchModule", "mutations.search() - registrantMap sorted: " + JSON.stringify(registrantMap, null, 2));
 
         searchForAccounts = [ ...searchForAccounts, ...Object.keys(registrantMap) ];
         // logInfo("searchModule", "mutations.search() - searchForAccounts: " + JSON.stringify(searchForAccounts, null, 2));
       } else {
-        state.namesNotFound = [];
+        state.notRegistered = [];
       }
 
       if (searchType == 'owner' || searchType == 'group') {
@@ -707,7 +713,7 @@ const searchModule = {
           // console.log(JSON.stringify({ query, variables: { id, first, skip, expiryDate } }));
           let completed = false;
           let records = 0;
-          while (!completed) {
+          while (!completed && !state.stopScan) {
             const data = await fetch(ENSSUBGRAPHURL, {
               method: 'POST',
               headers: {
@@ -758,6 +764,7 @@ const searchModule = {
       }
       state.results = results;
       state.message = null;
+      state.stopScan = false;
       // logInfo("searchModule", "mutations.search() - results: " + JSON.stringify(results, null, 2));
 
     },
@@ -775,7 +782,7 @@ const searchModule = {
       const expiryDate = parseInt(now) - 90 * 24 * 60 * 60;
       const warningDate = parseInt(now) + 90 * 24 * 60 * 60;
       state.message = "Retrieving";
-      state.namesNotFound = [];
+      state.notRegistered = [];
       let records = 0;
       for (let iBatch = scanFrom; iBatch < scanTo && !state.stopScan; iBatch = parseInt(iBatch) + ENSSUBGRAPHBATCHSCANSIZE) {
         // logInfo("searchModule", "mutations.scanDigits() - iBatch: " + iBatch);
@@ -822,15 +829,15 @@ const searchModule = {
         }
         const namesFound = Object.keys(results).map(function(name) { return name.replace('.eth', ''); });
         // logInfo("searchModule", "mutations.scanDigits() - namesFound: " + JSON.stringify(namesFound, null, 2));
-        const namesNotFound = numbers.filter(name => !namesFound.includes(name));
-        // logInfo("searchModule", "mutations.scanDigits() - namesNotFound: " + JSON.stringify(namesNotFound, null, 2));
-        state.namesNotFound.push(...namesNotFound);
-        // logInfo("searchModule", "mutations.scanDigits() - all namesNotFound: " + JSON.stringify(state.namesNotFound, null, 2));
+        const notRegistered = numbers.filter(name => !namesFound.includes(name));
+        // logInfo("searchModule", "mutations.scanDigits() - notRegistered: " + JSON.stringify(notRegistered, null, 2));
+        state.notRegistered.push(...notRegistered);
+        // logInfo("searchModule", "mutations.scanDigits() - all notRegistered: " + JSON.stringify(state.notRegistered, null, 2));
       }
       state.results = results;
       state.message = null;
       state.stopScan = false;
-      state.namesNotFound.sort(function (a, b) {
+      state.notRegistered.sort(function (a, b) {
           return ('' + a).localeCompare(b);
       })
     },
