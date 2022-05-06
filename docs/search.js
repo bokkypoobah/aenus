@@ -210,6 +210,10 @@ const Search = {
                           LooksRare
                         </b-link>
                         <br />
+                        <b-link :href="'https://x2y2.io/eth/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + result.tokenId" v-b-popover.hover="'View in x2y2.io'" target="_blank">
+                          X2Y2
+                        </b-link>
+                        <br />
                         <b-link :href="'https://etherscan.io/enslookup-search?search=' + result.name" v-b-popover.hover="'View in etherscan.io'" target="_blank">
                           EtherScan
                         </b-link>
@@ -275,6 +279,10 @@ const Search = {
                       LooksRare
                     </b-link>
                     <br />
+                    <b-link :href="'https://x2y2.io/eth/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + data.item.tokenId" v-b-popover.hover="'View in x2y2.io'" target="_blank">
+                      X2Y2
+                    </b-link>
+                    <br />
                     <b-link :href="'https://etherscan.io/enslookup-search?search=' + data.item.name" v-b-popover.hover="'View in etherscan.io'" target="_blank">
                       EtherScan
                     </b-link>
@@ -323,6 +331,10 @@ const Search = {
                       LooksRare
                     </b-link>
                     <br />
+                    <b-link :href="'https://x2y2.io/user/' + data.item.registrant + '/items'" v-b-popover.hover="'View in x2y2.io'" target="_blank">
+                      X2Y2
+                    </b-link>
+                    <br />
                     <b-link :href="'https://etherscan.io/address/' + data.item.registrant" v-b-popover.hover="'View in etherscan.io'" target="_blank">
                       EtherScan
                     </b-link>
@@ -343,6 +355,10 @@ const Search = {
                         LooksRare
                       </b-link>
                       <br />
+                      <b-link :href="'https://x2y2.io/user/' + data.item.owner + '/items'" v-b-popover.hover="'View in x2y2.io'" target="_blank">
+                        X2Y2
+                      </b-link>
+                      <br />
                       <b-link :href="'https://etherscan.io/address/' + data.item.owner" v-b-popover.hover="'View in etherscan.io'" target="_blank">
                         EtherScan
                       </b-link>
@@ -361,6 +377,10 @@ const Search = {
                       <br />
                       <b-link :href="'https://looksrare.org/accounts/' + data.item.resolvedAddress" v-b-popover.hover="'View in looksrare.org'" target="_blank">
                         LooksRare
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://x2y2.io/user/' + data.item.resolvedAddress + '/items'" v-b-popover.hover="'View in x2y2.io'" target="_blank">
+                        X2Y2
                       </b-link>
                       <br />
                       <b-link :href="'https://etherscan.io/address/' + data.item.resolvedAddress" v-b-popover.hover="'View in etherscan.io'" target="_blank">
