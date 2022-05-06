@@ -447,6 +447,9 @@ const Search = {
 
             <div v-if="settings.resultsTabIndex == 2">
               <b-table small striped hover :fields="ownershipFields" :items="ownership" responsive="sm" class="mt-3">
+                <template #cell(index)="data">
+                  {{ data.index+1 }}
+                </template>
                 <template #cell(registrant)="data">
                   <b-button :id="'popover-target-owner-' + data.item.registrant + '-' + data.index" variant="link" class="m-0 p-0">
                     {{ data.item.registrant }}
@@ -636,8 +639,9 @@ const Search = {
         { key: 'names', label: 'Names', thStyle: 'width: 90%;' },
       ],
       ownershipFields: [
+        { key: 'index', label: '#', thStyle: 'width: 5%;' },
         { key: 'registrant', label: 'Registrant', thStyle: 'width: 30%;' },
-        { key: 'length', label: '#Names', thStyle: 'width: 10%;' },
+        { key: 'length', label: '#Names', thStyle: 'width: 5%;' },
         { key: 'names', label: 'Names', thStyle: 'width: 60%;' },
       ],
     }
@@ -782,7 +786,11 @@ const Search = {
         results.push( { registrant: key, length: value.length, results: value } );
       }
       results.sort((a, b) => {
-        return b.length - a.length;
+        if (a.length == b.length) {
+          return ('' + a.registrant).localeCompare(b.registrant);
+        } else {
+          return b.length - a.length;
+        }
       });
       return results;
     },
