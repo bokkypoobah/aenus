@@ -171,7 +171,7 @@ const Search = {
             <b-tabs card align="left" no-body active-tab-class="m-0 p-0" v-model="settings.resultsTabIndex">
               <b-tab title="Summary" active>
               </b-tab>
-              <b-tab title="Table">
+              <b-tab title="Details">
               </b-tab>
               <b-tab title="Not Registered" :disabled="notRegistered.length == 0">
               </b-tab>
@@ -247,18 +247,127 @@ const Search = {
             <div v-if="settings.resultsTabIndex == 1">
               <b-table small striped hover :fields="resultsFields" :items="filteredResults" responsive="sm" class="mt-3">
                 <template #cell(index)="data">
-                  <span>{{ data.index+1 }}</span>
+                  {{ data.index+1 }}
                 </template>
+                <!--
                 <template #cell(image)="data">
-                  <!--
                   <b-img :width="'100%'" :src="'https://metadata.ens.domains/mainnet/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + data.item.tokenId + '/image'"></b-img>
                   <div v-if="data.item.hasAvatar">
                     <b-img-lazy :width="'100%'" :src="'https://metadata.ens.domains/mainnet/avatar/' + data.item.name" />
                   </div>
+                </template>
+                -->
+                <template #cell(name)="data">
+                  <b-button :id="'popover-target-name-' + data.index" variant="link" class="m-0 p-0">
+                    {{ data.item.name.substring(0, 64) }}
+                  </b-button>
+                  <b-popover :target="'popover-target-name-' + data.index" placement="right">
+                    <template #title>{{ data.item.name.substring(0, 64) }}:</template>
+                    <b-link :href="'https://app.ens.domains/name/' + data.item.name" v-b-popover.hover="'View in app.ens.domains'" target="_blank">
+                      ENS
+                    </b-link>
+                    <br />
+                    <b-link :href="'https://opensea.io/assets/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + data.item.tokenId" v-b-popover.hover="'View in opensea.io'" target="_blank">
+                      OpenSea
+                    </b-link>
+                    <br />
+                    <b-link :href="'https://looksrare.org/collections/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + data.item.tokenId" v-b-popover.hover="'View in looksrare.org'" target="_blank">
+                      LooksRare
+                    </b-link>
+                    <br />
+                    <b-link :href="'https://etherscan.io/enslookup-search?search=' + data.item.name" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                      EtherScan
+                    </b-link>
+                    <br />
+                    <b-link :href="'https://duckduckgo.com/?q=' + data.item.labelName" v-b-popover.hover="'Search name in duckduckgo.com'" target="_blank">
+                      DuckDuckGo
+                    </b-link>
+                    <br />
+                    <b-link :href="'https://www.google.com/search?q=' + data.item.labelName" v-b-popover.hover="'Search name in google.com'" target="_blank">
+                      Google
+                    </b-link>
+                    <br />
+                    <b-link :href="'https://twitter.com/search?q=' + data.item.name" v-b-popover.hover="'Search name in twitter.com'" target="_blank">
+                      Twitter
+                    </b-link>
+                    <br />
+                    <b-link :href="'https://wikipedia.org/wiki/' + data.item.labelName" v-b-popover.hover="'Search name in wikipedia.org'" target="_blank">
+                      Wikipedia
+                    </b-link>
+                    <br />
+                    <b-link :href="'https://en.wiktionary.org/wiki/' + data.item.labelName" v-b-popover.hover="'Search name in wiktionary.org'" target="_blank">
+                      Wiktionary
+                    </b-link>
+                    <br />
+                    <b-link :href="'https://thesaurus.yourdictionary.com/' + data.item.labelName" v-b-popover.hover="'Search name in thesaurus.yourdictionary.com'" target="_blank">
+                      Thesaurus
+                    </b-link>
+                  </b-popover>
+                  <!--
+                  <br />
+                  <br />
+                  <font size="-2">Length: {{ data.item.length }}</font>
                   -->
                 </template>
-                <template #cell(name)="data">
-                  {{ data.item.name.substring(0, 64) }}
+                <template #cell(registrant)="data">
+                  <b-button :id="'popover-target-registrant-' + data.index" variant="link" class="m-0 p-0">
+                    {{ data.item.registrant }}
+                  </b-button>
+                  <b-popover :target="'popover-target-registrant-' + data.index" placement="right">
+                    <template #title>Registrant: {{ data.item.registrant.substring(0, 12) }}:</template>
+                    <b-link :href="'https://opensea.io/' + data.item.registrant" v-b-popover.hover="'View in opensea.io'" target="_blank">
+                      OpenSea
+                    </b-link>
+                    <br />
+                    <b-link :href="'https://looksrare.org/accounts/' + data.item.registrant" v-b-popover.hover="'View in looksrare.org'" target="_blank">
+                      LooksRare
+                    </b-link>
+                    <br />
+                    <b-link :href="'https://etherscan.io/address/' + data.item.registrant" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                      EtherScan
+                    </b-link>
+                  </b-popover>
+                  <br />
+                  <br />
+                  <font size="-2">
+                    <b-button size="sm" :id="'popover-target-owner-' + data.index" variant="link" class="m-0 p-0">
+                      C: {{ data.item.owner }}
+                    </b-button>
+                    <b-popover :target="'popover-target-owner-' + data.index" placement="right">
+                      <template #title>Controller: {{ data.item.owner.substring(0, 12) }}:</template>
+                      <b-link :href="'https://opensea.io/' + data.item.owner" v-b-popover.hover="'View in opensea.io'" target="_blank">
+                        OpenSea
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://looksrare.org/accounts/' + data.item.owner" v-b-popover.hover="'View in looksrare.org'" target="_blank">
+                        LooksRare
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://etherscan.io/address/' + data.item.owner" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                        EtherScan
+                      </b-link>
+                    </b-popover>
+                  </font>
+                  <br />
+                  <font size="-2">
+                    <b-button size="sm" :id="'popover-target-resolvedAddress-' + data.index" variant="link" class="m-0 p-0">
+                      RA: {{ data.item.resolvedAddress }}
+                    </b-button>
+                    <b-popover :target="'popover-target-resolvedAddress-' + data.index" placement="right">
+                      <template #title>Resolved Addr: {{ data.item.resolvedAddress.substring(0, 12) }}:</template>
+                      <b-link :href="'https://opensea.io/' + data.item.resolvedAddress" v-b-popover.hover="'View in opensea.io'" target="_blank">
+                        OpenSea
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://looksrare.org/accounts/' + data.item.resolvedAddress" v-b-popover.hover="'View in looksrare.org'" target="_blank">
+                        LooksRare
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://etherscan.io/address/' + data.item.resolvedAddress" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                        EtherScan
+                      </b-link>
+                    </b-popover>
+                  </font>
                 </template>
                 <template #cell(expiryDate)="data">
                   <div v-if="data.item.warn">
@@ -269,10 +378,14 @@ const Search = {
                   <div v-else>
                     {{ formatDate(data.item.expiryDate) }}
                   </div>
+                  <br />
+                  <font size="-2">R: {{ formatDate(data.item.registrationDate) }}</font>
                 </template>
+                <!--
                 <template #cell(registrationDate)="data">
                   {{ formatDate(data.item.registrationDate) }}
                 </template>
+                -->
                 <template #cell(links)="data">
                   <b-link :href="'https://app.ens.domains/name/' + data.item.name" v-b-popover.hover="'View in app.ens.domains'" target="_blank">
                     ens
@@ -405,12 +518,13 @@ const Search = {
 
       resultsFields: [
         { key: 'index', label: '#', thStyle: 'width: 5%;' },
-        { key: 'image', label: 'Image', thStyle: 'width: 10%;', sortable: false },
-        { key: 'name', label: 'Name', thStyle: 'width: 30%;', sortable: false },
-        { key: 'expiryDate', label: 'Expiry (UTC)', thStyle: 'width: 15%;', sortable: false },
-        { key: 'registrationDate', label: 'Registration (UTC)', thStyle: 'width: 15%;', sortable: false },
-        { key: 'length', label: 'Length', thStyle: 'width: 10%;', sortable: false },
-        { key: 'links', label: 'Links', thStyle: 'width: 10%;' },
+        // { key: 'image', label: 'Image', thStyle: 'width: 10%;', sortable: false },
+        { key: 'name', label: 'Name', thStyle: 'width: 40%;', sortable: false },
+        { key: 'registrant', label: 'Registrant/Controller/Resolved Address', thStyle: 'width: 35%;', sortable: false },
+        { key: 'expiryDate', label: 'Expiry/Registration (UTC)', thStyle: 'width: 20%;', sortable: false },
+        // { key: 'registrationDate', label: 'Registration (UTC)', thStyle: 'width: 15%;', sortable: false },
+        // { key: 'length', label: 'Length', thStyle: 'width: 10%;', sortable: false },
+        // { key: 'links', label: 'Links', thStyle: 'width: 10%;' },
       ],
       textFields: [
         { key: 'lengthGroup', label: 'Length', thStyle: 'width: 10%;' },
@@ -526,7 +640,23 @@ const Search = {
       return results;
     },
     summary() {
-      // const results = [];
+      const collator = {};
+      for (result of Object.values(this.filteredResults)) {
+        const lengthGroup = result.length >= 5 ? "5+" : result.length;
+        if (!collator[lengthGroup]) {
+          collator[lengthGroup] = [result];
+        } else {
+          collator[lengthGroup].push(result);
+        }
+      }
+      const results = [];
+      for (const key of Object.keys(collator)) {
+        const value = collator[key];
+        results.push( { lengthGroup: key, results: value } );
+      }
+      return results;
+    },
+    ownership() {
       const collator = {};
       for (result of Object.values(this.filteredResults)) {
         const lengthGroup = result.length >= 5 ? "5+" : result.length;
@@ -599,7 +729,7 @@ const Search = {
 
     exportNames() {
       const rows = [
-          ["No", "Label Name", "Name", "Registration Date", "Expiry Date", "Cost (ETH)", "Registrant", "Resolver", "Resolved Address"],
+          ["No", "Label Name", "Name", "Registration Date", "Expiry Date", "Cost (ETH)", "Registrant", "Controller", "Resolver", "Resolved Address"],
       ];
       const timestamp = new Date(parseInt((new Date).getTime()/1000)*1000).toISOString().replace('T', '-').replaceAll(':', '-').replace('.000Z', '');
       let i = 1;
@@ -612,6 +742,7 @@ const Search = {
           new Date(parseInt(result.expiryDate) * 1000).toISOString().replace('T', ' ').replace('.000Z', ''),
           ethers.utils.formatEther(result.cost),
           result.registrant,
+          result.owner,
           result.resolver,
           result.resolvedAddress,
         ]);
@@ -713,7 +844,7 @@ const searchModule = {
         const registrantMap = {};
         // logInfo("searchModule", "mutations.search() - registrations: " + JSON.stringify(registrations, null, 2));
         for (registration of registrations) {
-          // logInfo("searchModule", "mutations.search() - registration: " + JSON.stringify(registration, null, 2));
+          logInfo("searchModule", "mutations.search() - registration: " + JSON.stringify(registration, null, 2));
           if (searchType == 'owner') {
             registrantMap[registration.registrant.id] = true;
           }
@@ -723,6 +854,7 @@ const searchModule = {
             expiryDate: registration.expiryDate,
             cost: registration.cost,
             registrant: registration.registrant.id,
+            owner: registration.domain.owner.id,
             labelhash: registration.domain.labelhash,
             tokenId: new BigNumber(registration.domain.labelhash.substring(2), 16).toFixed(0),
             name: registration.domain.name,
@@ -796,7 +928,7 @@ const searchModule = {
               records = records + registrations.length;
               state.message = "Retrieved " + records;
               for (registration of registrations) {
-                // if (registration.domain.name == "morningnews.eth") {
+                // if (registration.domain.name == "test.eth") {
                 //   console.log(JSON.stringify(registration, null, 2));
                 // }
                 results[registration.domain.name] = {
@@ -805,6 +937,7 @@ const searchModule = {
                   expiryDate: registration.expiryDate,
                   cost: registration.cost,
                   registrant: registration.registrant.id,
+                  owner: registration.domain.owner.id,
                   labelhash: registration.domain.labelhash,
                   tokenId: new BigNumber(registration.domain.labelhash.substring(2), 16).toFixed(0),
                   name: registration.domain.name,
@@ -816,6 +949,9 @@ const searchModule = {
                   warn: registration.expiryDate < now ? 'red' : registration.expiryDate < warningDate ? 'orange' : null,
                   hasAvatar: registration.domain.resolver && registration.domain.resolver.texts && registration.domain.resolver.texts.includes("avatar"),
                 };
+                // console.log(JSON.stringify(registration, null, 2));
+                // console.log("resolvedAddress: " + JSON.stringify(registration.domain.resolvedAddres));
+                // console.log(JSON.stringify(results[registration.domain.name], null, 2));
               }
               // this.results = results;
             }
@@ -850,7 +986,7 @@ const searchModule = {
         const max = (parseInt(iBatch) + ENSSUBGRAPHBATCHSCANSIZE - 1) < scanTo ? parseInt(iBatch) + ENSSUBGRAPHBATCHSCANSIZE - 1: scanTo;
         // logInfo("searchModule", "mutations.scanDigits() - from: " + iBatch + " to " + max);
         const numbers = generateRangeZeroPad(iBatch, max, 1, length, digitPrefix, digitPostfix);
-        logInfo("searchModule", "mutations.scanDigits() - numbers: " + numbers);
+        // logInfo("searchModule", "mutations.scanDigits() - numbers: " + numbers);
 
         // console.log(JSON.stringify({ ENSSUBGRAPHNAMEQUERY, variables: { labelNames: numbers } }));
 
@@ -865,7 +1001,7 @@ const searchModule = {
             variables: { labelNames: numbers },
           })
         }).then(response => response.json());
-        logInfo("searchModule", "mutations.search() - data: " + JSON.stringify(data, null, 2));
+        // logInfo("searchModule", "mutations.search() - data: " + JSON.stringify(data, null, 2));
         const registrations = data.data.registrations || [];
         records = records + registrations.length;
         state.message = "Retrieved " + records;
@@ -876,6 +1012,7 @@ const searchModule = {
             expiryDate: registration.expiryDate,
             cost: registration.cost,
             registrant: registration.registrant.id,
+            owner: registration.domain.owner.id,
             labelhash: registration.domain.labelhash,
             tokenId: new BigNumber(registration.domain.labelhash.substring(2), 16).toFixed(0),
             name: registration.domain.name,
