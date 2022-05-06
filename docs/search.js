@@ -169,9 +169,11 @@ const Search = {
 
           <b-card-body class="m-1 p-1">
             <b-tabs card align="left" no-body active-tab-class="m-0 p-0" v-model="settings.resultsTabIndex">
-              <b-tab title="Summary" active>
+              <b-tab title="Summary">
               </b-tab>
               <b-tab title="Details">
+              </b-tab>
+              <b-tab title="Owners">
               </b-tab>
               <b-tab title="Not Registered" :disabled="notRegistered.length == 0">
               </b-tab>
@@ -406,6 +408,7 @@ const Search = {
                   {{ formatDate(data.item.registrationDate) }}
                 </template>
                 -->
+                <!--
                 <template #cell(links)="data">
                   <b-link :href="'https://app.ens.domains/name/' + data.item.name" v-b-popover.hover="'View in app.ens.domains'" target="_blank">
                     ens
@@ -438,10 +441,92 @@ const Search = {
                     thes
                   </b-link>
                 </template>
+                -->
               </b-table>
             </div>
 
             <div v-if="settings.resultsTabIndex == 2">
+              <b-table small striped hover :fields="ownershipFields" :items="ownership" responsive="sm" class="mt-3">
+                <template #cell(registrant)="data">
+                  <b-button :id="'popover-target-owner-' + data.item.registrant + '-' + data.index" variant="link" class="m-0 p-0">
+                    {{ data.item.registrant }}
+                  </b-button>
+                  <b-popover :target="'popover-target-owner-' + data.item.registrant + '-' + data.index" placement="right">
+                    <template #title>Registrant: {{ data.item.registrant.substring(0, 12) }}:</template>
+                    <b-link :href="'https://opensea.io/' + data.item.registrant" v-b-popover.hover="'View in opensea.io'" target="_blank">
+                      OpenSea
+                    </b-link>
+                    <br />
+                    <b-link :href="'https://looksrare.org/accounts/' + data.item.registrant" v-b-popover.hover="'View in looksrare.org'" target="_blank">
+                      LooksRare
+                    </b-link>
+                    <br />
+                    <b-link :href="'https://x2y2.io/user/' + data.item.registrant + '/items'" v-b-popover.hover="'View in x2y2.io'" target="_blank">
+                      X2Y2
+                    </b-link>
+                    <br />
+                    <b-link :href="'https://etherscan.io/address/' + data.item.registrant" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                      EtherScan
+                    </b-link>
+                  </b-popover>
+                </template>
+                <template #cell(names)="data">
+                  <span v-for="(result, resultIndex) in data.item.results" :key="resultIndex">
+                    <b-button :id="'popover-target-' + data.item.registrant + '-' + resultIndex" variant="link" class="m-0 p-0">
+                      {{ result.labelName }}
+                    </b-button>
+                    <b-popover :target="'popover-target-' + data.item.registrant + '-' + resultIndex" placement="right">
+                      <template #title>{{ result.name }} links</template>
+                      <b-link :href="'https://app.ens.domains/name/' + result.name" v-b-popover.hover="'View in app.ens.domains'" target="_blank">
+                        ENS
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://opensea.io/assets/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + result.tokenId" v-b-popover.hover="'View in opensea.io'" target="_blank">
+                        OpenSea
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://looksrare.org/collections/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + result.tokenId" v-b-popover.hover="'View in looksrare.org'" target="_blank">
+                        LooksRare
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://x2y2.io/eth/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + result.tokenId" v-b-popover.hover="'View in x2y2.io'" target="_blank">
+                        X2Y2
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://etherscan.io/enslookup-search?search=' + result.name" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                        EtherScan
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://duckduckgo.com/?q=' + result.labelName" v-b-popover.hover="'Search name in duckduckgo.com'" target="_blank">
+                        DuckDuckGo
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://www.google.com/search?q=' + result.labelName" v-b-popover.hover="'Search name in google.com'" target="_blank">
+                        Google
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://twitter.com/search?q=' + result.name" v-b-popover.hover="'Search name in twitter.com'" target="_blank">
+                        Twitter
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://wikipedia.org/wiki/' + result.labelName" v-b-popover.hover="'Search name in wikipedia.org'" target="_blank">
+                        Wikipedia
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://en.wiktionary.org/wiki/' + result.labelName" v-b-popover.hover="'Search name in wiktionary.org'" target="_blank">
+                        Wiktionary
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://thesaurus.yourdictionary.com/' + result.labelName" v-b-popover.hover="'Search name in thesaurus.yourdictionary.com'" target="_blank">
+                        Thesaurus
+                      </b-link>
+                    </b-popover>
+                  </span>
+                </template>
+              </b-table>
+            </div>
+
+            <div v-if="settings.resultsTabIndex == 3">
               <b-card-text class="m-2 p-2">
                 <b-row v-for="(name, index) in notRegistered" :key="index">
                   <b-col cols="1" class="text-right">
@@ -549,6 +634,11 @@ const Search = {
       textFields: [
         { key: 'lengthGroup', label: 'Length', thStyle: 'width: 10%;' },
         { key: 'names', label: 'Names', thStyle: 'width: 90%;' },
+      ],
+      ownershipFields: [
+        { key: 'registrant', label: 'Registrant', thStyle: 'width: 30%;' },
+        { key: 'length', label: '#Names', thStyle: 'width: 10%;' },
+        { key: 'names', label: 'Names', thStyle: 'width: 60%;' },
       ],
     }
   },
@@ -679,18 +769,21 @@ const Search = {
     ownership() {
       const collator = {};
       for (result of Object.values(this.filteredResults)) {
-        const lengthGroup = result.length >= 5 ? "5+" : result.length;
-        if (!collator[lengthGroup]) {
-          collator[lengthGroup] = [result];
+        const registrant = result.registrant;
+        if (!collator[registrant]) {
+          collator[registrant] = [result];
         } else {
-          collator[lengthGroup].push(result);
+          collator[registrant].push(result);
         }
       }
       const results = [];
       for (const key of Object.keys(collator)) {
         const value = collator[key];
-        results.push( { lengthGroup: key, results: value } );
+        results.push( { registrant: key, length: value.length, results: value } );
       }
+      results.sort((a, b) => {
+        return b.length - a.length;
+      });
       return results;
     },
   },
@@ -864,7 +957,7 @@ const searchModule = {
         const registrantMap = {};
         // logInfo("searchModule", "mutations.search() - registrations: " + JSON.stringify(registrations, null, 2));
         for (registration of registrations) {
-          logInfo("searchModule", "mutations.search() - registration: " + JSON.stringify(registration, null, 2));
+          // logInfo("searchModule", "mutations.search() - registration: " + JSON.stringify(registration, null, 2));
           if (searchType == 'owner') {
             registrantMap[registration.registrant.id] = true;
           }
