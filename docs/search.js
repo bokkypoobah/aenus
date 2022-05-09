@@ -11,6 +11,7 @@ const Search = {
 
         <b-card no-body class="p-0 mt-1">
 
+          <!-- Search type tabs -->
           <b-tabs card align="left" no-body active-tab-class="m-0 p-0" v-model="settings.searchTabIndex">
             <b-tab title="By Name">
             </b-tab>
@@ -22,54 +23,49 @@ const Search = {
             </b-tab>
           </b-tabs>
 
+          <!-- Search input -->
           <b-card-body class="m-1 p-1">
-            <div v-if="settings.searchTabIndex == 0">
+
+            <div v-if="settings.searchTabIndex == 0" class="m-0 p-0">
               <b-row>
-                <b-col cols="3" class="m-0 p-1 text-right">
-                  Name
-                </b-col>
-                <b-col cols="4" class="m-0 p-1">
+                <b-col>
                   <b-form-textarea size="sm" v-model.trim="settings.searchString" placeholder="🔍 {name1}[.eth] {name2}[.eth], {name3}[.eth]\n{name4}[.eth] ..." rows="3" max-rows="100"></b-form-textarea>
                 </b-col>
-                <b-col cols="4" class="m-0 p-1">
+                <b-col class="m-0 p-1">
                   <b-button size="sm" @click="search('name', settings.searchString, settings.selectedGroup)" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
                 </b-col>
               </b-row>
             </div>
 
-            <div v-if="settings.searchTabIndex == 1">
+            <div v-if="settings.searchTabIndex == 1" class="m-0 p-0">
               <b-row>
-                <b-col cols="3" class="m-0 p-1 text-right">
-                  Name/addr
-                </b-col>
-                <b-col cols="4" class="m-0 p-1">
+                <b-col>
                   <b-form-textarea size="sm" v-model.trim="settings.searchString" placeholder="🔍 0x012345... 0x123456..., {name1}[.eth]\n{name2}[.eth] ..." rows="3" max-rows="100"></b-form-textarea>
                 </b-col>
-                <b-col cols="4" class="m-0 p-1">
+                <b-col class="m-0 p-1">
                   <b-button size="sm" @click="search('owner', settings.searchString, settings.selectedGroup)" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
                   <span v-if="searchMessage != null">
-                    <b-button size="sm" @click="stopScan" variant="primary">Stop Scan</b-button>
+                    <b-button size="sm" @click="halt" variant="primary">Halt</b-button>
                   </span>
                 </b-col>
               </b-row>
             </div>
-            <div v-if="settings.searchTabIndex == 2">
+
+            <div v-if="settings.searchTabIndex == 2" class="m-0 p-0">
               <b-row>
-                <b-col cols="3" class="m-0 p-1 text-right">
-                  Group
-                </b-col>
-                <b-col cols="4" class="m-0 p-1">
+                <b-col>
                   <b-form-select size="sm" v-model="settings.selectedGroup" :options="groupOptions" v-b-popover.hover="'Set up groups in Config'"></b-form-select>
                 </b-col>
-                <b-col cols="4" class="m-0 p-1">
+                <b-col class="m-0 p-1">
                   <b-button size="sm" @click="search('group', settings.searchString, settings.selectedGroup)" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
                   <span v-if="searchMessage != null">
-                    <b-button size="sm" @click="stopScan" variant="primary">Stop Scan</b-button>
+                    <b-button size="sm" @click="halt" variant="primary">Halt</b-button>
                   </span>
                 </b-col>
               </b-row>
             </div>
-            <div v-if="settings.searchTabIndex == 3">
+
+            <div v-if="settings.searchTabIndex == 3" class="m-0 p-0">
               <b-card-text>
                 <b-row>
                   <b-col cols="3" class="m-0 p-1 text-right">
@@ -125,7 +121,7 @@ const Search = {
                   <b-col cols="4" class="m-0 p-1">
                     <b-button size="sm" @click="scanDigits(settings.selectedDigit, settings.digitRange[settings.selectedDigit].from, settings.digitRange[settings.selectedDigit].to, settings.digitRange[settings.selectedDigit].length, settings.digitPrefix, settings.digitPostfix)" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
                     <span v-if="searchMessage != null">
-                      <b-button size="sm" @click="stopScan" variant="primary">Stop Scan</b-button>
+                      <b-button size="sm" @click="halt" variant="primary">Halt</b-button>
                     </span>
                   </b-col>
                 </b-row>
@@ -138,37 +134,53 @@ const Search = {
               </b-card-text>
             </div>
 
-            <b-row>
-              <b-col cols="3" class="m-0 p-1 text-right">
-                Filter
-              </b-col>
-              <b-col cols="4" class="m-0 p-1">
-                <b-form-input type="text" size="sm" v-model.trim="settings.filter" debounce="600" class="w-100" placeholder="🔍 name"></b-form-input>
-              </b-col>
-              <b-col cols="4" class="m-0 p-1">
-                {{ filteredResults.length + ' of ' + Object.keys(searchResults).length }}
-              </b-col>
-            </b-row>
-
-            <b-row>
-              <b-col cols="3" class="m-0 p-1 text-right">
-                Sort
-              </b-col>
-              <b-col cols="4" class="m-0 p-1">
-                <b-form-select size="sm" v-model="sortOption" :options="sortOptions" class="w-100"></b-form-select>
-              </b-col>
-              <b-col cols="4" class="m-0 p-1">
-                <b-button size="sm" @click="exportNames" :disabled="Object.keys(searchResults).length == 0" variant="primary">Export</b-button>
-              </b-col>
-            </b-row>
           </b-card-body>
         </b-card>
 
-        <!-- Results Section -->
-        <b-card no-body class="p-0 mt-1">
+        <!-- Intro -->
+        <div v-if="filteredResults.length == 0">
+          <b-card class="mt-3" no-header>
+            <b-card-text>
+              This application uses your search queries to retrieve near real-time data from the <a href="https://thegraph.com/hosted-service/subgraph/ensdomains/ens" target="_blank">ENS subgraph</a>.
 
+              <br />
+              <br />
+
+              Use <b>By Name</b> to search for a list of ENS names.
+
+              <br />
+              <br />
+
+              Use <b>By Owner</b> to search for the ENS names owned by a list of ENS names and/or ETH addresses.
+
+              <br />
+              <br />
+
+              Use <b>By Group</b> to search for the ENS names owned by a group of ETH addresses configured in the <b>Config</b> page.
+
+              <br />
+              <br />
+
+              Use <b>Scan Digits</b> to scan a range of digits with optional prefix and/or postfix.
+
+              <br />
+              <br />
+
+              The list of names and/or addresses can be comma, space, tab or newline separated. <em>.eth</em> is optional
+
+              <br />
+              <br />
+              <br />
+
+              Enjoy. aenus advanced ENS utilities (c) Bok Consulting Pty Ltd 2022
+            </b-card-text>
+          </b-card>
+        </div>
+
+        <!-- Results Section -->
+        <b-card  v-if="filteredResults.length > 0" no-body class="p-0 mt-1">
           <b-card-body class="m-1 p-1">
-            <b-tabs card align="left" no-body active-tab-class="m-0 p-0" v-model="settings.resultsTabIndex">
+            <b-tabs v-if="filteredResults.length > 0" card align="left" no-body active-tab-class="m-0 p-0" v-model="settings.resultsTabIndex">
               <b-tab title="Summary">
               </b-tab>
               <b-tab title="Details">
@@ -179,143 +191,102 @@ const Search = {
               </b-tab>
             </b-tabs>
 
-            <div v-if="settings.resultsTabIndex == 0">
-              <div v-if="filteredResults.length == 0">
-                <b-card class="mt-3" no-header>
-                  <b-card-text>
-                    This application uses your search queries to retrieve near real-time data from the <a href="https://thegraph.com/hosted-service/subgraph/ensdomains/ens" target="_blank">ENS subgraph</a>.
-
-                    <br />
-                    <br />
-
-                    Use <b>By Name</b> to search for a list of ENS names.
-
-                    <br />
-                    <br />
-
-                    Use <b>By Owner</b> to search for the ENS names owned by a list of ENS names and/or ETH addresses.
-
-                    <br />
-                    <br />
-
-                    Use <b>By Group</b> to search for the ENS names owned by a group of ETH addresses configured in the <b>Config</b> page.
-
-                    <br />
-                    <br />
-
-                    Use <b>Scan Digits</b> to scan a range of digits with optional prefix and/or postfix.
-
-                    <br />
-                    <br />
-
-                    The list of names and/or addresses can be comma, space, tab or newline separated. <em>.eth</em> is optional
-
-                    <br />
-                    <br />
-                    <br />
-
-                    Enjoy. aenus advanced ENS utilities (c) Bok Consulting Pty Ltd 2022
-                  </b-card-text>
-                </b-card>
+            <div v-if="filteredResults.length > 0" class="d-flex m-0 mt-2 p-0" style="height: 37px;">
+              <div v-if="settings.resultsTabIndex != 3" class="pr-2">
+                <b-form-input type="text" size="sm" v-model.trim="settings.filter" debounce="600" class="w-100" placeholder="🔍 name"></b-form-input>
+              </div>
+              <div v-if="settings.resultsTabIndex != 3" class="pl-1">
+                <font size="-2">{{ filteredResults.length }} of {{ Object.keys(searchResults).length }}</font>
+              </div>
+              <div class="pr-1 flex-grow-1">
+              </div>
+              <div v-if="settings.resultsTabIndex != 3" class="pl-1" style="max-width: 200px;">
+                <b-form-select size="sm" v-model="sortOption" :options="sortOptions" class="w-100"></b-form-select>
+              </div>
+              <div v-if="settings.resultsTabIndex != 3" class="pl-1">
+                <b-button size="sm" @click="exportNames" :disabled="Object.keys(searchResults).length == 0" variant="primary">Export</b-button>
               </div>
 
-              <div v-else>
-                <b-table small striped hover :fields="summaryFields" :items="summary" table-class="w-auto" class="mt-3">
-                  <template #cell(names)="data">
-                    <span v-for="(result, resultIndex) in data.item.results" :key="resultIndex">
-                      <b-button :id="'popover-target-' + result.length + '-' + resultIndex" variant="link" class="m-0 p-0">
-                        {{ result.labelName }}
-                        <b-badge v-if="result.warn != null" v-b-popover.hover="'Expiring ' + formatDate(result.expiryDate) + ' UTC'" variant="warning">Exp</b-badge>
-                      </b-button>
-                      <b-popover :target="'popover-target-' + result.length + '-' + resultIndex" placement="right">
-                        <template #title>{{ result.name }} links</template>
-                        <b-link :href="'https://app.ens.domains/name/' + result.name" v-b-popover.hover="'View in app.ens.domains'" target="_blank">
-                          ENS
-                        </b-link>
-                        <br />
-                        <b-link :href="'https://opensea.io/assets/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + result.tokenId" v-b-popover.hover="'View in opensea.io'" target="_blank">
-                          OpenSea
-                        </b-link>
-                        <br />
-                        <b-link :href="'https://looksrare.org/collections/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + result.tokenId" v-b-popover.hover="'View in looksrare.org'" target="_blank">
-                          LooksRare
-                        </b-link>
-                        <br />
-                        <b-link :href="'https://x2y2.io/eth/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + result.tokenId" v-b-popover.hover="'View in x2y2.io'" target="_blank">
-                          X2Y2
-                        </b-link>
-                        <br />
-                        <b-link :href="'https://etherscan.io/enslookup-search?search=' + result.name" v-b-popover.hover="'View in etherscan.io'" target="_blank">
-                          EtherScan
-                        </b-link>
-                        <br />
-                        <b-link :href="'https://duckduckgo.com/?q=' + result.labelName" v-b-popover.hover="'Search name in duckduckgo.com'" target="_blank">
-                          DuckDuckGo
-                        </b-link>
-                        <br />
-                        <b-link :href="'https://www.google.com/search?q=' + result.labelName" v-b-popover.hover="'Search name in google.com'" target="_blank">
-                          Google
-                        </b-link>
-                        <br />
-                        <b-link :href="'https://twitter.com/search?q=' + result.name" v-b-popover.hover="'Search name in twitter.com'" target="_blank">
-                          Twitter
-                        </b-link>
-                        <br />
-                        <b-link :href="'https://wikipedia.org/wiki/' + result.labelName" v-b-popover.hover="'Search name in wikipedia.org'" target="_blank">
-                          Wikipedia
-                        </b-link>
-                        <br />
-                        <b-link :href="'https://en.wiktionary.org/wiki/' + result.labelName" v-b-popover.hover="'Search name in wiktionary.org'" target="_blank">
-                          Wiktionary
-                        </b-link>
-                        <br />
-                        <b-link :href="'https://thesaurus.yourdictionary.com/' + result.labelName" v-b-popover.hover="'Search name in thesaurus.yourdictionary.com'" target="_blank">
-                          Thesaurus
-                        </b-link>
-                      </b-popover>
-                    </span>
-                  </template>
-                </b-table>
+              <!--
+              <div class="pl-1" v-if="settings.cardView">
+                <b-form-select size="sm" v-model="cardImageSizeCurrent" :options="cardImageSizeOptions"></b-form-select>
+              </div>
+              <div class="pl-1">
+                <b-button size="sm" :pressed.sync="settings.cardView" @click="saveSettings('cardView')" variant="link" v-b-popover.hover="'LIST OR CARD VIEW'"><span v-if="settings.cardView"><b-icon-list-ol shift-v="+1" font-scale="1.0"></b-icon-list-ol></span><span v-else><b-icon-grid3x3-gap shift-v="+1" font-scale="1.0"></b-icon-grid3x3-gap></span></b-button>
+                <b-button size="sm" v-b-toggle.sidebar-border variant="link" v-b-popover.hover="'ADVANCED SERACH'" class="m-0 p-0"><b-icon-search shift-v="+.5" font-scale="1.2"></b-icon-search></b-button>
+              </div>
+              -->
+
+              <div class="pr-1 flex-grow-1">
+              </div>
+              <div v-if="settings.resultsTabIndex == 1" class="pl-1">
+                <b-pagination size="sm" v-model="settings.resultsCurrentPage" :total-rows="filteredResults.length" :per-page="settings.resultsPageSize"></b-pagination>
+              </div>
+              <div v-if="settings.resultsTabIndex == 1" class="pl-1" style="max-width: 200px;">
+                <b-form-select size="sm" v-model="settings.resultsPageSize" :options="pageSizes"></b-form-select>
               </div>
             </div>
 
+            <div v-if="settings.resultsTabIndex == 0">
+              <b-table small striped hover :fields="summaryFields" :items="summary" table-class="w-auto" class="mt-3">
+                <template #cell(names)="data">
+                  <span v-for="(result, resultIndex) in data.item.results" :key="resultIndex">
+                    <b-button :id="'popover-target-' + result.length + '-' + resultIndex" variant="link" class="m-0 p-0">
+                      {{ result.labelName }}
+                      <b-badge v-if="result.warn != null" v-b-popover.hover="'Expiring ' + formatDate(result.expiryDate) + ' UTC'" variant="warning">Exp</b-badge>
+                    </b-button>
+                    <b-popover :target="'popover-target-' + result.length + '-' + resultIndex" placement="right">
+                      <template #title>{{ result.name }} links</template>
+                      <b-link :href="'https://app.ens.domains/name/' + result.name" v-b-popover.hover="'View in app.ens.domains'" target="_blank">
+                        ENS
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://opensea.io/assets/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + result.tokenId" v-b-popover.hover="'View in opensea.io'" target="_blank">
+                        OpenSea
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://looksrare.org/collections/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + result.tokenId" v-b-popover.hover="'View in looksrare.org'" target="_blank">
+                        LooksRare
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://x2y2.io/eth/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + result.tokenId" v-b-popover.hover="'View in x2y2.io'" target="_blank">
+                        X2Y2
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://etherscan.io/enslookup-search?search=' + result.name" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                        EtherScan
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://duckduckgo.com/?q=' + result.labelName" v-b-popover.hover="'Search name in duckduckgo.com'" target="_blank">
+                        DuckDuckGo
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://www.google.com/search?q=' + result.labelName" v-b-popover.hover="'Search name in google.com'" target="_blank">
+                        Google
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://twitter.com/search?q=' + result.name" v-b-popover.hover="'Search name in twitter.com'" target="_blank">
+                        Twitter
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://wikipedia.org/wiki/' + result.labelName" v-b-popover.hover="'Search name in wikipedia.org'" target="_blank">
+                        Wikipedia
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://en.wiktionary.org/wiki/' + result.labelName" v-b-popover.hover="'Search name in wiktionary.org'" target="_blank">
+                        Wiktionary
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://thesaurus.yourdictionary.com/' + result.labelName" v-b-popover.hover="'Search name in thesaurus.yourdictionary.com'" target="_blank">
+                        Thesaurus
+                      </b-link>
+                    </b-popover>
+                  </span>
+                </template>
+              </b-table>
+            </div>
+
             <div v-if="settings.resultsTabIndex == 1">
-              <div class="d-flex m-0 mt-2 p-0" style="height: 37px;">
-                <div class="pr-2">
-                  <b-form-input type="text" size="sm" v-model.trim="settings.filter" debounce="600" class="w-100" placeholder="🔍 name"></b-form-input>
-                </div>
-                <div class="pl-1">
-                  <font size="-2">{{ filteredResults.length }} of {{ Object.keys(searchResults).length }}</font>
-                </div>
-                <div class="pr-1 flex-grow-1">
-                </div>
-                <div class="pl-1" style="max-width: 200px;">
-                  <b-form-select size="sm" v-model="sortOption" :options="sortOptions" class="w-100"></b-form-select>
-                </div>
-                <div class="pl-1">
-                  <b-button size="sm" @click="exportNames" :disabled="Object.keys(searchResults).length == 0" variant="primary">Export</b-button>
-                </div>
-
-                <!--
-                <div class="pl-1" v-if="settings.cardView">
-                  <b-form-select size="sm" v-model="cardImageSizeCurrent" :options="cardImageSizeOptions"></b-form-select>
-                </div>
-                <div class="pl-1">
-                  <b-button size="sm" :pressed.sync="settings.cardView" @click="saveSettings('cardView')" variant="link" v-b-popover.hover="'LIST OR CARD VIEW'"><span v-if="settings.cardView"><b-icon-list-ol shift-v="+1" font-scale="1.0"></b-icon-list-ol></span><span v-else><b-icon-grid3x3-gap shift-v="+1" font-scale="1.0"></b-icon-grid3x3-gap></span></b-button>
-                  <b-button size="sm" v-b-toggle.sidebar-border variant="link" v-b-popover.hover="'ADVANCED SERACH'" class="m-0 p-0"><b-icon-search shift-v="+.5" font-scale="1.2"></b-icon-search></b-button>
-                </div>
-                -->
-
-                <div class="pr-1 flex-grow-1">
-                </div>
-                <div class="pl-1">
-                  <b-pagination size="sm" v-model="settings.resultsCurrentPage" :total-rows="filteredResults.length" :per-page="settings.resultsPageSize"></b-pagination>
-                </div>
-                <div class="pl-1" style="max-width: 200px;">
-                  <b-form-select size="sm" v-model="settings.resultsPageSize" :options="pageSizes"></b-form-select>
-                </div>
-              </div>
-
               <b-table small striped hover :fields="resultsFields" :items="pagedFilteredResults" responsive="sm" class="mt-1">
                 <template #cell(index)="data">
                   {{ data.index+1+(settings.resultsCurrentPage - 1) * settings.resultsPageSize }}
@@ -728,7 +699,7 @@ const Search = {
         // let search = this.search.replace("$", "\\\$");
         let filter = this.settings.filter;
         // let filter = /god\$/;
-        regexConst = new RegExp(filter);
+        regexConst = new RegExp(filter, 'i');
         // regexConst = /god/;
         // console.log("Search.filteredResults() - filter: " + JSON.stringify(filter));
         // console.log("Search.filteredResults() - regexConst: " + JSON.stringify(regexConst.toString()));
@@ -877,9 +848,9 @@ const Search = {
       store.dispatch('search/scanDigits', { selectedDigit, scanFrom, scanTo, length, digitPrefix, digitPostfix } );
     },
 
-    async stopScan() {
-      console.log("stopScan");
-      store.dispatch('search/stopScan');
+    async halt() {
+      console.log("halt");
+      store.dispatch('search/halt');
     },
 
     exportNames() {
@@ -946,7 +917,7 @@ const searchModule = {
     results: [],
     unregistered: [],
     message: null,
-    stopScan: false,
+    halt: false,
 
     params: null,
     executing: false,
@@ -1061,7 +1032,7 @@ const searchModule = {
           // console.log(JSON.stringify({ query, variables: { id, first, skip, expiryDate } }));
           let completed = false;
           let records = 0;
-          while (!completed && !state.stopScan) {
+          while (!completed && !state.halt) {
             const data = await fetch(ENSSUBGRAPHURL, {
               method: 'POST',
               headers: {
@@ -1116,13 +1087,13 @@ const searchModule = {
       }
       state.results = results;
       state.message = null;
-      state.stopScan = false;
+      state.halt = false;
       // logInfo("searchModule", "mutations.search() - results: " + JSON.stringify(results, null, 2));
 
     },
 
-    stopScan(state) {
-      state.stopScan = true;
+    halt(state) {
+      state.halt = true;
     },
 
     async scanDigits(state, { selectedDigit, scanFrom, scanTo, length, digitPrefix, digitPostfix } ) {
@@ -1136,7 +1107,7 @@ const searchModule = {
       state.message = "Retrieving";
       state.unregistered = [];
       let records = 0;
-      for (let iBatch = scanFrom; iBatch < scanTo && !state.stopScan; iBatch = parseInt(iBatch) + ENSSUBGRAPHBATCHSCANSIZE) {
+      for (let iBatch = scanFrom; iBatch < scanTo && !state.halt; iBatch = parseInt(iBatch) + ENSSUBGRAPHBATCHSCANSIZE) {
         // logInfo("searchModule", "mutations.scanDigits() - iBatch: " + iBatch);
         const max = (parseInt(iBatch) + ENSSUBGRAPHBATCHSCANSIZE - 1) < scanTo ? parseInt(iBatch) + ENSSUBGRAPHBATCHSCANSIZE - 1: scanTo;
         // logInfo("searchModule", "mutations.scanDigits() - from: " + iBatch + " to " + max);
@@ -1189,7 +1160,7 @@ const searchModule = {
       }
       state.results = results;
       state.message = null;
-      state.stopScan = false;
+      state.halt = false;
       state.unregistered.sort(function (a, b) {
           return ('' + a).localeCompare(b);
       })
@@ -1204,9 +1175,9 @@ const searchModule = {
       logInfo("searchModule", "actions.scanDigits(): " + selectedDigit + ", " + scanFrom + ", " + scanTo + ", " + length + ", " + digitPrefix + ", " + digitPostfix);
       context.commit('scanDigits', { selectedDigit, scanFrom, scanTo, length, digitPrefix, digitPostfix } );
     },
-    stopScan(context) {
-      logInfo("searchModule", "actions.stopScan()");
-      context.commit('stopScan');
+    halt(context) {
+      logInfo("searchModule", "actions.halt()");
+      context.commit('halt');
     },
   },
 };
