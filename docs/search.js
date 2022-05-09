@@ -192,7 +192,7 @@ const Search = {
                 </div>
               </div>
               <div v-else>
-                <b-table small striped hover :fields="textFields" :items="summary" responsive="sm" class="mt-3">
+                <b-table small striped hover :fields="summaryFields" :items="summary" table-class="w-auto" class="mt-3">
                   <template #cell(names)="data">
                     <span v-for="(result, resultIndex) in data.item.results" :key="resultIndex">
                       <b-button :id="'popover-target-' + result.length + '-' + resultIndex" variant="link" class="m-0 p-0">
@@ -634,7 +634,7 @@ const Search = {
         // { key: 'length', label: 'Length', thStyle: 'width: 10%;', sortable: false },
         // { key: 'links', label: 'Links', thStyle: 'width: 10%;' },
       ],
-      textFields: [
+      summaryFields: [
         { key: 'lengthGroup', label: 'Length', thStyle: 'width: 10%;' },
         { key: 'names', label: 'Names', thStyle: 'width: 90%;' },
       ],
