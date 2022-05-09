@@ -183,7 +183,7 @@ const Search = {
               <div v-if="filteredResults.length == 0">
                 <b-card class="mt-3" no-header>
                   <b-card-text>
-                    This application uses your search queries to retrieve data from the <a href="https://thegraph.com/hosted-service/subgraph/ensdomains/ens" target="_blank">ENS subgraph</a>.
+                    This application uses your search queries to retrieve near real-time data from the <a href="https://thegraph.com/hosted-service/subgraph/ensdomains/ens" target="_blank">ENS subgraph</a>.
 
                     <br />
                     <br />
