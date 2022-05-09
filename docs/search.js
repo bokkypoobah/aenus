@@ -234,8 +234,12 @@ const Search = {
                 <template #cell(names)="data">
                   <span v-for="(result, resultIndex) in data.item.results" :key="resultIndex">
                     <b-button :id="'popover-target-' + result.length + '-' + resultIndex" variant="link" class="m-0 p-0">
-                      {{ result.labelName }}
-                      <b-badge v-if="result.warn != null" v-b-popover.hover="'Expiring ' + formatDate(result.expiryDate) + ' UTC'" variant="warning">Exp</b-badge>
+                      <span v-if="result.warn == null">
+                        {{ result.labelName }}
+                      </span>
+                      <span v-else>
+                        <b-badge v-if="result.warn != null" v-b-popover.hover="'Expiring ' + formatDate(result.expiryDate) + ' UTC'" variant="warning">{{ result.labelName }}</b-badge>
+                      <span>
                     </b-button>
                     <b-popover :target="'popover-target-' + result.length + '-' + resultIndex" placement="right">
                       <template #title>{{ result.name }} links</template>
