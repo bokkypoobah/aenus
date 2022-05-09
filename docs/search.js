@@ -185,6 +185,8 @@ const Search = {
               </b-tab>
               <b-tab title="Details">
               </b-tab>
+              <b-tab title="Images">
+              </b-tab>
               <b-tab title="Owners">
               </b-tab>
               <b-tab title="Unregistered" :disabled="unregistered.length == 0">
@@ -192,25 +194,22 @@ const Search = {
             </b-tabs>
 
             <div v-if="filteredResults.length > 0" class="d-flex m-0 mt-2 p-0" style="height: 37px;">
-              <div v-if="settings.resultsTabIndex != 3" class="pr-2">
+              <div v-if="settings.resultsTabIndex != 4" class="pr-2">
                 <b-form-input type="text" size="sm" v-model.trim="settings.filter" debounce="600" class="w-100" placeholder="🔍 name"></b-form-input>
               </div>
-              <div v-if="settings.resultsTabIndex != 3" class="pl-1">
+              <div v-if="settings.resultsTabIndex != 4" class="pl-1">
                 <font size="-2">{{ filteredResults.length }} of {{ Object.keys(searchResults).length }}</font>
               </div>
               <div class="pr-1 flex-grow-1">
               </div>
-              <div v-if="settings.resultsTabIndex != 3" class="pl-1" style="max-width: 200px;">
+              <div v-if="settings.resultsTabIndex != 4" class="pl-1" style="max-width: 200px;">
                 <b-form-select size="sm" v-model="sortOption" :options="sortOptions" class="w-100"></b-form-select>
               </div>
-              <div v-if="settings.resultsTabIndex != 3" class="pl-1">
+              <div v-if="settings.resultsTabIndex != 4" class="pl-1">
                 <b-button size="sm" @click="exportNames" :disabled="Object.keys(searchResults).length == 0" variant="primary">Export</b-button>
               </div>
 
               <!--
-              <div class="pl-1" v-if="settings.cardView">
-                <b-form-select size="sm" v-model="cardImageSizeCurrent" :options="cardImageSizeOptions"></b-form-select>
-              </div>
               <div class="pl-1">
                 <b-button size="sm" :pressed.sync="settings.cardView" @click="saveSettings('cardView')" variant="link" v-b-popover.hover="'LIST OR CARD VIEW'"><span v-if="settings.cardView"><b-icon-list-ol shift-v="+1" font-scale="1.0"></b-icon-list-ol></span><span v-else><b-icon-grid3x3-gap shift-v="+1" font-scale="1.0"></b-icon-grid3x3-gap></span></b-button>
                 <b-button size="sm" v-b-toggle.sidebar-border variant="link" v-b-popover.hover="'ADVANCED SERACH'" class="m-0 p-0"><b-icon-search shift-v="+.5" font-scale="1.2"></b-icon-search></b-button>
@@ -219,10 +218,13 @@ const Search = {
 
               <div class="pr-1 flex-grow-1">
               </div>
-              <div v-if="settings.resultsTabIndex == 1" class="pl-1">
+              <div class="pl-1" v-if="settings.resultsTabIndex == 2">
+                <b-form-select size="sm" v-model="settings.imageSize" :options="imageSizeOptions"></b-form-select>
+              </div>
+              <div v-if="settings.resultsTabIndex == 1 || settings.resultsTabIndex == 2" class="pl-1">
                 <b-pagination size="sm" v-model="settings.resultsCurrentPage" :total-rows="filteredResults.length" :per-page="settings.resultsPageSize"></b-pagination>
               </div>
-              <div v-if="settings.resultsTabIndex == 1" class="pl-1" style="max-width: 200px;">
+              <div v-if="settings.resultsTabIndex == 1 || settings.resultsTabIndex == 2" class="pl-1" style="max-width: 200px;">
                 <b-form-select size="sm" v-model="settings.resultsPageSize" :options="pageSizes"></b-form-select>
               </div>
             </div>
@@ -439,6 +441,17 @@ const Search = {
             </div>
 
             <div v-if="settings.resultsTabIndex == 2">
+              <b-card-group deck>
+                <div v-for="record in pagedFilteredResults">
+                  <b-card body-class="p-1" header-class="p-1" footer-class="p-1" img-top class="m-1 p-0 border-0">
+                    <b-img-lazy :width="settings.imageSize + '%'" :src="'https://metadata.ens.domains/mainnet/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + record.tokenId + '/image'"></b-img>
+                    </b-img-lazy>
+                  </b-card>
+                </div>
+              </b-card-group deck>
+            </div>
+
+            <div v-if="settings.resultsTabIndex == 3">
               <b-table small striped hover :fields="ownersFields" :items="owners" class="mt-3">
                 <template #cell(index)="data">
                   {{ data.index+1 }}
@@ -522,18 +535,14 @@ const Search = {
               </b-table>
             </div>
 
-            <div v-if="settings.resultsTabIndex == 3">
-              <b-card-text class="m-2 p-2">
-                <b-row v-for="(name, index) in unregistered" :key="index">
-                  <b-col cols="1" class="text-right">
-                    {{ index+1 }}
-                  </b-col>
-                  <b-col cols="6">
-                    <b-link :href="'https://app.ens.domains/name/' + name + '.eth'" v-b-popover.hover="'Register in app.ens.domains'" target="_blank">
-                      {{ name + '.eth' }}
-                    </b-link>
-                  </b-col>
-                </b-row>
+            <!-- Unregistered -->
+            <div v-if="settings.resultsTabIndex == 4">
+              <b-card-text class="m-0 p-0">
+                <span v-for="(name, index) in unregistered" :key="index">
+                  <b-link :href="'https://app.ens.domains/name/' + name + '.eth'" v-b-popover.hover="'Register in app.ens.domains'" target="_blank">
+                    {{ name }}
+                  </b-link>
+                </span>
               </b-card-text>
             </div>
 
@@ -559,6 +568,8 @@ const Search = {
 
         resultsPageSize: 100,
         resultsCurrentPage: 1,
+
+        imageSize: '240',
 
         digitRange: {
           'digit9': {
@@ -612,6 +623,20 @@ const Search = {
         { value: 'digit9999', text: '0000 to 9999' },
         { value: 'digit99999', text: '00000 to 99999' },
         { value: 'digit999999', text: '000000 to 999999' },
+      ],
+
+      imageSizeOptions: [
+        { value: '93', text: '93%' },
+        { value: '115', text: '115%' },
+        { value: '240', text: '240%' },
+        { value: '300', text: '300%' },
+        { value: '500', text: '500%' },
+        { value: '750', text: '750%' },
+        { value: '1000', text: '1,000%' },
+        { value: '1500', text: '1,500%' },
+        { value: '3000', text: '3,000%' },
+        { value: '6000', text: '6,000%' },
+        { value: '12000', text: '12,000%' },
       ],
 
       sortOption: 'nameasc',
