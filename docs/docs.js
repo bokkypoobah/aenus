@@ -17,7 +17,7 @@ const Docs = {
           <br />
           <br />
 
-          The source code can be found in <a href="https://github.com/bokkypoobah/aenus" target="_blank">https://github.com/bokkypoobah/aenus</a>. Feel free to fork this repository and customise it to become dashboards for <a href="https://github.com/bokkypoobah/aenus" target="_blank">one of the many subgraphs</a>.
+          The source code can be found in <a href="https://github.com/bokkypoobah/aenus" target="_blank">https://github.com/bokkypoobah/aenus</a>. Feel free to fork this repository and customise it to become dashboards for <a href="https://thegraph.com/hosted-service/" target="_blank">one of the many subgraphs</a>.
 
           <br />
           <br />
