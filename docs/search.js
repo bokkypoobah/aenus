@@ -12,7 +12,7 @@ const Search = {
         <b-card no-body class="p-0 mt-1">
 
           <b-tabs card align="left" no-body active-tab-class="m-0 p-0" v-model="settings.searchTabIndex">
-            <b-tab title="By Name" active>
+            <b-tab title="By Name">
             </b-tab>
             <b-tab title="By Owner">
             </b-tab>
@@ -225,6 +225,7 @@ const Search = {
                     <span v-for="(result, resultIndex) in data.item.results" :key="resultIndex">
                       <b-button :id="'popover-target-' + result.length + '-' + resultIndex" variant="link" class="m-0 p-0">
                         {{ result.labelName }}
+                        <b-badge v-if="result.warn != null" v-b-popover.hover="'Expiring ' + formatDate(result.expiryDate) + ' UTC'" variant="warning">Exp</b-badge>
                       </b-button>
                       <b-popover :target="'popover-target-' + result.length + '-' + resultIndex" placement="right">
                         <template #title>{{ result.name }} links</template>
@@ -279,18 +280,55 @@ const Search = {
             </div>
 
             <div v-if="settings.resultsTabIndex == 1">
-              <b-table small striped hover :fields="resultsFields" :items="filteredResults" responsive="sm" class="mt-3">
-                <template #cell(index)="data">
-                  {{ data.index+1 }}
-                </template>
+              <div class="d-flex m-0 mt-2 p-0" style="height: 37px;">
+                <div class="pr-2">
+                  <b-form-input type="text" size="sm" v-model.trim="settings.filter" debounce="600" class="w-100" placeholder="🔍 name"></b-form-input>
+                </div>
+                <div class="pl-1">
+                  <font size="-2">{{ filteredResults.length }} of {{ Object.keys(searchResults).length }}</font>
+                </div>
+                <div class="pr-1 flex-grow-1">
+                </div>
+                <div class="pl-1" style="max-width: 200px;">
+                  <b-form-select size="sm" v-model="sortOption" :options="sortOptions" class="w-100"></b-form-select>
+                </div>
+                <div class="pl-1">
+                  <b-button size="sm" @click="exportNames" :disabled="Object.keys(searchResults).length == 0" variant="primary">Export</b-button>
+                </div>
+
                 <!--
+                <div class="pl-1" v-if="settings.cardView">
+                  <b-form-select size="sm" v-model="cardImageSizeCurrent" :options="cardImageSizeOptions"></b-form-select>
+                </div>
+                <div class="pl-1">
+                  <b-button size="sm" :pressed.sync="settings.cardView" @click="saveSettings('cardView')" variant="link" v-b-popover.hover="'LIST OR CARD VIEW'"><span v-if="settings.cardView"><b-icon-list-ol shift-v="+1" font-scale="1.0"></b-icon-list-ol></span><span v-else><b-icon-grid3x3-gap shift-v="+1" font-scale="1.0"></b-icon-grid3x3-gap></span></b-button>
+                  <b-button size="sm" v-b-toggle.sidebar-border variant="link" v-b-popover.hover="'ADVANCED SERACH'" class="m-0 p-0"><b-icon-search shift-v="+.5" font-scale="1.2"></b-icon-search></b-button>
+                </div>
+                -->
+
+                <div class="pr-1 flex-grow-1">
+                </div>
+                <div class="pl-1">
+                  <b-pagination size="sm" v-model="settings.resultsCurrentPage" :total-rows="filteredResults.length" :per-page="settings.resultsPageSize"></b-pagination>
+                </div>
+                <div class="pl-1" style="max-width: 200px;">
+                  <b-form-select size="sm" v-model="settings.resultsPageSize" :options="pageSizes"></b-form-select>
+                </div>
+              </div>
+
+              <b-table small striped hover :fields="resultsFields" :items="pagedFilteredResults" responsive="sm" class="mt-1">
+                <template #cell(index)="data">
+                  {{ data.index+1+(settings.resultsCurrentPage - 1) * settings.resultsPageSize }}
+                </template>
                 <template #cell(image)="data">
                   <b-img :width="'100%'" :src="'https://metadata.ens.domains/mainnet/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + data.item.tokenId + '/image'"></b-img>
+                  <!--
                   <div v-if="data.item.hasAvatar">
                     <b-img-lazy :width="'100%'" :src="'https://metadata.ens.domains/mainnet/avatar/' + data.item.name" />
+                    <b-img-lazy :width="'100%'" :src="'https://metadata.ens.domains/mainnet/avatar/' + data.item.name" />
                   </div>
+                  -->
                 </template>
-                -->
                 <template #cell(name)="data">
                   <b-button :id="'popover-target-name-' + data.index" variant="link" class="m-0 p-0">
                     {{ data.item.name.substring(0, 64) }}
@@ -548,6 +586,9 @@ const Search = {
         digitPostfix: null,
         filter: null,
 
+        resultsPageSize: 100,
+        resultsCurrentPage: 1,
+
         digitRange: {
           'digit9': {
             from: 0,
@@ -584,6 +625,15 @@ const Search = {
         resultsTabIndex: 0,
       },
 
+      pageSizes: [
+        { value: 10, text: '10/P' },
+        { value: 100, text: '100/P' },
+        { value: 500, text: '500/P' },
+        { value: 1000, text: '1,000/P' },
+        { value: 2145, text: '2,145/P' },
+        { value: 66666, text: 'ALL' },
+      ],
+
       digitOptions: [
         { value: 'digit9', text: '0 to 9, prefix/postfix required for min 3 length' },
         { value: 'digit99', text: '00 to 99, prefix/postfix required for min 3 length' },
@@ -609,8 +659,8 @@ const Search = {
 
       resultsFields: [
         { key: 'index', label: '#', thStyle: 'width: 5%;' },
-        // { key: 'image', label: 'Image', thStyle: 'width: 10%;', sortable: false },
-        { key: 'name', label: 'Name', thStyle: 'width: 40%;', sortable: false },
+        { key: 'image', label: 'Image', thStyle: 'width: 10%;', sortable: false },
+        { key: 'name', label: 'Name', thStyle: 'width: 30%;', sortable: false },
         { key: 'registrant', label: 'Registrant/Controller/Resolved Address', thStyle: 'width: 35%;', sortable: false },
         { key: 'expiryDate', label: 'Expiry/Registration (UTC)', thStyle: 'width: 20%;', sortable: false },
       ],
@@ -730,9 +780,13 @@ const Search = {
           return Math.random() - 0.5;
         });
       }
-
       return results;
     },
+
+    pagedFilteredResults() {
+      return this.filteredResults.slice((this.settings.resultsCurrentPage - 1) * this.settings.resultsPageSize, this.settings.resultsCurrentPage * this.settings.resultsPageSize);
+    },
+
     summary() {
       const collator = {};
       for (result of Object.values(this.filteredResults)) {
