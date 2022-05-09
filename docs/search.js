@@ -175,22 +175,50 @@ const Search = {
               </b-tab>
               <b-tab title="Owners">
               </b-tab>
-              <b-tab title="Not Registered" :disabled="notRegistered.length == 0">
+              <b-tab title="Unregistered" :disabled="unregistered.length == 0">
               </b-tab>
             </b-tabs>
 
             <div v-if="settings.resultsTabIndex == 0">
               <div v-if="filteredResults.length == 0">
-                <div v-if="settings.searchTabIndex == 0">
-                  Enter a comma or space separated list of ENS names to search for and click Search. <em>.eth</em> is optional
-                </div>
-                <div v-if="settings.searchTabIndex == 1">
-                  Enter a comma or space separated list of ENS name or ETH addresses to search for and click Search. <em>.eth</em> is optional
-                </div>
-                <div v-if="settings.searchTabIndex == 2">
-                  Select an account group to search for and click Search
-                </div>
+                <b-card class="mt-3" no-header>
+                  <b-card-text>
+                    This application uses your search queries to retrieve data from the <a href="https://thegraph.com/hosted-service/subgraph/ensdomains/ens" target="_blank">ENS subgraph</a>.
+
+                    <br />
+                    <br />
+
+                    Use <b>By Name</b> to search for a list of ENS names.
+
+                    <br />
+                    <br />
+
+                    Use <b>By Owner</b> to search for the ENS names owned by a list of ENS names and/or ETH addresses.
+
+                    <br />
+                    <br />
+
+                    Use <b>By Group</b> to search for the ENS names owned by a group of ETH addresses configured in the <b>Config</b> page.
+
+                    <br />
+                    <br />
+
+                    Use <b>Scan Digits</b> to scan a range of digits with optional prefix and/or postfix.
+
+                    <br />
+                    <br />
+
+                    The list of names and/or addresses can be comma, space, tab or newline separated. <em>.eth</em> is optional
+
+                    <br />
+                    <br />
+                    <br />
+
+                    Enjoy. aenus advanced ENS utilities (c) Bok Consulting Pty Ltd 2022
+                  </b-card-text>
+                </b-card>
               </div>
+
               <div v-else>
                 <b-table small striped hover :fields="summaryFields" :items="summary" table-class="w-auto" class="mt-3">
                   <template #cell(names)="data">
@@ -313,11 +341,6 @@ const Search = {
                       Thesaurus
                     </b-link>
                   </b-popover>
-                  <!--
-                  <br />
-                  <br />
-                  <font size="-2">Length: {{ data.item.length }}</font>
-                  -->
                 </template>
                 <template #cell(registrant)="data">
                   <b-button :id="'popover-target-registrant-' + data.index" variant="link" class="m-0 p-0">
@@ -403,50 +426,11 @@ const Search = {
                   <br />
                   <font size="-2">R: {{ formatDate(data.item.registrationDate) }}</font>
                 </template>
-                <!--
-                <template #cell(registrationDate)="data">
-                  {{ formatDate(data.item.registrationDate) }}
-                </template>
-                -->
-                <!--
-                <template #cell(links)="data">
-                  <b-link :href="'https://app.ens.domains/name/' + data.item.name" v-b-popover.hover="'View in app.ens.domains'" target="_blank">
-                    ens
-                  </b-link>
-                  <b-link :href="'https://opensea.io/assets/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + data.item.tokenId" v-b-popover.hover="'View in opensea.io'" target="_blank">
-                    os
-                  </b-link>
-                  <b-link :href="'https://looksrare.org/collections/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + data.item.tokenId" v-b-popover.hover="'View in looksrare.org'" target="_blank">
-                    lr
-                  </b-link>
-                  <b-link :href="'https://etherscan.io/enslookup-search?search=' + data.item.name" v-b-popover.hover="'View in etherscan.io'" target="_blank">
-                    es
-                  </b-link>
-                  <b-link :href="'https://duckduckgo.com/?q=' + data.item.labelName" v-b-popover.hover="'Search name in duckduckgo.com'" target="_blank">
-                    ddg
-                  </b-link>
-                  <b-link :href="'https://www.google.com/search?q=' + data.item.labelName" v-b-popover.hover="'Search name in google.com'" target="_blank">
-                    g
-                  </b-link>
-                  <b-link :href="'https://twitter.com/search?q=' + data.item.name" v-b-popover.hover="'Search name in twitter.com'" target="_blank">
-                    t
-                  </b-link>
-                  <b-link :href="'https://wikipedia.org/wiki/' + data.item.labelName" v-b-popover.hover="'Search name in wikipedia.org'" target="_blank">
-                    wiki
-                  </b-link>
-                  <b-link :href="'https://en.wiktionary.org/wiki/' + data.item.labelName" v-b-popover.hover="'Search name in wiktionary.org'" target="_blank">
-                    wikt
-                  </b-link>
-                  <b-link :href="'https://thesaurus.yourdictionary.com/' + data.item.labelName" v-b-popover.hover="'Search name in thesaurus.yourdictionary.com'" target="_blank">
-                    thes
-                  </b-link>
-                </template>
-                -->
               </b-table>
             </div>
 
             <div v-if="settings.resultsTabIndex == 2">
-              <b-table small striped hover :fields="ownershipFields" :items="ownership" responsive="sm" class="mt-3">
+              <b-table small striped hover :fields="ownersFields" :items="owners" class="mt-3">
                 <template #cell(index)="data">
                   {{ data.index+1 }}
                 </template>
@@ -531,7 +515,7 @@ const Search = {
 
             <div v-if="settings.resultsTabIndex == 3">
               <b-card-text class="m-2 p-2">
-                <b-row v-for="(name, index) in notRegistered" :key="index">
+                <b-row v-for="(name, index) in unregistered" :key="index">
                   <b-col cols="1" class="text-right">
                     {{ index+1 }}
                   </b-col>
@@ -607,7 +591,6 @@ const Search = {
         { value: 'digit9999', text: '0000 to 9999' },
         { value: 'digit99999', text: '00000 to 99999' },
         { value: 'digit999999', text: '000000 to 999999' },
-        // { value: 'nameasc', text: '0-0 - 9-9' },
       ],
 
       sortOption: 'nameasc',
@@ -630,15 +613,12 @@ const Search = {
         { key: 'name', label: 'Name', thStyle: 'width: 40%;', sortable: false },
         { key: 'registrant', label: 'Registrant/Controller/Resolved Address', thStyle: 'width: 35%;', sortable: false },
         { key: 'expiryDate', label: 'Expiry/Registration (UTC)', thStyle: 'width: 20%;', sortable: false },
-        // { key: 'registrationDate', label: 'Registration (UTC)', thStyle: 'width: 15%;', sortable: false },
-        // { key: 'length', label: 'Length', thStyle: 'width: 10%;', sortable: false },
-        // { key: 'links', label: 'Links', thStyle: 'width: 10%;' },
       ],
       summaryFields: [
         { key: 'lengthGroup', label: 'Length', thStyle: 'width: 10%;' },
         { key: 'names', label: 'Names', thStyle: 'width: 90%;' },
       ],
-      ownershipFields: [
+      ownersFields: [
         { key: 'index', label: '#', thStyle: 'width: 5%;' },
         { key: 'registrant', label: 'Registrant', thStyle: 'width: 30%;' },
         { key: 'length', label: '#Names', thStyle: 'width: 5%;' },
@@ -662,8 +642,8 @@ const Search = {
     searchResults() {
       return store.getters['search/results'];
     },
-    notRegistered() {
-      return store.getters['search/notRegistered'];
+    unregistered() {
+      return store.getters['search/unregistered'];
     },
     searchMessage() {
       return store.getters['search/message'];
@@ -770,7 +750,7 @@ const Search = {
       }
       return results;
     },
-    ownership() {
+    owners() {
       const collator = {};
       for (result of Object.values(this.filteredResults)) {
         const registrant = result.registrant;
@@ -910,7 +890,7 @@ const searchModule = {
   namespaced: true,
   state: {
     results: [],
-    notRegistered: [],
+    unregistered: [],
     message: null,
     stopScan: false,
 
@@ -920,7 +900,7 @@ const searchModule = {
   },
   getters: {
     results: state => state.results,
-    notRegistered: state => state.notRegistered,
+    unregistered: state => state.unregistered,
     message: state => state.message,
     params: state => state.params,
     executionQueue: state => state.executionQueue,
@@ -933,8 +913,8 @@ const searchModule = {
 
       const results = {};
       const now = parseInt(new Date().valueOf() / 1000);
-      const expiryDate = parseInt(now) - 90 * 24 * 60 * 60;
-      const warningDate = parseInt(now) + 90 * 24 * 60 * 60;
+      const expiryDate = parseInt(now) - 90 * SECONDSPERDAY;
+      const warningDate = parseInt(now) + 90 * SECONDSPERDAY;
 
       let searchForAccounts = [];
       if (searchType == 'name' || searchType == 'owner') {
@@ -991,18 +971,18 @@ const searchModule = {
         // logInfo("searchModule", "mutations.search() - results: " + JSON.stringify(Object.keys(results), null, 2));
         const namesFound = Object.keys(results).map(function(name) { return name.replace('.eth', ''); });
         // logInfo("searchModule", "mutations.search() - namesFound: " + JSON.stringify(namesFound, null, 2));
-        state.notRegistered = searchForNames.filter(name => !namesFound.includes(name));
-        // logInfo("searchModule", "mutations.search() - notRegistered: " + JSON.stringify(state.notRegistered, null, 2));
-        state.notRegistered.sort(function (a, b) {
+        state.unregistered = searchForNames.filter(name => !namesFound.includes(name));
+        // logInfo("searchModule", "mutations.search() - unregistered: " + JSON.stringify(state.unregistered, null, 2));
+        state.unregistered.sort(function (a, b) {
             return ('' + a).localeCompare(b);
         })
-        // logInfo("searchModule", "mutations.search() - notRegistered sorted: " + JSON.stringify(state.notRegistered, null, 2));
+        // logInfo("searchModule", "mutations.search() - unregistered sorted: " + JSON.stringify(state.unregistered, null, 2));
         // logInfo("searchModule", "mutations.search() - registrantMap sorted: " + JSON.stringify(registrantMap, null, 2));
 
         searchForAccounts = [ ...searchForAccounts, ...Object.keys(registrantMap) ];
         // logInfo("searchModule", "mutations.search() - searchForAccounts: " + JSON.stringify(searchForAccounts, null, 2));
       } else {
-        state.notRegistered = [];
+        state.unregistered = [];
       }
 
       if (searchType == 'owner' || searchType == 'group') {
@@ -1097,10 +1077,10 @@ const searchModule = {
       logInfo("searchModule", "mutations.scanDigits(): " + selectedDigit + ", " + scanFrom + ", " + scanTo + ", " + length + ", " + digitPrefix + ", " + digitPostfix);
       const results = {};
       const now = parseInt(new Date().valueOf() / 1000);
-      const expiryDate = parseInt(now) - 90 * 24 * 60 * 60;
-      const warningDate = parseInt(now) + 90 * 24 * 60 * 60;
+      const expiryDate = parseInt(now) - 90 * SECONDSPERDAY;
+      const warningDate = parseInt(now) + 90 * SECONDSPERDAY;
       state.message = "Retrieving";
-      state.notRegistered = [];
+      state.unregistered = [];
       let records = 0;
       for (let iBatch = scanFrom; iBatch < scanTo && !state.stopScan; iBatch = parseInt(iBatch) + ENSSUBGRAPHBATCHSCANSIZE) {
         // logInfo("searchModule", "mutations.scanDigits() - iBatch: " + iBatch);
@@ -1148,15 +1128,15 @@ const searchModule = {
         }
         const namesFound = Object.keys(results).map(function(name) { return name.replace('.eth', ''); });
         // logInfo("searchModule", "mutations.scanDigits() - namesFound: " + JSON.stringify(namesFound, null, 2));
-        const notRegistered = numbers.filter(name => !namesFound.includes(name));
-        // logInfo("searchModule", "mutations.scanDigits() - notRegistered: " + JSON.stringify(notRegistered, null, 2));
-        state.notRegistered.push(...notRegistered);
-        // logInfo("searchModule", "mutations.scanDigits() - all notRegistered: " + JSON.stringify(state.notRegistered, null, 2));
+        const unregistered = numbers.filter(name => !namesFound.includes(name));
+        // logInfo("searchModule", "mutations.scanDigits() - unregistered: " + JSON.stringify(unregistered, null, 2));
+        state.unregistered.push(...unregistered);
+        // logInfo("searchModule", "mutations.scanDigits() - all unregistered: " + JSON.stringify(state.unregistered, null, 2));
       }
       state.results = results;
       state.message = null;
       state.stopScan = false;
-      state.notRegistered.sort(function (a, b) {
+      state.unregistered.sort(function (a, b) {
           return ('' + a).localeCompare(b);
       })
     },
