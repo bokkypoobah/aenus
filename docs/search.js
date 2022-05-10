@@ -545,7 +545,7 @@ const Search = {
             <div v-if="settings.resultsTabIndex == 4">
               <b-card-text class="m-0 p-0">
                 <span v-for="(name, index) in unregistered" :key="index">
-                  <b-link :href="'https://app.ens.domains/name/' + name + '.eth'" v-b-popover.hover="'Register in app.ens.domains'" target="_blank">
+                  <b-link :href="'https://app.ens.domains/name/' + name + '.eth'" v-b-popover.click="'Register in app.ens.domains'" target="_blank">
                     {{ name }}
                   </b-link>
                 </span>
@@ -602,12 +602,12 @@ const Search = {
           },
           'digit99999': {
             from: 0,
-            to: 99999,
+            to: 9999,
             length: 5,
           },
           'digit999999': {
             from: 0,
-            to: 999999,
+            to: 9999,
             length: 6,
           },
         },
@@ -793,7 +793,7 @@ const Search = {
     summary() {
       const collator = {};
       for (result of Object.values(this.filteredResults)) {
-        const lengthGroup = result.length >= 5 ? "5+" : result.length;
+        const lengthGroup = result.length >= 10 ? "10+" : result.length;
         if (!collator[lengthGroup]) {
           collator[lengthGroup] = [result];
         } else {
