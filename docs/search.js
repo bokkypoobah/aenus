@@ -138,49 +138,47 @@ const Search = {
         </b-card>
 
         <!-- Intro -->
-        <div v-if="filteredResults.length == 0">
-          <b-card class="mt-3" no-header>
-            <b-card-text>
-              This application uses your search queries to retrieve near real-time data from the <a href="https://thegraph.com/hosted-service/subgraph/ensdomains/ens" target="_blank">ENS subgraph</a>.
+        <b-card v-if="filteredResults.length == 0 && unregistered.length == 0" class="mt-3" no-header>
+          <b-card-text>
+            This application uses your search queries to retrieve near real-time data from the <a href="https://thegraph.com/hosted-service/subgraph/ensdomains/ens" target="_blank">ENS subgraph</a>.
 
-              <br />
-              <br />
+            <br />
+            <br />
 
-              Use <b>By Name</b> to search for a list of ENS names.
+            Use <b>By Name</b> to search for a list of ENS names.
 
-              <br />
-              <br />
+            <br />
+            <br />
 
-              Use <b>By Owner</b> to search for the ENS names owned by a list of ENS names and/or ETH addresses.
+            Use <b>By Owner</b> to search for the ENS names owned by a list of ENS names and/or ETH addresses.
 
-              <br />
-              <br />
+            <br />
+            <br />
 
-              Use <b>By Group</b> to search for the ENS names owned by a group of ETH addresses configured in the <b>Config</b> page.
+            Use <b>By Group</b> to search for the ENS names owned by a group of ETH addresses configured in the <b>Config</b> page.
 
-              <br />
-              <br />
+            <br />
+            <br />
 
-              Use <b>Scan Digits</b> to scan a range of digits with optional prefix and/or postfix.
+            Use <b>Scan Digits</b> to scan a range of digits with optional prefix and/or postfix.
 
-              <br />
-              <br />
+            <br />
+            <br />
 
-              The list of names and/or addresses can be comma, space, tab or newline separated. <em>.eth</em> is optional
+            The list of names and/or addresses can be comma, space, tab or newline separated. <em>.eth</em> is optional
 
-              <br />
-              <br />
-              <br />
+            <br />
+            <br />
+            <br />
 
-              Enjoy. aenus advanced ENS utilities (c) Bok Consulting Pty Ltd 2022
-            </b-card-text>
-          </b-card>
-        </div>
+            Enjoy. aenus advanced ENS utilities (c) Bok Consulting Pty Ltd 2022
+          </b-card-text>
+        </b-card>
 
         <!-- Results Section -->
-        <b-card  v-if="filteredResults.length > 0" no-body class="p-0 mt-1">
+        <b-card  v-if="filteredResults.length > 0 || unregistered.length > 0" no-body class="p-0 mt-1">
           <b-card-body class="m-1 p-1">
-            <b-tabs v-if="filteredResults.length > 0" card align="left" no-body active-tab-class="m-0 p-0" v-model="settings.resultsTabIndex">
+            <b-tabs card align="left" no-body active-tab-class="m-0 p-0" v-model="settings.resultsTabIndex">
               <b-tab title="Summary">
               </b-tab>
               <b-tab title="Details">
@@ -207,10 +205,10 @@ const Search = {
                 <b-form-select size="sm" v-model="settings.sortOption" :options="sortOptions" class="w-100"></b-form-select>
               </div>
               <div v-if="settings.resultsTabIndex != 4" class="pl-1">
-                <b-button size="sm" :pressed.sync="settings.randomise" :disabled="settings.sortOption != 'random'" variant="link" v-b-popover.hover="'Randomise'"><b-icon-arrow-clockwise shift-v="-1" font-scale="1.4"></b-icon-arrow-clockwise></b-button>
+                <b-button size="sm" :pressed.sync="settings.randomise" @click="if (settings.sortOption != 'random') { settings.sortOption = 'random'; }" variant="link" v-b-popover.hover="'Randomise'"><b-icon-arrow-clockwise shift-v="-1" font-scale="1.4"></b-icon-arrow-clockwise></b-button>
               </div>
               <div v-if="settings.resultsTabIndex != 4" class="pl-1">
-                <b-button size="sm" @click="exportNames" :disabled="Object.keys(searchResults).length == 0" variant="primary">Export</b-button>
+                <b-button size="sm" @click="exportNames" :disabled="Object.keys(searchResults).length == 0" variant="link">Export</b-button>
               </div>
               <div class="pr-1 flex-grow-1">
               </div>
