@@ -610,6 +610,11 @@ const Search = {
             to: 9999,
             length: 6,
           },
+          'digit9999999': {
+            from: 0,
+            to: 9999,
+            length: 7,
+          },
         },
 
         resultsTabIndex: 0,
@@ -631,6 +636,7 @@ const Search = {
         { value: 'digit9999', text: '0000 to 9999' },
         { value: 'digit99999', text: '00000 to 99999' },
         { value: 'digit999999', text: '000000 to 999999' },
+        { value: 'digit9999999', text: '0000000 to 9999999' },
       ],
 
       imageSizeOptions: [
