@@ -140,7 +140,7 @@ const Search = {
         <!-- Intro -->
         <b-card v-if="filteredResults.length == 0 && unregistered.length == 0" class="mt-3" no-header>
           <b-card-text>
-            This application uses your search queries to retrieve near real-time data from the <a href="https://thegraph.com/hosted-service/subgraph/ensdomains/ens" target="_blank">ENS subgraph</a>.
+            This application is a tool to query the <a href="https://thegraph.com/hosted-service/subgraph/ensdomains/ens" target="_blank">ENS subgraph</a>. Prices are supplemented from the <a href="https://api.reservoir.tools/#/1.%20Order%20Book/getOrdersAllV1" target="_blank">Reservoir API</a>.
 
             <br />
             <br />
@@ -232,10 +232,11 @@ const Search = {
                       <span v-if="result.warn == null">
                         {{ result.labelName }}
                       </span>
-                      <span v-else>
-                        <b-badge v-if="result.warn != null" v-b-popover.hover="'Expiring ' + formatDate(result.expiryDate) + ' UTC'" variant="warning">{{ result.labelName }}</b-badge>
-                      </span>
                     </b-button>
+                    <span v-if="result.warn != null">
+                      <b-badge v-if="result.warn != null" v-b-popover.hover="'Expiring ' + formatDate(result.expiryDate) + ' UTC'" variant="warning">{{ result.labelName }}</b-badge>
+                    </span>
+                    <b-badge v-if="prices[result.tokenId]" v-b-popover.hover="'Floor ask price in ETH'" variant="success">{{ prices[result.tokenId].floorAskPrice }}</b-badge>
                     <b-popover :target="'popover-target-' + result.length + '-' + resultIndex" placement="right">
                       <template #title>{{ result.name }} links</template>
                       <b-link :href="'https://app.ens.domains/name/' + result.name" v-b-popover.hover="'View in app.ens.domains'" target="_blank">
@@ -441,6 +442,7 @@ const Search = {
             </div>
 
             <!-- Images -->
+            <!-- TODO: Add hyperlinks -->
             <div v-if="settings.resultsTabIndex == 2">
               <b-card-group deck>
                 <div v-for="record in pagedFilteredResults">
@@ -827,6 +829,9 @@ const Search = {
       });
       return results;
     },
+    prices() {
+      return store.getters['search/prices'];
+    },
   },
   methods: {
     formatETH(e) {
@@ -944,6 +949,7 @@ const searchModule = {
   state: {
     results: [],
     unregistered: [],
+    prices: [],
     message: null,
     halt: false,
 
@@ -954,16 +960,17 @@ const searchModule = {
   getters: {
     results: state => state.results,
     unregistered: state => state.unregistered,
+    prices: state => state.prices,
     message: state => state.message,
     params: state => state.params,
     executionQueue: state => state.executionQueue,
   },
   mutations: {
+
     async search(state, { searchType, searchString, searchGroup } ) {
       logInfo("searchModule", "mutations.search(): " + searchType + ", " + searchString + ", " + searchGroup);
       // const DELAYINMILLIS = 500;
       // const delay = ms => new Promise(res => setTimeout(res, ms));
-
       const results = {};
       const now = parseInt(new Date().valueOf() / 1000);
       const expiryDate = parseInt(now) - 90 * SECONDSPERDAY;
@@ -1080,7 +1087,7 @@ const searchModule = {
               completed = true;
             } else {
               records = records + registrations.length;
-              state.message = "Retrieved " + records;
+              state.message = "ENS Subgraph " + records;
               for (registration of registrations) {
                 // if (registration.domain.name == "test.eth") {
                 //   console.log(JSON.stringify(registration, null, 2));
@@ -1114,6 +1121,35 @@ const searchModule = {
         }
       }
       state.results = results;
+
+      // get prices
+      let keys = Object.keys(state.results);
+      const GETPRICEBATCHSIZE = 50;
+      records = 0;
+      const prices = {};
+      for (let i = 0; i < keys.length; i += GETPRICEBATCHSIZE) {
+        const batch = keys.slice(i, parseInt(i) + GETPRICEBATCHSIZE);
+        let url = "https://api.reservoir.tools/tokens/v4?";
+        let separator = "";
+        for (let j = 0; j < batch.length; j++) {
+          const record = state.results[batch[j]];
+          url = url + separator + "tokens=0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85%3A" + record.tokenId;
+          separator = "&";
+        }
+        const data = await fetch(url).then(response => response.json());
+        records = records + data.tokens.length;
+        state.message = "Reservoir prices " + records;
+        // console.log(JSON.stringify(data, null, 2));
+        for (price of data.tokens) {
+          prices[price.tokenId] = {
+            floorAskPrice: price.floorAskPrice,
+            source: price.source,
+            name: price.name,
+          };
+        }
+      }
+      state.prices = prices;
+
       state.message = null;
       state.halt = false;
       // logInfo("searchModule", "mutations.search() - results: " + JSON.stringify(results, null, 2));
@@ -1182,15 +1218,38 @@ const searchModule = {
         // logInfo("searchModule", "mutations.scanDigits() - all unregistered: " + JSON.stringify(state.unregistered, null, 2));
       }
       state.results = results;
-      state.message = null;
-      state.halt = false;
       state.unregistered.sort(function (a, b) {
           return ('' + a).localeCompare(b);
       })
-    },
-
-    async getprices(state, { searchType, searchString, searchGroup } ) {
-      logInfo("searchModule", "mutations.getprices(): " + searchType + ", " + searchString + ", " + searchGroup);
+      // get prices
+      let keys = Object.keys(state.results);
+      const GETPRICEBATCHSIZE = 50;
+      records = 0;
+      const prices = {};
+      for (let i = 0; i < keys.length; i += GETPRICEBATCHSIZE) {
+        const batch = keys.slice(i, parseInt(i) + GETPRICEBATCHSIZE);
+        let url = "https://api.reservoir.tools/tokens/v4?";
+        let separator = "";
+        for (let j = 0; j < batch.length; j++) {
+          const record = state.results[batch[j]];
+          url = url + separator + "tokens=0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85%3A" + record.tokenId;
+          separator = "&";
+        }
+        const data = await fetch(url).then(response => response.json());
+        records = records + data.tokens.length;
+        state.message = "Reservoir prices " + records;
+        // console.log(JSON.stringify(data, null, 2));
+        for (price of data.tokens) {
+          prices[price.tokenId] = {
+            floorAskPrice: price.floorAskPrice,
+            source: price.source,
+            name: price.name,
+          };
+        }
+      }
+      state.prices = prices;
+      state.message = null;
+      state.halt = false;
     },
 
     halt(state) {
@@ -1201,12 +1260,10 @@ const searchModule = {
     search(context, { searchType, searchString, searchGroup } ) {
       logInfo("searchModule", "actions.search(): " + searchType + ", " + searchString + ", " + searchGroup);
       context.commit('search', { searchType, searchString, searchGroup } );
-      context.commit('getprices', { searchType, searchString, searchGroup } );
     },
     scanDigits(context, { selectedDigit, scanFrom, scanTo, length, digitPrefix, digitPostfix } ) {
       logInfo("searchModule", "actions.scanDigits(): " + selectedDigit + ", " + scanFrom + ", " + scanTo + ", " + length + ", " + digitPrefix + ", " + digitPostfix);
       context.commit('scanDigits', { selectedDigit, scanFrom, scanTo, length, digitPrefix, digitPostfix } );
-      context.commit('getprices', { searchType: null, searchString: null, searchGroup: null } );
     },
     halt(context) {
       logInfo("searchModule", "actions.halt()");

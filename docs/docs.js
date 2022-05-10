@@ -7,12 +7,12 @@ const Docs = {
         <b-card-text class="m-2 p-2">
           <h5 ref="info_top" class="mb-1">Welcome</h5>
 
-          <em>aenus</em>, Advanced ENS utilities, is being built as a tool to help manage your ENS domain names.
+          <em>aenus</em> advanced ENS utilities, is being built as a tool to help manage your ENS domain names.
 
           <br />
           <br />
 
-          <em>aenus</em> uses data from the <a href="https://thegraph.com/hosted-service/subgraph/ensdomains/ens" target="_blank">ENS subgraph</a>.
+          <em>aenus</em> retrieves ENS data from the <a href="https://thegraph.com/hosted-service/subgraph/ensdomains/ens" target="_blank">ENS subgraph</a>. <em>aenus</em> then retrieves price data from <a href="https://api.reservoir.tools/#/1.%20Order%20Book/getOrdersAllV1" target="_blank">Reservoir API</a>.
 
           <br />
           <br />
@@ -30,9 +30,6 @@ const Docs = {
           You can set up groups of accounts in the <b>Config</b> menu, and use these in your search filter to view your names across multiple accounts.
 
         <b-card-text>
-
-
-
 
           <!-- <b-tabs v-model="section" pills card vertical end nav-class="m-1 p-1" active-tab-class="m-1 mt-2 p-1"> -->
 
