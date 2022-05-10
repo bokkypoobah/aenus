@@ -205,7 +205,7 @@ const Search = {
                 <b-form-select size="sm" v-model="settings.sortOption" :options="sortOptions" class="w-100"></b-form-select>
               </div>
               <div v-if="settings.resultsTabIndex != 4" class="pl-1">
-                <b-button size="sm" :pressed.sync="settings.randomise" @click="if (settings.sortOption != 'random') { settings.sortOption = 'random'; }" variant="link" v-b-popover.hover="'Randomise'"><b-icon-arrow-clockwise shift-v="-1" font-scale="1.4"></b-icon-arrow-clockwise></b-button>
+                <b-button size="sm" :pressed.sync="settings.randomise" @click="settings.sortOption = 'random'; " variant="link" v-b-popover.hover="'Randomise'"><b-icon-arrow-clockwise shift-v="-1" font-scale="1.4"></b-icon-arrow-clockwise></b-button>
               </div>
               <div v-if="settings.resultsTabIndex != 4" class="pl-1">
                 <b-button size="sm" @click="exportNames" :disabled="Object.keys(searchResults).length == 0" variant="link">Export</b-button>
@@ -1117,11 +1117,6 @@ const searchModule = {
       state.message = null;
       state.halt = false;
       // logInfo("searchModule", "mutations.search() - results: " + JSON.stringify(results, null, 2));
-
-    },
-
-    halt(state) {
-      state.halt = true;
     },
 
     async scanDigits(state, { selectedDigit, scanFrom, scanTo, length, digitPrefix, digitPostfix } ) {
@@ -1193,15 +1188,25 @@ const searchModule = {
           return ('' + a).localeCompare(b);
       })
     },
+
+    async getprices(state, { searchType, searchString, searchGroup } ) {
+      logInfo("searchModule", "mutations.getprices(): " + searchType + ", " + searchString + ", " + searchGroup);
+    },
+
+    halt(state) {
+      state.halt = true;
+    },
   },
   actions: {
     search(context, { searchType, searchString, searchGroup } ) {
-      // logInfo("searchModule", "actions.search(): " + searchType + ", " + searchString + ", " + searchGroup);
+      logInfo("searchModule", "actions.search(): " + searchType + ", " + searchString + ", " + searchGroup);
       context.commit('search', { searchType, searchString, searchGroup } );
+      context.commit('getprices', { searchType, searchString, searchGroup } );
     },
     scanDigits(context, { selectedDigit, scanFrom, scanTo, length, digitPrefix, digitPostfix } ) {
       logInfo("searchModule", "actions.scanDigits(): " + selectedDigit + ", " + scanFrom + ", " + scanTo + ", " + length + ", " + digitPrefix + ", " + digitPostfix);
       context.commit('scanDigits', { selectedDigit, scanFrom, scanTo, length, digitPrefix, digitPostfix } );
+      context.commit('getprices', { searchType: null, searchString: null, searchGroup: null } );
     },
     halt(context) {
       logInfo("searchModule", "actions.halt()");
