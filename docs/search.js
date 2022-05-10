@@ -193,6 +193,7 @@ const Search = {
               </b-tab>
             </b-tabs>
 
+            <!-- Results Toolbar -->
             <div v-if="filteredResults.length > 0" class="d-flex m-0 mt-2 p-0" style="height: 37px;">
               <div v-if="settings.resultsTabIndex != 4" class="pr-2">
                 <b-form-input type="text" size="sm" v-model.trim="settings.filter" debounce="600" class="w-100" placeholder="🔍 name"></b-form-input>
@@ -203,19 +204,14 @@ const Search = {
               <div class="pr-1 flex-grow-1">
               </div>
               <div v-if="settings.resultsTabIndex != 4" class="pl-1" style="max-width: 200px;">
-                <b-form-select size="sm" v-model="sortOption" :options="sortOptions" class="w-100"></b-form-select>
+                <b-form-select size="sm" v-model="settings.sortOption" :options="sortOptions" class="w-100"></b-form-select>
+              </div>
+              <div v-if="settings.resultsTabIndex != 4" class="pl-1">
+                <b-button size="sm" :pressed.sync="settings.randomise" :disabled="settings.sortOption != 'random'" variant="link" v-b-popover.hover="'Randomise'"><b-icon-arrow-clockwise shift-v="-1" font-scale="1.4"></b-icon-arrow-clockwise></b-button>
               </div>
               <div v-if="settings.resultsTabIndex != 4" class="pl-1">
                 <b-button size="sm" @click="exportNames" :disabled="Object.keys(searchResults).length == 0" variant="primary">Export</b-button>
               </div>
-
-              <!--
-              <div class="pl-1">
-                <b-button size="sm" :pressed.sync="settings.cardView" @click="saveSettings('cardView')" variant="link" v-b-popover.hover="'LIST OR CARD VIEW'"><span v-if="settings.cardView"><b-icon-list-ol shift-v="+1" font-scale="1.0"></b-icon-list-ol></span><span v-else><b-icon-grid3x3-gap shift-v="+1" font-scale="1.0"></b-icon-grid3x3-gap></span></b-button>
-                <b-button size="sm" v-b-toggle.sidebar-border variant="link" v-b-popover.hover="'ADVANCED SERACH'" class="m-0 p-0"><b-icon-search shift-v="+.5" font-scale="1.2"></b-icon-search></b-button>
-              </div>
-              -->
-
               <div class="pr-1 flex-grow-1">
               </div>
               <div class="pl-1" v-if="settings.resultsTabIndex == 2">
@@ -229,8 +225,9 @@ const Search = {
               </div>
             </div>
 
+            <!-- Summary -->
             <div v-if="settings.resultsTabIndex == 0">
-              <b-table small striped hover :fields="summaryFields" :items="summary" table-class="w-auto" class="mt-3">
+              <b-table small striped hover :fields="summaryFields" :items="summary" table-class="w-auto" class="mt-1">
                 <template #cell(names)="data">
                   <span v-for="(result, resultIndex) in data.item.results" :key="resultIndex">
                     <b-button :id="'popover-target-' + result.length + '-' + resultIndex" variant="link" class="m-0 p-0">
@@ -239,7 +236,7 @@ const Search = {
                       </span>
                       <span v-else>
                         <b-badge v-if="result.warn != null" v-b-popover.hover="'Expiring ' + formatDate(result.expiryDate) + ' UTC'" variant="warning">{{ result.labelName }}</b-badge>
-                      <span>
+                      </span>
                     </b-button>
                     <b-popover :target="'popover-target-' + result.length + '-' + resultIndex" placement="right">
                       <template #title>{{ result.name }} links</template>
@@ -292,6 +289,7 @@ const Search = {
               </b-table>
             </div>
 
+            <!-- Details -->
             <div v-if="settings.resultsTabIndex == 1">
               <b-table small striped hover :fields="resultsFields" :items="pagedFilteredResults" responsive="sm" class="mt-1">
                 <template #cell(index)="data">
@@ -444,6 +442,7 @@ const Search = {
               </b-table>
             </div>
 
+            <!-- Images -->
             <div v-if="settings.resultsTabIndex == 2">
               <b-card-group deck>
                 <div v-for="record in pagedFilteredResults">
@@ -455,6 +454,7 @@ const Search = {
               </b-card-group deck>
             </div>
 
+            <!-- Owners -->
             <div v-if="settings.resultsTabIndex == 3">
               <b-table small striped hover :fields="ownersFields" :items="owners" class="mt-3">
                 <template #cell(index)="data">
@@ -569,6 +569,8 @@ const Search = {
         digitPrefix: null,
         digitPostfix: null,
         filter: null,
+        sortOption: 'nameasc',
+        randomise: false,
 
         resultsPageSize: 100,
         resultsCurrentPage: 1,
@@ -643,7 +645,6 @@ const Search = {
         { value: '12000', text: '12,000%' },
       ],
 
-      sortOption: 'nameasc',
       results: [],
 
       sortOptions: [
@@ -717,7 +718,7 @@ const Search = {
       return results;
     },
     filteredResults() {
-      const results = [];
+      const results = this.settings.randomise ? [] : [];
       // let regexConst = this.search != null && this.search.length > 0 ? new RegExp(this.search) : null;
       // if (regexConst != null) {
       //   console.log("Search.filteredResults() - search: " + JSON.stringify(this.search));
@@ -743,31 +744,31 @@ const Search = {
         }
       }
 
-      if (this.sortOption == 'nameasc') {
+      if (this.settings.sortOption == 'nameasc') {
         results.sort(function (a, b) {
             return ('' + a.name).localeCompare(b.name);
         })
-      } else if (this.sortOption == 'namedsc') {
+      } else if (this.settings.sortOption == 'namedsc') {
         results.sort(function (a, b) {
             return ('' + b.name).localeCompare(a.name);
         })
-      } else if (this.sortOption == 'expiryasc') {
+      } else if (this.settings.sortOption == 'expiryasc') {
         results.sort((a, b) => {
           return a.expiryDate - b.expiryDate;
         });
-      } else if (this.sortOption == 'expirydsc') {
+      } else if (this.settings.sortOption == 'expirydsc') {
         results.sort((a, b) => {
           return b.expiryDate - a.expiryDate;
         });
-      } else if (this.sortOption == 'registrationasc') {
+      } else if (this.settings.sortOption == 'registrationasc') {
         results.sort((a, b) => {
           return a.registrationDate - b.registrationDate;
         });
-      } else if (this.sortOption == 'registrationdsc') {
+      } else if (this.settings.sortOption == 'registrationdsc') {
         results.sort((a, b) => {
           return b.registrationDate - a.registrationDate;
         });
-      } else if (this.sortOption == 'lengthname') {
+      } else if (this.settings.sortOption == 'lengthname') {
         results.sort((a, b) => {
           if (a.length == b.length) {
             return ('' + a.name).localeCompare(b.name);
