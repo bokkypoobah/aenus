@@ -138,7 +138,7 @@ const Search = {
         </b-card>
 
         <!-- Intro -->
-        <b-card v-if="filteredResults.length == 0 && unregistered.length == 0" class="mt-3" no-header>
+        <b-card v-if="Object.keys(searchResults).length == 0 && unregistered.length == 0" class="mt-3" no-header>
           <b-card-text>
             This application is a tool to query the <a href="https://thegraph.com/hosted-service/subgraph/ensdomains/ens" target="_blank">ENS subgraph</a>. Prices are supplemented from the <a href="https://api.reservoir.tools/#/1.%20Order%20Book/getOrdersAllV1" target="_blank">Reservoir API</a>.
 
@@ -176,7 +176,7 @@ const Search = {
         </b-card>
 
         <!-- Results Section -->
-        <b-card  v-if="filteredResults.length > 0 || unregistered.length > 0" no-body class="p-0 mt-1">
+        <b-card  v-if="Object.keys(searchResults).length > 0 || unregistered.length > 0" no-body class="p-0 mt-1">
           <b-card-body class="m-1 p-1">
             <b-tabs card align="left" no-body active-tab-class="m-0 p-0" v-model="settings.resultsTabIndex">
               <b-tab title="Summary">
@@ -192,7 +192,7 @@ const Search = {
             </b-tabs>
 
             <!-- Results Toolbar -->
-            <div v-if="filteredResults.length > 0" class="d-flex m-0 mt-2 p-0" style="height: 37px;">
+            <div v-if="Object.keys(searchResults).length > 0" class="d-flex m-0 mt-2 p-0" style="height: 37px;">
               <div v-if="settings.resultsTabIndex != 4" class="pr-2">
                 <b-form-input type="text" size="sm" v-model.trim="settings.filter" debounce="600" class="w-100" placeholder="🔍 name"></b-form-input>
               </div>
@@ -236,7 +236,9 @@ const Search = {
                     <span v-if="result.warn != null">
                       <b-badge v-if="result.warn != null" v-b-popover.hover="'Expiring ' + formatDate(result.expiryDate) + ' UTC'" variant="warning">{{ result.labelName }}</b-badge>
                     </span>
-                    <b-badge v-if="prices[result.tokenId]" v-b-popover.hover="'Floor ask price in ETH'" variant="success">{{ prices[result.tokenId].floorAskPrice }}</b-badge>
+                    <span v-if="prices[result.tokenId]">
+                      <font shift-v="+3" size="-1"><b-badge v-b-popover.hover="'Floor ask price in ETH'" variant="success">{{ prices[result.tokenId].floorAskPrice }}</b-badge></font>
+                    </span>
                     <b-popover :target="'popover-target-' + result.length + '-' + resultIndex" placement="right">
                       <template #title>{{ result.name }} links</template>
                       <b-link :href="'https://app.ens.domains/name/' + result.name" v-b-popover.hover="'View in app.ens.domains'" target="_blank">
