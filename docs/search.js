@@ -1084,7 +1084,7 @@ const searchModule = {
               state.message = "ENS Subgraph " + records;
               for (registration of registrations) {
                 // if (registration.domain.name == "test.eth") {
-                  console.log(JSON.stringify(registration, null, 2));
+                  // console.log(JSON.stringify(registration, null, 2));
                 // }
                 results[registration.domain.name] = {
                   labelName: registration.labelName,
