@@ -1024,7 +1024,7 @@ const searchModule = {
         const registrantMap = {};
         // logInfo("searchModule", "mutations.search() - registrations: " + JSON.stringify(registrations, null, 2));
         for (registration of registrations) {
-          logInfo("searchModule", "mutations.search() - registration: " + JSON.stringify(registration, null, 2));
+          // logInfo("searchModule", "mutations.search() - registration: " + JSON.stringify(registration, null, 2));
           if (searchType == 'owner') {
             registrantMap[registration.registrant.id] = true;
           }
