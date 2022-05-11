@@ -80,6 +80,39 @@ const Search = {
 
                 <b-row>
                   <b-col cols="3" class="m-0 p-1 text-right">
+                    From
+                  </b-col>
+                  <b-col cols="4" class="m-0 p-1">
+                    <b-form-input type="text" size="sm" v-model.trim="settings.digitRange[settings.selectedDigit].from" class="w-100"></b-form-input>
+                  </b-col>
+                  <b-col cols="4" class="m-0 p-1">
+                  </b-col>
+                </b-row>
+
+                <b-row>
+                  <b-col cols="3" class="m-0 p-1 text-right">
+                    To
+                  </b-col>
+                  <b-col cols="4" class="m-0 p-1">
+                    <b-form-input type="text" size="sm" v-model.trim="settings.digitRange[settings.selectedDigit].to" class="w-100"></b-form-input>
+                  </b-col>
+                  <b-col cols="4" class="m-0 p-1">
+                  </b-col>
+                </b-row>
+
+                <b-row>
+                  <b-col cols="3" class="m-0 p-1 text-right">
+                    Step
+                  </b-col>
+                  <b-col cols="4" class="m-0 p-1">
+                    <b-form-input type="text" size="sm" v-model.trim="settings.digitRange[settings.selectedDigit].step" class="w-100"></b-form-input>
+                  </b-col>
+                  <b-col cols="4" class="m-0 p-1">
+                  </b-col>
+                </b-row>
+
+                <b-row>
+                  <b-col cols="3" class="m-0 p-1 text-right">
                     Prefix
                   </b-col>
                   <b-col cols="4" class="m-0 p-1">
@@ -102,24 +135,9 @@ const Search = {
 
                 <b-row>
                   <b-col cols="3" class="m-0 p-1 text-right">
-                    From
                   </b-col>
                   <b-col cols="4" class="m-0 p-1">
-                    <b-form-input type="text" size="sm" v-model.trim="settings.digitRange[settings.selectedDigit].from" class="w-100"></b-form-input>
-                  </b-col>
-                  <b-col cols="4" class="m-0 p-1">
-                  </b-col>
-                </b-row>
-
-                <b-row>
-                  <b-col cols="3" class="m-0 p-1 text-right">
-                    To
-                  </b-col>
-                  <b-col cols="4" class="m-0 p-1">
-                    <b-form-input type="text" size="sm" v-model.trim="settings.digitRange[settings.selectedDigit].to" class="w-100"></b-form-input>
-                  </b-col>
-                  <b-col cols="4" class="m-0 p-1">
-                    <b-button size="sm" @click="scanDigits(settings.selectedDigit, settings.digitRange[settings.selectedDigit].from, settings.digitRange[settings.selectedDigit].to, settings.digitRange[settings.selectedDigit].length, settings.digitPrefix, settings.digitPostfix)" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
+                    <b-button size="sm" @click="scanDigits(settings.selectedDigit, settings.digitRange[settings.selectedDigit].from, settings.digitRange[settings.selectedDigit].to, settings.digitRange[settings.selectedDigit].step, settings.digitRange[settings.selectedDigit].length, settings.digitPrefix, settings.digitPostfix)" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
                     <span v-if="searchMessage != null">
                       <b-button size="sm" @click="halt" variant="primary">Halt</b-button>
                     </span>
@@ -583,36 +601,43 @@ const Search = {
           'digit9': {
             from: 0,
             to: 9,
+            step: 1,
             length: 1,
           },
           'digit99': {
             from: 0,
             to: 99,
+            step: 1,
             length: 2,
           },
           'digit999': {
             from: 0,
             to: 999,
+            step: 1,
             length: 3,
           },
           'digit9999': {
             from: 0,
             to: 9999,
+            step: 1,
             length: 4,
           },
           'digit99999': {
             from: 0,
             to: 9999,
+            step: 1,
             length: 5,
           },
           'digit999999': {
             from: 0,
             to: 9999,
+            step: 1,
             length: 6,
           },
           'digit9999999': {
             from: 0,
             to: 9999,
+            step: 1,
             length: 7,
           },
         },
@@ -872,8 +897,8 @@ const Search = {
       store.dispatch('search/search', { searchType, searchString, searchGroup } );
     },
 
-    async scanDigits(selectedDigit, scanFrom, scanTo, length, digitPrefix, digitPostfix) {
-      store.dispatch('search/scanDigits', { selectedDigit, scanFrom, scanTo, length, digitPrefix, digitPostfix } );
+    async scanDigits(selectedDigit, scanFrom, scanTo, scanStep, length, digitPrefix, digitPostfix) {
+      store.dispatch('search/scanDigits', { selectedDigit, scanFrom, scanTo, scanStep, length, digitPrefix, digitPostfix } );
     },
 
     async halt() {
@@ -1155,18 +1180,29 @@ const searchModule = {
           yield records.splice(0, batchsize);
         }
       }
-      function* generateSequenceZeroPad(start, end, length, prefix, postfix) {
-        for (let i = start; i <= end; i++) {
-          yield (prefix || '') + i.toString().padStart(length, '0') + (postfix || '');
+      function* generateSequenceZeroPad(options) {
+        for (let i = options.from; i <= options.to; i = parseInt(i) + parseInt(options.step)) {
+          yield (options.prefix || '') + i.toString().padStart(options.length, '0') + (options.postfix || '');
         }
       }
       // console.log( [...generateSequenceZeroPad(1, 4, 5, 'xyz', 'abc')] ); //  ["xyz00001abc", "xyz00002abc", "xyz00003abc", "xyz00004abc"]
+      // function* generateSequenceZeroPadPalindrome(start, end, step, length, prefix, postfix) {
+      //   for (let i = start; i <= end; i = parseInt(i) + parseInt(step)) {
+      //     const number = i.toString().padStart(length, '0');
+      //     const reverse = number.split('').reverse().join('');
+      //     if (number === reverse) {
+      //       yield (prefix || '') + number + (postfix || '');
+      //     }
+      //   }
+      // }
+      // console.log( [...generateSequenceZeroPadPalindrome(1, 4000, 1, 5, 'xyz', 'abc')] ); //  ["xyz00001abc", "xyz00002abc", "xyz00003abc", "xyz00004abc"]
 
       logInfo("searchModule", "mutations.scan() - scanType: " + scanType + ", options: " + JSON.stringify(options));
 
       let generator = null;
       if (scanType == 'digits') {
-        generator = generateSequenceZeroPad(options.from, options.to, options.length, options.prefix, options.postfix);
+        generator = generateSequenceZeroPad(options);
+        // generator = generateSequenceZeroPadPalindrome(options.from, options.to, options.step, options.length, options.prefix, options.postfix);
         // console.log( [...generator] );
       }
 
@@ -1264,9 +1300,9 @@ const searchModule = {
       // logInfo("searchModule", "actions.search(): " + searchType + ", " + searchString + ", " + searchGroup);
       context.commit('search', { searchType, searchString, searchGroup } );
     },
-    scanDigits(context, { selectedDigit, scanFrom, scanTo, length, digitPrefix, digitPostfix } ) {
-      logInfo("searchModule", "actions.scanDigits(): " + selectedDigit + ", " + scanFrom + ", " + scanTo + ", " + length + ", " + digitPrefix + ", " + digitPostfix);
-      context.commit('scan', { scanType: "digits", options: { from: scanFrom, to: scanTo, length: length, prefix: digitPrefix, postfix: digitPostfix } } );
+    scanDigits(context, { selectedDigit, scanFrom, scanTo, scanStep, length, digitPrefix, digitPostfix } ) {
+      logInfo("searchModule", "actions.scanDigits(): " + selectedDigit + ", " + scanFrom + ", " + scanTo + ", " + scanStep + ", " + length + ", " + digitPrefix + ", " + digitPostfix);
+      context.commit('scan', { scanType: "digits", options: { from: scanFrom, to: scanTo, step: scanStep, length: length, prefix: digitPrefix, postfix: digitPostfix } } );
     },
     halt(context) {
       // logInfo("searchModule", "actions.halt()");
