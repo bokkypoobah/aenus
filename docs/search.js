@@ -493,12 +493,21 @@ const Search = {
             <!-- Images -->
             <!-- TODO: Add hyperlinks -->
             <div v-if="settings.resultsTabIndex == 2">
-              <b-card-group deck>
+              <b-card-group deck class="m-2">
                 <div v-for="record in pagedFilteredResults">
+                  <b-card overlay :id="'popover-target-image-' + record.name" :img-src="'https://metadata.ens.domains/mainnet/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + record.tokenId + '/image'" class="m-2 p-0">
+                    <div v-if="prices[record.tokenId]">
+                      <b-col cols="10" class="m-0 p-1 text-right">
+                        <font shift-v="+3" size="-1"><b-badge v-b-popover.hover="'Floor ask price in ETH'" variant="success">{{ prices[record.tokenId].floorAskPrice }}</b-badge></font>
+                      </b-col>
+                    </div>
+                  </b-card>
+                  <!--
                   <b-card body-class="p-1" header-class="p-1" footer-class="p-1" img-top class="m-1 p-0 border-0">
                     <b-img-lazy :width="settings.imageSize + '%'" :src="'https://metadata.ens.domains/mainnet/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + record.tokenId + '/image'"></b-img>
                     </b-img-lazy>
                   </b-card>
+                  -->
                 </div>
               </b-card-group deck>
             </div>
