@@ -232,10 +232,10 @@ const Search = {
                       <span v-if="result.warn == null">
                         {{ result.labelName }}
                       </span>
+                      <span v-if="result.warn != null">
+                        <b-badge v-if="result.warn != null" v-b-popover.hover="'Expiring ' + formatDate(result.expiryDate) + ' UTC'" variant="warning">{{ result.labelName }}</b-badge>
+                      </span>
                     </b-button>
-                    <span v-if="result.warn != null">
-                      <b-badge v-if="result.warn != null" v-b-popover.hover="'Expiring ' + formatDate(result.expiryDate) + ' UTC'" variant="warning">{{ result.labelName }}</b-badge>
-                    </span>
                     <span v-if="prices[result.tokenId]">
                       <font shift-v="+3" size="-1"><b-badge v-b-popover.hover="'Floor ask price in ETH'" variant="success">{{ prices[result.tokenId].floorAskPrice }}</b-badge></font>
                     </span>
