@@ -630,8 +630,8 @@ const Search = {
       ],
 
       digitOptions: [
-        { value: 'digit9', text: '0 to 9, prefix/postfix required for min 3 length' },
-        { value: 'digit99', text: '00 to 99, prefix/postfix required for min 3 length' },
+        { value: 'digit9', text: '0 to 9 [prefix/postfix required for min 3 length]' },
+        { value: 'digit99', text: '00 to 99, [prefix/postfix required for min 3 length]' },
         { value: 'digit999', text: '000 to 999' },
         { value: 'digit9999', text: '0000 to 9999' },
         { value: 'digit99999', text: '00000 to 99999' },
@@ -869,17 +869,14 @@ const Search = {
     },
 
     async search(searchType, searchString, searchGroup) {
-      // console.log("search: " + searchType + ", " + searchString + ", " + searchGroup);
       store.dispatch('search/search', { searchType, searchString, searchGroup } );
     },
 
     async scanDigits(selectedDigit, scanFrom, scanTo, length, digitPrefix, digitPostfix) {
-      console.log("search: " + selectedDigit + ", " + scanFrom + ", " + scanTo + ", " + length + ", " + digitPrefix + ", " + digitPostfix);
       store.dispatch('search/scanDigits', { selectedDigit, scanFrom, scanTo, length, digitPrefix, digitPostfix } );
     },
 
     async halt() {
-      console.log("halt");
       store.dispatch('search/halt');
     },
 
@@ -1152,10 +1149,27 @@ const searchModule = {
       // logInfo("searchModule", "mutations.search() - results: " + JSON.stringify(results, null, 2));
     },
 
-    async scanDigits(state, { selectedDigit, scanFrom, scanTo, length, digitPrefix, digitPostfix } ) {
-      const generateRangeZeroPad = (start, stop, step, length, digitPrefix, digitPostfix) => Array.from({ length: (stop - start) / step + 1}, (_, i) => (digitPrefix || '') + (parseInt(start) + (i * step)).toString().padStart(length, '0') + (digitPostfix || ''));
+    async scan(state, { scanType, options } ) {
+      function* getBatch(records, batchsize = ENSSUBGRAPHBATCHSCANSIZE) {
+        while (records.length) {
+          yield records.splice(0, batchsize);
+        }
+      }
+      function* generateSequenceZeroPad(start, end, length, prefix, postfix) {
+        for (let i = start; i <= end; i++) {
+          yield (prefix || '') + i.toString().padStart(length, '0') + (postfix || '');
+        }
+      }
+      // console.log( [...generateSequenceZeroPad(1, 4, 5, 'xyz', 'abc')] ); //  ["xyz00001abc", "xyz00002abc", "xyz00003abc", "xyz00004abc"]
 
-      logInfo("searchModule", "mutations.scanDigits(): " + selectedDigit + ", " + scanFrom + ", " + scanTo + ", " + length + ", " + digitPrefix + ", " + digitPostfix);
+      logInfo("searchModule", "mutations.scan() - scanType: " + scanType + ", options: " + JSON.stringify(options));
+
+      let generator = null;
+      if (scanType == 'digits') {
+        generator = generateSequenceZeroPad(options.from, options.to, options.length, options.prefix, options.postfix);
+        // console.log( [...generator] );
+      }
+
       const results = {};
       const now = parseInt(new Date().valueOf() / 1000);
       const expiryDate = parseInt(now) - 90 * SECONDSPERDAY;
@@ -1163,15 +1177,7 @@ const searchModule = {
       state.message = "Retrieving";
       state.unregistered = [];
       let records = 0;
-      for (let iBatch = scanFrom; iBatch < scanTo && !state.halt; iBatch = parseInt(iBatch) + ENSSUBGRAPHBATCHSCANSIZE) {
-        // logInfo("searchModule", "mutations.scanDigits() - iBatch: " + iBatch);
-        const max = (parseInt(iBatch) + ENSSUBGRAPHBATCHSCANSIZE - 1) < scanTo ? parseInt(iBatch) + ENSSUBGRAPHBATCHSCANSIZE - 1: scanTo;
-        // logInfo("searchModule", "mutations.scanDigits() - from: " + iBatch + " to " + max);
-        const numbers = generateRangeZeroPad(iBatch, max, 1, length, digitPrefix, digitPostfix);
-        // logInfo("searchModule", "mutations.scanDigits() - numbers: " + numbers);
-
-        // console.log(JSON.stringify({ ENSSUBGRAPHNAMEQUERY, variables: { labelNames: numbers } }));
-
+      for (let batch of getBatch([...generator])) {
         const data = await fetch(ENSSUBGRAPHURL, {
           method: 'POST',
           headers: {
@@ -1180,10 +1186,10 @@ const searchModule = {
           },
           body: JSON.stringify({
             query: ENSSUBGRAPHNAMEQUERY,
-            variables: { labelNames: numbers },
+            variables: { labelNames: batch },
           })
         }).then(response => response.json());
-        // logInfo("searchModule", "mutations.search() - data: " + JSON.stringify(data, null, 2));
+        // logInfo("searchModule", "mutations.scan() - data: " + JSON.stringify(data, null, 2));
         const registrations = data.data.registrations || [];
         records = records + registrations.length;
         state.message = "Retrieved " + records;
@@ -1208,11 +1214,11 @@ const searchModule = {
           };
         }
         const namesFound = Object.keys(results).map(function(name) { return name.replace('.eth', ''); });
-        // logInfo("searchModule", "mutations.scanDigits() - namesFound: " + JSON.stringify(namesFound, null, 2));
-        const unregistered = numbers.filter(name => !namesFound.includes(name));
-        // logInfo("searchModule", "mutations.scanDigits() - unregistered: " + JSON.stringify(unregistered, null, 2));
+        // logInfo("searchModule", "mutations.scan() - namesFound: " + JSON.stringify(namesFound, null, 2));
+        const unregistered = batch.filter(name => !namesFound.includes(name));
+        // logInfo("searchModule", "mutations.scan() - unregistered: " + JSON.stringify(unregistered, null, 2));
         state.unregistered.push(...unregistered);
-        // logInfo("searchModule", "mutations.scanDigits() - all unregistered: " + JSON.stringify(state.unregistered, null, 2));
+        // logInfo("searchModule", "mutations.scan() - all unregistered: " + JSON.stringify(state.unregistered, null, 2));
       }
       state.results = results;
       state.unregistered.sort(function (a, b) {
@@ -1255,15 +1261,15 @@ const searchModule = {
   },
   actions: {
     search(context, { searchType, searchString, searchGroup } ) {
-      logInfo("searchModule", "actions.search(): " + searchType + ", " + searchString + ", " + searchGroup);
+      // logInfo("searchModule", "actions.search(): " + searchType + ", " + searchString + ", " + searchGroup);
       context.commit('search', { searchType, searchString, searchGroup } );
     },
     scanDigits(context, { selectedDigit, scanFrom, scanTo, length, digitPrefix, digitPostfix } ) {
       logInfo("searchModule", "actions.scanDigits(): " + selectedDigit + ", " + scanFrom + ", " + scanTo + ", " + length + ", " + digitPrefix + ", " + digitPostfix);
-      context.commit('scanDigits', { selectedDigit, scanFrom, scanTo, length, digitPrefix, digitPostfix } );
+      context.commit('scan', { scanType: "digits", options: { from: scanFrom, to: scanTo, length: length, prefix: digitPrefix, postfix: digitPostfix } } );
     },
     halt(context) {
-      logInfo("searchModule", "actions.halt()");
+      // logInfo("searchModule", "actions.halt()");
       context.commit('halt');
     },
   },
