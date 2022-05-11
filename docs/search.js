@@ -253,9 +253,11 @@ const Search = {
               </div>
               <div class="pr-1 flex-grow-1">
               </div>
+              <!--
               <div class="pl-1" v-if="settings.resultsTabIndex == 2">
                 <b-form-select size="sm" v-model="settings.imageSize" :options="imageSizeOptions"></b-form-select>
               </div>
+              -->
               <div v-if="settings.resultsTabIndex == 1 || settings.resultsTabIndex == 2" class="pl-1">
                 <b-pagination size="sm" v-model="settings.resultsCurrentPage" :total-rows="filteredResults.length" :per-page="settings.resultsPageSize"></b-pagination>
               </div>
