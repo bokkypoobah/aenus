@@ -113,6 +113,17 @@ const Search = {
 
                 <b-row>
                   <b-col cols="3" class="m-0 p-1 text-right">
+                    Regex
+                  </b-col>
+                  <b-col cols="4" class="m-0 p-1">
+                    <b-form-input type="text" size="sm" v-model.trim="settings.digitRange[settings.selectedDigit].regex" placeholder="🔍 {regex}" class="w-100"></b-form-input>
+                  </b-col>
+                  <b-col cols="4" class="m-0 p-1">
+                  </b-col>
+                </b-row>
+
+                <b-row>
+                  <b-col cols="3" class="m-0 p-1 text-right">
                   </b-col>
                   <b-col cols="4" class="m-0 p-1">
                     <b-form-checkbox v-model.trim="settings.digitRange[settings.selectedDigit].palindrome">
@@ -616,6 +627,7 @@ const Search = {
             to: 9,
             step: 1,
             length: 1,
+            regex: null,
             palindrome: false,
             prefix: null,
             postfix: null,
@@ -626,6 +638,7 @@ const Search = {
             to: 99,
             step: 1,
             length: 2,
+            regex: null,
             palindrome: false,
             prefix: null,
             postfix: null,
@@ -636,6 +649,7 @@ const Search = {
             to: 999,
             step: 1,
             length: 3,
+            regex: null,
             palindrome: false,
             prefix: null,
             postfix: null,
@@ -646,6 +660,7 @@ const Search = {
             to: 9999,
             step: 1,
             length: 4,
+            regex: null,
             palindrome: false,
             prefix: null,
             postfix: null,
@@ -656,6 +671,7 @@ const Search = {
             to: 9999,
             step: 1,
             length: 5,
+            regex: null,
             palindrome: false,
             prefix: null,
             postfix: null,
@@ -666,6 +682,7 @@ const Search = {
             to: 9999,
             step: 1,
             length: 6,
+            regex: null,
             palindrome: false,
             prefix: null,
             postfix: null,
@@ -676,6 +693,7 @@ const Search = {
             to: 9999,
             step: 1,
             length: 7,
+            regex: null,
             palindrome: false,
             prefix: null,
             postfix: null,
@@ -1222,17 +1240,23 @@ const searchModule = {
         }
       }
       function* generateSequenceZeroPad(options) {
-        if (options.palindrome) {
-          for (let i = options.from; i <= options.to; i = parseInt(i) + parseInt(options.step)) {
-            const number = i.toString().padStart(options.length, '0');
+        const regex = options.regex ? new RegExp(options.regex, 'i') : null;
+        for (let i = options.from; i <= options.to; i = parseInt(i) + parseInt(options.step)) {
+          let include = true;
+          const number = i.toString().padStart(options.length, '0');
+          if (options.palindrome) {
             const reverse = number.split('').reverse().join('');
-            if (number === reverse) {
-              yield (options.prefix || '') + number + (options.postfix || '');
+            if (number !== reverse) {
+              include = false;
             }
           }
-        } else {
-          for (let i = options.from; i <= options.to; i = parseInt(i) + parseInt(options.step)) {
-            yield (options.prefix || '') + i.toString().padStart(options.length, '0') + (options.postfix || '');
+          if (include && regex) {
+            if (!regex.test(number)) {
+              include = false;
+            }
+          }
+          if (include) {
+            yield (options.prefix || '') + number + (options.postfix || '');
           }
         }
       }
