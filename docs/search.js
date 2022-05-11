@@ -1331,6 +1331,9 @@ const searchModule = {
         // logInfo("searchModule", "mutations.scan() - unregistered: " + JSON.stringify(unregistered, null, 2));
         state.unregistered.push(...unregistered);
         // logInfo("searchModule", "mutations.scan() - all unregistered: " + JSON.stringify(state.unregistered, null, 2));
+         if (state.halt) {
+           break;
+         }
       }
       state.results = results;
       state.unregistered.sort(function (a, b) {
