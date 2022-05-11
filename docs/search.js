@@ -113,10 +113,22 @@ const Search = {
 
                 <b-row>
                   <b-col cols="3" class="m-0 p-1 text-right">
+                  </b-col>
+                  <b-col cols="4" class="m-0 p-1">
+                    <b-form-checkbox v-model.trim="settings.digitRange[settings.selectedDigit].palindrome">
+                      Palindrome
+                    </b-form-checkbox>
+                  </b-col>
+                  <b-col cols="4" class="m-0 p-1">
+                  </b-col>
+                </b-row>
+
+                <b-row>
+                  <b-col cols="3" class="m-0 p-1 text-right">
                     Prefix
                   </b-col>
                   <b-col cols="4" class="m-0 p-1">
-                    <b-form-input type="text" size="sm" v-model.trim="settings.digitPrefix" placeholder="optional prefix, e.g., 'mr'" class="w-100"></b-form-input>
+                    <b-form-input type="text" size="sm" v-model.trim="settings.digitRange[settings.selectedDigit].prefix" placeholder="optional prefix, e.g., 'mr'" class="w-100"></b-form-input>
                   </b-col>
                   <b-col cols="4" class="m-0 p-1">
                   </b-col>
@@ -127,7 +139,7 @@ const Search = {
                     Postfix
                   </b-col>
                   <b-col cols="4" class="m-0 p-1">
-                    <b-form-input type="text" size="sm" v-model.trim="settings.digitPostfix" placeholder="optional postfix, e.g., 'abc'" class="w-100"></b-form-input>
+                    <b-form-input type="text" size="sm" v-model.trim="settings.digitRange[settings.selectedDigit].postfix" placeholder="optional postfix, e.g., 'abc'" class="w-100"></b-form-input>
                   </b-col>
                   <b-col cols="4" class="m-0 p-1">
                   </b-col>
@@ -137,7 +149,7 @@ const Search = {
                   <b-col cols="3" class="m-0 p-1 text-right">
                   </b-col>
                   <b-col cols="4" class="m-0 p-1">
-                    <b-button size="sm" @click="scanDigits(settings.selectedDigit, settings.digitRange[settings.selectedDigit].from, settings.digitRange[settings.selectedDigit].to, settings.digitRange[settings.selectedDigit].step, settings.digitRange[settings.selectedDigit].length, settings.digitPrefix, settings.digitPostfix)" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
+                    <b-button size="sm" @click="scanDigits(settings.selectedDigit, settings.digitRange[settings.selectedDigit])" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
                     <span v-if="searchMessage != null">
                       <b-button size="sm" @click="halt" variant="primary">Halt</b-button>
                     </span>
@@ -599,46 +611,74 @@ const Search = {
 
         digitRange: {
           'digit9': {
+            type: 'digit9',
             from: 0,
             to: 9,
             step: 1,
             length: 1,
+            palindrome: false,
+            prefix: null,
+            postfix: null,
           },
           'digit99': {
+            type: 'digit99',
             from: 0,
             to: 99,
             step: 1,
             length: 2,
+            palindrome: false,
+            prefix: null,
+            postfix: null,
           },
           'digit999': {
+            type: 'digit999',
             from: 0,
             to: 999,
             step: 1,
             length: 3,
+            palindrome: false,
+            prefix: null,
+            postfix: null,
           },
           'digit9999': {
+            type: 'digit9999',
             from: 0,
             to: 9999,
             step: 1,
             length: 4,
+            palindrome: false,
+            prefix: null,
+            postfix: null,
           },
           'digit99999': {
+            type: 'digit99999',
             from: 0,
             to: 9999,
             step: 1,
             length: 5,
+            palindrome: false,
+            prefix: null,
+            postfix: null,
           },
           'digit999999': {
+            type: 'digit999999',
             from: 0,
             to: 9999,
             step: 1,
             length: 6,
+            palindrome: false,
+            prefix: null,
+            postfix: null,
           },
           'digit9999999': {
+            type: 'digit9999999',
             from: 0,
             to: 9999,
             step: 1,
             length: 7,
+            palindrome: false,
+            prefix: null,
+            postfix: null,
           },
         },
 
@@ -897,8 +937,9 @@ const Search = {
       store.dispatch('search/search', { searchType, searchString, searchGroup } );
     },
 
-    async scanDigits(selectedDigit, scanFrom, scanTo, scanStep, length, digitPrefix, digitPostfix) {
-      store.dispatch('search/scanDigits', { selectedDigit, scanFrom, scanTo, scanStep, length, digitPrefix, digitPostfix } );
+    async scanDigits(selectedDigit, options) {
+      console.log("scanDigits - selectedDigit: " + selectedDigit + ", options: " + JSON.stringify(options));
+      store.dispatch('search/scanDigits', { selectedDigit, options } );
     },
 
     async halt() {
@@ -1181,28 +1222,26 @@ const searchModule = {
         }
       }
       function* generateSequenceZeroPad(options) {
-        for (let i = options.from; i <= options.to; i = parseInt(i) + parseInt(options.step)) {
-          yield (options.prefix || '') + i.toString().padStart(options.length, '0') + (options.postfix || '');
+        if (options.palindrome) {
+          for (let i = options.from; i <= options.to; i = parseInt(i) + parseInt(options.step)) {
+            const number = i.toString().padStart(options.length, '0');
+            const reverse = number.split('').reverse().join('');
+            if (number === reverse) {
+              yield (options.prefix || '') + number + (options.postfix || '');
+            }
+          }
+        } else {
+          for (let i = options.from; i <= options.to; i = parseInt(i) + parseInt(options.step)) {
+            yield (options.prefix || '') + i.toString().padStart(options.length, '0') + (options.postfix || '');
+          }
         }
       }
-      // console.log( [...generateSequenceZeroPad(1, 4, 5, 'xyz', 'abc')] ); //  ["xyz00001abc", "xyz00002abc", "xyz00003abc", "xyz00004abc"]
-      // function* generateSequenceZeroPadPalindrome(start, end, step, length, prefix, postfix) {
-      //   for (let i = start; i <= end; i = parseInt(i) + parseInt(step)) {
-      //     const number = i.toString().padStart(length, '0');
-      //     const reverse = number.split('').reverse().join('');
-      //     if (number === reverse) {
-      //       yield (prefix || '') + number + (postfix || '');
-      //     }
-      //   }
-      // }
-      // console.log( [...generateSequenceZeroPadPalindrome(1, 4000, 1, 5, 'xyz', 'abc')] ); //  ["xyz00001abc", "xyz00002abc", "xyz00003abc", "xyz00004abc"]
 
       logInfo("searchModule", "mutations.scan() - scanType: " + scanType + ", options: " + JSON.stringify(options));
 
       let generator = null;
       if (scanType == 'digits') {
         generator = generateSequenceZeroPad(options);
-        // generator = generateSequenceZeroPadPalindrome(options.from, options.to, options.step, options.length, options.prefix, options.postfix);
         // console.log( [...generator] );
       }
 
@@ -1300,9 +1339,9 @@ const searchModule = {
       // logInfo("searchModule", "actions.search(): " + searchType + ", " + searchString + ", " + searchGroup);
       context.commit('search', { searchType, searchString, searchGroup } );
     },
-    scanDigits(context, { selectedDigit, scanFrom, scanTo, scanStep, length, digitPrefix, digitPostfix } ) {
-      logInfo("searchModule", "actions.scanDigits(): " + selectedDigit + ", " + scanFrom + ", " + scanTo + ", " + scanStep + ", " + length + ", " + digitPrefix + ", " + digitPostfix);
-      context.commit('scan', { scanType: "digits", options: { from: scanFrom, to: scanTo, step: scanStep, length: length, prefix: digitPrefix, postfix: digitPostfix } } );
+    scanDigits(context, { selectedDigit, options } ) {
+      logInfo("searchModule", "actions.scanDigits() - selectedDigit: " + selectedDigit + ", options: " + JSON.stringify(options));
+      context.commit('scan', { scanType: "digits", options: options } );
     },
     halt(context) {
       // logInfo("searchModule", "actions.halt()");
