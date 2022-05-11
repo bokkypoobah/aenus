@@ -698,6 +698,17 @@ const Search = {
             prefix: null,
             postfix: null,
           },
+          'digit99999999': {
+            type: 'digit99999999',
+            from: 0,
+            to: 9999,
+            step: 1,
+            length: 8,
+            regex: null,
+            palindrome: false,
+            prefix: null,
+            postfix: null,
+          },
         },
 
         resultsTabIndex: 0,
@@ -720,6 +731,7 @@ const Search = {
         { value: 'digit99999', text: '00000 to 99999' },
         { value: 'digit999999', text: '000000 to 999999' },
         { value: 'digit9999999', text: '0000000 to 9999999' },
+        { value: 'digit99999999', text: '00000000 to 99999999' },
       ],
 
       imageSizeOptions: [
@@ -1262,6 +1274,7 @@ const searchModule = {
       }
 
       logInfo("searchModule", "mutations.scan() - scanType: " + scanType + ", options: " + JSON.stringify(options));
+      state.message = "Generating sequence";
 
       let generator = null;
       if (scanType == 'digits') {
