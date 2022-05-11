@@ -194,7 +194,7 @@ const Search = {
             <!-- Results Toolbar -->
             <div v-if="Object.keys(searchResults).length > 0" class="d-flex m-0 mt-2 p-0" style="height: 37px;">
               <div v-if="settings.resultsTabIndex != 4" class="pr-2">
-                <b-form-input type="text" size="sm" v-model.trim="settings.filter" debounce="600" class="w-100" placeholder="🔍 name"></b-form-input>
+                <b-form-input type="text" size="sm" v-model.trim="settings.filter" debounce="600" class="w-100" placeholder="🔍 {regex}"></b-form-input>
               </div>
               <div v-if="settings.resultsTabIndex != 4" class="pl-1">
                 <font size="-2">{{ filteredResults.length }} of {{ Object.keys(searchResults).length }}</font>
@@ -727,38 +727,27 @@ const Search = {
     },
     filteredResults() {
       const results = this.settings.randomise ? [] : [];
-      // let regexConst = this.search != null && this.search.length > 0 ? new RegExp(this.search) : null;
-      // if (regexConst != null) {
-      //   console.log("Search.filteredResults() - search: " + JSON.stringify(this.search));
-      //   console.log("Search.filteredResults() - regexConst: " + JSON.stringify(regexConst.toString()));
-      // }
       let regexConst = null;
       if (this.settings.filter != null && this.settings.filter.length > 0) {
-        // let search = this.search.replace("$", "\\\$");
-        let filter = this.settings.filter;
-        // let filter = /god\$/;
-        regexConst = new RegExp(filter, 'i');
-        // regexConst = /god/;
-        // console.log("Search.filteredResults() - filter: " + JSON.stringify(filter));
-        // console.log("Search.filteredResults() - regexConst: " + JSON.stringify(regexConst.toString()));
-      }
-      for (result of Object.values(this.searchResults)) {
-        if (this.settings.filter == null || this.settings.filter.length == 0) {
-          results.push(result);
-        } else {
-          if (regexConst.test(result.name)) {
+        regexConst = new RegExp(this.settings.filter, 'i');
+        for (result of Object.values(this.searchResults)) {
+          if (regexConst.test(result.labelName)) {
             results.push(result);
           }
+        }
+      } else {
+        for (result of Object.values(this.searchResults)) {
+          results.push(result);
         }
       }
 
       if (this.settings.sortOption == 'nameasc') {
         results.sort(function (a, b) {
-            return ('' + a.name).localeCompare(b.name);
+            return ('' + a.labelName).localeCompare(b.labelName);
         })
       } else if (this.settings.sortOption == 'namedsc') {
         results.sort(function (a, b) {
-            return ('' + b.name).localeCompare(a.name);
+            return ('' + b.labelName).localeCompare(a.labelName);
         })
       } else if (this.settings.sortOption == 'expiryasc') {
         results.sort((a, b) => {
@@ -779,7 +768,7 @@ const Search = {
       } else if (this.settings.sortOption == 'lengthname') {
         results.sort((a, b) => {
           if (a.length == b.length) {
-            return ('' + a.name).localeCompare(b.name);
+            return ('' + a.labelName).localeCompare(b.labelName);
           } else {
             return a.length - b.length;
           }
@@ -1013,7 +1002,7 @@ const searchModule = {
         const registrantMap = {};
         // logInfo("searchModule", "mutations.search() - registrations: " + JSON.stringify(registrations, null, 2));
         for (registration of registrations) {
-          // logInfo("searchModule", "mutations.search() - registration: " + JSON.stringify(registration, null, 2));
+          logInfo("searchModule", "mutations.search() - registration: " + JSON.stringify(registration, null, 2));
           if (searchType == 'owner') {
             registrantMap[registration.registrant.id] = true;
           }
@@ -1098,7 +1087,7 @@ const searchModule = {
               state.message = "ENS Subgraph " + records;
               for (registration of registrations) {
                 // if (registration.domain.name == "test.eth") {
-                //   console.log(JSON.stringify(registration, null, 2));
+                  console.log(JSON.stringify(registration, null, 2));
                 // }
                 results[registration.domain.name] = {
                   labelName: registration.labelName,
@@ -1145,8 +1134,8 @@ const searchModule = {
           separator = "&";
         }
         const data = await fetch(url).then(response => response.json());
-        records = records + data.tokens.length;
-        state.message = "Reservoir prices " + records;
+        records = records + data.token ? data.tokens.length : 0;
+        state.message = "Reservoir Prices " + records;
         // console.log(JSON.stringify(data, null, 2));
         for (price of data.tokens) {
           prices[price.tokenId] = {
