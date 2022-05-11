@@ -396,6 +396,12 @@ const Search = {
                       Thesaurus
                     </b-link>
                   </b-popover>
+                  <br />
+                  <br />
+                  <span v-if="prices[data.item.tokenId]">
+                    <font shift-v="+3" size="-1"><b-badge v-b-popover.hover="'Floor ask price in ETH'" variant="success">{{ prices[data.item.tokenId].floorAskPrice }}</b-badge></font>
+                  </span>
+
                 </template>
                 <template #cell(registrant)="data">
                   <b-button :id="'popover-target-registrant-' + data.index" variant="link" class="m-0 p-0">
@@ -531,6 +537,9 @@ const Search = {
                     <b-button :id="'popover-target-' + data.item.registrant + '-' + resultIndex" variant="link" class="m-0 p-0">
                       {{ result.labelName }}
                     </b-button>
+                    <span v-if="prices[result.tokenId]">
+                      <font shift-v="+3" size="-1"><b-badge v-b-popover.hover="'Floor ask price in ETH'" variant="success">{{ prices[result.tokenId].floorAskPrice }}</b-badge></font>
+                    </span>
                     <b-popover :target="'popover-target-' + data.item.registrant + '-' + resultIndex" placement="right">
                       <template #title>{{ result.name }} links</template>
                       <b-link :href="'https://app.ens.domains/name/' + result.name" v-b-popover.hover="'View in app.ens.domains'" target="_blank">
