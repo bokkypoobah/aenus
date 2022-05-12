@@ -116,7 +116,7 @@ const Search = {
                     Regex
                   </b-col>
                   <b-col cols="4" class="m-0 p-1">
-                    <b-form-input type="text" size="sm" v-model.trim="settings.digitRange[settings.selectedDigit].regex" placeholder="🔍 {regex}, e.g., '^([0-9])([0-9])([0-9])\\3\\2\\1$' for a 6 digit palindrome" class="w-100"></b-form-input>
+                    <b-form-input type="text" size="sm" v-model.trim="settings.digitRange[settings.selectedDigit].regex" placeholder="🔍 {regex}, e.g., '^([0-9])([0-9])([0-9])\\3\\2\\1$' for 6 digit palindromes" class="w-100"></b-form-input>
                   </b-col>
                   <b-col cols="4" class="m-0 p-1">
                   </b-col>
