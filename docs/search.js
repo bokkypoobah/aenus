@@ -234,8 +234,17 @@ const Search = {
 
             <!-- Results Toolbar -->
             <div v-if="Object.keys(searchResults).length > 0" class="d-flex m-0 mt-2 p-0" style="height: 37px;">
-              <div v-if="settings.resultsTabIndex != 4" class="pr-2">
+              <div v-if="settings.resultsTabIndex != 4" class="pr-4">
                 <b-form-input type="text" size="sm" v-model.trim="settings.filter" debounce="600" class="w-100" placeholder="🔍 {regex}"></b-form-input>
+              </div>
+              <div v-if="settings.resultsTabIndex != 4" class="pr-1" style="max-width: 100px;">
+                <b-form-input type="text" size="sm" v-model.trim="settings.priceFrom" debounce="600" class="w-100" placeholder="ETH from"></b-form-input>
+              </div>
+              <div v-if="settings.resultsTabIndex != 4" class="pr-1">
+                -
+              </div>
+              <div v-if="settings.resultsTabIndex != 4" class="pr-2" style="max-width: 100px;">
+                <b-form-input type="text" size="sm" v-model.trim="settings.priceTo" debounce="600" class="w-100" placeholder="ETH to"></b-form-input>
               </div>
               <div v-if="settings.resultsTabIndex != 4" class="pl-1">
                 <font size="-2">{{ filteredResults.length }} of {{ Object.keys(searchResults).length }}</font>
@@ -632,6 +641,8 @@ const Search = {
         digitPrefix: null,
         digitPostfix: null,
         filter: null,
+        priceFrom: null,
+        priceTo: null,
         sortOption: 'nameasc',
         randomise: false,
 
@@ -842,17 +853,35 @@ const Search = {
     },
     filteredResults() {
       const results = this.settings.randomise ? [] : [];
-      let regexConst = null;
-      if (this.settings.filter != null && this.settings.filter.length > 0) {
-        regexConst = new RegExp(this.settings.filter, 'i');
+      const regex = this.settings.filter != null && this.settings.filter.length > 0 ? new RegExp(this.settings.filter, 'i') : null;
+      const priceFrom = this.settings.priceFrom && parseFloat(this.settings.priceFrom) > 0 ? parseFloat(this.settings.priceFrom) : null;
+      const priceTo = this.settings.priceTo && parseFloat(this.settings.priceTo) > 0 ? parseFloat(this.settings.priceTo) : null;
+
+      if (regex == null && priceFrom == null && priceTo == 0) {
         for (result of Object.values(this.searchResults)) {
-          if (regexConst.test(result.labelName)) {
-            results.push(result);
-          }
+          results.push(result);
         }
       } else {
         for (result of Object.values(this.searchResults)) {
-          results.push(result);
+          let include = true;
+          if (regex && !regex.test(result.labelName)) {
+            include = false;
+          }
+          if (include && (priceFrom || priceTo)) {
+            const price = this.prices[result.tokenId] && this.prices[result.tokenId].floorAskPrice;
+            if (price) {
+              if (priceFrom && price < priceFrom) {
+                include = false;
+              } else if (priceTo && price > priceTo) {
+                include = false;
+              }
+            } else {
+              include = false;
+            }
+          }
+          if (include) {
+            results.push(result);
+          }
         }
       }
 
