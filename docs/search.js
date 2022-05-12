@@ -1237,7 +1237,7 @@ const searchModule = {
       const GETPRICEBATCHSIZE = 50;
       records = 0;
       const prices = {};
-      for (let i = 0; i < keys.length; i += GETPRICEBATCHSIZE) {
+      for (let i = 0; i < keys.length && !state.halt; i += GETPRICEBATCHSIZE) {
         const batch = keys.slice(i, parseInt(i) + GETPRICEBATCHSIZE);
         let url = "https://api.reservoir.tools/tokens/v4?";
         let separator = "";
@@ -1364,7 +1364,7 @@ const searchModule = {
       const GETPRICEBATCHSIZE = 50;
       records = 0;
       const prices = {};
-      for (let i = 0; i < keys.length; i += GETPRICEBATCHSIZE) {
+      for (let i = 0; i < keys.length && !state.halt; i += GETPRICEBATCHSIZE) {
         const batch = keys.slice(i, parseInt(i) + GETPRICEBATCHSIZE);
         let url = "https://api.reservoir.tools/tokens/v4?";
         let separator = "";
