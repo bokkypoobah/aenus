@@ -784,6 +784,8 @@ const Search = {
       sortOptions: [
         { value: 'nameasc', text: 'Name Ascending' },
         { value: 'namedsc', text: 'Name Descending' },
+        { value: 'priceasc', text: 'Price Ascending' },
+        { value: 'pricedsc', text: 'Price Descending' },
         { value: 'expiryasc', text: 'Expiry Ascending' },
         { value: 'expirydsc', text: 'Expiry Descending' },
         { value: 'registrationasc', text: 'Registration Ascending' },
@@ -893,6 +895,34 @@ const Search = {
         results.sort(function (a, b) {
             return ('' + b.labelName).localeCompare(a.labelName);
         })
+      } else if (this.settings.sortOption == 'priceasc') {
+        results.sort((a, b) => {
+          const pricea = this.prices[a.tokenId] ? this.prices[a.tokenId].floorAskPrice : null;
+          const priceb = this.prices[b.tokenId] ? this.prices[b.tokenId].floorAskPrice : null;
+          if (pricea == priceb) {
+            return ('' + a.labelName).localeCompare(b.labelName);
+          } else if (pricea != null && priceb == null) {
+            return -1;
+          } else if (pricea == null && priceb != null) {
+            return 1;
+          } else {
+            return pricea - priceb;
+          }
+        });
+      } else if (this.settings.sortOption == 'pricedsc') {
+        results.sort((a, b) => {
+          const pricea = this.prices[a.tokenId] ? this.prices[a.tokenId].floorAskPrice : null;
+          const priceb = this.prices[b.tokenId] ? this.prices[b.tokenId].floorAskPrice : null;
+          if (pricea == priceb) {
+            return ('' + a.labelName).localeCompare(b.labelName);
+          } else if (pricea != null && priceb == null) {
+            return -1;
+          } else if (pricea == null && priceb != null) {
+            return 1;
+          } else {
+            return priceb - pricea;
+          }
+        });
       } else if (this.settings.sortOption == 'expiryasc') {
         results.sort((a, b) => {
           return a.expiryDate - b.expiryDate;
