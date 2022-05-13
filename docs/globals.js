@@ -60,6 +60,49 @@ const ENSSUBGRAPHNAMEQUERY = `
   }
 `;
 
+const ENSSUBGRAPHAPPROXIMATENAMEQUERY = `
+  query getRegistrations($labelName: String!) {
+    registrations(first: 1000, orderBy: labelName, orderDirection: asc, where: {labelName_contains: $labelName}) {
+      id
+      registrationDate
+      expiryDate
+      cost
+      registrant {
+        id
+      }
+      labelName
+      domain {
+        id
+        labelName
+        labelhash
+        name
+        isMigrated
+        resolver {
+          address
+          coinTypes
+          texts
+        }
+        resolvedAddress {
+          id
+        }
+        parent {
+          labelName
+          labelhash
+          name
+        }
+        subdomains {
+          labelName
+          labelhash
+          name
+        }
+        owner {
+          id
+        }
+      }
+    }
+  }
+`;
+
 const ENSSUBGRAPHOWNEDQUERY = `
   query getRegistrations($id: ID!, $first: Int, $skip: Int, $orderBy: Registration_orderBy, $orderDirection: OrderDirection, $expiryDate: Int) {
     account(id: $id) {

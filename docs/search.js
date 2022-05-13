@@ -13,50 +13,55 @@ const Search = {
 
           <!-- Search type tabs -->
           <b-tabs card align="left" no-body active-tab-class="m-0 p-0" v-model="settings.searchTabIndex">
-            <b-tab title="By Name">
+            <b-tab title="Terms">
             </b-tab>
-            <b-tab title="By Owner">
+            <b-tab title="Groups">
             </b-tab>
-            <b-tab title="By Group">
-            </b-tab>
-            <b-tab title="Scan Sets">
+            <b-tab title="Sets">
             </b-tab>
           </b-tabs>
 
           <!-- Search input -->
           <b-card-body class="m-1 p-1">
 
-            <div v-if="settings.searchTabIndex == 0" class="m-0 p-0">
+            <b-card-text v-if="settings.searchTabIndex == 0" class="m-0 p-0">
               <b-row>
                 <b-col>
-                  <b-form-textarea size="sm" v-model.trim="settings.searchString" placeholder="🔍 {name1}[.eth] {name2}[.eth], {name3}[.eth]\n{name4}[.eth] ..." rows="3" max-rows="100"></b-form-textarea>
-                </b-col>
-                <b-col class="m-0 p-1">
-                  <b-button size="sm" @click="scan( { type: 'name', search: settings.searchString } );" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
+                  <b-form-textarea size="sm" v-model.trim="settings.searchString" placeholder="🔍 {name1}[.eth] {name2}[.eth], {name3}[.eth]\n{name4}[.eth] ..." rows="3" max-rows="100" class="w-50"></b-form-textarea>
                 </b-col>
               </b-row>
-            </div>
-
-            <div v-if="settings.searchTabIndex == 1" class="m-0 p-0">
               <b-row>
-                <b-col>
-                  <b-form-textarea size="sm" v-model.trim="settings.searchString" placeholder="🔍 0x012345... 0x123456..., {name1}[.eth]\n{name2}[.eth] ..." rows="3" max-rows="100"></b-form-textarea>
+                <b-col class="mt-2">
+                  <b-form-checkbox v-model.trim="settings.approximateSearch">
+                    Approximate search
+                  </b-form-checkbox>
                 </b-col>
-                <b-col class="m-0 p-1">
-                  <b-button size="sm" @click="scan( { type: 'owner', search: settings.searchString } )" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
+              </b-row>
+              <b-row v-if="!settings.approximateSearch">
+                <b-col class="mt-2">
+                  <b-form-checkbox v-model.trim="settings.searchCommonRegistrants">
+                    Search names with common registrants
+                  </b-form-checkbox>
+                </b-col>
+              </b-row>
+              <b-row>
+                <b-col class="mt-2">
+                  <b-button size="sm" @click="scan( { type: 'terms', search: settings.searchString, searchCommonRegistrants: settings.searchCommonRegistrants, approximateSearch: settings.approximateSearch } );" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
                   <span v-if="searchMessage != null">
                     <b-button size="sm" @click="halt" variant="primary">Halt</b-button>
                   </span>
                 </b-col>
               </b-row>
-            </div>
+            </b-card-text>
 
-            <div v-if="settings.searchTabIndex == 2" class="m-0 p-0">
+            <div v-if="settings.searchTabIndex == 1" class="m-0 p-0">
               <b-row>
                 <b-col>
-                  <b-form-select size="sm" v-model="settings.selectedGroup" :options="groupOptions" v-b-popover.hover="'Set up groups in Config'"></b-form-select>
+                  <b-form-select size="sm" v-model="settings.selectedGroup" :options="groupOptions" v-b-popover.hover="'Set up groups in Config'" class="w-50"></b-form-select>
                 </b-col>
-                <b-col class="m-0 p-1">
+              </b-row>
+              <b-row>
+                <b-col class="mt-2">
                   <b-button size="sm" @click="scan( { type: 'group', group: settings.selectedGroup } )" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
                   <span v-if="searchMessage != null">
                     <b-button size="sm" @click="halt" variant="primary">Halt</b-button>
@@ -66,7 +71,7 @@ const Search = {
             </div>
 
             <!-- Scan Sets -->
-            <div v-if="settings.searchTabIndex == 3" class="m-0 p-0">
+            <div v-if="settings.searchTabIndex == 2" class="m-0 p-0">
               <b-card-text>
                 <b-row>
                   <b-col cols="3" class="m-0 p-1 text-right">
@@ -218,7 +223,7 @@ const Search = {
 
               </b-card-text>
             </div>
-            <div v-if="settings.searchTabIndex == 4">
+            <div v-if="settings.searchTabIndex == 3">
               <b-card-text>
                 Hello 4
               </b-card-text>
@@ -284,7 +289,7 @@ const Search = {
               </b-tab>
               <b-tab title="Unregistered" :disabled="unregistered.length == 0">
               </b-tab>
-              <b-tab title="Hours" v-if="settings.searchTabIndex == 3 && settings.setAttributes[settings.selectedSet].type == 'hours'">
+              <b-tab title="Hours" v-if="settings.searchTabIndex == 2 && settings.setAttributes[settings.selectedSet].type == 'hours'">
               </b-tab>
             </b-tabs>
 
@@ -776,6 +781,8 @@ const Search = {
       settings: {
         searchTabIndex: 0,
         searchString: null,
+        searchCommonRegistrants: false,
+        approximateSearch: false,
         selectedGroup: null,
         selectedSet: 'digit999',
         filter: null,
@@ -1382,7 +1389,7 @@ const searchModule = {
           };
         }
       }
-      async function fetchRegistrationsByNames(batch){
+      async function fetchRegistrationsByNames(batch) {
         await fetch(ENSSUBGRAPHURL, {
           method: 'POST',
           headers: {
@@ -1399,6 +1406,21 @@ const searchModule = {
         const namesFound = Object.keys(state.tempResults).map(function(name) { return name.replace('.eth', ''); });
         const unregistered = batch.filter(name => !namesFound.includes(name));
         state.tempUnregistered.push(...unregistered);
+      }
+      async function fetchRegistrationsByApproximateName(name) {
+        await fetch(ENSSUBGRAPHURL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify({
+            query: ENSSUBGRAPHAPPROXIMATENAMEQUERY,
+            variables: { labelName: name },
+          })
+        }).then(response => response.json())
+          .then(data => processRegistrations(data.data.registrations));
+        state.message = "Retrieved " + Object.keys(state.tempResults).length;
       }
       async function fetchRegistrationsByAccount(accounts) {
         for (account of accounts) {
@@ -1435,7 +1457,7 @@ const searchModule = {
         generator = generateDigitSequence(options);
       } else if (options.type == 'hours') {
         generator = generateHourSequence(options);
-      } else if (options.type == 'name' || options.type == 'owner') {
+      } else if (options.type == 'terms' || options.type == 'owner') {
         const searchForNames = options.search == null ? [] : options.search.split(/[, \t\n]+/)
           .map(function(name) { return name.toLowerCase().trim(); })
           .filter(function (name) { return !(name.length == 42 && name.substring(0, 2) == '0x'); })
@@ -1453,21 +1475,30 @@ const searchModule = {
       state.message = "Retrieving";
 
       if (generator) {
-        let count = 0;
-        let result = generator.next();
-        let batch = [];
-        while (!result.done && !state.halt) {
-          batch.push(result.value);
-          count++;
-          if (count >= ENSSUBGRAPHBATCHSCANSIZE) {
-            await fetchRegistrationsByNames(batch);
-            count = 0;
-            batch = [];
+        if (options.approximateSearch) {
+          let result = generator.next();
+          while (!result.done && !state.halt) {
+            console.log("Search approximate: " + result.value);
+            await fetchRegistrationsByApproximateName(result.value);
+            result = generator.next();
           }
-          result = generator.next();
-        }
-        if (count > 0){
-          await fetchRegistrationsByNames(batch);
+        } else {
+          let count = 0;
+          let result = generator.next();
+          let batch = [];
+          while (!result.done && !state.halt) {
+            batch.push(result.value);
+            count++;
+            if (count >= ENSSUBGRAPHBATCHSCANSIZE) {
+              await fetchRegistrationsByNames(batch);
+              count = 0;
+              batch = [];
+            }
+            result = generator.next();
+          }
+          if (count > 0){
+            await fetchRegistrationsByNames(batch);
+          }
         }
         state.tempUnregistered.sort(function (a, b) {
           return ('' + a).localeCompare(b);
@@ -1475,7 +1506,7 @@ const searchModule = {
         state.unregistered = state.tempUnregistered;
       }
 
-      if (options.type == 'owner') {
+      if (options.searchCommonRegistrants && !options.approximateSearch) {
         let searchForAccounts = options.search == null ? [] : options.search.split(/[, \t\n]+/)
           .map(function(name) { return name.toLowerCase().trim(); })
           .filter(function (name) { return name.length == 42 && name.substring(0, 2) == '0x'; });
