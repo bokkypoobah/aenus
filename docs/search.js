@@ -15,7 +15,7 @@ const Search = {
           <b-tabs card align="left" no-body active-tab-class="m-0 p-0" v-model="settings.searchTabIndex">
             <b-tab title="By Name">
             </b-tab>
-            <b-tab title="By Owner" active>
+            <b-tab title="By Owner">
             </b-tab>
             <b-tab title="By Group">
             </b-tab>
@@ -775,7 +775,7 @@ const Search = {
 
       settings: {
         searchTabIndex: 0,
-        searchString: 'test 0x287F9b46dceA520D829c874b0AF01f4fbfeF9243', // null,
+        searchString: null,
         selectedGroup: null,
         selectedSet: 'digit999',
         filter: null,
