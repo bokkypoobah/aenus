@@ -1,4 +1,4 @@
-# aenus - Advanced ENS utilities
+# aenus advanced ENS utilities
 
 UI (WIP): https://bokkypoobah.github.io/aenus/
 
