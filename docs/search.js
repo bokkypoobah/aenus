@@ -19,7 +19,7 @@ const Search = {
             </b-tab>
             <b-tab title="By Group">
             </b-tab>
-            <b-tab title="Scan Digits">
+            <b-tab title="Scan Sets">
             </b-tab>
           </b-tabs>
 
@@ -69,10 +69,10 @@ const Search = {
               <b-card-text>
                 <b-row>
                   <b-col cols="3" class="m-0 p-1 text-right">
-                    Digit Set
+                    Set
                   </b-col>
                   <b-col cols="4" class="m-0 p-1">
-                    <b-form-select size="sm" v-model="settings.selectedDigit" :options="digitOptions" class="w-100"></b-form-select>
+                    <b-form-select size="sm" v-model="settings.selectedSet" :options="setOptions" class="w-100"></b-form-select>
                   </b-col>
                   <b-col cols="4" class="m-0 p-1">
                   </b-col>
@@ -83,7 +83,7 @@ const Search = {
                     From
                   </b-col>
                   <b-col cols="4" class="m-0 p-1">
-                    <b-form-input type="text" size="sm" v-model.trim="settings.digitRange[settings.selectedDigit].from" class="w-100"></b-form-input>
+                    <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].from" class="w-100"></b-form-input>
                   </b-col>
                   <b-col cols="4" class="m-0 p-1">
                   </b-col>
@@ -94,7 +94,7 @@ const Search = {
                     To
                   </b-col>
                   <b-col cols="4" class="m-0 p-1">
-                    <b-form-input type="text" size="sm" v-model.trim="settings.digitRange[settings.selectedDigit].to" class="w-100"></b-form-input>
+                    <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].to" class="w-100"></b-form-input>
                   </b-col>
                   <b-col cols="4" class="m-0 p-1">
                   </b-col>
@@ -105,7 +105,7 @@ const Search = {
                     Step
                   </b-col>
                   <b-col cols="4" class="m-0 p-1">
-                    <b-form-input type="text" size="sm" v-model.trim="settings.digitRange[settings.selectedDigit].step" class="w-100"></b-form-input>
+                    <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].step" class="w-100"></b-form-input>
                   </b-col>
                   <b-col cols="4" class="m-0 p-1">
                   </b-col>
@@ -116,7 +116,7 @@ const Search = {
                     Regex
                   </b-col>
                   <b-col cols="4" class="m-0 p-1">
-                    <b-form-input type="text" size="sm" v-model.trim="settings.digitRange[settings.selectedDigit].regex" placeholder="🔍 {regex}, e.g., '^([0-9])([0-9])([0-9])\\3\\2\\1$' for 6 digit palindromes" class="w-100"></b-form-input>
+                    <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].regex" placeholder="🔍 {regex}, e.g., '^([0-9])([0-9])([0-9])\\3\\2\\1$' for 6 digit palindromes" class="w-100"></b-form-input>
                   </b-col>
                   <b-col cols="4" class="m-0 p-1">
                   </b-col>
@@ -126,7 +126,7 @@ const Search = {
                   <b-col cols="3" class="m-0 p-1 text-right">
                   </b-col>
                   <b-col cols="4" class="m-0 p-1">
-                    <b-form-checkbox v-model.trim="settings.digitRange[settings.selectedDigit].palindrome">
+                    <b-form-checkbox v-model.trim="settings.setAttributes[settings.selectedSet].palindrome">
                       Palindrome
                     </b-form-checkbox>
                   </b-col>
@@ -139,7 +139,7 @@ const Search = {
                     Prefix
                   </b-col>
                   <b-col cols="4" class="m-0 p-1">
-                    <b-form-input type="text" size="sm" v-model.trim="settings.digitRange[settings.selectedDigit].prefix" placeholder="optional prefix, e.g., 'mr'" class="w-100"></b-form-input>
+                    <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].prefix" placeholder="optional prefix, e.g., 'mr'" class="w-100"></b-form-input>
                   </b-col>
                   <b-col cols="4" class="m-0 p-1">
                   </b-col>
@@ -150,7 +150,7 @@ const Search = {
                     Postfix
                   </b-col>
                   <b-col cols="4" class="m-0 p-1">
-                    <b-form-input type="text" size="sm" v-model.trim="settings.digitRange[settings.selectedDigit].postfix" placeholder="optional postfix, e.g., 'abc'" class="w-100"></b-form-input>
+                    <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].postfix" placeholder="optional postfix, e.g., 'abc'" class="w-100"></b-form-input>
                   </b-col>
                   <b-col cols="4" class="m-0 p-1">
                   </b-col>
@@ -160,7 +160,7 @@ const Search = {
                   <b-col cols="3" class="m-0 p-1 text-right">
                   </b-col>
                   <b-col cols="4" class="m-0 p-1">
-                    <b-button size="sm" @click="scanDigits(settings.digitRange[settings.selectedDigit])" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
+                    <b-button size="sm" @click="scanDigits(settings.setAttributes[settings.selectedSet])" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
                     <span v-if="searchMessage != null">
                       <b-button size="sm" @click="halt" variant="primary">Halt</b-button>
                     </span>
@@ -637,7 +637,7 @@ const Search = {
         searchTabIndex: 0,
         searchString: null,
         selectedGroup: null,
-        selectedDigit: 'digit999',
+        selectedSet: 'digit999',
         digitPrefix: null,
         digitPostfix: null,
         filter: null,
@@ -651,7 +651,7 @@ const Search = {
 
         imageSize: '240',
 
-        digitRange: {
+        setAttributes: {
           'digit9': {
             type: 'digit',
             from: 0,
@@ -754,15 +754,15 @@ const Search = {
         { value: 66666, text: 'ALL' },
       ],
 
-      digitOptions: [
-        { value: 'digit9', text: '0 to 9 [prefix/postfix required for min 3 length]' },
-        { value: 'digit99', text: '00 to 99, [prefix/postfix required for min 3 length]' },
-        { value: 'digit999', text: '000 to 999 [Club999]' },
-        { value: 'digit9999', text: '0000 to 9999 [Club10k]' },
-        { value: 'digit99999', text: '00000 to 99999 [Club100k]' },
-        { value: 'digit999999', text: '000000 to 999999' },
-        { value: 'digit9999999', text: '0000000 to 9999999' },
-        { value: 'digit99999999', text: '00000000 to 99999999' },
+      setOptions: [
+        { value: 'digit9', text: 'Digits 0 to 9 [prefix/postfix required for min 3 length]' },
+        { value: 'digit99', text: 'Digits 00 to 99, [prefix/postfix required for min 3 length]' },
+        { value: 'digit999', text: 'Digits 000 to 999 [Club999]' },
+        { value: 'digit9999', text: 'Digits 0000 to 9999 [Club10k]' },
+        { value: 'digit99999', text: 'Digits 00000 to 99999 [Club100k]' },
+        { value: 'digit999999', text: 'Digits 000000 to 999999' },
+        { value: 'digit9999999', text: 'Digits 0000000 to 9999999' },
+        { value: 'digit99999999', text: 'Digits 00000000 to 99999999' },
       ],
 
       imageSizeOptions: [
@@ -1330,7 +1330,29 @@ const searchModule = {
           yield records.splice(0, batchsize);
         }
       }
-      function* generateSequenceZeroPad(options) {
+      function* generateDigitSequence(options) {
+        const regex = options.regex ? new RegExp(options.regex, 'i') : null;
+        for (let i = options.from; i <= options.to; i = parseInt(i) + parseInt(options.step)) {
+          let include = true;
+          const number = i.toString().padStart(options.length, '0');
+          if (options.palindrome) {
+            const reverse = number.split('').reverse().join('');
+            if (number !== reverse) {
+              include = false;
+            }
+          }
+          if (include && regex) {
+            if (!regex.test(number)) {
+              include = false;
+            }
+          }
+          if (include) {
+            yield (options.prefix || '') + number + (options.postfix || '');
+          }
+        }
+      }
+
+      function* generateHourSequence(options) {
         const regex = options.regex ? new RegExp(options.regex, 'i') : null;
         for (let i = options.from; i <= options.to; i = parseInt(i) + parseInt(options.step)) {
           let include = true;
@@ -1357,9 +1379,11 @@ const searchModule = {
 
       let generator = null;
       if (options.type == 'digit') {
-        generator = generateSequenceZeroPad(options);
-        // console.log( [...generator] );
+        generator = generateDigitSequence(options);
+      } else if (options.type == 'hour') {
+        generator = generateHourSequence(options);
       }
+      // console.log( [...generator] );
 
       const results = {};
       const now = parseInt(new Date().valueOf() / 1000);
