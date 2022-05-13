@@ -19,7 +19,7 @@ const Search = {
             </b-tab>
             <b-tab title="By Group">
             </b-tab>
-            <b-tab title="Scan Sets">
+            <b-tab title="Scan Sets" active>
             </b-tab>
           </b-tabs>
 
@@ -65,6 +65,7 @@ const Search = {
               </b-row>
             </div>
 
+            <!-- Scan Sets -->
             <div v-if="settings.searchTabIndex == 3" class="m-0 p-0">
               <b-card-text>
                 <b-row>
@@ -637,7 +638,7 @@ const Search = {
         searchTabIndex: 0,
         searchString: null,
         selectedGroup: null,
-        selectedSet: 'digit999',
+        selectedSet: 'hours', // 'digit999',
         digitPrefix: null,
         digitPostfix: null,
         filter: null,
@@ -652,8 +653,24 @@ const Search = {
         imageSize: '240',
 
         setAttributes: {
+          'hours': {
+            type: 'hours',
+            from: 0,
+            to: 23,
+            step: 1,
+            length: 2,
+            regex: null,
+            palindrome: false,
+            prefix: null,
+            postfix: null,
+
+            from2: 0,
+            to2: 59,
+            step2: 1,
+            midfix: 'h',
+          },
           'digit9': {
-            type: 'digit',
+            type: 'digits',
             from: 0,
             to: 9,
             step: 1,
@@ -664,7 +681,7 @@ const Search = {
             postfix: null,
           },
           'digit99': {
-            type: 'digit',
+            type: 'digits',
             from: 0,
             to: 99,
             step: 1,
@@ -675,7 +692,7 @@ const Search = {
             postfix: null,
           },
           'digit999': {
-            type: 'digit',
+            type: 'digits',
             from: 0,
             to: 999,
             step: 1,
@@ -686,7 +703,7 @@ const Search = {
             postfix: null,
           },
           'digit9999': {
-            type: 'digit',
+            type: 'digits',
             from: 0,
             to: 9999,
             step: 1,
@@ -697,7 +714,7 @@ const Search = {
             postfix: null,
           },
           'digit99999': {
-            type: 'digit',
+            type: 'digits',
             from: 0,
             to: 9999,
             step: 1,
@@ -708,7 +725,7 @@ const Search = {
             postfix: null,
           },
           'digit999999': {
-            type: 'digit',
+            type: 'digits',
             from: 0,
             to: 9999,
             step: 1,
@@ -719,7 +736,7 @@ const Search = {
             postfix: null,
           },
           'digit9999999': {
-            type: 'digit',
+            type: 'digits',
             from: 0,
             to: 9999,
             step: 1,
@@ -730,7 +747,7 @@ const Search = {
             postfix: null,
           },
           'digit99999999': {
-            type: 'digit',
+            type: 'digits',
             from: 0,
             to: 9999,
             step: 1,
@@ -755,6 +772,7 @@ const Search = {
       ],
 
       setOptions: [
+        { value: 'hours', text: 'Hours, e.g., "07h00"' },
         { value: 'digit9', text: 'Digits 0 to 9 [prefix/postfix required for min 3 length]' },
         { value: 'digit99', text: 'Digits 00 to 99, [prefix/postfix required for min 3 length]' },
         { value: 'digit999', text: 'Digits 000 to 999 [Club999]' },
@@ -1355,21 +1373,23 @@ const searchModule = {
       function* generateHourSequence(options) {
         const regex = options.regex ? new RegExp(options.regex, 'i') : null;
         for (let i = options.from; i <= options.to; i = parseInt(i) + parseInt(options.step)) {
-          let include = true;
-          const number = i.toString().padStart(options.length, '0');
-          if (options.palindrome) {
-            const reverse = number.split('').reverse().join('');
-            if (number !== reverse) {
-              include = false;
+          for (let j = options.from2; j <= options.to2; j = parseInt(j) + parseInt(options.step2)) {
+            const number = i.toString().padStart(options.length, '0') + 'h' + j.toString().padStart(options.length, '0');
+            let include = true;
+            if (options.palindrome) {
+              const reverse = number.split('').reverse().join('');
+              if (number !== reverse) {
+                include = false;
+              }
             }
-          }
-          if (include && regex) {
-            if (!regex.test(number)) {
-              include = false;
+            if (include && regex) {
+              if (!regex.test(number)) {
+                include = false;
+              }
             }
-          }
-          if (include) {
-            yield (options.prefix || '') + number + (options.postfix || '');
+            if (include) {
+              yield (options.prefix || '') + number + (options.postfix || '');
+            }
           }
         }
       }
@@ -1378,9 +1398,9 @@ const searchModule = {
       state.message = "Generating sequence";
 
       let generator = null;
-      if (options.type == 'digit') {
+      if (options.type == 'digits') {
         generator = generateDigitSequence(options);
-      } else if (options.type == 'hour') {
+      } else if (options.type == 'hours') {
         generator = generateHourSequence(options);
       }
       // console.log( [...generator] );
