@@ -160,7 +160,7 @@ const Search = {
                   <b-col cols="3" class="m-0 p-1 text-right">
                   </b-col>
                   <b-col cols="4" class="m-0 p-1">
-                    <b-button size="sm" @click="scanDigits(settings.selectedDigit, settings.digitRange[settings.selectedDigit])" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
+                    <b-button size="sm" @click="scanDigits(settings.digitRange[settings.selectedDigit])" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
                     <span v-if="searchMessage != null">
                       <b-button size="sm" @click="halt" variant="primary">Halt</b-button>
                     </span>
@@ -653,7 +653,7 @@ const Search = {
 
         digitRange: {
           'digit9': {
-            type: 'digit9',
+            type: 'digit',
             from: 0,
             to: 9,
             step: 1,
@@ -664,7 +664,7 @@ const Search = {
             postfix: null,
           },
           'digit99': {
-            type: 'digit99',
+            type: 'digit',
             from: 0,
             to: 99,
             step: 1,
@@ -675,7 +675,7 @@ const Search = {
             postfix: null,
           },
           'digit999': {
-            type: 'digit999',
+            type: 'digit',
             from: 0,
             to: 999,
             step: 1,
@@ -686,7 +686,7 @@ const Search = {
             postfix: null,
           },
           'digit9999': {
-            type: 'digit9999',
+            type: 'digit',
             from: 0,
             to: 9999,
             step: 1,
@@ -697,7 +697,7 @@ const Search = {
             postfix: null,
           },
           'digit99999': {
-            type: 'digit99999',
+            type: 'digit',
             from: 0,
             to: 9999,
             step: 1,
@@ -708,7 +708,7 @@ const Search = {
             postfix: null,
           },
           'digit999999': {
-            type: 'digit999999',
+            type: 'digit',
             from: 0,
             to: 9999,
             step: 1,
@@ -719,7 +719,7 @@ const Search = {
             postfix: null,
           },
           'digit9999999': {
-            type: 'digit9999999',
+            type: 'digit',
             from: 0,
             to: 9999,
             step: 1,
@@ -730,7 +730,7 @@ const Search = {
             postfix: null,
           },
           'digit99999999': {
-            type: 'digit99999999',
+            type: 'digit',
             from: 0,
             to: 9999,
             step: 1,
@@ -757,9 +757,9 @@ const Search = {
       digitOptions: [
         { value: 'digit9', text: '0 to 9 [prefix/postfix required for min 3 length]' },
         { value: 'digit99', text: '00 to 99, [prefix/postfix required for min 3 length]' },
-        { value: 'digit999', text: '000 to 999' },
-        { value: 'digit9999', text: '0000 to 9999' },
-        { value: 'digit99999', text: '00000 to 99999' },
+        { value: 'digit999', text: '000 to 999 [Club999]' },
+        { value: 'digit9999', text: '0000 to 9999 [Club10k]' },
+        { value: 'digit99999', text: '00000 to 99999 [Club100k]' },
         { value: 'digit999999', text: '000000 to 999999' },
         { value: 'digit9999999', text: '0000000 to 9999999' },
         { value: 'digit99999999', text: '00000000 to 99999999' },
@@ -1046,9 +1046,8 @@ const Search = {
       store.dispatch('search/search', { searchType, searchString, searchGroup } );
     },
 
-    async scanDigits(selectedDigit, options) {
-      console.log("scanDigits - selectedDigit: " + selectedDigit + ", options: " + JSON.stringify(options));
-      store.dispatch('search/scanDigits', { selectedDigit, options } );
+    async scanDigits(options) {
+      store.dispatch('search/scanDigits', options );
     },
 
     async halt() {
@@ -1324,7 +1323,8 @@ const searchModule = {
       // logInfo("searchModule", "mutations.search() - results: " + JSON.stringify(results, null, 2));
     },
 
-    async scan(state, { scanType, options } ) {
+    <!-- Scan -->
+    async scan(state, options ) {
       function* getBatch(records, batchsize = ENSSUBGRAPHBATCHSCANSIZE) {
         while (records.length) {
           yield records.splice(0, batchsize);
@@ -1352,11 +1352,11 @@ const searchModule = {
         }
       }
 
-      logInfo("searchModule", "mutations.scan() - scanType: " + scanType + ", options: " + JSON.stringify(options));
+      logInfo("searchModule", "mutations.scan() - options: " + JSON.stringify(options));
       state.message = "Generating sequence";
 
       let generator = null;
-      if (scanType == 'digits') {
+      if (options.type == 'digit') {
         generator = generateSequenceZeroPad(options);
         // console.log( [...generator] );
       }
@@ -1458,9 +1458,9 @@ const searchModule = {
       // logInfo("searchModule", "actions.search(): " + searchType + ", " + searchString + ", " + searchGroup);
       context.commit('search', { searchType, searchString, searchGroup } );
     },
-    scanDigits(context, { selectedDigit, options } ) {
-      logInfo("searchModule", "actions.scanDigits() - selectedDigit: " + selectedDigit + ", options: " + JSON.stringify(options));
-      context.commit('scan', { scanType: "digits", options: options } );
+    scanDigits(context, options ) {
+      logInfo("searchModule", "actions.scanDigits() - options: " + JSON.stringify(options));
+      context.commit('scan', options);
     },
     halt(context) {
       // logInfo("searchModule", "actions.halt()");
