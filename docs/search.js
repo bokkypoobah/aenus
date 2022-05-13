@@ -231,39 +231,26 @@ const Search = {
         </b-card>
 
         <!-- Intro -->
-        <b-card v-if="Object.keys(searchResults).length == 0 && unregistered.length == 0" class="mt-3" no-header>
+        <b-card v-if="Object.keys(searchResults).length == 0 && unregistered.length == 0" class="mt-1" no-header>
           <b-card-text>
             This application is a tool to query the <a href="https://thegraph.com/hosted-service/subgraph/ensdomains/ens" target="_blank">ENS subgraph</a>. Prices are supplemented from the <a href="https://api.reservoir.tools/#/1.%20Order%20Book/getOrdersAllV1" target="_blank">Reservoir API</a>.
-
-            <br />
-            <br />
-
-            Use <b>Names</b> to search for a list of ENS names. Search type exact, contains, starts with and ends with. For exact searches, the other name owned by the registrants can be retrieved.
-
-            <br />
-            <br />
-
+          </b-card-text>
+          <b-card-text>
+            Use <b>Names</b> to search for a list of ENS names. Search types: exact, contains, starts with, and ends with. For exact searches, other names owned by the registrants can be retrieved.
+          </b-card-text>
+          <b-card-text>
             Use <b>Group</b> to search for the ENS names owned by a group of ETH addresses configured in the <b>Config</b> page.
-
-            <br />
-            <br />
-
+          </b-card-text>
+          <b-card-text>
             Use <b>Sets</b> to scan a range of digits with optional prefix and/or postfix. 999Club, 10kClub, or the 24 hour set.
-
-            <br />
-            <br />
-
+          </b-card-text>
+          <b-card-text>
             The list of names and/or addresses can be comma, space, tab or newline separated. <em>.eth</em> is optional
-
-            <br />
-            <br />
-
+          </b-card-text>
+          <b-card-text>
             This application uses technology and data from <a href="https://twitter.com/ensdomains" target="_blank">ens.eth</a>, <a href="https://twitter.com/graphprotocol" target="_blank">The Graph</a> and <a href="https://twitter.com/reservoir0x" target="_blank">Reservoir</a> that we are not affliated with.
-
-            <br />
-            <br />
-            <br />
-
+          </b-card-text>
+          <b-card-text class="mt-5">
             Enjoy. aenus advanced ENS utilities (c) Bok Consulting Pty Ltd 2022
           </b-card-text>
         </b-card>
