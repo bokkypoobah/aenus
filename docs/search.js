@@ -19,7 +19,7 @@ const Search = {
             </b-tab>
             <b-tab title="By Group">
             </b-tab>
-            <b-tab title="Scan Sets" active>
+            <b-tab title="Scan Sets">
             </b-tab>
           </b-tabs>
 
@@ -777,7 +777,7 @@ const Search = {
         searchTabIndex: 0,
         searchString: null,
         selectedGroup: null,
-        selectedSet: 'hours', // 'digit999',
+        selectedSet: 'digit999',
         digitPrefix: null,
         digitPostfix: null,
         filter: null,
@@ -805,7 +805,7 @@ const Search = {
 
             from2: 0,
             to2: 59,
-            step2: 15, // 1,
+            step2: 1,
             midfix: 'h',
           },
           'digit9': {
