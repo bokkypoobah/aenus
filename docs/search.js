@@ -820,7 +820,7 @@ const Search = {
       ],
 
       setOptions: [
-        { value: 'hours', text: 'Hours, 00h00 to 23h59' },
+        { value: 'hours', text: 'Hours 00h00 to 23h59' },
         { value: 'digit9', text: 'Digits 0 to 9 [prefix/postfix required for min 3 length]' },
         { value: 'digit99', text: 'Digits 00 to 99, [prefix/postfix required for min 3 length]' },
         { value: 'digit999', text: 'Digits 000 to 999 [Club999]' },
