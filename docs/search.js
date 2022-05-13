@@ -81,7 +81,7 @@ const Search = {
 
                 <b-row>
                   <b-col cols="3" class="m-0 p-1 text-right">
-                    From
+                    From<span v-if="settings.setAttributes[settings.selectedSet].type == 'hours'">, hh</span>
                   </b-col>
                   <b-col cols="4" class="m-0 p-1">
                     <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].from" class="w-100"></b-form-input>
@@ -92,7 +92,7 @@ const Search = {
 
                 <b-row>
                   <b-col cols="3" class="m-0 p-1 text-right">
-                    To
+                    To<span v-if="settings.setAttributes[settings.selectedSet].type == 'hours'">, hh</span>
                   </b-col>
                   <b-col cols="4" class="m-0 p-1">
                     <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].to" class="w-100"></b-form-input>
@@ -103,7 +103,7 @@ const Search = {
 
                 <b-row>
                   <b-col cols="3" class="m-0 p-1 text-right">
-                    Step
+                    Step<span v-if="settings.setAttributes[settings.selectedSet].type == 'hours'">, hh</span>
                   </b-col>
                   <b-col cols="4" class="m-0 p-1">
                     <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].step" class="w-100"></b-form-input>
@@ -115,7 +115,7 @@ const Search = {
                 <div v-if="settings.setAttributes[settings.selectedSet].type == 'hours'">
                   <b-row>
                     <b-col cols="3" class="m-0 p-1 text-right">
-                      From
+                      From, mm
                     </b-col>
                     <b-col cols="4" class="m-0 p-1">
                       <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].from2" class="w-100"></b-form-input>
@@ -126,7 +126,7 @@ const Search = {
 
                   <b-row>
                     <b-col cols="3" class="m-0 p-1 text-right">
-                      To
+                      To, mm
                     </b-col>
                     <b-col cols="4" class="m-0 p-1">
                       <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].to2" class="w-100"></b-form-input>
@@ -137,7 +137,7 @@ const Search = {
 
                   <b-row>
                     <b-col cols="3" class="m-0 p-1 text-right">
-                      Step
+                      Step, mm
                     </b-col>
                     <b-col cols="4" class="m-0 p-1">
                       <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].step2" class="w-100"></b-form-input>
@@ -905,7 +905,6 @@ const Search = {
       ],
 
       setOptions: [
-        { value: 'hours', text: 'Hours 00h00 to 23h59' },
         { value: 'digit9', text: 'Digits 0 to 9 [prefix/postfix required for min 3 length]' },
         { value: 'digit99', text: 'Digits 00 to 99, [prefix/postfix required for min 3 length]' },
         { value: 'digit999', text: 'Digits 000 to 999 [Club999]' },
@@ -914,6 +913,7 @@ const Search = {
         { value: 'digit999999', text: 'Digits 000000 to 999999' },
         { value: 'digit9999999', text: 'Digits 0000000 to 9999999' },
         { value: 'digit99999999', text: 'Digits 00000000 to 99999999' },
+        { value: 'hours', text: 'Hours 00h00 to 23h59' },
       ],
 
       imageSizeOptions: [
