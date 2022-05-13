@@ -1408,19 +1408,29 @@ const searchModule = {
         state.tempUnregistered.push(...unregistered);
       }
       async function fetchRegistrationsByApproximateName(name) {
-        await fetch(ENSSUBGRAPHURL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          body: JSON.stringify({
-            query: ENSSUBGRAPHAPPROXIMATENAMEQUERY,
-            variables: { labelName: name },
-          })
-        }).then(response => response.json())
-          .then(data => processRegistrations(data.data.registrations));
-        state.message = "Retrieved " + Object.keys(state.tempResults).length;
+        let skip = 0;
+        let completed = false;
+        while (!completed && !state.halt) {
+          const data = await fetch(ENSSUBGRAPHURL, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: JSON.stringify({
+              query: ENSSUBGRAPHAPPROXIMATENAMEQUERY,
+              variables: { labelName: name, first: ENSSUBGRAPHBATCHSIZE, skip },
+            })
+          }).then(response => response.json());
+          const registrations = data.data && data.data.registrations || [];
+          if (registrations.length == 0) {
+            completed = true;
+          } else {
+            processRegistrations(data.data.registrations)
+          }
+          state.message = "Retrieved " + Object.keys(state.tempResults).length;
+          skip += ENSSUBGRAPHBATCHSIZE;
+        }
       }
       async function fetchRegistrationsByAccount(accounts) {
         for (account of accounts) {

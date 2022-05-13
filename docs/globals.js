@@ -61,8 +61,8 @@ const ENSSUBGRAPHNAMEQUERY = `
 `;
 
 const ENSSUBGRAPHAPPROXIMATENAMEQUERY = `
-  query getRegistrations($labelName: String!) {
-    registrations(first: 1000, orderBy: labelName, orderDirection: asc, where: {labelName_contains: $labelName}) {
+  query getRegistrations($labelName: String!, $first: Int, $skip: Int) {
+    registrations(first: $first, skip: $skip, orderBy: labelName, orderDirection: asc, where: {labelName_contains: $labelName}) {
       id
       registrationDate
       expiryDate
