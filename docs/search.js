@@ -19,7 +19,7 @@ const Search = {
             </b-tab>
             <b-tab title="By Group">
             </b-tab>
-            <b-tab title="Scan Sets">
+            <b-tab title="Scan Sets" active>
             </b-tab>
           </b-tabs>
 
@@ -181,13 +181,13 @@ const Search = {
                   </b-col>
                 </b-row>
 
-                <div v-if="'midfix' in settings.setAttributes[settings.selectedSet]">
+                <div v-if="'separator' in settings.setAttributes[settings.selectedSet]">
                   <b-row>
                     <b-col cols="3" class="m-0 p-1 text-right">
-                      Midfix
+                      Separator
                     </b-col>
                     <b-col cols="4" class="m-0 p-1">
-                      <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].midfix" placeholder="optional midfix, e.g., 'h'" class="w-100"></b-form-input>
+                      <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].separator" placeholder="optional separator, e.g., 'h'" class="w-100"></b-form-input>
                     </b-col>
                     <b-col cols="4" class="m-0 p-1">
                     </b-col>
@@ -603,8 +603,8 @@ const Search = {
                       X2Y2
                     </b-link>
                     <br />
-                    <b-link :href="'https://etherscan.io/address/' + data.item.registrant" v-b-popover.hover="'View in etherscan.io'" target="_blank">
-                      EtherScan
+                    <b-link :href="'https://chat.blockscan.com/index?a=' + data.item.registrant" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                      Blockscan
                     </b-link>
                   </b-popover>
                 </template>
@@ -800,7 +800,7 @@ const Search = {
             from2: 0,
             to2: 59,
             step2: 1,
-            midfix: 'h',
+            separator: 'h',
           },
           'digit9': {
             type: 'digits',
@@ -1288,7 +1288,9 @@ const searchModule = {
   namespaced: true,
   state: {
     results: [],
+    tempResults: [],
     unregistered: [],
+    tempUnregistered: [],
     prices: [],
     message: null,
     halt: false,
@@ -1528,7 +1530,7 @@ const searchModule = {
         const regex = options.regex ? new RegExp(options.regex, 'i') : null;
         for (let i = options.from; i <= options.to; i = parseInt(i) + parseInt(options.step)) {
           for (let j = options.from2; j <= options.to2; j = parseInt(j) + parseInt(options.step2)) {
-            const number = i.toString().padStart(options.length, '0') + (options.midfix || '') + j.toString().padStart(options.length, '0');
+            const number = i.toString().padStart(options.length, '0') + (options.separator || '') + j.toString().padStart(options.length, '0');
             let include = true;
             if (options.palindrome) {
               const reverse = number.split('').reverse().join('');
@@ -1548,42 +1550,9 @@ const searchModule = {
         }
       }
 
-      logInfo("searchModule", "mutations.scan() - options: " + JSON.stringify(options));
-      state.message = "Generating sequence";
-
-      let generator = null;
-      if (options.type == 'digits') {
-        generator = generateDigitSequence(options);
-      } else if (options.type == 'hours') {
-        generator = generateHourSequence(options);
-      }
-      // console.log( [...generator] );
-
-      const results = {};
-      const now = parseInt(new Date().valueOf() / 1000);
-      const expiryDate = parseInt(now) - 90 * SECONDSPERDAY;
-      const warningDate = parseInt(now) + 90 * SECONDSPERDAY;
-      state.message = "Retrieving";
-      state.unregistered = [];
-      let records = 0;
-      for (let batch of getBatch([...generator])) {
-        const data = await fetch(ENSSUBGRAPHURL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          body: JSON.stringify({
-            query: ENSSUBGRAPHNAMEQUERY,
-            variables: { labelNames: batch },
-          })
-        }).then(response => response.json());
-        // logInfo("searchModule", "mutations.scan() - data: " + JSON.stringify(data, null, 2));
-        const registrations = data.data.registrations || [];
-        records = records + registrations.length;
-        state.message = "Retrieved " + records;
-        for (registration of registrations) {
-          results[registration.domain.name] = {
+      function processRegistrations(data) {
+        for (const registration of data.data.registrations) {
+          state.tempResults[registration.domain.name] = {
             labelName: registration.labelName,
             registrationDate: registration.registrationDate,
             expiryDate: registration.expiryDate,
@@ -1602,25 +1571,65 @@ const searchModule = {
             hasAvatar: registration.domain.resolver && registration.domain.resolver.texts && registration.domain.resolver.texts.includes("avatar"),
           };
         }
-        const namesFound = Object.keys(results).map(function(name) { return name.replace('.eth', ''); });
-        // logInfo("searchModule", "mutations.scan() - namesFound: " + JSON.stringify(namesFound, null, 2));
-        const unregistered = batch.filter(name => !namesFound.includes(name));
-        // logInfo("searchModule", "mutations.scan() - unregistered: " + JSON.stringify(unregistered, null, 2));
-        state.unregistered.push(...unregistered);
-        // logInfo("searchModule", "mutations.scan() - all unregistered: " + JSON.stringify(state.unregistered, null, 2));
-         if (state.halt) {
-           break;
-         }
       }
-      state.results = results;
-      state.unregistered.sort(function (a, b) {
-          return ('' + a).localeCompare(b);
+
+      async function fetchRegistrations(batch){
+        await fetch(ENSSUBGRAPHURL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify({
+            query: ENSSUBGRAPHNAMEQUERY,
+            variables: { labelNames: batch },
+          })
+        }).then(response => response.json())
+          .then(data => processRegistrations(data));
+        state.message = "Retrieved " + Object.keys(state.tempResults).length;
+        const namesFound = Object.keys(state.tempResults).map(function(name) { return name.replace('.eth', ''); });
+        const unregistered = batch.filter(name => !namesFound.includes(name));
+        state.tempUnregistered.push(...unregistered);
+      }
+
+      logInfo("searchModule", "mutations.scan() - options: " + JSON.stringify(options));
+      state.message = "Generating sequence";
+
+      let generator = null;
+      if (options.type == 'digits') {
+        generator = generateDigitSequence(options);
+      } else if (options.type == 'hours') {
+        generator = generateHourSequence(options);
+      }
+      // console.log( [...generator] );
+
+      state.tempResults = {};
+      state.tempUnregistered = [];
+      const now = parseInt(new Date().valueOf() / 1000);
+      const expiryDate = parseInt(now) - 90 * SECONDSPERDAY;
+      const warningDate = parseInt(now) + 90 * SECONDSPERDAY;
+      state.message = "Retrieving";
+      for (let batch of getBatch([...generator])) {
+        await fetchRegistrations(batch);
+        if (state.halt) {
+          break;
+        }
+      }
+      state.results = state.tempResults;
+      state.tempResults = {};
+      state.tempUnregistered.sort(function (a, b) {
+        return ('' + a).localeCompare(b);
       })
+      state.unregistered = state.tempUnregistered;
+      state.tempUnregistered = [];
+
       // get prices
       let keys = Object.keys(state.results);
       const GETPRICEBATCHSIZE = 50;
       records = 0;
       const prices = {};
+      const DELAYINMILLIS = 500;
+      const delay = ms => new Promise(res => setTimeout(res, ms));
       for (let i = 0; i < keys.length && !state.halt; i += GETPRICEBATCHSIZE) {
         const batch = keys.slice(i, parseInt(i) + GETPRICEBATCHSIZE);
         let url = "https://api.reservoir.tools/tokens/v4?";
@@ -1641,6 +1650,7 @@ const searchModule = {
             name: price.name,
           };
         }
+        await delay(DELAYINMILLIS);
       }
       state.prices = prices;
       state.message = null;
