@@ -147,7 +147,7 @@ const Search = {
                   </b-row>
                 </div>
 
-                <b-row>
+                <b-row v-if="'regex' in settings.setAttributes[settings.selectedSet]">
                   <b-col cols="3" class="m-0 p-1 text-right">
                     Regex
                   </b-col>
@@ -158,7 +158,7 @@ const Search = {
                   </b-col>
                 </b-row>
 
-                <b-row>
+                <b-row v-if="'palindrome' in settings.setAttributes[settings.selectedSet]">
                   <b-col cols="3" class="m-0 p-1 text-right">
                   </b-col>
                   <b-col cols="4" class="m-0 p-1">
@@ -170,7 +170,7 @@ const Search = {
                   </b-col>
                 </b-row>
 
-                <b-row>
+                <b-row v-if="'prefix' in settings.setAttributes[settings.selectedSet]">
                   <b-col cols="3" class="m-0 p-1 text-right">
                     Prefix
                   </b-col>
@@ -181,7 +181,7 @@ const Search = {
                   </b-col>
                 </b-row>
 
-                <div v-if="settings.setAttributes[settings.selectedSet].type == 'hours'">
+                <div v-if="'midfix' in settings.setAttributes[settings.selectedSet]">
                   <b-row>
                     <b-col cols="3" class="m-0 p-1 text-right">
                       Midfix
@@ -194,7 +194,7 @@ const Search = {
                   </b-row>
                 </div>
 
-                <b-row>
+                <b-row v-if="'postfix' in settings.setAttributes[settings.selectedSet]">
                   <b-col cols="3" class="m-0 p-1 text-right">
                     Postfix
                   </b-col>
@@ -307,10 +307,10 @@ const Search = {
               </div>
               <div class="pr-1 flex-grow-1">
               </div>
-              <div v-if="settings.resultsTabIndex != 4" class="pl-1" style="max-width: 200px;">
+              <div v-if="settings.resultsTabIndex != 4 && settings.resultsTabIndex != 5" class="pl-1" style="max-width: 200px;">
                 <b-form-select size="sm" v-model="settings.sortOption" :options="sortOptions" class="w-100"></b-form-select>
               </div>
-              <div v-if="settings.resultsTabIndex != 4" class="pl-1">
+              <div v-if="settings.resultsTabIndex != 4 && settings.resultsTabIndex != 5" class="pl-1">
                 <b-button size="sm" :pressed.sync="settings.randomise" @click="settings.sortOption = 'random'; " variant="link" v-b-popover.hover="'Randomise'"><b-icon-arrow-clockwise shift-v="-1" font-scale="1.4"></b-icon-arrow-clockwise></b-button>
               </div>
               <div v-if="settings.resultsTabIndex != 4" class="pl-1">
@@ -682,7 +682,7 @@ const Search = {
             <div v-if="settings.resultsTabIndex == 5">
               <b-card-text class="m-0 p-0">
                 <b-row class="m-0 p-0">
-                  <b-col class="m-0 p-0 text-right">mm</b-col>
+                  <b-col class="m-0 p-0 text-right">mm\hh</b-col>
                   <b-col v-for="(hours, hoursIndex) in 24" :key="hoursIndex" class="m-0 p-0 text-right">
                     {{ (hours - 1).toString().padStart(2, '0') }}
                   </b-col>
@@ -698,18 +698,18 @@ const Search = {
                           </b-badge>
                         </div>
                       </font>
-                      <b-button v-if="hhmm" :id="'popover-target-' + hhmm.labelName" variant="link" class="m-0 p-0">
+                      <font size="-2">
                         <span v-if="hhmm.warn == null">
-                          <font size="-2">
+                          <b-link v-if="hhmm" :id="'popover-target-' + hhmm.labelName">
                             {{ hhmm.labelName }}
-                          </font>
+                          </b-link>
                         </span>
                         <span v-if="hhmm.warn != null">
-                          <font size="-2">
-                            <b-badge v-if="hhmm.warn != null" v-b-popover.hover="'Expiring ' + formatDate(hhmm.expiryDate) + ' UTC'" variant="warning">{{ hhmm.labelName }}</b-badge>
-                          </font>
+                          <b-link v-if="hhmm" :id="'popover-target-' + hhmm.labelName" style="background: yellow; " v-b-popover.hover="'Expiring ' + formatDate(hhmm.expiryDate) + ' UTC'">
+                            {{ hhmm.labelName }}
+                          </b-link>
                         </span>
-                      </b-button>
+                      </font>
                       <b-popover :target="'popover-target-' + hhmm.labelName" placement="right">
                         <template #title>{{ hhmm.labelName }}:</template>
                         <b-link :href="'https://app.ens.domains/name/' + hhmm.name" v-b-popover.hover="'View in app.ens.domains'" target="_blank">
@@ -778,8 +778,6 @@ const Search = {
         searchString: null,
         selectedGroup: null,
         selectedSet: 'digit999',
-        digitPrefix: null,
-        digitPostfix: null,
         filter: null,
         priceFrom: null,
         priceTo: null,
@@ -798,10 +796,6 @@ const Search = {
             to: 23,
             step: 1,
             length: 2,
-            regex: null,
-            palindrome: false,
-            prefix: null,
-            postfix: null,
 
             from2: 0,
             to2: 59,
