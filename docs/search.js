@@ -112,6 +112,41 @@ const Search = {
                   </b-col>
                 </b-row>
 
+                <div v-if="settings.setAttributes[settings.selectedSet].type == 'hours'">
+                  <b-row>
+                    <b-col cols="3" class="m-0 p-1 text-right">
+                      From
+                    </b-col>
+                    <b-col cols="4" class="m-0 p-1">
+                      <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].from2" class="w-100"></b-form-input>
+                    </b-col>
+                    <b-col cols="4" class="m-0 p-1">
+                    </b-col>
+                  </b-row>
+
+                  <b-row>
+                    <b-col cols="3" class="m-0 p-1 text-right">
+                      To
+                    </b-col>
+                    <b-col cols="4" class="m-0 p-1">
+                      <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].to2" class="w-100"></b-form-input>
+                    </b-col>
+                    <b-col cols="4" class="m-0 p-1">
+                    </b-col>
+                  </b-row>
+
+                  <b-row>
+                    <b-col cols="3" class="m-0 p-1 text-right">
+                      Step
+                    </b-col>
+                    <b-col cols="4" class="m-0 p-1">
+                      <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].step2" class="w-100"></b-form-input>
+                    </b-col>
+                    <b-col cols="4" class="m-0 p-1">
+                    </b-col>
+                  </b-row>
+                </div>
+
                 <b-row>
                   <b-col cols="3" class="m-0 p-1 text-right">
                     Regex
@@ -145,6 +180,19 @@ const Search = {
                   <b-col cols="4" class="m-0 p-1">
                   </b-col>
                 </b-row>
+
+                <div v-if="settings.setAttributes[settings.selectedSet].type == 'hours'">
+                  <b-row>
+                    <b-col cols="3" class="m-0 p-1 text-right">
+                      Midfix
+                    </b-col>
+                    <b-col cols="4" class="m-0 p-1">
+                      <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].midfix" placeholder="optional postfix, e.g., 'abc'" class="w-100"></b-form-input>
+                    </b-col>
+                    <b-col cols="4" class="m-0 p-1">
+                    </b-col>
+                  </b-row>
+                </div>
 
                 <b-row>
                   <b-col cols="3" class="m-0 p-1 text-right">
