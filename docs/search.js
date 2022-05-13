@@ -682,7 +682,7 @@ const Search = {
             <div v-if="settings.resultsTabIndex == 5">
               <b-card-text class="m-0 p-0">
                 <b-row class="m-0 p-0">
-                  <b-col class="m-0 p-0 text-right">mm\hh</b-col>
+                  <b-col class="m-0 p-0 text-right">mm\\hh</b-col>
                   <b-col v-for="(hours, hoursIndex) in 24" :key="hoursIndex" class="m-0 p-0 text-right">
                     {{ (hours - 1).toString().padStart(2, '0') }}
                   </b-col>
