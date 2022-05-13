@@ -19,7 +19,7 @@ const Search = {
             </b-tab>
             <b-tab title="By Group">
             </b-tab>
-            <b-tab title="Scan Sets" active>
+            <b-tab title="Scan Sets">
             </b-tab>
           </b-tabs>
 
