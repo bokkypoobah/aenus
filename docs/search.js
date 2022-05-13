@@ -250,12 +250,17 @@ const Search = {
             <br />
             <br />
 
-            Use <b>Scan Digits</b> to scan a range of digits with optional prefix and/or postfix.
+            Use <b>Scan Sets</b> to scan a range of digits with optional prefix and/or postfix. Or the 24 hour set.
 
             <br />
             <br />
 
             The list of names and/or addresses can be comma, space, tab or newline separated. <em>.eth</em> is optional
+
+            <br />
+            <br />
+
+            This application uses technology and data from <a href="https://twitter.com/ensdomains" target="_blank">ens.eth</a>, <a href="https://twitter.com/graphprotocol" target="_blank">The Graph</a> and <a href="https://twitter.com/reservoir0x" target="_blank">Reservoir</a> (not affliated).
 
             <br />
             <br />
