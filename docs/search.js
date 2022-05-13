@@ -19,7 +19,7 @@ const Search = {
             </b-tab>
             <b-tab title="By Group">
             </b-tab>
-            <b-tab title="Scan Sets">
+            <b-tab title="Scan Sets" active>
             </b-tab>
           </b-tabs>
 
@@ -283,6 +283,8 @@ const Search = {
               <b-tab title="Owners">
               </b-tab>
               <b-tab title="Unregistered" :disabled="unregistered.length == 0">
+              </b-tab>
+              <b-tab title="Hours" v-if="settings.searchTabIndex == 3 && settings.setAttributes[settings.selectedSet].type == 'hours'">
               </b-tab>
             </b-tabs>
 
@@ -676,6 +678,90 @@ const Search = {
               </b-card-text>
             </div>
 
+            <!-- Hours - Only enabled sometimes -->
+            <div v-if="settings.resultsTabIndex == 5">
+              <b-card-text class="m-0 p-0">
+                <b-row class="m-0 p-0">
+                  <b-col class="m-0 p-0 text-right">mm</b-col>
+                  <b-col v-for="(hours, hoursIndex) in 24" :key="hoursIndex" class="m-0 p-0 text-right">
+                    {{ (hours - 1).toString().padStart(2, '0') }}
+                  </b-col>
+                </b-row>
+                <b-row v-for="(mins, index) in hours" :key="index" class="m-0 p-0">
+                  <b-col class="m-0 p-0 text-right">{{ mins.mm.padStart(2, '0') }}</b-col>
+                  <b-col v-for="(hhmm, hhmmIndex) in mins.hh" :key="hhmmIndex" class="m-0 p-0 text-right">
+                    <div v-if="hhmm">
+                      <font size="-2">
+                        <div v-if="prices[hhmm.tokenId] && prices[hhmm.tokenId].floorAskPrice != null">
+                          <b-badge v-b-popover.hover="'Floor ask price in ETH'" variant="success">
+                            {{ prices[hhmm.tokenId].floorAskPrice }}
+                          </b-badge>
+                        </div>
+                      </font>
+                      <b-button v-if="hhmm" :id="'popover-target-' + hhmm.labelName" variant="link" class="m-0 p-0">
+                        <span v-if="hhmm.warn == null">
+                          <font size="-2">
+                            {{ hhmm.labelName }}
+                          </font>
+                        </span>
+                        <span v-if="hhmm.warn != null">
+                          <font size="-2">
+                            <b-badge v-if="hhmm.warn != null" v-b-popover.hover="'Expiring ' + formatDate(hhmm.expiryDate) + ' UTC'" variant="warning">{{ hhmm.labelName }}</b-badge>
+                          </font>
+                        </span>
+                      </b-button>
+                      <b-popover :target="'popover-target-' + hhmm.labelName" placement="right">
+                        <template #title>{{ hhmm.labelName }}:</template>
+                        <b-link :href="'https://app.ens.domains/name/' + hhmm.name" v-b-popover.hover="'View in app.ens.domains'" target="_blank">
+                          ENS
+                        </b-link>
+                        <br />
+                        <b-link :href="'https://opensea.io/assets/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + hhmm.tokenId" v-b-popover.hover="'View in opensea.io'" target="_blank">
+                          OpenSea
+                        </b-link>
+                        <br />
+                        <b-link :href="'https://looksrare.org/collections/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + hhmm.tokenId" v-b-popover.hover="'View in looksrare.org'" target="_blank">
+                          LooksRare
+                        </b-link>
+                        <br />
+                        <b-link :href="'https://x2y2.io/eth/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + hhmm.tokenId" v-b-popover.hover="'View in x2y2.io'" target="_blank">
+                          X2Y2
+                        </b-link>
+                        <br />
+                        <b-link :href="'https://etherscan.io/enslookup-search?search=' + hhmm.name" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                          EtherScan
+                        </b-link>
+                        <br />
+                        <b-link :href="'https://duckduckgo.com/?q=' + hhmm.labelName" v-b-popover.hover="'Search name in duckduckgo.com'" target="_blank">
+                          DuckDuckGo
+                        </b-link>
+                        <br />
+                        <b-link :href="'https://www.google.com/search?q=' + hhmm.labelName" v-b-popover.hover="'Search name in google.com'" target="_blank">
+                          Google
+                        </b-link>
+                        <br />
+                        <b-link :href="'https://twitter.com/search?q=' + hhmm.name" v-b-popover.hover="'Search name in twitter.com'" target="_blank">
+                          Twitter
+                        </b-link>
+                        <br />
+                        <b-link :href="'https://wikipedia.org/wiki/' + hhmm.labelName" v-b-popover.hover="'Search name in wikipedia.org'" target="_blank">
+                          Wikipedia
+                        </b-link>
+                        <br />
+                        <b-link :href="'https://en.wiktionary.org/wiki/' + hhmm.labelName" v-b-popover.hover="'Search name in wiktionary.org'" target="_blank">
+                          Wiktionary
+                        </b-link>
+                        <br />
+                        <b-link :href="'https://thesaurus.yourdictionary.com/' + hhmm.labelName" v-b-popover.hover="'Search name in thesaurus.yourdictionary.com'" target="_blank">
+                          Thesaurus
+                        </b-link>
+                      </b-popover>
+                    </div>
+                  </b-col>
+                </b-row>
+              </b-card-text>
+            </div>
+
           </b-card-body>
         </b-card>
 
@@ -691,7 +777,7 @@ const Search = {
         searchTabIndex: 0,
         searchString: null,
         selectedGroup: null,
-        selectedSet: 'digit999',
+        selectedSet: 'hours', // 'digit999',
         digitPrefix: null,
         digitPostfix: null,
         filter: null,
@@ -719,7 +805,7 @@ const Search = {
 
             from2: 0,
             to2: 59,
-            step2: 1,
+            step2: 15, // 1,
             midfix: 'h',
           },
           'digit9': {
@@ -909,6 +995,10 @@ const Search = {
     groups() {
       return store.getters['config/groups'];
     },
+    prices() {
+      return store.getters['search/prices'];
+    },
+
     groupOptions() {
       const results = [];
       if (this.groups) {
@@ -1071,8 +1161,25 @@ const Search = {
       });
       return results;
     },
-    prices() {
-      return store.getters['search/prices'];
+
+    hours() {
+      const collator = {};
+      for (result of Object.values(this.filteredResults)) {
+        const hh = parseInt(result.labelName.substring(0, 2));
+        const mm = parseInt(result.labelName.slice(-2));
+        if (!collator[mm]) {
+          collator[mm] = Array(24).fill(null); // [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null];
+          collator[mm][hh] = result;
+        } else {
+          collator[mm][hh] = result;
+        }
+      }
+      const results = [];
+      for (const key of Object.keys(collator)) {
+        const hours = collator[key];
+        results.push( { mm: key, hh: hours } );
+      }
+      return results;
     },
   },
   methods: {
@@ -1427,7 +1534,7 @@ const searchModule = {
         const regex = options.regex ? new RegExp(options.regex, 'i') : null;
         for (let i = options.from; i <= options.to; i = parseInt(i) + parseInt(options.step)) {
           for (let j = options.from2; j <= options.to2; j = parseInt(j) + parseInt(options.step2)) {
-            const number = i.toString().padStart(options.length, '0') + 'h' + j.toString().padStart(options.length, '0');
+            const number = i.toString().padStart(options.length, '0') + (options.midfix || '') + j.toString().padStart(options.length, '0');
             let include = true;
             if (options.palindrome) {
               const reverse = number.split('').reverse().join('');
