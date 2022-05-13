@@ -15,7 +15,7 @@ const Search = {
           <b-tabs card align="left" no-body active-tab-class="m-0 p-0" v-model="settings.searchTabIndex">
             <b-tab title="By Name">
             </b-tab>
-            <b-tab title="By Owner">
+            <b-tab title="By Owner" active>
             </b-tab>
             <b-tab title="By Group">
             </b-tab>
@@ -32,7 +32,7 @@ const Search = {
                   <b-form-textarea size="sm" v-model.trim="settings.searchString" placeholder="🔍 {name1}[.eth] {name2}[.eth], {name3}[.eth]\n{name4}[.eth] ..." rows="3" max-rows="100"></b-form-textarea>
                 </b-col>
                 <b-col class="m-0 p-1">
-                  <b-button size="sm" @click="search('name', settings.searchString, settings.selectedGroup)" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
+                  <b-button size="sm" @click="scan( { type: 'name', search: settings.searchString } );" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
                 </b-col>
               </b-row>
             </div>
@@ -43,7 +43,7 @@ const Search = {
                   <b-form-textarea size="sm" v-model.trim="settings.searchString" placeholder="🔍 0x012345... 0x123456..., {name1}[.eth]\n{name2}[.eth] ..." rows="3" max-rows="100"></b-form-textarea>
                 </b-col>
                 <b-col class="m-0 p-1">
-                  <b-button size="sm" @click="search('owner', settings.searchString, settings.selectedGroup)" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
+                  <b-button size="sm" @click="scan( { type: 'owner', search: settings.searchString } )" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
                   <span v-if="searchMessage != null">
                     <b-button size="sm" @click="halt" variant="primary">Halt</b-button>
                   </span>
@@ -57,7 +57,7 @@ const Search = {
                   <b-form-select size="sm" v-model="settings.selectedGroup" :options="groupOptions" v-b-popover.hover="'Set up groups in Config'"></b-form-select>
                 </b-col>
                 <b-col class="m-0 p-1">
-                  <b-button size="sm" @click="search('group', settings.searchString, settings.selectedGroup)" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
+                  <b-button size="sm" @click="scan( { type: 'group', group: settings.selectedGroup } )" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
                   <span v-if="searchMessage != null">
                     <b-button size="sm" @click="halt" variant="primary">Halt</b-button>
                   </span>
@@ -209,7 +209,7 @@ const Search = {
                   <b-col cols="3" class="m-0 p-1 text-right">
                   </b-col>
                   <b-col cols="4" class="m-0 p-1">
-                    <b-button size="sm" @click="scanDigits(settings.setAttributes[settings.selectedSet])" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
+                    <b-button size="sm" @click="scan(settings.setAttributes[settings.selectedSet])" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
                     <span v-if="searchMessage != null">
                       <b-button size="sm" @click="halt" variant="primary">Halt</b-button>
                     </span>
@@ -775,7 +775,7 @@ const Search = {
 
       settings: {
         searchTabIndex: 0,
-        searchString: null,
+        searchString: 'test 0x287F9b46dceA520D829c874b0AF01f4fbfeF9243', // null,
         selectedGroup: null,
         selectedSet: 'digit999',
         filter: null,
@@ -1214,12 +1214,8 @@ const Search = {
       }, 1500);
     },
 
-    async search(searchType, searchString, searchGroup) {
-      store.dispatch('search/search', { searchType, searchString, searchGroup } );
-    },
-
-    async scanDigits(options) {
-      store.dispatch('search/scanDigits', options );
+    async scan(options) {
+      store.dispatch('search/scan', options);
     },
 
     async halt() {
@@ -1309,197 +1305,9 @@ const searchModule = {
     executionQueue: state => state.executionQueue,
   },
   mutations: {
-
-    async search(state, { searchType, searchString, searchGroup } ) {
-      logInfo("searchModule", "mutations.search(): " + searchType + ", " + searchString + ", " + searchGroup);
-      // const DELAYINMILLIS = 500;
-      // const delay = ms => new Promise(res => setTimeout(res, ms));
-      const results = {};
-      const now = parseInt(new Date().valueOf() / 1000);
-      const expiryDate = parseInt(now) - 90 * SECONDSPERDAY;
-      const warningDate = parseInt(now) + 90 * SECONDSPERDAY;
-
-      let searchForAccounts = [];
-      if (searchType == 'name' || searchType == 'owner') {
-        const searchForNames = searchString == null ? [] : searchString.split(/[, \t\n]+/)
-          .map(function(name) { return name.toLowerCase().trim(); })
-          .filter(function (name) { return !(name.length == 42 && name.substring(0, 2) == '0x'); })
-          .map(function(name) { return name.replace('.eth', ''); });
-        searchForAccounts = searchString == null ? [] : searchString.split(/[, \t\n]+/)
-          .map(function(name) { return name.toLowerCase().trim(); })
-          .filter(function (name) { return name.length == 42 && name.substring(0, 2) == '0x'; });
-        // logInfo("searchModule", "mutations.search() - searchString: " + searchString);
-        // logInfo("searchModule", "mutations.search() - searchForNames: " + JSON.stringify(searchForNames, null, 2));
-        // logInfo("searchModule", "mutations.search() - searchForAccounts: " + JSON.stringify(searchForAccounts, null, 2));
-
-        const data = await fetch(ENSSUBGRAPHURL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          body: JSON.stringify({
-            query: ENSSUBGRAPHNAMEQUERY,
-            variables: { labelNames: searchForNames },
-          })
-        }).then(response => response.json());
-        // logInfo("searchModule", "mutations.search() - data: " + JSON.stringify(data, null, 2));
-        const registrations = data.data.registrations || [];
-        const registrantMap = {};
-        // logInfo("searchModule", "mutations.search() - registrations: " + JSON.stringify(registrations, null, 2));
-        for (registration of registrations) {
-          // logInfo("searchModule", "mutations.search() - registration: " + JSON.stringify(registration, null, 2));
-          if (searchType == 'owner') {
-            registrantMap[registration.registrant.id] = true;
-          }
-          results[registration.domain.name] = {
-            labelName: registration.labelName,
-            registrationDate: registration.registrationDate,
-            expiryDate: registration.expiryDate,
-            cost: registration.cost,
-            registrant: registration.registrant.id,
-            owner: registration.domain.owner.id,
-            labelhash: registration.domain.labelhash,
-            tokenId: new BigNumber(registration.domain.labelhash.substring(2), 16).toFixed(0),
-            name: registration.domain.name,
-            isMigrated: registration.domain.isMigrated,
-            resolver: registration.domain.resolver && registration.domain.resolver.address || null,
-            resolvedAddress: registration.domain.resolvedAddress && registration.domain.resolvedAddress.id || null,
-            parent: registration.domain.parent.name,
-            length: registration.domain.name.indexOf("\."),
-            warn: registration.expiryDate < now ? 'red' : registration.expiryDate < warningDate ? 'orange' : null,
-            hasAvatar: registration.domain.resolver && registration.domain.resolver.texts && registration.domain.resolver.texts.includes("avatar"),
-          };
-        }
-        // logInfo("searchModule", "mutations.search() - results: " + JSON.stringify(Object.keys(results), null, 2));
-        const namesFound = Object.keys(results).map(function(name) { return name.replace('.eth', ''); });
-        // logInfo("searchModule", "mutations.search() - namesFound: " + JSON.stringify(namesFound, null, 2));
-        state.unregistered = searchForNames.filter(name => !namesFound.includes(name));
-        // logInfo("searchModule", "mutations.search() - unregistered: " + JSON.stringify(state.unregistered, null, 2));
-        state.unregistered.sort(function (a, b) {
-            return ('' + a).localeCompare(b);
-        })
-        // logInfo("searchModule", "mutations.search() - unregistered sorted: " + JSON.stringify(state.unregistered, null, 2));
-        // logInfo("searchModule", "mutations.search() - registrantMap sorted: " + JSON.stringify(registrantMap, null, 2));
-
-        searchForAccounts = [ ...searchForAccounts, ...Object.keys(registrantMap) ];
-        // logInfo("searchModule", "mutations.search() - searchForAccounts: " + JSON.stringify(searchForAccounts, null, 2));
-      } else {
-        state.unregistered = [];
-      }
-
-      if (searchType == 'owner' || searchType == 'group') {
-        if (searchType == 'group') {
-          if (searchGroup == null) {
-            if (store.getters['connection/coinbase'] != null) {
-              searchForAccounts = [ ...searchForAccounts, store.getters['connection/coinbase'] ];
-            }
-          } else {
-            let group = store.getters['config/groups'][searchGroup];
-            searchForAccounts = [ ...searchForAccounts, ...group.accounts ];
-          }
-        }
-        // logInfo("searchModule", "mutations.search() - searchForAccounts: " + JSON.stringify(searchForAccounts));
-        // logInfo("searchModule", "mutations.search() - expiryDate: " + expiryDate + " = " + new Date(expiryDate * 1000));
-        state.message = "Retrieving";
-        for (account of searchForAccounts) {
-          // logInfo("searchModule", "mutations.search() - account: " + JSON.stringify(account));
-          const first = ENSSUBGRAPHBATCHSIZE;
-          const id = account.toLowerCase();
-          let skip = 0;
-          // console.log(JSON.stringify({ query, variables: { id, first, skip, expiryDate } }));
-          let completed = false;
-          let records = 0;
-          while (!completed && !state.halt) {
-            const data = await fetch(ENSSUBGRAPHURL, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-              },
-              body: JSON.stringify({
-                query: ENSSUBGRAPHOWNEDQUERY,
-                variables: { id, first, skip, expiryDate },
-              })
-            }).then(response => response.json());
-            // if (skip == 0) {
-            //   logInfo("searchModule", "mutations.search() - data: " + JSON.stringify(data, null, 2));
-            // }
-            const registrations = data.data.account && data.data.account.registrations || [];
-            if (registrations.length == 0) {
-              completed = true;
-            } else {
-              records = records + registrations.length;
-              state.message = "ENS Subgraph " + records;
-              for (registration of registrations) {
-                // if (registration.domain.name == "test.eth") {
-                  // console.log(JSON.stringify(registration, null, 2));
-                // }
-                results[registration.domain.name] = {
-                  labelName: registration.labelName,
-                  registrationDate: registration.registrationDate,
-                  expiryDate: registration.expiryDate,
-                  cost: registration.cost,
-                  registrant: registration.registrant.id,
-                  owner: registration.domain.owner.id,
-                  labelhash: registration.domain.labelhash,
-                  tokenId: new BigNumber(registration.domain.labelhash.substring(2), 16).toFixed(0),
-                  name: registration.domain.name,
-                  isMigrated: registration.domain.isMigrated,
-                  resolver: registration.domain.resolver && registration.domain.resolver.address || null,
-                  resolvedAddress: registration.domain.resolvedAddress && registration.domain.resolvedAddress.id || null,
-                  parent: registration.domain.parent.name,
-                  length: registration.domain.name.indexOf("\."),
-                  warn: registration.expiryDate < now ? 'red' : registration.expiryDate < warningDate ? 'orange' : null,
-                  hasAvatar: registration.domain.resolver && registration.domain.resolver.texts && registration.domain.resolver.texts.includes("avatar"),
-                };
-                // console.log(JSON.stringify(registration, null, 2));
-                // console.log("resolvedAddress: " + JSON.stringify(registration.domain.resolvedAddres));
-                // console.log(JSON.stringify(results[registration.domain.name], null, 2));
-              }
-              // this.results = results;
-            }
-            skip += ENSSUBGRAPHBATCHSIZE;
-          }
-        }
-      }
-      state.results = results;
-
-      // get prices
-      let keys = Object.keys(state.results);
-      const GETPRICEBATCHSIZE = 50;
-      records = 0;
-      const prices = {};
-      for (let i = 0; i < keys.length && !state.halt; i += GETPRICEBATCHSIZE) {
-        const batch = keys.slice(i, parseInt(i) + GETPRICEBATCHSIZE);
-        let url = "https://api.reservoir.tools/tokens/v4?";
-        let separator = "";
-        for (let j = 0; j < batch.length; j++) {
-          const record = state.results[batch[j]];
-          url = url + separator + "tokens=0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85%3A" + record.tokenId;
-          separator = "&";
-        }
-        const data = await fetch(url).then(response => response.json());
-        records = records + data.token ? data.tokens.length : 0;
-        state.message = "Reservoir Prices " + records;
-        // console.log(JSON.stringify(data, null, 2));
-        for (price of data.tokens) {
-          prices[price.tokenId] = {
-            floorAskPrice: price.floorAskPrice,
-            source: price.source,
-            name: price.name,
-          };
-        }
-      }
-      state.prices = prices;
-
-      state.message = null;
-      state.halt = false;
-      // logInfo("searchModule", "mutations.search() - results: " + JSON.stringify(results, null, 2));
-    },
-
-    <!-- Scan -->
+    // --- Scan ---
     async scan(state, options ) {
+      // --- Scan functions ---
       function* getBatch(records, batchsize = ENSSUBGRAPHBATCHSCANSIZE) {
         while (records.length) {
           yield records.splice(0, batchsize);
@@ -1526,7 +1334,6 @@ const searchModule = {
           }
         }
       }
-
       function* generateHourSequence(options) {
         const regex = options.regex ? new RegExp(options.regex, 'i') : null;
         for (let i = options.from; i <= options.to; i = parseInt(i) + parseInt(options.step)) {
@@ -1550,10 +1357,8 @@ const searchModule = {
           }
         }
       }
-
-      function processRegistrations(data) {
-        // console.log("processRegistrations: " + JSON.stringify(data, null, 2));
-        for (const registration of data.data.registrations) {
+      function processRegistrations(registrations) {
+        for (const registration of registrations) {
           if (!(registration.registrant.id in state.tempRegistrants)) {
             state.tempRegistrants[registration.registrant.id] = true;
           }
@@ -1577,9 +1382,7 @@ const searchModule = {
           };
         }
       }
-
-      async function fetchRegistrations(batch){
-        // console.log("fetchRegistrations - batch: " + JSON.stringify(batch));
+      async function fetchRegistrationsByNames(batch){
         await fetch(ENSSUBGRAPHURL, {
           method: 'POST',
           headers: {
@@ -1591,13 +1394,41 @@ const searchModule = {
             variables: { labelNames: batch },
           })
         }).then(response => response.json())
-          .then(data => processRegistrations(data));
+          .then(data => processRegistrations(data.data.registrations));
         state.message = "Retrieved " + Object.keys(state.tempResults).length;
         const namesFound = Object.keys(state.tempResults).map(function(name) { return name.replace('.eth', ''); });
         const unregistered = batch.filter(name => !namesFound.includes(name));
         state.tempUnregistered.push(...unregistered);
       }
+      async function fetchRegistrationsByAccount(accounts) {
+        for (account of accounts) {
+          let skip = 0;
+          let completed = false;
+          while (!completed && !state.halt) {
+            const data = await fetch(ENSSUBGRAPHURL, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+              },
+              body: JSON.stringify({
+                query: ENSSUBGRAPHOWNEDQUERY,
+                variables: { id: account, first: ENSSUBGRAPHBATCHSIZE, skip, expiryDate },
+              })
+            }).then(response => response.json())
+            const registrations = data.data.account && data.data.account.registrations || [];
+            if (registrations.length == 0) {
+              completed = true;
+            } else {
+              processRegistrations(data.data.account.registrations);
+            }
+            state.message = "Retrieved " + Object.keys(state.tempResults).length;
+            skip += ENSSUBGRAPHBATCHSIZE;
+          }
+        }
+      }
 
+      // --- Scan start ---
       logInfo("searchModule", "mutations.scan() - options: " + JSON.stringify(options));
       state.message = "Generating sequence";
 
@@ -1606,6 +1437,12 @@ const searchModule = {
         generator = generateDigitSequence(options);
       } else if (options.type == 'hours') {
         generator = generateHourSequence(options);
+      } else if (options.type == 'name' || options.type == 'owner') {
+        const searchForNames = options.search == null ? [] : options.search.split(/[, \t\n]+/)
+          .map(function(name) { return name.toLowerCase().trim(); })
+          .filter(function (name) { return !(name.length == 42 && name.substring(0, 2) == '0x'); })
+          .map(function(name) { return name.replace('.eth', ''); });
+        generator = searchForNames[Symbol.iterator]();
       }
       // console.log( [...generator] );
 
@@ -1617,30 +1454,48 @@ const searchModule = {
       const warningDate = parseInt(now) + 90 * SECONDSPERDAY;
       state.message = "Retrieving";
 
-      let count = 0;
-      let result = generator.next();
-      let batch = [];
-      while (!result.done && !state.halt) {
-        batch.push(result.value);
-        count++;
-        if (count >= ENSSUBGRAPHBATCHSCANSIZE) {
-          await fetchRegistrations(batch);
-          count = 0;
-          batch = [];
+      if (generator) {
+        let count = 0;
+        let result = generator.next();
+        let batch = [];
+        while (!result.done && !state.halt) {
+          batch.push(result.value);
+          count++;
+          if (count >= ENSSUBGRAPHBATCHSCANSIZE) {
+            await fetchRegistrationsByNames(batch);
+            count = 0;
+            batch = [];
+          }
+          result = generator.next();
         }
-        result = generator.next();
-      }
-      if (count > 0){
-        await fetchRegistrations(batch);
+        if (count > 0){
+          await fetchRegistrationsByNames(batch);
+        }
+        state.tempUnregistered.sort(function (a, b) {
+          return ('' + a).localeCompare(b);
+        })
+        state.unregistered = state.tempUnregistered;
       }
 
+      if (options.type == 'owner') {
+        let searchForAccounts = options.search == null ? [] : options.search.split(/[, \t\n]+/)
+          .map(function(name) { return name.toLowerCase().trim(); })
+          .filter(function (name) { return name.length == 42 && name.substring(0, 2) == '0x'; });
+        searchForAccounts = [ ...searchForAccounts, ...Object.keys(state.tempRegistrants) ];
+        await fetchRegistrationsByAccount(searchForAccounts);
+      } else if (options.type == 'group') {
+        let searchForAccounts = null;
+        if (options.group == null) {
+          if (store.getters['connection/coinbase'] != null) {
+            searchForAccounts = [ store.getters['connection/coinbase'] ];
+          }
+        } else {
+          searchForAccounts = store.getters['config/groups'][options.group].accounts;
+        }
+        await fetchRegistrationsByAccount(searchForAccounts.map(function(name) { return name.toLowerCase().trim(); }));
+      }
       state.results = state.tempResults;
       state.tempResults = {};
-      state.tempUnregistered.sort(function (a, b) {
-        return ('' + a).localeCompare(b);
-      })
-      state.unregistered = state.tempUnregistered;
-      console.log("tempRegistrants: " + JSON.stringify(Object.keys(state.tempRegistrants)));
       state.tempUnregistered = [];
       state.tempRegistrants = {};
 
@@ -1683,12 +1538,8 @@ const searchModule = {
     },
   },
   actions: {
-    search(context, { searchType, searchString, searchGroup } ) {
-      // logInfo("searchModule", "actions.search(): " + searchType + ", " + searchString + ", " + searchGroup);
-      context.commit('search', { searchType, searchString, searchGroup } );
-    },
-    scanDigits(context, options ) {
-      logInfo("searchModule", "actions.scanDigits() - options: " + JSON.stringify(options));
+    scan(context, options) {
+      // logInfo("searchModule", "actions.scan() - options: " + JSON.stringify(options));
       context.commit('scan', options);
     },
     halt(context) {
