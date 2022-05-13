@@ -1478,7 +1478,6 @@ const searchModule = {
         if (options.approximateSearch) {
           let result = generator.next();
           while (!result.done && !state.halt) {
-            console.log("Search approximate: " + result.value);
             await fetchRegistrationsByApproximateName(result.value);
             result = generator.next();
           }
