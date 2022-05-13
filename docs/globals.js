@@ -60,9 +60,95 @@ const ENSSUBGRAPHNAMEQUERY = `
   }
 `;
 
-const ENSSUBGRAPHAPPROXIMATENAMEQUERY = `
+const ENSSUBGRAPHNAMECONTAINSQUERY = `
   query getRegistrations($labelName: String!, $first: Int, $skip: Int) {
     registrations(first: $first, skip: $skip, orderBy: labelName, orderDirection: asc, where: {labelName_contains: $labelName}) {
+      id
+      registrationDate
+      expiryDate
+      cost
+      registrant {
+        id
+      }
+      labelName
+      domain {
+        id
+        labelName
+        labelhash
+        name
+        isMigrated
+        resolver {
+          address
+          coinTypes
+          texts
+        }
+        resolvedAddress {
+          id
+        }
+        parent {
+          labelName
+          labelhash
+          name
+        }
+        subdomains {
+          labelName
+          labelhash
+          name
+        }
+        owner {
+          id
+        }
+      }
+    }
+  }
+`;
+
+const ENSSUBGRAPHNAMESTARTSWITHQUERY = `
+  query getRegistrations($labelName: String!, $first: Int, $skip: Int) {
+    registrations(first: $first, skip: $skip, orderBy: labelName, orderDirection: asc, where: {labelName_starts_with: $labelName}) {
+      id
+      registrationDate
+      expiryDate
+      cost
+      registrant {
+        id
+      }
+      labelName
+      domain {
+        id
+        labelName
+        labelhash
+        name
+        isMigrated
+        resolver {
+          address
+          coinTypes
+          texts
+        }
+        resolvedAddress {
+          id
+        }
+        parent {
+          labelName
+          labelhash
+          name
+        }
+        subdomains {
+          labelName
+          labelhash
+          name
+        }
+        owner {
+          id
+        }
+      }
+    }
+  }
+`;
+
+const ENSSUBGRAPHNAMEENDSWITHQUERY = `
+  query getRegistrations($labelName: String!, $first: Int, $skip: Int) {
+    registrations(first: $first, skip: $skip, orderBy: labelName, orderDirection: asc, where: {labelName_ends_with: $labelName}) {
       id
       registrationDate
       expiryDate

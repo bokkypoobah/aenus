@@ -32,12 +32,15 @@ const Search = {
               </b-row>
               <b-row>
                 <b-col class="mt-2">
+                  <!--
                   <b-form-checkbox v-model.trim="settings.approximateSearch">
                     Approximate search
                   </b-form-checkbox>
+                  -->
+                  <b-form-select size="sm" v-model="settings.approximateSearch" :options="searchOptions" class="w-25"></b-form-select>
                 </b-col>
               </b-row>
-              <b-row v-if="!settings.approximateSearch">
+              <b-row v-if="settings.approximateSearch == 'exact'">
                 <b-col class="mt-2">
                   <b-form-checkbox v-model.trim="settings.searchCommonRegistrants">
                     Search names with common registrants
@@ -782,7 +785,7 @@ const Search = {
         searchTabIndex: 0,
         searchString: null,
         searchCommonRegistrants: false,
-        approximateSearch: false,
+        approximateSearch: 'exact',
         selectedGroup: null,
         selectedSet: 'digit999',
         filter: null,
@@ -795,6 +798,8 @@ const Search = {
         resultsCurrentPage: 1,
 
         imageSize: '240',
+
+        resultsTabIndex: 0,
 
         setAttributes: {
           'hours': {
@@ -898,9 +903,14 @@ const Search = {
             postfix: null,
           },
         },
-
-        resultsTabIndex: 0,
       },
+
+      searchOptions: [
+        { value: 'exact', text: 'Exact Name' },
+        { value: 'contains', text: 'Name Contains' },
+        { value: 'startswith', text: 'Name Starts With' },
+        { value: 'endswith', text: 'Name Ends With' },
+      ],
 
       pageSizes: [
         { value: 10, text: '10/P' },
@@ -1407,10 +1417,18 @@ const searchModule = {
         const unregistered = batch.filter(name => !namesFound.includes(name));
         state.tempUnregistered.push(...unregistered);
       }
-      async function fetchRegistrationsByApproximateName(name) {
+      async function fetchRegistrationsByApproximateName(name, approximateSearch) {
         let skip = 0;
         let completed = false;
         while (!completed && !state.halt) {
+          let query = null;
+          if (approximateSearch == 'contains') {
+            query = ENSSUBGRAPHNAMECONTAINSQUERY;
+          } else if (approximateSearch == 'startswith') {
+            query = ENSSUBGRAPHNAMESTARTSWITHQUERY;
+          } else {
+            query = ENSSUBGRAPHNAMEENDSWITHQUERY;
+          }
           const data = await fetch(ENSSUBGRAPHURL, {
             method: 'POST',
             headers: {
@@ -1418,7 +1436,7 @@ const searchModule = {
               'Accept': 'application/json',
             },
             body: JSON.stringify({
-              query: ENSSUBGRAPHAPPROXIMATENAMEQUERY,
+              query: query,
               variables: { labelName: name, first: ENSSUBGRAPHBATCHSIZE, skip },
             })
           }).then(response => response.json());
@@ -1485,10 +1503,10 @@ const searchModule = {
       state.message = "Retrieving";
 
       if (generator) {
-        if (options.approximateSearch) {
+        if (options.approximateSearch != 'exact') {
           let result = generator.next();
           while (!result.done && !state.halt) {
-            await fetchRegistrationsByApproximateName(result.value);
+            await fetchRegistrationsByApproximateName(result.value, options.approximateSearch);
             result = generator.next();
           }
         } else {
@@ -1515,7 +1533,7 @@ const searchModule = {
         state.unregistered = state.tempUnregistered;
       }
 
-      if (options.searchCommonRegistrants && !options.approximateSearch) {
+      if (options.searchCommonRegistrants && options.approximateSearch == 'exact') {
         let searchForAccounts = options.search == null ? [] : options.search.split(/[, \t\n]+/)
           .map(function(name) { return name.toLowerCase().trim(); })
           .filter(function (name) { return name.length == 42 && name.substring(0, 2) == '0x'; });
