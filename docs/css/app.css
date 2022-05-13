@@ -104,3 +104,7 @@ img {
     image-rendering: -o-pixelated;
     image-rendering: pixelated !important;
 }
+
+.hidden_header {
+  display: none;
+}

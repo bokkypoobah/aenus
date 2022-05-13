@@ -13,7 +13,7 @@ const Search = {
 
           <!-- Search type tabs -->
           <b-tabs card align="left" no-body active-tab-class="m-0 p-0" v-model="settings.searchTabIndex">
-            <b-tab title="Terms">
+            <b-tab title="Names">
             </b-tab>
             <b-tab title="Groups">
             </b-tab>
@@ -238,22 +238,17 @@ const Search = {
             <br />
             <br />
 
-            Use <b>By Name</b> to search for a list of ENS names.
+            Use <b>Names</b> to search for a list of ENS names. Search type exact, contains, starts with and ends with. For exact searches, the other name owned by the registrants can be retrieved.
 
             <br />
             <br />
 
-            Use <b>By Owner</b> to search for the ENS names owned by a list of ENS names and/or ETH addresses.
+            Use <b>Group</b> to search for the ENS names owned by a group of ETH addresses configured in the <b>Config</b> page.
 
             <br />
             <br />
 
-            Use <b>By Group</b> to search for the ENS names owned by a group of ETH addresses configured in the <b>Config</b> page.
-
-            <br />
-            <br />
-
-            Use <b>Scan Sets</b> to scan a range of digits with optional prefix and/or postfix. Or the 24 hour set.
+            Use <b>Sets</b> to scan a range of digits with optional prefix and/or postfix. 999Club, 10kClub, or the 24 hour set.
 
             <br />
             <br />
@@ -263,7 +258,7 @@ const Search = {
             <br />
             <br />
 
-            This application uses technology and data from <a href="https://twitter.com/ensdomains" target="_blank">ens.eth</a>, <a href="https://twitter.com/graphprotocol" target="_blank">The Graph</a> and <a href="https://twitter.com/reservoir0x" target="_blank">Reservoir</a> (not affliated).
+            This application uses technology and data from <a href="https://twitter.com/ensdomains" target="_blank">ens.eth</a>, <a href="https://twitter.com/graphprotocol" target="_blank">The Graph</a> and <a href="https://twitter.com/reservoir0x" target="_blank">Reservoir</a> that we are not affliated with.
 
             <br />
             <br />
@@ -336,7 +331,7 @@ const Search = {
 
             <!-- Summary -->
             <div v-if="settings.resultsTabIndex == 0">
-              <b-table small striped hover :fields="summaryFields" :items="summary" table-class="w-auto" class="mt-1">
+              <b-table small striped hover :fields="summaryFields" :items="summary" table-class="w-auto"  thead-class="hidden_header" class="mt-1">
                 <template #cell(names)="data">
                   <span v-for="(result, resultIndex) in data.item.results" :key="resultIndex">
                     <b-button :id="'popover-target-' + result.length + '-' + resultIndex" variant="link" class="m-0 p-0">
