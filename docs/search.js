@@ -32,15 +32,10 @@ const Search = {
               </b-row>
               <b-row>
                 <b-col class="mt-2">
-                  <!--
-                  <b-form-checkbox v-model.trim="settings.approximateSearch">
-                    Approximate search
-                  </b-form-checkbox>
-                  -->
-                  <b-form-select size="sm" v-model="settings.approximateSearch" :options="searchOptions" class="w-25"></b-form-select>
+                  <b-form-select size="sm" v-model="settings.searchType" :options="searchOptions" class="w-25"></b-form-select>
                 </b-col>
               </b-row>
-              <b-row v-if="settings.approximateSearch == 'exact'">
+              <b-row v-if="settings.searchType == 'exact'">
                 <b-col class="mt-2">
                   <b-form-checkbox v-model.trim="settings.searchCommonRegistrants">
                     Search names with common registrants
@@ -49,7 +44,7 @@ const Search = {
               </b-row>
               <b-row>
                 <b-col class="mt-2">
-                  <b-button size="sm" @click="scan( { type: 'terms', search: settings.searchString, searchCommonRegistrants: settings.searchCommonRegistrants, approximateSearch: settings.approximateSearch } );" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
+                  <b-button size="sm" @click="scan( { type: 'terms', search: settings.searchString, searchCommonRegistrants: settings.searchCommonRegistrants, searchType: settings.searchType } );" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
                   <span v-if="searchMessage != null">
                     <b-button size="sm" @click="halt" variant="primary">Halt</b-button>
                   </span>
@@ -785,7 +780,7 @@ const Search = {
         searchTabIndex: 0,
         searchString: null,
         searchCommonRegistrants: false,
-        approximateSearch: 'exact',
+        searchType: 'exact',
         selectedGroup: null,
         selectedSet: 'digit999',
         filter: null,
@@ -970,8 +965,7 @@ const Search = {
         { key: 'expiryDate', label: 'Expiry/Registration (UTC)', thStyle: 'width: 20%;', sortable: false },
       ],
       summaryFields: [
-        { key: 'lengthGroup', label: 'Length', thStyle: 'width: 10%;' },
-        { key: 'names', label: 'Names', thStyle: 'width: 90%;' },
+        { key: 'names', label: 'Names', thStyle: 'width: 100%;' },
       ],
       ownersFields: [
         { key: 'index', label: '#', thStyle: 'width: 5%;' },
@@ -1417,14 +1411,14 @@ const searchModule = {
         const unregistered = batch.filter(name => !namesFound.includes(name));
         state.tempUnregistered.push(...unregistered);
       }
-      async function fetchRegistrationsByApproximateName(name, approximateSearch) {
+      async function fetchRegistrationsByApproximateName(name, searchType) {
         let skip = 0;
         let completed = false;
         while (!completed && !state.halt) {
           let query = null;
-          if (approximateSearch == 'contains') {
+          if (searchType == 'contains') {
             query = ENSSUBGRAPHNAMECONTAINSQUERY;
-          } else if (approximateSearch == 'startswith') {
+          } else if (searchType == 'startswith') {
             query = ENSSUBGRAPHNAMESTARTSWITHQUERY;
           } else {
             query = ENSSUBGRAPHNAMEENDSWITHQUERY;
@@ -1503,10 +1497,10 @@ const searchModule = {
       state.message = "Retrieving";
 
       if (generator) {
-        if (options.approximateSearch != 'exact') {
+        if (options.searchType != 'exact') {
           let result = generator.next();
           while (!result.done && !state.halt) {
-            await fetchRegistrationsByApproximateName(result.value, options.approximateSearch);
+            await fetchRegistrationsByApproximateName(result.value, options.searchType);
             result = generator.next();
           }
         } else {
@@ -1533,7 +1527,7 @@ const searchModule = {
         state.unregistered = state.tempUnregistered;
       }
 
-      if (options.searchCommonRegistrants && options.approximateSearch == 'exact') {
+      if (options.searchCommonRegistrants && options.searchType == 'exact') {
         let searchForAccounts = options.search == null ? [] : options.search.split(/[, \t\n]+/)
           .map(function(name) { return name.toLowerCase().trim(); })
           .filter(function (name) { return name.length == 42 && name.substring(0, 2) == '0x'; });
