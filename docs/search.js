@@ -187,7 +187,7 @@ const Search = {
                       Midfix
                     </b-col>
                     <b-col cols="4" class="m-0 p-1">
-                      <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].midfix" placeholder="optional postfix, e.g., 'abc'" class="w-100"></b-form-input>
+                      <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].midfix" placeholder="optional midfix, e.g., 'h'" class="w-100"></b-form-input>
                     </b-col>
                     <b-col cols="4" class="m-0 p-1">
                     </b-col>
@@ -820,7 +820,7 @@ const Search = {
       ],
 
       setOptions: [
-        { value: 'hours', text: 'Hours, e.g., "07h00"' },
+        { value: 'hours', text: 'Hours, 00h00 to 23h59' },
         { value: 'digit9', text: 'Digits 0 to 9 [prefix/postfix required for min 3 length]' },
         { value: 'digit99', text: 'Digits 00 to 99, [prefix/postfix required for min 3 length]' },
         { value: 'digit999', text: 'Digits 000 to 999 [Club999]' },
