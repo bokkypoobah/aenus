@@ -19,7 +19,7 @@ const Search = {
             </b-tab>
             <b-tab title="By Group">
             </b-tab>
-            <b-tab title="Scan Sets">
+            <b-tab title="Scan Sets" active>
             </b-tab>
           </b-tabs>
 
@@ -1288,9 +1288,10 @@ const searchModule = {
   namespaced: true,
   state: {
     results: [],
-    tempResults: [],
     unregistered: [],
+    tempResults: [],
     tempUnregistered: [],
+    tempRegistrants: [],
     prices: [],
     message: null,
     halt: false,
@@ -1551,7 +1552,11 @@ const searchModule = {
       }
 
       function processRegistrations(data) {
+        // console.log("processRegistrations: " + JSON.stringify(data, null, 2));
         for (const registration of data.data.registrations) {
+          if (!(registration.registrant.id in state.tempRegistrants)) {
+            state.tempRegistrants[registration.registrant.id] = true;
+          }
           state.tempResults[registration.domain.name] = {
             labelName: registration.labelName,
             registrationDate: registration.registrationDate,
@@ -1574,6 +1579,7 @@ const searchModule = {
       }
 
       async function fetchRegistrations(batch){
+        // console.log("fetchRegistrations - batch: " + JSON.stringify(batch));
         await fetch(ENSSUBGRAPHURL, {
           method: 'POST',
           headers: {
@@ -1605,23 +1611,38 @@ const searchModule = {
 
       state.tempResults = {};
       state.tempUnregistered = [];
+      state.tempRegistrants = {};
       const now = parseInt(new Date().valueOf() / 1000);
       const expiryDate = parseInt(now) - 90 * SECONDSPERDAY;
       const warningDate = parseInt(now) + 90 * SECONDSPERDAY;
       state.message = "Retrieving";
-      for (let batch of getBatch([...generator])) {
-        await fetchRegistrations(batch);
-        if (state.halt) {
-          break;
+
+      let count = 0;
+      let result = generator.next();
+      let batch = [];
+      while (!result.done && !state.halt) {
+        batch.push(result.value);
+        count++;
+        if (count >= ENSSUBGRAPHBATCHSCANSIZE) {
+          await fetchRegistrations(batch);
+          count = 0;
+          batch = [];
         }
+        result = generator.next();
       }
+      if (count > 0){
+        await fetchRegistrations(batch);
+      }
+
       state.results = state.tempResults;
       state.tempResults = {};
       state.tempUnregistered.sort(function (a, b) {
         return ('' + a).localeCompare(b);
       })
       state.unregistered = state.tempUnregistered;
+      console.log("tempRegistrants: " + JSON.stringify(Object.keys(state.tempRegistrants)));
       state.tempUnregistered = [];
+      state.tempRegistrants = {};
 
       // get prices
       let keys = Object.keys(state.results);
