@@ -1430,8 +1430,6 @@ const searchModule = {
 
       // --- Scan start ---
       logInfo("searchModule", "mutations.scan() - options: " + JSON.stringify(options));
-      state.message = "Generating sequence";
-
       let generator = null;
       if (options.type == 'digits') {
         generator = generateDigitSequence(options);
