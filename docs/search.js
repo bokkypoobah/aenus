@@ -1497,7 +1497,7 @@ const searchModule = {
       state.message = "Retrieving";
 
       if (generator) {
-        if (options.searchType != 'exact') {
+        if (options.searchType != 'exact' && !(options.type == 'digits' || options.type == 'hours')) {
           let result = generator.next();
           while (!result.done && !state.halt) {
             await fetchRegistrationsByApproximateName(result.value, options.searchType);
