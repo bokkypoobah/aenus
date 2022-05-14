@@ -947,7 +947,7 @@ const Search = {
         { key: 'expiryDate', label: 'Expiry/Registration (UTC)', thStyle: 'width: 20%;', sortable: false },
       ],
       summaryFields: [
-        { key: 'names', label: 'Names', thStyle: 'width: 100%;' },
+        { key: 'names', label: 'Names' },
       ],
       ownersFields: [
         { key: 'index', label: '#', thStyle: 'width: 5%;' },
@@ -1102,15 +1102,13 @@ const Search = {
       }
       return results;
     },
-
     pagedFilteredResults() {
       return this.filteredResults.slice((this.settings.resultsCurrentPage - 1) * this.settings.resultsPageSize, this.settings.resultsCurrentPage * this.settings.resultsPageSize);
     },
-
     summary() {
       const collator = {};
       for (result of Object.values(this.filteredResults)) {
-        const lengthGroup = result.length >= 10 ? "10+" : result.length;
+        const lengthGroup = (result.length >= 20 ? "20+" : result.length).toString().padStart(2, '0') + result.nameType;
         if (!collator[lengthGroup]) {
           collator[lengthGroup] = [result];
         } else {
@@ -1122,6 +1120,9 @@ const Search = {
         const value = collator[key];
         results.push( { lengthGroup: key, results: value } );
       }
+      results.sort((a, b) => {
+        return ('' + a.lengthGroup).localeCompare(b.lengthGroup);
+      });
       return results;
     },
     owners() {
@@ -1148,7 +1149,6 @@ const Search = {
       });
       return results;
     },
-
     hours() {
       const collator = {};
       for (result of Object.values(this.filteredResults)) {
@@ -1351,9 +1351,23 @@ const searchModule = {
         }
       }
       function processRegistrations(registrations) {
+        const digits = new RegExp('^[0-9]+$');
+        const alphas = new RegExp('^[a-z]+$');
+        const alphanum = new RegExp('^[0-9a-z]+$');
+
         for (const registration of registrations) {
           if (!(registration.registrant.id in state.tempRegistrants)) {
             state.tempRegistrants[registration.registrant.id] = true;
+          }
+          let nameType;
+          if (digits.test(registration.domain.labelName)) {
+            nameType = "1d";
+          } else if (alphas.test(registration.domain.labelName)) {
+            nameType = "2a";
+          } else if (alphanum.test(registration.domain.labelName)) {
+            nameType = "3ad";
+          } else {
+            nameType = "4";
           }
           state.tempResults[registration.domain.name] = {
             labelName: registration.labelName,
@@ -1372,6 +1386,7 @@ const searchModule = {
             length: registration.domain.name.indexOf("\."),
             warn: registration.expiryDate < now ? 'red' : registration.expiryDate < warningDate ? 'orange' : null,
             hasAvatar: registration.domain.resolver && registration.domain.resolver.texts && registration.domain.resolver.texts.includes("avatar"),
+            nameType: nameType,
           };
         }
       }
