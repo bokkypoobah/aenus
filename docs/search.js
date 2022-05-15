@@ -1353,7 +1353,7 @@ const searchModule = {
       function processRegistrations(registrations) {
         const digits = new RegExp('^[0-9]+$');
         const hours = new RegExp('^[0-9][0-9]h[0-9][0-9]$');
-        const alphanum = new RegExp('^[0-9--a-z]+$');
+        const alphanum = new RegExp('^[0-9a-z-]+$');
 
         for (const registration of registrations) {
           if (!(registration.registrant.id in state.tempRegistrants)) {
