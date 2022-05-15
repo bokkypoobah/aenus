@@ -1559,7 +1559,7 @@ const searchModule = {
         let separator = "";
         for (let j = 0; j < batch.length; j++) {
           const record = state.results[batch[j]];
-          url = url + separator + "tokens=0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85%3A" + record.tokenId;
+          url = url + separator + "tokens=" + ENSADDRESS + "%3A" + record.tokenId;
           separator = "&";
         }
         const data = await fetch(url).then(response => response.json());
