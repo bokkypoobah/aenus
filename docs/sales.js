@@ -502,6 +502,8 @@ const salesModule = {
           return data;
         }
         async function processSales(data) {
+          console.log("processSales - state.db0 before");
+          console.table(state.db0);
           if (state.db0 == null) {
             state.db0 = new Dexie("aenusdb");
             state.db0.version(1).stores({
@@ -510,6 +512,9 @@ const salesModule = {
               // tokenURIs: '[chainId+contract+tokenId],chainId,contract,tokenId,tokenURI,timestamp',
             });
           }
+          console.log("processSales - state.db0 after");
+          console.table(state.db0);
+
           if (data.sales && data.sales.length > 0) {
             console.log(JSON.stringify(data.sales[0], null, 2));
           }
