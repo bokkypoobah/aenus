@@ -321,7 +321,7 @@ const Search = {
               <b-table small striped hover :fields="summaryFields" :items="summary" table-class="w-auto"  thead-class="hidden_header" class="mt-1">
                 <template #cell(names)="data">
                   <span v-for="(result, resultIndex) in data.item.results" :key="resultIndex">
-                    <b-button :id="'popover-target-' + result.length + '-' + resultIndex" variant="link" class="m-0 p-0">
+                    <b-button :id="'popover-target-' + result.labelName + '-' + resultIndex" variant="link" class="m-0 p-0">
                       <span v-if="result.warn == null">
                         {{ result.labelName }}
                       </span>
@@ -332,7 +332,7 @@ const Search = {
                     <span v-if="prices[result.tokenId]">
                       <font shift-v="+3" size="-1"><b-badge v-b-popover.hover="'Floor ask price in ETH'" variant="success">{{ prices[result.tokenId].floorAskPrice }}</b-badge></font>
                     </span>
-                    <b-popover :target="'popover-target-' + result.length + '-' + resultIndex" placement="right">
+                    <b-popover :target="'popover-target-' + result.labelName + '-' + resultIndex" placement="right">
                       <template #title>{{ result.name }} links</template>
                       <b-link :href="'https://app.ens.domains/name/' + result.name" v-b-popover.hover="'View in app.ens.domains'" target="_blank">
                         ENS
