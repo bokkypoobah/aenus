@@ -1551,8 +1551,7 @@ const searchModule = {
       const GETPRICEBATCHSIZE = 50;
       records = 0;
       const prices = {};
-      const DELAYINMILLIS = 500;
-      const delay = ms => new Promise(res => setTimeout(res, ms));
+      const DELAYINMILLIS = 1000;
       for (let i = 0; i < keys.length && !state.halt; i += GETPRICEBATCHSIZE) {
         const batch = keys.slice(i, parseInt(i) + GETPRICEBATCHSIZE);
         let url = "https://api.reservoir.tools/tokens/v4?";

@@ -928,9 +928,6 @@ const transactionsModule = {
   mutations: {
     async search(state, { searchType, searchString, searchGroup } ) {
       logInfo("transactionsModule", "mutations.search(): " + searchType + ", " + searchString + ", " + searchGroup);
-      // const DELAYINMILLIS = 500;
-      // const delay = ms => new Promise(res => setTimeout(res, ms));
-
       const results = {};
       const now = parseInt(new Date().valueOf() / 1000);
       const expiryDate = parseInt(now) - 90 * 24 * 60 * 60;
