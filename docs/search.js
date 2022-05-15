@@ -1352,8 +1352,8 @@ const searchModule = {
       }
       function processRegistrations(registrations) {
         const digits = new RegExp('^[0-9]+$');
-        const alphas = new RegExp('^[a-z]+$');
-        const alphanum = new RegExp('^[0-9a-z]+$');
+        const hours = new RegExp('^[0-9][0-9]h[0-9][0-9]$');
+        const alphanum = new RegExp('^[0-9--a-z]+$');
 
         for (const registration of registrations) {
           if (!(registration.registrant.id in state.tempRegistrants)) {
@@ -1362,10 +1362,10 @@ const searchModule = {
           let nameType;
           if (digits.test(registration.domain.labelName)) {
             nameType = "1d";
-          } else if (alphas.test(registration.domain.labelName)) {
-            nameType = "2a";
+          } else if (hours.test(registration.domain.labelName)) {
+            nameType = "2h";
           } else if (alphanum.test(registration.domain.labelName)) {
-            nameType = "3ad";
+            nameType = "3an";
           } else {
             nameType = "4";
           }
