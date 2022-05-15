@@ -1299,7 +1299,7 @@ const searchModule = {
   },
   mutations: {
     // --- Scan ---
-    async scan(state, options ) {
+    async scan(state, options) {
       // --- Scan functions ---
       function* getBatch(records, batchsize = ENSSUBGRAPHBATCHSCANSIZE) {
         while (records.length) {

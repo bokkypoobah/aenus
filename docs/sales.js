@@ -7,749 +7,761 @@ const Sales = {
         </b-card-text>
       </b-card>
 
-      <b-card no-body header="Search Registered ENS Names" class="border-0" header-class="p-0">
+      <b-card no-body header="ENS Name Sales" class="border-0" header-class="p-0">
 
         <b-card no-body class="p-0 mt-1">
 
-          <!-- Search type tabs -->
-          <b-tabs card align="left" no-body active-tab-class="m-0 p-0" v-model="settings.searchTabIndex">
-            <b-tab title="Names">
-            </b-tab>
-            <b-tab title="Groups">
-            </b-tab>
-            <b-tab title="Sets">
-            </b-tab>
-          </b-tabs>
-
-          <!-- Search input -->
           <b-card-body class="m-1 p-1">
 
-            <b-card-text v-if="settings.searchTabIndex == 0" class="m-0 p-0">
-              <b-row>
-                <b-col>
-                  <b-form-textarea size="sm" v-model.trim="settings.searchString" placeholder="🔍 {name1}[.eth] {name2}[.eth], {name3}[.eth]\n{name4}[.eth] ..." rows="3" max-rows="100" class="w-50"></b-form-textarea>
-                </b-col>
-              </b-row>
-              <b-row>
-                <b-col class="mt-2">
-                  <b-form-select size="sm" v-model="settings.searchType" :options="searchOptions" class="w-25"></b-form-select>
-                </b-col>
-              </b-row>
-              <b-row v-if="settings.searchType == 'exact'">
-                <b-col class="mt-2">
-                  <b-form-checkbox v-model.trim="settings.searchCommonRegistrants">
-                    Search names with common registrants
-                  </b-form-checkbox>
-                </b-col>
-              </b-row>
-              <b-row>
-                <b-col class="mt-2">
-                  <b-button size="sm" @click="scan( { type: 'terms', search: settings.searchString, searchCommonRegistrants: settings.searchCommonRegistrants, searchType: settings.searchType } );" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
-                  <span v-if="searchMessage != null">
-                    <b-button size="sm" @click="halt" variant="primary">Halt</b-button>
-                  </span>
-                </b-col>
-              </b-row>
-            </b-card-text>
+            <b-button size="sm" @click="doit( { type: 'fullsync' } );" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Full Sync'}}</b-button>
+            <span v-if="searchMessage != null">
+              <b-button size="sm" @click="halt" variant="primary">Halt</b-button>
+            </span>
 
-            <div v-if="settings.searchTabIndex == 1" class="m-0 p-0">
-              <b-row>
-                <b-col>
-                  <b-form-select size="sm" v-model="settings.selectedGroup" :options="groupOptions" v-b-popover.hover="'Set up groups in Config'" class="w-50"></b-form-select>
-                </b-col>
-              </b-row>
-              <b-row>
-                <b-col class="mt-2">
-                  <b-button size="sm" @click="scan( { type: 'group', group: settings.selectedGroup } )" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
-                  <span v-if="searchMessage != null">
-                    <b-button size="sm" @click="halt" variant="primary">Halt</b-button>
-                  </span>
-                </b-col>
-              </b-row>
-            </div>
+          </b-card-body>
 
-            <!-- Scan Sets -->
-            <div v-if="settings.searchTabIndex == 2" class="m-0 p-0">
-              <b-card-text>
+          <div v-if="false">
+            <!-- Search type tabs -->
+            <b-tabs card align="left" no-body active-tab-class="m-0 p-0" v-model="settings.searchTabIndex">
+              <b-tab title="Names">
+              </b-tab>
+              <b-tab title="Groups">
+              </b-tab>
+              <b-tab title="Sets">
+              </b-tab>
+            </b-tabs>
+
+            <!-- Search input -->
+            <b-card-body class="m-1 p-1">
+
+              <b-card-text v-if="settings.searchTabIndex == 0" class="m-0 p-0">
                 <b-row>
-                  <b-col cols="3" class="m-0 p-1 text-right">
-                    Set
-                  </b-col>
-                  <b-col cols="4" class="m-0 p-1">
-                    <b-form-select size="sm" v-model="settings.selectedSet" :options="setOptions" class="w-100"></b-form-select>
-                  </b-col>
-                  <b-col cols="4" class="m-0 p-1">
+                  <b-col>
+                    <b-form-textarea size="sm" v-model.trim="settings.searchString" placeholder="🔍 {name1}[.eth] {name2}[.eth], {name3}[.eth]\n{name4}[.eth] ..." rows="3" max-rows="100" class="w-50"></b-form-textarea>
                   </b-col>
                 </b-row>
-
                 <b-row>
-                  <b-col cols="3" class="m-0 p-1 text-right">
-                    From<span v-if="settings.setAttributes[settings.selectedSet].type == 'hours'">, hh</span>
-                  </b-col>
-                  <b-col cols="4" class="m-0 p-1">
-                    <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].from" class="w-100"></b-form-input>
-                  </b-col>
-                  <b-col cols="4" class="m-0 p-1">
+                  <b-col class="mt-2">
+                    <b-form-select size="sm" v-model="settings.searchType" :options="searchOptions" class="w-25"></b-form-select>
                   </b-col>
                 </b-row>
-
-                <b-row>
-                  <b-col cols="3" class="m-0 p-1 text-right">
-                    To<span v-if="settings.setAttributes[settings.selectedSet].type == 'hours'">, hh</span>
-                  </b-col>
-                  <b-col cols="4" class="m-0 p-1">
-                    <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].to" class="w-100"></b-form-input>
-                  </b-col>
-                  <b-col cols="4" class="m-0 p-1">
-                  </b-col>
-                </b-row>
-
-                <b-row>
-                  <b-col cols="3" class="m-0 p-1 text-right">
-                    Step<span v-if="settings.setAttributes[settings.selectedSet].type == 'hours'">, hh</span>
-                  </b-col>
-                  <b-col cols="4" class="m-0 p-1">
-                    <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].step" class="w-100"></b-form-input>
-                  </b-col>
-                  <b-col cols="4" class="m-0 p-1">
-                  </b-col>
-                </b-row>
-
-                <div v-if="settings.setAttributes[settings.selectedSet].type == 'hours'">
-                  <b-row>
-                    <b-col cols="3" class="m-0 p-1 text-right">
-                      From, mm
-                    </b-col>
-                    <b-col cols="4" class="m-0 p-1">
-                      <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].from2" class="w-100"></b-form-input>
-                    </b-col>
-                    <b-col cols="4" class="m-0 p-1">
-                    </b-col>
-                  </b-row>
-
-                  <b-row>
-                    <b-col cols="3" class="m-0 p-1 text-right">
-                      To, mm
-                    </b-col>
-                    <b-col cols="4" class="m-0 p-1">
-                      <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].to2" class="w-100"></b-form-input>
-                    </b-col>
-                    <b-col cols="4" class="m-0 p-1">
-                    </b-col>
-                  </b-row>
-
-                  <b-row>
-                    <b-col cols="3" class="m-0 p-1 text-right">
-                      Step, mm
-                    </b-col>
-                    <b-col cols="4" class="m-0 p-1">
-                      <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].step2" class="w-100"></b-form-input>
-                    </b-col>
-                    <b-col cols="4" class="m-0 p-1">
-                    </b-col>
-                  </b-row>
-                </div>
-
-                <b-row v-if="'regex' in settings.setAttributes[settings.selectedSet]">
-                  <b-col cols="3" class="m-0 p-1 text-right">
-                    Regex
-                  </b-col>
-                  <b-col cols="4" class="m-0 p-1">
-                    <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].regex" placeholder="🔍 {regex}, e.g., '^([0-9])([0-9])([0-9])\\3\\2\\1$' for 6 digit palindromes" class="w-100"></b-form-input>
-                  </b-col>
-                  <b-col cols="4" class="m-0 p-1">
-                  </b-col>
-                </b-row>
-
-                <b-row v-if="'palindrome' in settings.setAttributes[settings.selectedSet]">
-                  <b-col cols="3" class="m-0 p-1 text-right">
-                  </b-col>
-                  <b-col cols="4" class="m-0 p-1">
-                    <b-form-checkbox v-model.trim="settings.setAttributes[settings.selectedSet].palindrome">
-                      Palindrome
+                <b-row v-if="settings.searchType == 'exact'">
+                  <b-col class="mt-2">
+                    <b-form-checkbox v-model.trim="settings.searchCommonRegistrants">
+                      Search names with common registrants
                     </b-form-checkbox>
                   </b-col>
-                  <b-col cols="4" class="m-0 p-1">
-                  </b-col>
                 </b-row>
-
-                <b-row v-if="'prefix' in settings.setAttributes[settings.selectedSet]">
-                  <b-col cols="3" class="m-0 p-1 text-right">
-                    Prefix
-                  </b-col>
-                  <b-col cols="4" class="m-0 p-1">
-                    <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].prefix" placeholder="optional prefix, e.g., 'mr'" class="w-100"></b-form-input>
-                  </b-col>
-                  <b-col cols="4" class="m-0 p-1">
-                  </b-col>
-                </b-row>
-
-                <div v-if="'separator' in settings.setAttributes[settings.selectedSet]">
-                  <b-row>
-                    <b-col cols="3" class="m-0 p-1 text-right">
-                      Separator
-                    </b-col>
-                    <b-col cols="4" class="m-0 p-1">
-                      <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].separator" placeholder="optional separator, e.g., 'h'" class="w-100"></b-form-input>
-                    </b-col>
-                    <b-col cols="4" class="m-0 p-1">
-                    </b-col>
-                  </b-row>
-                </div>
-
-                <b-row v-if="'postfix' in settings.setAttributes[settings.selectedSet]">
-                  <b-col cols="3" class="m-0 p-1 text-right">
-                    Postfix
-                  </b-col>
-                  <b-col cols="4" class="m-0 p-1">
-                    <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].postfix" placeholder="optional postfix, e.g., 'abc'" class="w-100"></b-form-input>
-                  </b-col>
-                  <b-col cols="4" class="m-0 p-1">
-                  </b-col>
-                </b-row>
-
                 <b-row>
-                  <b-col cols="3" class="m-0 p-1 text-right">
-                  </b-col>
-                  <b-col cols="4" class="m-0 p-1">
-                    <b-button size="sm" @click="scan(settings.setAttributes[settings.selectedSet])" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
+                  <b-col class="mt-2">
+                    <b-button size="sm" @click="scan( { type: 'terms', search: settings.searchString, searchCommonRegistrants: settings.searchCommonRegistrants, searchType: settings.searchType } );" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
                     <span v-if="searchMessage != null">
                       <b-button size="sm" @click="halt" variant="primary">Halt</b-button>
                     </span>
                   </b-col>
                 </b-row>
-
               </b-card-text>
-            </div>
-            <div v-if="settings.searchTabIndex == 3">
-              <b-card-text>
-                Hello 4
-              </b-card-text>
-            </div>
 
-          </b-card-body>
-        </b-card>
-
-        <!-- Intro -->
-        <b-card v-if="Object.keys(searchResults).length == 0 && unregistered.length == 0" class="mt-1" no-header>
-          <b-card-text>
-            This application is a tool to query the <a href="https://thegraph.com/hosted-service/subgraph/ensdomains/ens" target="_blank">ENS subgraph</a>. Sales are supplemented from the <a href="https://api.reservoir.tools/#/1.%20Order%20Book/getOrdersAllV1" target="_blank">Reservoir API</a>.
-          </b-card-text>
-          <b-card-text>
-            Use <b>Names</b> to search for a list of ENS names. Search types: exact, contains, starts with, and ends with. For exact searches, other names owned by the registrants can be retrieved.
-          </b-card-text>
-          <b-card-text>
-            Use <b>Group</b> to search for the ENS names owned by a group of ETH addresses configured in the <b>Config</b> page.
-          </b-card-text>
-          <b-card-text>
-            Use <b>Sets</b> to scan a range of digits with optional prefix and/or postfix. 999Club, 10kClub, or the 24 hour set.
-          </b-card-text>
-          <b-card-text>
-            The list of names and/or addresses can be comma, space, tab or newline separated. <em>.eth</em> is optional
-          </b-card-text>
-          <b-card-text>
-            This application uses technology and data from <a href="https://twitter.com/ensdomains" target="_blank">ens.eth</a>, <a href="https://twitter.com/graphprotocol" target="_blank">The Graph</a> and <a href="https://twitter.com/reservoir0x" target="_blank">Reservoir</a> that we are not affliated with.
-          </b-card-text>
-          <b-card-text class="mt-5">
-            Enjoy. aenus advanced ENS utilities (c) Bok Consulting Pty Ltd 2022
-          </b-card-text>
-        </b-card>
-
-        <!-- Results Section -->
-        <b-card  v-if="Object.keys(searchResults).length > 0 || unregistered.length > 0" no-body class="p-0 mt-1">
-          <b-card-body class="m-1 p-1">
-            <b-tabs card align="left" no-body active-tab-class="m-0 p-0" v-model="settings.resultsTabIndex">
-              <b-tab title="Summary">
-              </b-tab>
-              <b-tab title="Details">
-              </b-tab>
-              <b-tab title="Images">
-              </b-tab>
-              <b-tab title="Owners">
-              </b-tab>
-              <b-tab title="Unregistered" :disabled="unregistered.length == 0">
-              </b-tab>
-              <b-tab title="Hours" v-if="settings.searchTabIndex == 2 && settings.setAttributes[settings.selectedSet].type == 'hours'">
-              </b-tab>
-            </b-tabs>
-
-            <!-- Results Toolbar -->
-            <div v-if="Object.keys(searchResults).length > 0" class="d-flex m-0 mt-2 p-0" style="height: 37px;">
-              <div v-if="settings.resultsTabIndex != 4" class="pr-4">
-                <b-form-input type="text" size="sm" v-model.trim="settings.filter" debounce="600" class="w-100" placeholder="🔍 {regex}"></b-form-input>
-              </div>
-              <div v-if="settings.resultsTabIndex != 4" class="pr-1" style="max-width: 100px;">
-                <b-form-input type="text" size="sm" v-model.trim="settings.priceFrom" debounce="600" class="w-100" placeholder="ETH from"></b-form-input>
-              </div>
-              <div v-if="settings.resultsTabIndex != 4" class="pr-1">
-                -
-              </div>
-              <div v-if="settings.resultsTabIndex != 4" class="pr-2" style="max-width: 100px;">
-                <b-form-input type="text" size="sm" v-model.trim="settings.priceTo" debounce="600" class="w-100" placeholder="ETH to"></b-form-input>
-              </div>
-              <div v-if="settings.resultsTabIndex != 4" class="pl-1">
-                <font size="-2">{{ filteredResults.length }} of {{ Object.keys(searchResults).length }}</font>
-              </div>
-              <div class="pr-1 flex-grow-1">
-              </div>
-              <div v-if="settings.resultsTabIndex != 4 && settings.resultsTabIndex != 5" class="pl-1" style="max-width: 200px;">
-                <b-form-select size="sm" v-model="settings.sortOption" :options="sortOptions" class="w-100"></b-form-select>
-              </div>
-              <div v-if="settings.resultsTabIndex != 4 && settings.resultsTabIndex != 5" class="pl-1">
-                <b-button size="sm" :pressed.sync="settings.randomise" @click="settings.sortOption = 'random'; " variant="link" v-b-popover.hover="'Randomise'"><b-icon-arrow-clockwise shift-v="-1" font-scale="1.4"></b-icon-arrow-clockwise></b-button>
-              </div>
-              <div v-if="settings.resultsTabIndex != 4" class="pl-1">
-                <b-button size="sm" @click="exportNames" :disabled="Object.keys(searchResults).length == 0" variant="link">Export</b-button>
-              </div>
-              <div class="pr-1 flex-grow-1">
-              </div>
-              <!--
-              <div class="pl-1" v-if="settings.resultsTabIndex == 2">
-                <b-form-select size="sm" v-model="settings.imageSize" :options="imageSizeOptions"></b-form-select>
-              </div>
-              -->
-              <div v-if="settings.resultsTabIndex == 1 || settings.resultsTabIndex == 2" class="pl-1">
-                <b-pagination size="sm" v-model="settings.resultsCurrentPage" :total-rows="filteredResults.length" :per-page="settings.resultsPageSize"></b-pagination>
-              </div>
-              <div v-if="settings.resultsTabIndex == 1 || settings.resultsTabIndex == 2" class="pl-1" style="max-width: 200px;">
-                <b-form-select size="sm" v-model="settings.resultsPageSize" :options="pageSizes"></b-form-select>
-              </div>
-            </div>
-
-            <!-- Summary -->
-            <div v-if="settings.resultsTabIndex == 0">
-              <b-table small striped hover :fields="summaryFields" :items="summary" table-class="w-auto"  thead-class="hidden_header" class="mt-1">
-                <template #cell(names)="data">
-                  <span v-for="(result, resultIndex) in data.item.results" :key="resultIndex">
-                    <b-button :id="'popover-target-' + result.labelName + '-' + resultIndex" variant="link" class="m-0 p-0">
-                      <span v-if="result.warn == null">
-                        {{ result.labelName }}
-                      </span>
-                      <span v-if="result.warn != null">
-                        <b-badge v-if="result.warn != null" v-b-popover.hover="'Expiring ' + formatDate(result.expiryDate) + ' UTC'" variant="warning">{{ result.labelName }}</b-badge>
-                      </span>
-                    </b-button>
-                    <span v-if="prices[result.tokenId]">
-                      <font shift-v="+3" size="-1"><b-badge v-b-popover.hover="'Floor ask price in ETH'" variant="success">{{ prices[result.tokenId].floorAskPrice }}</b-badge></font>
-                    </span>
-                    <b-popover :target="'popover-target-' + result.labelName + '-' + resultIndex" placement="right">
-                      <template #title>{{ result.name }} links</template>
-                      <b-link :href="'https://app.ens.domains/name/' + result.name" v-b-popover.hover="'View in app.ens.domains'" target="_blank">
-                        ENS
-                      </b-link>
-                      <br />
-                      <b-link :href="'https://opensea.io/assets/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + result.tokenId" v-b-popover.hover="'View in opensea.io'" target="_blank">
-                        OpenSea
-                      </b-link>
-                      <br />
-                      <b-link :href="'https://looksrare.org/collections/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + result.tokenId" v-b-popover.hover="'View in looksrare.org'" target="_blank">
-                        LooksRare
-                      </b-link>
-                      <br />
-                      <b-link :href="'https://x2y2.io/eth/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + result.tokenId" v-b-popover.hover="'View in x2y2.io'" target="_blank">
-                        X2Y2
-                      </b-link>
-                      <br />
-                      <b-link :href="'https://etherscan.io/enslookup-search?search=' + result.name" v-b-popover.hover="'View in etherscan.io'" target="_blank">
-                        EtherScan
-                      </b-link>
-                      <br />
-                      <b-link :href="'https://duckduckgo.com/?q=' + result.labelName" v-b-popover.hover="'Search name in duckduckgo.com'" target="_blank">
-                        DuckDuckGo
-                      </b-link>
-                      <br />
-                      <b-link :href="'https://www.google.com/search?q=' + result.labelName" v-b-popover.hover="'Search name in google.com'" target="_blank">
-                        Google
-                      </b-link>
-                      <br />
-                      <b-link :href="'https://twitter.com/search?q=' + result.name" v-b-popover.hover="'Search name in twitter.com'" target="_blank">
-                        Twitter
-                      </b-link>
-                      <br />
-                      <b-link :href="'https://wikipedia.org/wiki/' + result.labelName" v-b-popover.hover="'Search name in wikipedia.org'" target="_blank">
-                        Wikipedia
-                      </b-link>
-                      <br />
-                      <b-link :href="'https://en.wiktionary.org/wiki/' + result.labelName" v-b-popover.hover="'Search name in wiktionary.org'" target="_blank">
-                        Wiktionary
-                      </b-link>
-                      <br />
-                      <b-link :href="'https://thesaurus.yourdictionary.com/' + result.labelName" v-b-popover.hover="'Search name in thesaurus.yourdictionary.com'" target="_blank">
-                        Thesaurus
-                      </b-link>
-                    </b-popover>
-                  </span>
-                </template>
-              </b-table>
-            </div>
-
-            <!-- Details -->
-            <div v-if="settings.resultsTabIndex == 1">
-              <b-table small striped hover :fields="resultsFields" :items="pagedFilteredResults" responsive="sm" class="mt-1">
-                <template #cell(index)="data">
-                  {{ data.index+1+(settings.resultsCurrentPage - 1) * settings.resultsPageSize }}
-                </template>
-                <template #cell(image)="data">
-                  <b-img :width="'100%'" :src="'https://metadata.ens.domains/mainnet/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + data.item.tokenId + '/image'"></b-img>
-                  <!--
-                  <div v-if="data.item.hasAvatar">
-                    <b-img-lazy :width="'100%'" :src="'https://metadata.ens.domains/mainnet/avatar/' + data.item.name" />
-                    <b-img-lazy :width="'100%'" :src="'https://metadata.ens.domains/mainnet/avatar/' + data.item.name" />
-                  </div>
-                  -->
-                </template>
-                <template #cell(name)="data">
-                  <b-button :id="'popover-target-name-' + data.index" variant="link" class="m-0 p-0">
-                    {{ data.item.name.substring(0, 64) }}
-                  </b-button>
-                  <b-popover :target="'popover-target-name-' + data.index" placement="right">
-                    <template #title>{{ data.item.name.substring(0, 64) }}:</template>
-                    <b-link :href="'https://app.ens.domains/name/' + data.item.name" v-b-popover.hover="'View in app.ens.domains'" target="_blank">
-                      ENS
-                    </b-link>
-                    <br />
-                    <b-link :href="'https://opensea.io/assets/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + data.item.tokenId" v-b-popover.hover="'View in opensea.io'" target="_blank">
-                      OpenSea
-                    </b-link>
-                    <br />
-                    <b-link :href="'https://looksrare.org/collections/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + data.item.tokenId" v-b-popover.hover="'View in looksrare.org'" target="_blank">
-                      LooksRare
-                    </b-link>
-                    <br />
-                    <b-link :href="'https://x2y2.io/eth/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + data.item.tokenId" v-b-popover.hover="'View in x2y2.io'" target="_blank">
-                      X2Y2
-                    </b-link>
-                    <br />
-                    <b-link :href="'https://etherscan.io/enslookup-search?search=' + data.item.name" v-b-popover.hover="'View in etherscan.io'" target="_blank">
-                      EtherScan
-                    </b-link>
-                    <br />
-                    <b-link :href="'https://duckduckgo.com/?q=' + data.item.labelName" v-b-popover.hover="'Search name in duckduckgo.com'" target="_blank">
-                      DuckDuckGo
-                    </b-link>
-                    <br />
-                    <b-link :href="'https://www.google.com/search?q=' + data.item.labelName" v-b-popover.hover="'Search name in google.com'" target="_blank">
-                      Google
-                    </b-link>
-                    <br />
-                    <b-link :href="'https://twitter.com/search?q=' + data.item.name" v-b-popover.hover="'Search name in twitter.com'" target="_blank">
-                      Twitter
-                    </b-link>
-                    <br />
-                    <b-link :href="'https://wikipedia.org/wiki/' + data.item.labelName" v-b-popover.hover="'Search name in wikipedia.org'" target="_blank">
-                      Wikipedia
-                    </b-link>
-                    <br />
-                    <b-link :href="'https://en.wiktionary.org/wiki/' + data.item.labelName" v-b-popover.hover="'Search name in wiktionary.org'" target="_blank">
-                      Wiktionary
-                    </b-link>
-                    <br />
-                    <b-link :href="'https://thesaurus.yourdictionary.com/' + data.item.labelName" v-b-popover.hover="'Search name in thesaurus.yourdictionary.com'" target="_blank">
-                      Thesaurus
-                    </b-link>
-                  </b-popover>
-                  <br />
-                  <br />
-                  <span v-if="prices[data.item.tokenId]">
-                    <font shift-v="+3" size="-1"><b-badge v-b-popover.hover="'Floor ask price in ETH'" variant="success">{{ prices[data.item.tokenId].floorAskPrice }}</b-badge></font>
-                  </span>
-
-                </template>
-                <template #cell(registrant)="data">
-                  <b-button :id="'popover-target-registrant-' + data.index" variant="link" class="m-0 p-0">
-                    {{ data.item.registrant }}
-                  </b-button>
-                  <b-popover :target="'popover-target-registrant-' + data.index" placement="right">
-                    <template #title>Registrant: {{ data.item.registrant.substring(0, 12) }}:</template>
-                    <b-link :href="'https://opensea.io/' + data.item.registrant" v-b-popover.hover="'View in opensea.io'" target="_blank">
-                      OpenSea
-                    </b-link>
-                    <br />
-                    <b-link :href="'https://looksrare.org/accounts/' + data.item.registrant" v-b-popover.hover="'View in looksrare.org'" target="_blank">
-                      LooksRare
-                    </b-link>
-                    <br />
-                    <b-link :href="'https://x2y2.io/user/' + data.item.registrant + '/items'" v-b-popover.hover="'View in x2y2.io'" target="_blank">
-                      X2Y2
-                    </b-link>
-                    <br />
-                    <b-link :href="'https://etherscan.io/address/' + data.item.registrant" v-b-popover.hover="'View in etherscan.io'" target="_blank">
-                      EtherScan
-                    </b-link>
-                  </b-popover>
-                  <br />
-                  <br />
-                  <font size="-2">
-                    <b-button size="sm" :id="'popover-target-owner-' + data.index" variant="link" class="m-0 p-0">
-                      C: {{ data.item.owner }}
-                    </b-button>
-                    <b-popover :target="'popover-target-owner-' + data.index" placement="right">
-                      <template #title>Controller: {{ data.item.owner.substring(0, 12) }}:</template>
-                      <b-link :href="'https://opensea.io/' + data.item.owner" v-b-popover.hover="'View in opensea.io'" target="_blank">
-                        OpenSea
-                      </b-link>
-                      <br />
-                      <b-link :href="'https://looksrare.org/accounts/' + data.item.owner" v-b-popover.hover="'View in looksrare.org'" target="_blank">
-                        LooksRare
-                      </b-link>
-                      <br />
-                      <b-link :href="'https://x2y2.io/user/' + data.item.owner + '/items'" v-b-popover.hover="'View in x2y2.io'" target="_blank">
-                        X2Y2
-                      </b-link>
-                      <br />
-                      <b-link :href="'https://etherscan.io/address/' + data.item.owner" v-b-popover.hover="'View in etherscan.io'" target="_blank">
-                        EtherScan
-                      </b-link>
-                    </b-popover>
-                  </font>
-                  <br />
-                  <font size="-2">
-                    <b-button size="sm" :id="'popover-target-resolvedAddress-' + data.index" variant="link" class="m-0 p-0">
-                      RA: {{ data.item.resolvedAddress }}
-                    </b-button>
-                    <b-popover :target="'popover-target-resolvedAddress-' + data.index" placement="right">
-                      <template #title>Resolved Addr: {{ data.item.resolvedAddress.substring(0, 12) }}:</template>
-                      <b-link :href="'https://opensea.io/' + data.item.resolvedAddress" v-b-popover.hover="'View in opensea.io'" target="_blank">
-                        OpenSea
-                      </b-link>
-                      <br />
-                      <b-link :href="'https://looksrare.org/accounts/' + data.item.resolvedAddress" v-b-popover.hover="'View in looksrare.org'" target="_blank">
-                        LooksRare
-                      </b-link>
-                      <br />
-                      <b-link :href="'https://x2y2.io/user/' + data.item.resolvedAddress + '/items'" v-b-popover.hover="'View in x2y2.io'" target="_blank">
-                        X2Y2
-                      </b-link>
-                      <br />
-                      <b-link :href="'https://etherscan.io/address/' + data.item.resolvedAddress" v-b-popover.hover="'View in etherscan.io'" target="_blank">
-                        EtherScan
-                      </b-link>
-                    </b-popover>
-                  </font>
-                </template>
-                <template #cell(expiryDate)="data">
-                  <div v-if="data.item.warn">
-                    <font :color="data.item.warn">
-                      {{ formatDate(data.item.expiryDate) }}
-                    </font>
-                  </div>
-                  <div v-else>
-                    {{ formatDate(data.item.expiryDate) }}
-                  </div>
-                  <br />
-                  <font size="-2">R: {{ formatDate(data.item.registrationDate) }}</font>
-                </template>
-              </b-table>
-            </div>
-
-            <!-- Images -->
-            <!-- TODO: Add hyperlinks -->
-            <div v-if="settings.resultsTabIndex == 2">
-              <b-card-group deck class="m-2">
-                <div v-for="record in pagedFilteredResults">
-                  <b-card overlay :id="'popover-target-image-' + record.name" :img-src="'https://metadata.ens.domains/mainnet/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + record.tokenId + '/image'" class="m-2 p-0">
-                    <div v-if="prices[record.tokenId]">
-                      <b-col cols="10" class="m-0 p-1 text-right">
-                        <font shift-v="+3" size="-1"><b-badge v-b-popover.hover="'Floor ask price in ETH'" variant="success">{{ prices[record.tokenId].floorAskPrice }}</b-badge></font>
-                      </b-col>
-                    </div>
-                  </b-card>
-                  <!--
-                  <b-card body-class="p-1" header-class="p-1" footer-class="p-1" img-top class="m-1 p-0 border-0">
-                    <b-img-lazy :width="settings.imageSize + '%'" :src="'https://metadata.ens.domains/mainnet/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + record.tokenId + '/image'"></b-img>
-                    </b-img-lazy>
-                  </b-card>
-                  -->
-                </div>
-              </b-card-group deck>
-            </div>
-
-            <!-- Owners -->
-            <div v-if="settings.resultsTabIndex == 3">
-              <b-table small striped hover :fields="ownersFields" :items="owners" class="mt-3">
-                <template #cell(index)="data">
-                  {{ data.index+1 }}
-                </template>
-                <template #cell(registrant)="data">
-                  <b-button :id="'popover-target-owner-' + data.item.registrant + '-' + data.index" variant="link" class="m-0 p-0">
-                    {{ data.item.registrant }}
-                  </b-button>
-                  <b-popover :target="'popover-target-owner-' + data.item.registrant + '-' + data.index" placement="right">
-                    <template #title>Registrant: {{ data.item.registrant.substring(0, 12) }}:</template>
-                    <b-link :href="'https://opensea.io/' + data.item.registrant" v-b-popover.hover="'View in opensea.io'" target="_blank">
-                      OpenSea
-                    </b-link>
-                    <br />
-                    <b-link :href="'https://looksrare.org/accounts/' + data.item.registrant" v-b-popover.hover="'View in looksrare.org'" target="_blank">
-                      LooksRare
-                    </b-link>
-                    <br />
-                    <b-link :href="'https://x2y2.io/user/' + data.item.registrant + '/items'" v-b-popover.hover="'View in x2y2.io'" target="_blank">
-                      X2Y2
-                    </b-link>
-                    <br />
-                    <b-link :href="'https://chat.blockscan.com/index?a=' + data.item.registrant" v-b-popover.hover="'View in etherscan.io'" target="_blank">
-                      Blockscan
-                    </b-link>
-                  </b-popover>
-                </template>
-                <template #cell(names)="data">
-                  <span v-for="(result, resultIndex) in data.item.results" :key="resultIndex">
-                    <b-button :id="'popover-target-' + data.item.registrant + '-' + resultIndex" variant="link" class="m-0 p-0">
-                      {{ result.labelName }}
-                    </b-button>
-                    <span v-if="prices[result.tokenId]">
-                      <font shift-v="+3" size="-1"><b-badge v-b-popover.hover="'Floor ask price in ETH'" variant="success">{{ prices[result.tokenId].floorAskPrice }}</b-badge></font>
-                    </span>
-                    <b-popover :target="'popover-target-' + data.item.registrant + '-' + resultIndex" placement="right">
-                      <template #title>{{ result.name }} links</template>
-                      <b-link :href="'https://app.ens.domains/name/' + result.name" v-b-popover.hover="'View in app.ens.domains'" target="_blank">
-                        ENS
-                      </b-link>
-                      <br />
-                      <b-link :href="'https://opensea.io/assets/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + result.tokenId" v-b-popover.hover="'View in opensea.io'" target="_blank">
-                        OpenSea
-                      </b-link>
-                      <br />
-                      <b-link :href="'https://looksrare.org/collections/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + result.tokenId" v-b-popover.hover="'View in looksrare.org'" target="_blank">
-                        LooksRare
-                      </b-link>
-                      <br />
-                      <b-link :href="'https://x2y2.io/eth/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + result.tokenId" v-b-popover.hover="'View in x2y2.io'" target="_blank">
-                        X2Y2
-                      </b-link>
-                      <br />
-                      <b-link :href="'https://etherscan.io/enslookup-search?search=' + result.name" v-b-popover.hover="'View in etherscan.io'" target="_blank">
-                        EtherScan
-                      </b-link>
-                      <br />
-                      <b-link :href="'https://duckduckgo.com/?q=' + result.labelName" v-b-popover.hover="'Search name in duckduckgo.com'" target="_blank">
-                        DuckDuckGo
-                      </b-link>
-                      <br />
-                      <b-link :href="'https://www.google.com/search?q=' + result.labelName" v-b-popover.hover="'Search name in google.com'" target="_blank">
-                        Google
-                      </b-link>
-                      <br />
-                      <b-link :href="'https://twitter.com/search?q=' + result.name" v-b-popover.hover="'Search name in twitter.com'" target="_blank">
-                        Twitter
-                      </b-link>
-                      <br />
-                      <b-link :href="'https://wikipedia.org/wiki/' + result.labelName" v-b-popover.hover="'Search name in wikipedia.org'" target="_blank">
-                        Wikipedia
-                      </b-link>
-                      <br />
-                      <b-link :href="'https://en.wiktionary.org/wiki/' + result.labelName" v-b-popover.hover="'Search name in wiktionary.org'" target="_blank">
-                        Wiktionary
-                      </b-link>
-                      <br />
-                      <b-link :href="'https://thesaurus.yourdictionary.com/' + result.labelName" v-b-popover.hover="'Search name in thesaurus.yourdictionary.com'" target="_blank">
-                        Thesaurus
-                      </b-link>
-                    </b-popover>
-                  </span>
-                </template>
-              </b-table>
-            </div>
-
-            <!-- Unregistered -->
-            <div v-if="settings.resultsTabIndex == 4">
-              <b-card-text class="m-0 p-0">
-                <span v-for="(name, index) in unregistered" :key="index">
-                  <b-link :href="'https://app.ens.domains/name/' + name + '.eth'" v-b-popover.click="'Register in app.ens.domains'" target="_blank">
-                    {{ name }}
-                  </b-link>
-                </span>
-              </b-card-text>
-            </div>
-
-            <!-- Hours - Only enabled sometimes -->
-            <div v-if="settings.resultsTabIndex == 5">
-              <b-card-text class="m-0 p-0">
-                <b-row class="m-0 p-0">
-                  <b-col class="m-0 p-0 text-right">mm\\hh</b-col>
-                  <b-col v-for="(hours, hoursIndex) in 24" :key="hoursIndex" class="m-0 p-0 text-right">
-                    {{ (hours - 1).toString().padStart(2, '0') }}
+              <div v-if="settings.searchTabIndex == 1" class="m-0 p-0">
+                <b-row>
+                  <b-col>
+                    <b-form-select size="sm" v-model="settings.selectedGroup" :options="groupOptions" v-b-popover.hover="'Set up groups in Config'" class="w-50"></b-form-select>
                   </b-col>
                 </b-row>
-                <b-row v-for="(mins, index) in hours" :key="index" class="m-0 p-0">
-                  <b-col class="m-0 p-0 text-right">{{ mins.mm.padStart(2, '0') }}</b-col>
-                  <b-col v-for="(hhmm, hhmmIndex) in mins.hh" :key="hhmmIndex" class="m-0 p-0 text-right">
-                    <div v-if="hhmm">
-                      <font size="-2">
-                        <div v-if="prices[hhmm.tokenId] && prices[hhmm.tokenId].floorAskPrice != null">
-                          <b-badge v-b-popover.hover="'Floor ask price in ETH'" variant="success">
-                            {{ prices[hhmm.tokenId].floorAskPrice }}
-                          </b-badge>
-                        </div>
-                      </font>
-                      <font size="-2">
-                        <span v-if="hhmm.warn == null">
-                          <b-link v-if="hhmm" :id="'popover-target-' + hhmm.labelName">
-                            {{ hhmm.labelName }}
-                          </b-link>
+                <b-row>
+                  <b-col class="mt-2">
+                    <b-button size="sm" @click="scan( { type: 'group', group: settings.selectedGroup } )" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
+                    <span v-if="searchMessage != null">
+                      <b-button size="sm" @click="halt" variant="primary">Halt</b-button>
+                    </span>
+                  </b-col>
+                </b-row>
+              </div>
+
+              <!-- Scan Sets -->
+              <div v-if="settings.searchTabIndex == 2" class="m-0 p-0">
+                <b-card-text>
+                  <b-row>
+                    <b-col cols="3" class="m-0 p-1 text-right">
+                      Set
+                    </b-col>
+                    <b-col cols="4" class="m-0 p-1">
+                      <b-form-select size="sm" v-model="settings.selectedSet" :options="setOptions" class="w-100"></b-form-select>
+                    </b-col>
+                    <b-col cols="4" class="m-0 p-1">
+                    </b-col>
+                  </b-row>
+
+                  <b-row>
+                    <b-col cols="3" class="m-0 p-1 text-right">
+                      From<span v-if="settings.setAttributes[settings.selectedSet].type == 'hours'">, hh</span>
+                    </b-col>
+                    <b-col cols="4" class="m-0 p-1">
+                      <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].from" class="w-100"></b-form-input>
+                    </b-col>
+                    <b-col cols="4" class="m-0 p-1">
+                    </b-col>
+                  </b-row>
+
+                  <b-row>
+                    <b-col cols="3" class="m-0 p-1 text-right">
+                      To<span v-if="settings.setAttributes[settings.selectedSet].type == 'hours'">, hh</span>
+                    </b-col>
+                    <b-col cols="4" class="m-0 p-1">
+                      <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].to" class="w-100"></b-form-input>
+                    </b-col>
+                    <b-col cols="4" class="m-0 p-1">
+                    </b-col>
+                  </b-row>
+
+                  <b-row>
+                    <b-col cols="3" class="m-0 p-1 text-right">
+                      Step<span v-if="settings.setAttributes[settings.selectedSet].type == 'hours'">, hh</span>
+                    </b-col>
+                    <b-col cols="4" class="m-0 p-1">
+                      <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].step" class="w-100"></b-form-input>
+                    </b-col>
+                    <b-col cols="4" class="m-0 p-1">
+                    </b-col>
+                  </b-row>
+
+                  <div v-if="settings.setAttributes[settings.selectedSet].type == 'hours'">
+                    <b-row>
+                      <b-col cols="3" class="m-0 p-1 text-right">
+                        From, mm
+                      </b-col>
+                      <b-col cols="4" class="m-0 p-1">
+                        <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].from2" class="w-100"></b-form-input>
+                      </b-col>
+                      <b-col cols="4" class="m-0 p-1">
+                      </b-col>
+                    </b-row>
+
+                    <b-row>
+                      <b-col cols="3" class="m-0 p-1 text-right">
+                        To, mm
+                      </b-col>
+                      <b-col cols="4" class="m-0 p-1">
+                        <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].to2" class="w-100"></b-form-input>
+                      </b-col>
+                      <b-col cols="4" class="m-0 p-1">
+                      </b-col>
+                    </b-row>
+
+                    <b-row>
+                      <b-col cols="3" class="m-0 p-1 text-right">
+                        Step, mm
+                      </b-col>
+                      <b-col cols="4" class="m-0 p-1">
+                        <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].step2" class="w-100"></b-form-input>
+                      </b-col>
+                      <b-col cols="4" class="m-0 p-1">
+                      </b-col>
+                    </b-row>
+                  </div>
+
+                  <b-row v-if="'regex' in settings.setAttributes[settings.selectedSet]">
+                    <b-col cols="3" class="m-0 p-1 text-right">
+                      Regex
+                    </b-col>
+                    <b-col cols="4" class="m-0 p-1">
+                      <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].regex" placeholder="🔍 {regex}, e.g., '^([0-9])([0-9])([0-9])\\3\\2\\1$' for 6 digit palindromes" class="w-100"></b-form-input>
+                    </b-col>
+                    <b-col cols="4" class="m-0 p-1">
+                    </b-col>
+                  </b-row>
+
+                  <b-row v-if="'palindrome' in settings.setAttributes[settings.selectedSet]">
+                    <b-col cols="3" class="m-0 p-1 text-right">
+                    </b-col>
+                    <b-col cols="4" class="m-0 p-1">
+                      <b-form-checkbox v-model.trim="settings.setAttributes[settings.selectedSet].palindrome">
+                        Palindrome
+                      </b-form-checkbox>
+                    </b-col>
+                    <b-col cols="4" class="m-0 p-1">
+                    </b-col>
+                  </b-row>
+
+                  <b-row v-if="'prefix' in settings.setAttributes[settings.selectedSet]">
+                    <b-col cols="3" class="m-0 p-1 text-right">
+                      Prefix
+                    </b-col>
+                    <b-col cols="4" class="m-0 p-1">
+                      <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].prefix" placeholder="optional prefix, e.g., 'mr'" class="w-100"></b-form-input>
+                    </b-col>
+                    <b-col cols="4" class="m-0 p-1">
+                    </b-col>
+                  </b-row>
+
+                  <div v-if="'separator' in settings.setAttributes[settings.selectedSet]">
+                    <b-row>
+                      <b-col cols="3" class="m-0 p-1 text-right">
+                        Separator
+                      </b-col>
+                      <b-col cols="4" class="m-0 p-1">
+                        <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].separator" placeholder="optional separator, e.g., 'h'" class="w-100"></b-form-input>
+                      </b-col>
+                      <b-col cols="4" class="m-0 p-1">
+                      </b-col>
+                    </b-row>
+                  </div>
+
+                  <b-row v-if="'postfix' in settings.setAttributes[settings.selectedSet]">
+                    <b-col cols="3" class="m-0 p-1 text-right">
+                      Postfix
+                    </b-col>
+                    <b-col cols="4" class="m-0 p-1">
+                      <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].postfix" placeholder="optional postfix, e.g., 'abc'" class="w-100"></b-form-input>
+                    </b-col>
+                    <b-col cols="4" class="m-0 p-1">
+                    </b-col>
+                  </b-row>
+
+                  <b-row>
+                    <b-col cols="3" class="m-0 p-1 text-right">
+                    </b-col>
+                    <b-col cols="4" class="m-0 p-1">
+                      <b-button size="sm" @click="scan(settings.setAttributes[settings.selectedSet])" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
+                      <span v-if="searchMessage != null">
+                        <b-button size="sm" @click="halt" variant="primary">Halt</b-button>
+                      </span>
+                    </b-col>
+                  </b-row>
+
+                </b-card-text>
+              </div>
+              <div v-if="settings.searchTabIndex == 3">
+                <b-card-text>
+                  Hello 4
+                </b-card-text>
+              </div>
+
+            </b-card-body>
+          </div>
+        </b-card>
+
+        <div v-if="false">
+          <!-- Intro -->
+          <b-card v-if="Object.keys(searchResults).length == 0 && unregistered.length == 0" class="mt-1" no-header>
+            <b-card-text>
+              This application is a tool to query the <a href="https://thegraph.com/hosted-service/subgraph/ensdomains/ens" target="_blank">ENS subgraph</a>. Sales are supplemented from the <a href="https://api.reservoir.tools/#/1.%20Order%20Book/getOrdersAllV1" target="_blank">Reservoir API</a>.
+            </b-card-text>
+            <b-card-text>
+              Use <b>Names</b> to search for a list of ENS names. Search types: exact, contains, starts with, and ends with. For exact searches, other names owned by the registrants can be retrieved.
+            </b-card-text>
+            <b-card-text>
+              Use <b>Group</b> to search for the ENS names owned by a group of ETH addresses configured in the <b>Config</b> page.
+            </b-card-text>
+            <b-card-text>
+              Use <b>Sets</b> to scan a range of digits with optional prefix and/or postfix. 999Club, 10kClub, or the 24 hour set.
+            </b-card-text>
+            <b-card-text>
+              The list of names and/or addresses can be comma, space, tab or newline separated. <em>.eth</em> is optional
+            </b-card-text>
+            <b-card-text>
+              This application uses technology and data from <a href="https://twitter.com/ensdomains" target="_blank">ens.eth</a>, <a href="https://twitter.com/graphprotocol" target="_blank">The Graph</a> and <a href="https://twitter.com/reservoir0x" target="_blank">Reservoir</a> that we are not affliated with.
+            </b-card-text>
+            <b-card-text class="mt-5">
+              Enjoy. aenus advanced ENS utilities (c) Bok Consulting Pty Ltd 2022
+            </b-card-text>
+          </b-card>
+
+          <!-- Results Section -->
+          <b-card  v-if="Object.keys(searchResults).length > 0 || unregistered.length > 0" no-body class="p-0 mt-1">
+            <b-card-body class="m-1 p-1">
+              <b-tabs card align="left" no-body active-tab-class="m-0 p-0" v-model="settings.resultsTabIndex">
+                <b-tab title="Summary">
+                </b-tab>
+                <b-tab title="Details">
+                </b-tab>
+                <b-tab title="Images">
+                </b-tab>
+                <b-tab title="Owners">
+                </b-tab>
+                <b-tab title="Unregistered" :disabled="unregistered.length == 0">
+                </b-tab>
+                <b-tab title="Hours" v-if="settings.searchTabIndex == 2 && settings.setAttributes[settings.selectedSet].type == 'hours'">
+                </b-tab>
+              </b-tabs>
+
+              <!-- Results Toolbar -->
+              <div v-if="Object.keys(searchResults).length > 0" class="d-flex m-0 mt-2 p-0" style="height: 37px;">
+                <div v-if="settings.resultsTabIndex != 4" class="pr-4">
+                  <b-form-input type="text" size="sm" v-model.trim="settings.filter" debounce="600" class="w-100" placeholder="🔍 {regex}"></b-form-input>
+                </div>
+                <div v-if="settings.resultsTabIndex != 4" class="pr-1" style="max-width: 100px;">
+                  <b-form-input type="text" size="sm" v-model.trim="settings.priceFrom" debounce="600" class="w-100" placeholder="ETH from"></b-form-input>
+                </div>
+                <div v-if="settings.resultsTabIndex != 4" class="pr-1">
+                  -
+                </div>
+                <div v-if="settings.resultsTabIndex != 4" class="pr-2" style="max-width: 100px;">
+                  <b-form-input type="text" size="sm" v-model.trim="settings.priceTo" debounce="600" class="w-100" placeholder="ETH to"></b-form-input>
+                </div>
+                <div v-if="settings.resultsTabIndex != 4" class="pl-1">
+                  <font size="-2">{{ filteredResults.length }} of {{ Object.keys(searchResults).length }}</font>
+                </div>
+                <div class="pr-1 flex-grow-1">
+                </div>
+                <div v-if="settings.resultsTabIndex != 4 && settings.resultsTabIndex != 5" class="pl-1" style="max-width: 200px;">
+                  <b-form-select size="sm" v-model="settings.sortOption" :options="sortOptions" class="w-100"></b-form-select>
+                </div>
+                <div v-if="settings.resultsTabIndex != 4 && settings.resultsTabIndex != 5" class="pl-1">
+                  <b-button size="sm" :pressed.sync="settings.randomise" @click="settings.sortOption = 'random'; " variant="link" v-b-popover.hover="'Randomise'"><b-icon-arrow-clockwise shift-v="-1" font-scale="1.4"></b-icon-arrow-clockwise></b-button>
+                </div>
+                <div v-if="settings.resultsTabIndex != 4" class="pl-1">
+                  <b-button size="sm" @click="exportNames" :disabled="Object.keys(searchResults).length == 0" variant="link">Export</b-button>
+                </div>
+                <div class="pr-1 flex-grow-1">
+                </div>
+                <!--
+                <div class="pl-1" v-if="settings.resultsTabIndex == 2">
+                  <b-form-select size="sm" v-model="settings.imageSize" :options="imageSizeOptions"></b-form-select>
+                </div>
+                -->
+                <div v-if="settings.resultsTabIndex == 1 || settings.resultsTabIndex == 2" class="pl-1">
+                  <b-pagination size="sm" v-model="settings.resultsCurrentPage" :total-rows="filteredResults.length" :per-page="settings.resultsPageSize"></b-pagination>
+                </div>
+                <div v-if="settings.resultsTabIndex == 1 || settings.resultsTabIndex == 2" class="pl-1" style="max-width: 200px;">
+                  <b-form-select size="sm" v-model="settings.resultsPageSize" :options="pageSizes"></b-form-select>
+                </div>
+              </div>
+
+              <!-- Summary -->
+              <div v-if="settings.resultsTabIndex == 0">
+                <b-table small striped hover :fields="summaryFields" :items="summary" table-class="w-auto"  thead-class="hidden_header" class="mt-1">
+                  <template #cell(names)="data">
+                    <span v-for="(result, resultIndex) in data.item.results" :key="resultIndex">
+                      <b-button :id="'popover-target-' + result.labelName + '-' + resultIndex" variant="link" class="m-0 p-0">
+                        <span v-if="result.warn == null">
+                          {{ result.labelName }}
                         </span>
-                        <span v-if="hhmm.warn != null">
-                          <b-link v-if="hhmm" :id="'popover-target-' + hhmm.labelName" style="background: yellow; " v-b-popover.hover="'Expiring ' + formatDate(hhmm.expiryDate) + ' UTC'">
-                            {{ hhmm.labelName }}
-                          </b-link>
+                        <span v-if="result.warn != null">
+                          <b-badge v-if="result.warn != null" v-b-popover.hover="'Expiring ' + formatDate(result.expiryDate) + ' UTC'" variant="warning">{{ result.labelName }}</b-badge>
                         </span>
-                      </font>
-                      <b-popover :target="'popover-target-' + hhmm.labelName" placement="right">
-                        <template #title>{{ hhmm.labelName }}:</template>
-                        <b-link :href="'https://app.ens.domains/name/' + hhmm.name" v-b-popover.hover="'View in app.ens.domains'" target="_blank">
+                      </b-button>
+                      <span v-if="prices[result.tokenId]">
+                        <font shift-v="+3" size="-1"><b-badge v-b-popover.hover="'Floor ask price in ETH'" variant="success">{{ prices[result.tokenId].floorAskPrice }}</b-badge></font>
+                      </span>
+                      <b-popover :target="'popover-target-' + result.labelName + '-' + resultIndex" placement="right">
+                        <template #title>{{ result.name }} links</template>
+                        <b-link :href="'https://app.ens.domains/name/' + result.name" v-b-popover.hover="'View in app.ens.domains'" target="_blank">
                           ENS
                         </b-link>
                         <br />
-                        <b-link :href="'https://opensea.io/assets/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + hhmm.tokenId" v-b-popover.hover="'View in opensea.io'" target="_blank">
+                        <b-link :href="'https://opensea.io/assets/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + result.tokenId" v-b-popover.hover="'View in opensea.io'" target="_blank">
                           OpenSea
                         </b-link>
                         <br />
-                        <b-link :href="'https://looksrare.org/collections/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + hhmm.tokenId" v-b-popover.hover="'View in looksrare.org'" target="_blank">
+                        <b-link :href="'https://looksrare.org/collections/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + result.tokenId" v-b-popover.hover="'View in looksrare.org'" target="_blank">
                           LooksRare
                         </b-link>
                         <br />
-                        <b-link :href="'https://x2y2.io/eth/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + hhmm.tokenId" v-b-popover.hover="'View in x2y2.io'" target="_blank">
+                        <b-link :href="'https://x2y2.io/eth/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + result.tokenId" v-b-popover.hover="'View in x2y2.io'" target="_blank">
                           X2Y2
                         </b-link>
                         <br />
-                        <b-link :href="'https://etherscan.io/enslookup-search?search=' + hhmm.name" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                        <b-link :href="'https://etherscan.io/enslookup-search?search=' + result.name" v-b-popover.hover="'View in etherscan.io'" target="_blank">
                           EtherScan
                         </b-link>
                         <br />
-                        <b-link :href="'https://duckduckgo.com/?q=' + hhmm.labelName" v-b-popover.hover="'Search name in duckduckgo.com'" target="_blank">
+                        <b-link :href="'https://duckduckgo.com/?q=' + result.labelName" v-b-popover.hover="'Search name in duckduckgo.com'" target="_blank">
                           DuckDuckGo
                         </b-link>
                         <br />
-                        <b-link :href="'https://www.google.com/search?q=' + hhmm.labelName" v-b-popover.hover="'Search name in google.com'" target="_blank">
+                        <b-link :href="'https://www.google.com/search?q=' + result.labelName" v-b-popover.hover="'Search name in google.com'" target="_blank">
                           Google
                         </b-link>
                         <br />
-                        <b-link :href="'https://twitter.com/search?q=' + hhmm.name" v-b-popover.hover="'Search name in twitter.com'" target="_blank">
+                        <b-link :href="'https://twitter.com/search?q=' + result.name" v-b-popover.hover="'Search name in twitter.com'" target="_blank">
                           Twitter
                         </b-link>
                         <br />
-                        <b-link :href="'https://wikipedia.org/wiki/' + hhmm.labelName" v-b-popover.hover="'Search name in wikipedia.org'" target="_blank">
+                        <b-link :href="'https://wikipedia.org/wiki/' + result.labelName" v-b-popover.hover="'Search name in wikipedia.org'" target="_blank">
                           Wikipedia
                         </b-link>
                         <br />
-                        <b-link :href="'https://en.wiktionary.org/wiki/' + hhmm.labelName" v-b-popover.hover="'Search name in wiktionary.org'" target="_blank">
+                        <b-link :href="'https://en.wiktionary.org/wiki/' + result.labelName" v-b-popover.hover="'Search name in wiktionary.org'" target="_blank">
                           Wiktionary
                         </b-link>
                         <br />
-                        <b-link :href="'https://thesaurus.yourdictionary.com/' + hhmm.labelName" v-b-popover.hover="'Search name in thesaurus.yourdictionary.com'" target="_blank">
+                        <b-link :href="'https://thesaurus.yourdictionary.com/' + result.labelName" v-b-popover.hover="'Search name in thesaurus.yourdictionary.com'" target="_blank">
                           Thesaurus
                         </b-link>
                       </b-popover>
+                    </span>
+                  </template>
+                </b-table>
+              </div>
+
+              <!-- Details -->
+              <div v-if="settings.resultsTabIndex == 1">
+                <b-table small striped hover :fields="resultsFields" :items="pagedFilteredResults" responsive="sm" class="mt-1">
+                  <template #cell(index)="data">
+                    {{ data.index+1+(settings.resultsCurrentPage - 1) * settings.resultsPageSize }}
+                  </template>
+                  <template #cell(image)="data">
+                    <b-img :width="'100%'" :src="'https://metadata.ens.domains/mainnet/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + data.item.tokenId + '/image'"></b-img>
+                    <!--
+                    <div v-if="data.item.hasAvatar">
+                      <b-img-lazy :width="'100%'" :src="'https://metadata.ens.domains/mainnet/avatar/' + data.item.name" />
+                      <b-img-lazy :width="'100%'" :src="'https://metadata.ens.domains/mainnet/avatar/' + data.item.name" />
                     </div>
-                  </b-col>
-                </b-row>
-              </b-card-text>
-            </div>
+                    -->
+                  </template>
+                  <template #cell(name)="data">
+                    <b-button :id="'popover-target-name-' + data.index" variant="link" class="m-0 p-0">
+                      {{ data.item.name.substring(0, 64) }}
+                    </b-button>
+                    <b-popover :target="'popover-target-name-' + data.index" placement="right">
+                      <template #title>{{ data.item.name.substring(0, 64) }}:</template>
+                      <b-link :href="'https://app.ens.domains/name/' + data.item.name" v-b-popover.hover="'View in app.ens.domains'" target="_blank">
+                        ENS
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://opensea.io/assets/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + data.item.tokenId" v-b-popover.hover="'View in opensea.io'" target="_blank">
+                        OpenSea
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://looksrare.org/collections/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + data.item.tokenId" v-b-popover.hover="'View in looksrare.org'" target="_blank">
+                        LooksRare
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://x2y2.io/eth/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + data.item.tokenId" v-b-popover.hover="'View in x2y2.io'" target="_blank">
+                        X2Y2
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://etherscan.io/enslookup-search?search=' + data.item.name" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                        EtherScan
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://duckduckgo.com/?q=' + data.item.labelName" v-b-popover.hover="'Search name in duckduckgo.com'" target="_blank">
+                        DuckDuckGo
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://www.google.com/search?q=' + data.item.labelName" v-b-popover.hover="'Search name in google.com'" target="_blank">
+                        Google
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://twitter.com/search?q=' + data.item.name" v-b-popover.hover="'Search name in twitter.com'" target="_blank">
+                        Twitter
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://wikipedia.org/wiki/' + data.item.labelName" v-b-popover.hover="'Search name in wikipedia.org'" target="_blank">
+                        Wikipedia
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://en.wiktionary.org/wiki/' + data.item.labelName" v-b-popover.hover="'Search name in wiktionary.org'" target="_blank">
+                        Wiktionary
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://thesaurus.yourdictionary.com/' + data.item.labelName" v-b-popover.hover="'Search name in thesaurus.yourdictionary.com'" target="_blank">
+                        Thesaurus
+                      </b-link>
+                    </b-popover>
+                    <br />
+                    <br />
+                    <span v-if="prices[data.item.tokenId]">
+                      <font shift-v="+3" size="-1"><b-badge v-b-popover.hover="'Floor ask price in ETH'" variant="success">{{ prices[data.item.tokenId].floorAskPrice }}</b-badge></font>
+                    </span>
 
-          </b-card-body>
-        </b-card>
+                  </template>
+                  <template #cell(registrant)="data">
+                    <b-button :id="'popover-target-registrant-' + data.index" variant="link" class="m-0 p-0">
+                      {{ data.item.registrant }}
+                    </b-button>
+                    <b-popover :target="'popover-target-registrant-' + data.index" placement="right">
+                      <template #title>Registrant: {{ data.item.registrant.substring(0, 12) }}:</template>
+                      <b-link :href="'https://opensea.io/' + data.item.registrant" v-b-popover.hover="'View in opensea.io'" target="_blank">
+                        OpenSea
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://looksrare.org/accounts/' + data.item.registrant" v-b-popover.hover="'View in looksrare.org'" target="_blank">
+                        LooksRare
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://x2y2.io/user/' + data.item.registrant + '/items'" v-b-popover.hover="'View in x2y2.io'" target="_blank">
+                        X2Y2
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://etherscan.io/address/' + data.item.registrant" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                        EtherScan
+                      </b-link>
+                    </b-popover>
+                    <br />
+                    <br />
+                    <font size="-2">
+                      <b-button size="sm" :id="'popover-target-owner-' + data.index" variant="link" class="m-0 p-0">
+                        C: {{ data.item.owner }}
+                      </b-button>
+                      <b-popover :target="'popover-target-owner-' + data.index" placement="right">
+                        <template #title>Controller: {{ data.item.owner.substring(0, 12) }}:</template>
+                        <b-link :href="'https://opensea.io/' + data.item.owner" v-b-popover.hover="'View in opensea.io'" target="_blank">
+                          OpenSea
+                        </b-link>
+                        <br />
+                        <b-link :href="'https://looksrare.org/accounts/' + data.item.owner" v-b-popover.hover="'View in looksrare.org'" target="_blank">
+                          LooksRare
+                        </b-link>
+                        <br />
+                        <b-link :href="'https://x2y2.io/user/' + data.item.owner + '/items'" v-b-popover.hover="'View in x2y2.io'" target="_blank">
+                          X2Y2
+                        </b-link>
+                        <br />
+                        <b-link :href="'https://etherscan.io/address/' + data.item.owner" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                          EtherScan
+                        </b-link>
+                      </b-popover>
+                    </font>
+                    <br />
+                    <font size="-2">
+                      <b-button size="sm" :id="'popover-target-resolvedAddress-' + data.index" variant="link" class="m-0 p-0">
+                        RA: {{ data.item.resolvedAddress }}
+                      </b-button>
+                      <b-popover :target="'popover-target-resolvedAddress-' + data.index" placement="right">
+                        <template #title>Resolved Addr: {{ data.item.resolvedAddress.substring(0, 12) }}:</template>
+                        <b-link :href="'https://opensea.io/' + data.item.resolvedAddress" v-b-popover.hover="'View in opensea.io'" target="_blank">
+                          OpenSea
+                        </b-link>
+                        <br />
+                        <b-link :href="'https://looksrare.org/accounts/' + data.item.resolvedAddress" v-b-popover.hover="'View in looksrare.org'" target="_blank">
+                          LooksRare
+                        </b-link>
+                        <br />
+                        <b-link :href="'https://x2y2.io/user/' + data.item.resolvedAddress + '/items'" v-b-popover.hover="'View in x2y2.io'" target="_blank">
+                          X2Y2
+                        </b-link>
+                        <br />
+                        <b-link :href="'https://etherscan.io/address/' + data.item.resolvedAddress" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                          EtherScan
+                        </b-link>
+                      </b-popover>
+                    </font>
+                  </template>
+                  <template #cell(expiryDate)="data">
+                    <div v-if="data.item.warn">
+                      <font :color="data.item.warn">
+                        {{ formatDate(data.item.expiryDate) }}
+                      </font>
+                    </div>
+                    <div v-else>
+                      {{ formatDate(data.item.expiryDate) }}
+                    </div>
+                    <br />
+                    <font size="-2">R: {{ formatDate(data.item.registrationDate) }}</font>
+                  </template>
+                </b-table>
+              </div>
 
+              <!-- Images -->
+              <!-- TODO: Add hyperlinks -->
+              <div v-if="settings.resultsTabIndex == 2">
+                <b-card-group deck class="m-2">
+                  <div v-for="record in pagedFilteredResults">
+                    <b-card overlay :id="'popover-target-image-' + record.name" :img-src="'https://metadata.ens.domains/mainnet/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + record.tokenId + '/image'" class="m-2 p-0">
+                      <div v-if="prices[record.tokenId]">
+                        <b-col cols="10" class="m-0 p-1 text-right">
+                          <font shift-v="+3" size="-1"><b-badge v-b-popover.hover="'Floor ask price in ETH'" variant="success">{{ prices[record.tokenId].floorAskPrice }}</b-badge></font>
+                        </b-col>
+                      </div>
+                    </b-card>
+                    <!--
+                    <b-card body-class="p-1" header-class="p-1" footer-class="p-1" img-top class="m-1 p-0 border-0">
+                      <b-img-lazy :width="settings.imageSize + '%'" :src="'https://metadata.ens.domains/mainnet/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + record.tokenId + '/image'"></b-img>
+                      </b-img-lazy>
+                    </b-card>
+                    -->
+                  </div>
+                </b-card-group deck>
+              </div>
+
+              <!-- Owners -->
+              <div v-if="settings.resultsTabIndex == 3">
+                <b-table small striped hover :fields="ownersFields" :items="owners" class="mt-3">
+                  <template #cell(index)="data">
+                    {{ data.index+1 }}
+                  </template>
+                  <template #cell(registrant)="data">
+                    <b-button :id="'popover-target-owner-' + data.item.registrant + '-' + data.index" variant="link" class="m-0 p-0">
+                      {{ data.item.registrant }}
+                    </b-button>
+                    <b-popover :target="'popover-target-owner-' + data.item.registrant + '-' + data.index" placement="right">
+                      <template #title>Registrant: {{ data.item.registrant.substring(0, 12) }}:</template>
+                      <b-link :href="'https://opensea.io/' + data.item.registrant" v-b-popover.hover="'View in opensea.io'" target="_blank">
+                        OpenSea
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://looksrare.org/accounts/' + data.item.registrant" v-b-popover.hover="'View in looksrare.org'" target="_blank">
+                        LooksRare
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://x2y2.io/user/' + data.item.registrant + '/items'" v-b-popover.hover="'View in x2y2.io'" target="_blank">
+                        X2Y2
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://chat.blockscan.com/index?a=' + data.item.registrant" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                        Blockscan
+                      </b-link>
+                    </b-popover>
+                  </template>
+                  <template #cell(names)="data">
+                    <span v-for="(result, resultIndex) in data.item.results" :key="resultIndex">
+                      <b-button :id="'popover-target-' + data.item.registrant + '-' + resultIndex" variant="link" class="m-0 p-0">
+                        {{ result.labelName }}
+                      </b-button>
+                      <span v-if="prices[result.tokenId]">
+                        <font shift-v="+3" size="-1"><b-badge v-b-popover.hover="'Floor ask price in ETH'" variant="success">{{ prices[result.tokenId].floorAskPrice }}</b-badge></font>
+                      </span>
+                      <b-popover :target="'popover-target-' + data.item.registrant + '-' + resultIndex" placement="right">
+                        <template #title>{{ result.name }} links</template>
+                        <b-link :href="'https://app.ens.domains/name/' + result.name" v-b-popover.hover="'View in app.ens.domains'" target="_blank">
+                          ENS
+                        </b-link>
+                        <br />
+                        <b-link :href="'https://opensea.io/assets/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + result.tokenId" v-b-popover.hover="'View in opensea.io'" target="_blank">
+                          OpenSea
+                        </b-link>
+                        <br />
+                        <b-link :href="'https://looksrare.org/collections/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + result.tokenId" v-b-popover.hover="'View in looksrare.org'" target="_blank">
+                          LooksRare
+                        </b-link>
+                        <br />
+                        <b-link :href="'https://x2y2.io/eth/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + result.tokenId" v-b-popover.hover="'View in x2y2.io'" target="_blank">
+                          X2Y2
+                        </b-link>
+                        <br />
+                        <b-link :href="'https://etherscan.io/enslookup-search?search=' + result.name" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                          EtherScan
+                        </b-link>
+                        <br />
+                        <b-link :href="'https://duckduckgo.com/?q=' + result.labelName" v-b-popover.hover="'Search name in duckduckgo.com'" target="_blank">
+                          DuckDuckGo
+                        </b-link>
+                        <br />
+                        <b-link :href="'https://www.google.com/search?q=' + result.labelName" v-b-popover.hover="'Search name in google.com'" target="_blank">
+                          Google
+                        </b-link>
+                        <br />
+                        <b-link :href="'https://twitter.com/search?q=' + result.name" v-b-popover.hover="'Search name in twitter.com'" target="_blank">
+                          Twitter
+                        </b-link>
+                        <br />
+                        <b-link :href="'https://wikipedia.org/wiki/' + result.labelName" v-b-popover.hover="'Search name in wikipedia.org'" target="_blank">
+                          Wikipedia
+                        </b-link>
+                        <br />
+                        <b-link :href="'https://en.wiktionary.org/wiki/' + result.labelName" v-b-popover.hover="'Search name in wiktionary.org'" target="_blank">
+                          Wiktionary
+                        </b-link>
+                        <br />
+                        <b-link :href="'https://thesaurus.yourdictionary.com/' + result.labelName" v-b-popover.hover="'Search name in thesaurus.yourdictionary.com'" target="_blank">
+                          Thesaurus
+                        </b-link>
+                      </b-popover>
+                    </span>
+                  </template>
+                </b-table>
+              </div>
+
+              <!-- Unregistered -->
+              <div v-if="settings.resultsTabIndex == 4">
+                <b-card-text class="m-0 p-0">
+                  <span v-for="(name, index) in unregistered" :key="index">
+                    <b-link :href="'https://app.ens.domains/name/' + name + '.eth'" v-b-popover.click="'Register in app.ens.domains'" target="_blank">
+                      {{ name }}
+                    </b-link>
+                  </span>
+                </b-card-text>
+              </div>
+
+              <!-- Hours - Only enabled sometimes -->
+              <div v-if="settings.resultsTabIndex == 5">
+                <b-card-text class="m-0 p-0">
+                  <b-row class="m-0 p-0">
+                    <b-col class="m-0 p-0 text-right">mm\\hh</b-col>
+                    <b-col v-for="(hours, hoursIndex) in 24" :key="hoursIndex" class="m-0 p-0 text-right">
+                      {{ (hours - 1).toString().padStart(2, '0') }}
+                    </b-col>
+                  </b-row>
+                  <b-row v-for="(mins, index) in hours" :key="index" class="m-0 p-0">
+                    <b-col class="m-0 p-0 text-right">{{ mins.mm.padStart(2, '0') }}</b-col>
+                    <b-col v-for="(hhmm, hhmmIndex) in mins.hh" :key="hhmmIndex" class="m-0 p-0 text-right">
+                      <div v-if="hhmm">
+                        <font size="-2">
+                          <div v-if="prices[hhmm.tokenId] && prices[hhmm.tokenId].floorAskPrice != null">
+                            <b-badge v-b-popover.hover="'Floor ask price in ETH'" variant="success">
+                              {{ prices[hhmm.tokenId].floorAskPrice }}
+                            </b-badge>
+                          </div>
+                        </font>
+                        <font size="-2">
+                          <span v-if="hhmm.warn == null">
+                            <b-link v-if="hhmm" :id="'popover-target-' + hhmm.labelName">
+                              {{ hhmm.labelName }}
+                            </b-link>
+                          </span>
+                          <span v-if="hhmm.warn != null">
+                            <b-link v-if="hhmm" :id="'popover-target-' + hhmm.labelName" style="background: yellow; " v-b-popover.hover="'Expiring ' + formatDate(hhmm.expiryDate) + ' UTC'">
+                              {{ hhmm.labelName }}
+                            </b-link>
+                          </span>
+                        </font>
+                        <b-popover :target="'popover-target-' + hhmm.labelName" placement="right">
+                          <template #title>{{ hhmm.labelName }}:</template>
+                          <b-link :href="'https://app.ens.domains/name/' + hhmm.name" v-b-popover.hover="'View in app.ens.domains'" target="_blank">
+                            ENS
+                          </b-link>
+                          <br />
+                          <b-link :href="'https://opensea.io/assets/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + hhmm.tokenId" v-b-popover.hover="'View in opensea.io'" target="_blank">
+                            OpenSea
+                          </b-link>
+                          <br />
+                          <b-link :href="'https://looksrare.org/collections/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + hhmm.tokenId" v-b-popover.hover="'View in looksrare.org'" target="_blank">
+                            LooksRare
+                          </b-link>
+                          <br />
+                          <b-link :href="'https://x2y2.io/eth/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + hhmm.tokenId" v-b-popover.hover="'View in x2y2.io'" target="_blank">
+                            X2Y2
+                          </b-link>
+                          <br />
+                          <b-link :href="'https://etherscan.io/enslookup-search?search=' + hhmm.name" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                            EtherScan
+                          </b-link>
+                          <br />
+                          <b-link :href="'https://duckduckgo.com/?q=' + hhmm.labelName" v-b-popover.hover="'Search name in duckduckgo.com'" target="_blank">
+                            DuckDuckGo
+                          </b-link>
+                          <br />
+                          <b-link :href="'https://www.google.com/search?q=' + hhmm.labelName" v-b-popover.hover="'Search name in google.com'" target="_blank">
+                            Google
+                          </b-link>
+                          <br />
+                          <b-link :href="'https://twitter.com/search?q=' + hhmm.name" v-b-popover.hover="'Search name in twitter.com'" target="_blank">
+                            Twitter
+                          </b-link>
+                          <br />
+                          <b-link :href="'https://wikipedia.org/wiki/' + hhmm.labelName" v-b-popover.hover="'Search name in wikipedia.org'" target="_blank">
+                            Wikipedia
+                          </b-link>
+                          <br />
+                          <b-link :href="'https://en.wiktionary.org/wiki/' + hhmm.labelName" v-b-popover.hover="'Search name in wiktionary.org'" target="_blank">
+                            Wiktionary
+                          </b-link>
+                          <br />
+                          <b-link :href="'https://thesaurus.yourdictionary.com/' + hhmm.labelName" v-b-popover.hover="'Search name in thesaurus.yourdictionary.com'" target="_blank">
+                            Thesaurus
+                          </b-link>
+                        </b-popover>
+                      </div>
+                    </b-col>
+                  </b-row>
+                </b-card-text>
+              </div>
+
+            </b-card-body>
+          </b-card>
+        </div>
       </b-card>
     </div>
   `,
@@ -1207,6 +1219,11 @@ const Sales = {
       }, 1500);
     },
 
+    async doit(options) {
+      console.log("doit: " + JSON.stringify(options));
+      store.dispatch('sales/doit', options);
+    },
+
     async scan(options) {
       store.dispatch('search/scan', options);
     },
@@ -1298,8 +1315,69 @@ const salesModule = {
     executionQueue: state => state.executionQueue,
   },
   mutations: {
-    // --- Scan ---
-    async scan(state, options ) {
+    // --- Doit ---
+    async doit(state, options) {
+      async function fetchSales(startTimestamp, endTimestamp) {
+        logInfo("salesModule", "mutations.fetchSales() - startTimestamp: " + new Date(startTimestamp * 1000).toUTCString() + ", endTimestamp: " + new Date(endTimestamp * 1000).toUTCString());
+        const url = "https://api.reservoir.tools/sales/v3?contract=0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85&limit=5";
+
+        function processSales(data) {
+          for (const sale of data.sales) {
+            console.log(sale.token.tokenId.substring(0, 20) + ", name: " + (sale.token.name ? sale.token.name : "(null)") + ", price: " + sale.price + ", from: " + sale.from.substr(0, 10) + ", to: " + sale.to.substr(0, 10) + ", timestamp: " + new Date(sale.timestamp * 1000).toUTCString()); //  + ", " + JSON.stringify(sale));
+          }
+        }
+
+        await fetch(url)
+          .then(response => response.json())
+          .then(data => processSales(data));;
+      }
+
+      // --- Doit start ---
+      logInfo("salesModule", "mutations.doit() - options: " + JSON.stringify(options) + " @ " + new Date().toUTCString());
+
+      // get prices
+      let keys = Object.keys(state.results);
+      const GETPRICEBATCHSIZE = 50;
+      // records = 0;
+      const sales = {};
+      const DELAYINMILLIS = 500;
+      let completed = false;
+      let startTimestamp = new Date()/1000 - SECONDSPERHOUR;
+      let endTimestamp = new Date()/1000;
+      while (!completed && !state.halt) {
+        await fetchSales(startTimestamp, endTimestamp);
+        completed = true;
+      }
+
+      // for (let i = 0; i < keys.length && !state.halt; i += GETPRICEBATCHSIZE) {
+      //   const batch = keys.slice(i, parseInt(i) + GETPRICEBATCHSIZE);
+      //   let url = "https://api.reservoir.tools/tokens/v4?";
+      //   let separator = "";
+      //   for (let j = 0; j < batch.length; j++) {
+      //     const record = state.results[batch[j]];
+      //     url = url + separator + "tokens=0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85%3A" + record.tokenId;
+      //     separator = "&";
+      //   }
+      //   const data = await fetch(url).then(response => response.json());
+      //   records = records + data.tokens.length;
+      //   state.message = "Reservoir prices " + records;
+      //   // console.log(JSON.stringify(data, null, 2));
+      //   for (price of data.tokens) {
+      //     prices[price.tokenId] = {
+      //       floorAskPrice: price.floorAskPrice,
+      //       source: price.source,
+      //       name: price.name,
+      //     };
+      //   }
+      //   await delay(DELAYINMILLIS);
+      // }
+      // state.prices = prices;
+      // state.message = null;
+      // state.halt = false;
+
+    },
+
+    async scan(state, options) {
       // --- Scan functions ---
       function* getBatch(records, batchsize = ENSSUBGRAPHBATCHSCANSIZE) {
         while (records.length) {
@@ -1584,6 +1662,10 @@ const salesModule = {
     },
   },
   actions: {
+    doit(context, options) {
+      logInfo("salesModule", "actions.doit() - options: " + JSON.stringify(options));
+      context.commit('doit', options);
+    },
     scan(context, options) {
       // logInfo("salesModule", "actions.scan() - options: " + JSON.stringify(options));
       context.commit('scan', options);

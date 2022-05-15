@@ -1,5 +1,6 @@
 const ADDRESS0 = "0x0000000000000000000000000000000000000000";
 const MILLISPERDAY = 60 * 60 * 24 * 1000;
+const SECONDSPERHOUR = 60 * 60;
 const SECONDSPERDAY = 60 * 60 * 24;
 const ENSSUBGRAPHURL = "https://api.thegraph.com/subgraphs/name/ensdomains/ens";
 const ENSSUBGRAPHBATCHSIZE = 250;
