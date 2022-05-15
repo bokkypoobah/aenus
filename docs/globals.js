@@ -8,7 +8,7 @@ const ENSSUBGRAPHBATCHSCANSIZE = 250;
 
 const ENSSUBGRAPHNAMEQUERY = `
   query getRegistrations($labelNames: [String!]!) {
-    registrations(first: 1000, orderBy: labelName, orderDirection: asc, where: {labelName_in: $labelNames}) {
+    registrations(first: 1000, orderBy: labelName, orderDirection: asc, where: { labelName_in: $labelNames }) {
       id
       registrationDate
       expiryDate
@@ -242,6 +242,61 @@ const ENSSUBGRAPHOWNEDQUERY = `
           transactionID
           __typename
         }
+      }
+    }
+  }
+`;
+
+const ENSSUBGRAPHBBYTOKENIDSQUERY = `
+  query getRegistrationsByTokenIds($tokenIds: [String!]!) {
+    registrations(first: 1000, skip: 0, where: { id_in: $tokenIds }) {
+      id
+      registrationDate
+      expiryDate
+      cost
+      registrant {
+        id
+      }
+      labelName
+      domain {
+        id
+        labelName
+        labelhash
+        name
+        isMigrated
+        resolver {
+          address
+          coinTypes
+          texts
+        }
+        resolvedAddress {
+          id
+        }
+        parent {
+          labelName
+          labelhash
+          name
+        }
+        subdomains {
+          labelName
+          labelhash
+          name
+        }
+        owner {
+          id
+        }
+        events {
+          id
+          blockNumber
+          transactionID
+          __typename
+        }
+      }
+      events {
+        id
+        blockNumber
+        transactionID
+        __typename
       }
     }
   }

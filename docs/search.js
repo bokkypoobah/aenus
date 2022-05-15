@@ -1351,6 +1351,7 @@ const searchModule = {
         }
       }
       function processRegistrations(registrations) {
+        console.log("processRegistrations: " + JSON.stringify(registrations, null, 2));
         const digits = new RegExp('^[0-9]+$');
         const hours = new RegExp('^[0-9][0-9]h[0-9][0-9]$');
         const alphanum = new RegExp('^[0-9a-z-]+$');

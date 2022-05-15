@@ -479,13 +479,81 @@ const salesModule = {
         logInfo("salesModule", "mutations.fetchSales() - startTimestamp: " + new Date(startTimestamp * 1000).toUTCString() + ", endTimestamp: " + new Date(endTimestamp * 1000).toUTCString());
         const url = "https://api.reservoir.tools/sales/v3?contract=0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85&limit=50";
 
+        function processRegistrations(registrations) {
+          console.log("processRegistrations: " + JSON.stringify(registrations, null, 2));
+          // const digits = new RegExp('^[0-9]+$');
+          // const hours = new RegExp('^[0-9][0-9]h[0-9][0-9]$');
+          // const alphanum = new RegExp('^[0-9a-z-]+$');
+          //
+          // for (const registration of registrations) {
+          //   if (!(registration.registrant.id in state.tempRegistrants)) {
+          //     state.tempRegistrants[registration.registrant.id] = true;
+          //   }
+          //   let nameType;
+          //   if (digits.test(registration.domain.labelName)) {
+          //     nameType = "1d";
+          //   } else if (hours.test(registration.domain.labelName)) {
+          //     nameType = "2h";
+          //   } else if (alphanum.test(registration.domain.labelName)) {
+          //     nameType = "3an";
+          //   } else {
+          //     nameType = "4";
+          //   }
+          //   state.tempResults[registration.domain.name] = {
+          //     labelName: registration.labelName,
+          //     registrationDate: registration.registrationDate,
+          //     expiryDate: registration.expiryDate,
+          //     cost: registration.cost,
+          //     registrant: registration.registrant.id,
+          //     owner: registration.domain.owner.id,
+          //     labelhash: registration.domain.labelhash,
+          //     tokenId: new BigNumber(registration.domain.labelhash.substring(2), 16).toFixed(0),
+          //     name: registration.domain.name,
+          //     isMigrated: registration.domain.isMigrated,
+          //     resolver: registration.domain.resolver && registration.domain.resolver.address || null,
+          //     resolvedAddress: registration.domain.resolvedAddress && registration.domain.resolvedAddress.id || null,
+          //     parent: registration.domain.parent.name,
+          //     length: registration.domain.name.indexOf("\."),
+          //     warn: registration.expiryDate < now ? 'red' : registration.expiryDate < warningDate ? 'orange' : null,
+          //     hasAvatar: registration.domain.resolver && registration.domain.resolver.texts && registration.domain.resolver.texts.includes("avatar"),
+          //     nameType: nameType,
+          //   };
+          // }
+        }
+        async function fetchRegistrationsByTokenIds(tokenIds) {
+          const data = await fetch(ENSSUBGRAPHURL, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: JSON.stringify({
+              query: ENSSUBGRAPHBBYTOKENIDSQUERY,
+              variables: { tokenIds: tokenIds },
+            })
+          }).then(response => response.json())
+            .then(data => processRegistrations(data.data.registrations));
+          // console.log(JSON.stringify(data, null, 2));
+        }
+
         function processSales(data) {
+          if (data.sales.length > 0) {
+            console.log(JSON.stringify(data.sales[0], null, 2));
+          }
+          const searchForNamesByTokenIds = data.sales
+            // .filter(function (sale) { return sale.token.name == null ; })
+            .map(function(sale) { return sale.token.tokenId; })
+            .map(function(tokenId) { return "0x" + new BigNumber(tokenId, 10).toString(16); });
+          console.log(JSON.stringify(searchForNamesByTokenIds));
+
+          fetchRegistrationsByTokenIds(searchForNamesByTokenIds);
+
           let count = 0;
           for (const sale of data.sales) {
-            if (count == 0) {
-              console.log(sale.token.tokenId.substring(0, 20) + ", name: " + (sale.token.name ? sale.token.name : "(null)") + ", price: " + sale.price + ", from: " + sale.from.substr(0, 10) + ", to: " + sale.to.substr(0, 10) + ", timestamp: " + new Date(sale.timestamp * 1000).toUTCString());
-              console.log(JSON.stringify(sale, null, 2));
-            }
+            // if (count == 0) {
+            //   console.log(sale.token.tokenId.substring(0, 20) + ", name: " + (sale.token.name ? sale.token.name : "(null)") + ", price: " + sale.price + ", from: " + sale.from.substr(0, 10) + ", to: " + sale.to.substr(0, 10) + ", timestamp: " + new Date(sale.timestamp * 1000).toUTCString());
+            //   console.log(JSON.stringify(sale, null, 2));
+            // }
             state.tempSales.push( { name: sale.token.name, from: sale.from, to: sale.to, price: sale.price, timestamp: sale.timestamp, tokenId: sale.token.tokenId } );
             count++;
           }
