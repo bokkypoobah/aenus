@@ -12,12 +12,15 @@ const Sales = {
         <b-card no-body class="p-0 mt-1">
 
           <b-card-body class="m-1 p-1">
-
             <b-button size="sm" @click="doit( { type: 'fullsync' } );" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Full Sync'}}</b-button>
             <span v-if="searchMessage != null">
               <b-button size="sm" @click="halt" variant="primary">Halt</b-button>
             </span>
-
+          </b-card-body>
+          <b-card-body class="m-1 p-1">
+            <b-table small striped hover :items="sales" table-class="w-auto" thead-class="hidden_header" class="mt-1">
+            </b-table>
+            {{ sales }}
           </b-card-body>
 
           <div v-if="false">
@@ -997,6 +1000,9 @@ const Sales = {
     prices() {
       return store.getters['search/prices'];
     },
+    sales() {
+      return store.getters['sales/sales'];
+    },
 
     groupOptions() {
       const results = [];
@@ -1293,6 +1299,9 @@ const Sales = {
 const salesModule = {
   namespaced: true,
   state: {
+    sales: [],
+    tempSales: [],
+
     results: [],
     unregistered: [],
     tempResults: [],
@@ -1307,6 +1316,8 @@ const salesModule = {
     executionQueue: [],
   },
   getters: {
+    sales: state => state.sales,
+
     results: state => state.results,
     unregistered: state => state.unregistered,
     prices: state => state.prices,
@@ -1319,11 +1330,12 @@ const salesModule = {
     async doit(state, options) {
       async function fetchSales(startTimestamp, endTimestamp) {
         logInfo("salesModule", "mutations.fetchSales() - startTimestamp: " + new Date(startTimestamp * 1000).toUTCString() + ", endTimestamp: " + new Date(endTimestamp * 1000).toUTCString());
-        const url = "https://api.reservoir.tools/sales/v3?contract=0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85&limit=5";
+        const url = "https://api.reservoir.tools/sales/v3?contract=0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85&limit=50";
 
         function processSales(data) {
           for (const sale of data.sales) {
             console.log(sale.token.tokenId.substring(0, 20) + ", name: " + (sale.token.name ? sale.token.name : "(null)") + ", price: " + sale.price + ", from: " + sale.from.substr(0, 10) + ", to: " + sale.to.substr(0, 10) + ", timestamp: " + new Date(sale.timestamp * 1000).toUTCString()); //  + ", " + JSON.stringify(sale));
+            state.tempSales.push( { tokenId: sale.token.tokenId, name: sale.token.name, from: sale.from, to: sale.to, price: sale.price, timestamp: sale.timestamp });
           }
         }
 
@@ -1371,9 +1383,10 @@ const salesModule = {
       //   }
       //   await delay(DELAYINMILLIS);
       // }
-      // state.prices = prices;
-      // state.message = null;
-      // state.halt = false;
+      state.sales = state.tempSales;
+      state.tempSales = [];
+      state.message = null;
+      state.halt = false;
 
     },
 

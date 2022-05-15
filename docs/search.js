@@ -318,7 +318,7 @@ const Search = {
 
             <!-- Summary -->
             <div v-if="settings.resultsTabIndex == 0">
-              <b-table small striped hover :fields="summaryFields" :items="summary" table-class="w-auto"  thead-class="hidden_header" class="mt-1">
+              <b-table small striped hover :fields="summaryFields" :items="summary" table-class="w-auto" thead-class="hidden_header" class="mt-1">
                 <template #cell(names)="data">
                   <span v-for="(result, resultIndex) in data.item.results" :key="resultIndex">
                     <b-button :id="'popover-target-' + result.labelName + '-' + resultIndex" variant="link" class="m-0 p-0">
