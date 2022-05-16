@@ -136,15 +136,6 @@ const Sales = {
       reschedule: true,
 
       settings: {
-        searchTabIndex: 0,
-        searchString: null,
-        searchCommonRegistrants: false,
-        searchType: 'exact',
-        selectedGroup: null,
-        selectedSet: 'digit999',
-        filter: null,
-        priceFrom: null,
-        priceTo: null,
         sortOption: 'nameasc',
         randomise: false,
 
@@ -154,109 +145,6 @@ const Sales = {
         imageSize: '240',
 
         resultsTabIndex: 0,
-
-        setAttributes: {
-          'hours': {
-            type: 'hours',
-            from: 0,
-            to: 23,
-            step: 1,
-            length: 2,
-
-            from2: 0,
-            to2: 59,
-            step2: 1,
-            separator: 'h',
-          },
-          'digit9': {
-            type: 'digits',
-            from: 0,
-            to: 9,
-            step: 1,
-            length: 1,
-            regex: null,
-            palindrome: false,
-            prefix: null,
-            postfix: null,
-          },
-          'digit99': {
-            type: 'digits',
-            from: 0,
-            to: 99,
-            step: 1,
-            length: 2,
-            regex: null,
-            palindrome: false,
-            prefix: null,
-            postfix: null,
-          },
-          'digit999': {
-            type: 'digits',
-            from: 0,
-            to: 999,
-            step: 1,
-            length: 3,
-            regex: null,
-            palindrome: false,
-            prefix: null,
-            postfix: null,
-          },
-          'digit9999': {
-            type: 'digits',
-            from: 0,
-            to: 9999,
-            step: 1,
-            length: 4,
-            regex: null,
-            palindrome: false,
-            prefix: null,
-            postfix: null,
-          },
-          'digit99999': {
-            type: 'digits',
-            from: 0,
-            to: 9999,
-            step: 1,
-            length: 5,
-            regex: null,
-            palindrome: false,
-            prefix: null,
-            postfix: null,
-          },
-          'digit999999': {
-            type: 'digits',
-            from: 0,
-            to: 9999,
-            step: 1,
-            length: 6,
-            regex: null,
-            palindrome: false,
-            prefix: null,
-            postfix: null,
-          },
-          'digit9999999': {
-            type: 'digits',
-            from: 0,
-            to: 9999,
-            step: 1,
-            length: 7,
-            regex: null,
-            palindrome: false,
-            prefix: null,
-            postfix: null,
-          },
-          'digit99999999': {
-            type: 'digits',
-            from: 0,
-            to: 9999,
-            step: 1,
-            length: 8,
-            regex: null,
-            palindrome: false,
-            prefix: null,
-            postfix: null,
-          },
-        },
       },
 
       searchOptions: [
@@ -626,13 +514,13 @@ const salesModule = {
             })
           }).then(response => response.json())
             .then(data => processRegistrations(data.data.registrations));
-          console.log(JSON.stringify(data, null, 2));
+          // console.log(JSON.stringify(data, null, 2));
           return data;
         }
         async function processSales(data) {
-          if (data.sales && data.sales.length > 0) {
-            console.log(JSON.stringify(data.sales[0], null, 2));
-          }
+          // if (data.sales && data.sales.length > 0) {
+          //   console.log(JSON.stringify(data.sales[0], null, 2));
+          // }
           const searchForNamesByTokenIds = data.sales
             // .filter(function (sale) { return sale.token.name == null ; })
             .map(function(sale) { return sale.token.tokenId; })
@@ -646,10 +534,10 @@ const salesModule = {
           const saleRecords = [];
           const chainId = (store.getters['connection/network'] && store.getters['connection/network'].chainId) || 1;
           for (const sale of data.sales) {
-            if (count == 0) {
-              console.log(sale.token.tokenId.substring(0, 20) + ", name: " + (sale.token.name ? sale.token.name : "(null)") + ", price: " + sale.price + ", from: " + sale.from.substr(0, 10) + ", to: " + sale.to.substr(0, 10) + ", timestamp: " + new Date(sale.timestamp * 1000).toUTCString());
-              console.log(JSON.stringify(sale, null, 2));
-            }
+            // if (count == 0) {
+            //   console.log(sale.token.tokenId.substring(0, 20) + ", name: " + (sale.token.name ? sale.token.name : "(null)") + ", price: " + sale.price + ", from: " + sale.from.substr(0, 10) + ", to: " + sale.to.substr(0, 10) + ", timestamp: " + new Date(sale.timestamp * 1000).toUTCString());
+            //   console.log(JSON.stringify(sale, null, 2));
+            // }
             const name = namesByTokenIds[sale.token.tokenId] ? namesByTokenIds[sale.token.tokenId] : sale.token.name;
             state.tempSales.push({
               name: name,
@@ -677,12 +565,6 @@ const salesModule = {
           }).catch(function(error) {
             console.log("error: " + error);
           });
-
-          console.log("Searching");
-          const earliest = await db0.sales.orderBy("timestamp").first();
-          console.log("earliest: " + JSON.stringify(earliest));
-          const latest = await db0.sales.orderBy("timestamp").last();
-          console.log("latest: " + JSON.stringify(latest));
         }
 
 
@@ -690,24 +572,68 @@ const salesModule = {
         logInfo("salesModule", "mutations.fetchSales() - startTimestamp: " + new Date(startTimestamp * 1000).toUTCString() + ", endTimestamp: " + new Date(endTimestamp * 1000).toUTCString());
         const url = "https://api.reservoir.tools/sales/v3?contract=0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85&limit=50";
 
-        const db0 = new Dexie("aenusdb");
-        db0.version(1).stores({
-          // nftData: '&tokenId,asset,timestamp',
-          sales: '[chainId+contract+tokenId],chainId,contract,tokenId,name,from,to,price,timestamp',
-        });
-
         await fetch(url)
           .then(response => response.json())
           .then(data => processSales(data));;
-
-        db0.close();
       }
 
       // --- doit() start ---
       logInfo("salesModule", "mutations.doit() - options: " + JSON.stringify(options) + " @ " + new Date().toUTCString());
 
+      const db0 = new Dexie("aenusdb");
+      db0.version(1).stores({
+        // nftData: '&tokenId,asset,timestamp',
+        sales: '[chainId+contract+tokenId],chainId,contract,tokenId,name,from,to,price,timestamp',
+      });
+      const earliestEntry = await db0.sales.orderBy("timestamp").first();
+      const earliestDate = earliestEntry ? new Date(earliestEntry.timestamp * 1000) : null;
+      console.log("earliestDate: " + (earliestDate ? earliestDate.toLocaleString() : ''));
+      const latestEntry = await db0.sales.orderBy("timestamp").last();
+      const latestDate = latestEntry ? new Date(latestEntry.timestamp * 1000) : null;
+      console.log("latestDate: " + (latestDate ? latestDate.toLocaleString() : ''));
+
+      const retentionDays = 5;
       const now = new Date();
       console.log("now: " + now.toLocaleString());
+      const newDay = new Date();
+      newDay.setHours(0, 0, 0, 0);
+      console.log("newDay: " + newDay.toLocaleString());
+      const retentionCutoffDate = new Date(newDay.getTime() - retentionDays * MILLISPERDAY);
+      console.log("retentionCutoffDate: " + retentionCutoffDate.toLocaleString());
+
+      // Get from start of today
+
+      let to = now;
+      let from = newDay;
+      let dates;
+      try {
+        dates = JSON.parse(localStorage.dates);
+      } catch (e) {
+        dates = {};
+      };
+      // dates = {};
+      while (from > retentionCutoffDate && !state.halt) {
+        if (!(from.toLocaleDateString() in dates)) {
+          console.log("Checking " + from.toLocaleString() + " - " + to.toLocaleString());
+          let processFrom = from;
+          const processTo = to;
+          if (processFrom == newDay) {
+            if (processFrom < latestDate) {
+              processFrom = latestDate;
+            }
+          }
+          console.log("Processing " + new Date(processFrom).toLocaleString() + " - " + new Date(processTo).toLocaleString());
+          if (from != newDay) {
+            dates[from.toLocaleDateString()] = true;
+          }
+        } else {
+          console.log("Already processed: " + from.toLocaleString() + " - " + to.toLocaleString());
+        }
+        to = from;
+        from = new Date(from.getTime() - MILLISPERDAY);
+      }
+      localStorage.dates = JSON.stringify(dates);
+      console.log("dates: " + JSON.stringify(dates));
 
       // get prices
       // let keys = Object.keys(state.results);
@@ -750,6 +676,7 @@ const salesModule = {
       state.message = null;
       state.halt = false;
 
+      db0.close();
     },
 
     halt(state) {
