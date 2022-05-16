@@ -528,7 +528,7 @@ const salesModule = {
           const chainId = (store.getters['connection/network'] && store.getters['connection/network'].chainId) || 1;
           for (const sale of data.sales) {
             if (count == 0) {
-              console.log(sale.token.tokenId.substring(0, 20) + ", name: " + (sale.token.name ? sale.token.name : "(null)") + ", price: " + sale.price + ", from: " + sale.from.substr(0, 10) + ", to: " + sale.to.substr(0, 10) + ", timestamp: " + new Date(sale.timestamp * 1000).toLocaleString());
+              console.log(new Date(sale.timestamp * 1000).toLocaleString() + sale.token.tokenId.substring(0, 20) + ", name: " + (sale.token.name ? sale.token.name : "(null)") + ", price: " + sale.price + ", from: " + sale.from.substr(0, 10) + ", to: " + sale.to.substr(0, 10));
             //   console.log(JSON.stringify(sale, null, 2));
             }
             const name = namesByTokenIds[sale.token.tokenId] ? namesByTokenIds[sale.token.tokenId] : sale.token.name;
@@ -598,7 +598,7 @@ const salesModule = {
       const latestDate = latestEntry ? new Date(latestEntry.timestamp * 1000) : null;
       console.log("latestDate: " + (latestDate ? latestDate.toLocaleString() : ''));
 
-      const retentionDays = 1;
+      const retentionDays = 3;
       const now = new Date();
       console.log("now: " + now.toLocaleString());
       const newDay = new Date();
@@ -620,7 +620,7 @@ const salesModule = {
       // dates = {};
       const sales = {};
       while (to > retentionCutoffDate && !state.halt) {
-        if (!(from.toLocaleDateString() in dates)) {
+        if (!(from.toLocaleString() in dates)) {
           console.log("Checking " + from.toLocaleString() + " - " + to.toLocaleString());
           let processFrom = from;
           const processTo = to;
@@ -631,14 +631,14 @@ const salesModule = {
           }
           console.log("Processing " + new Date(processFrom).toLocaleString() + " - " + new Date(processTo).toLocaleString());
           await fetchSales(processFrom, processTo);
-          if (from != newDay) {
-            dates[from.toLocaleDateString()] = true;
+          if (from != newDay && !state.halt) {
+            dates[from.toLocaleString()] = true;
           }
         } else {
           console.log("Already processed: " + from.toLocaleString() + " - " + to.toLocaleString());
         }
         to = from;
-        from = new Date(from.getTime() - MILLISPERDAY);
+        from = new Date(from.getTime() - MILLISPERDAY/4);
       }
       localStorage.dates = JSON.stringify(dates);
       console.log("dates: " + JSON.stringify(dates));

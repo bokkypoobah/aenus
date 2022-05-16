@@ -486,7 +486,7 @@ const Connection = {
       logDebug("Connection", "execWeb3() end[" + this.count + "]");
     },
     async timeoutCallback() {
-      if (this.count++ % 150 == 0 || this.refreshNow) {
+      if (this.count++ % 30 == 0 || this.refreshNow) {
         if (this.refreshNow) {
           this.refreshNow = false;
         }
