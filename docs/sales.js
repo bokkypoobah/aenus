@@ -518,26 +518,19 @@ const salesModule = {
           return data;
         }
         async function processSales(data) {
-          // if (data.sales && data.sales.length > 0) {
-          //   console.log(JSON.stringify(data.sales[0], null, 2));
-          // }
           const searchForNamesByTokenIds = data.sales
-            // .filter(function (sale) { return sale.token.name == null ; })
             .map(function(sale) { return sale.token.tokenId; })
             .map(function(tokenId) { return "0x" + new BigNumber(tokenId, 10).toString(16); });
-          // console.log("searchForNamesByTokenIds: " + JSON.stringify(searchForNamesByTokenIds));
-
           const namesByTokenIds = await fetchNamesByTokenIds(searchForNamesByTokenIds);
-          // console.log("namesByTokenIds: " + JSON.stringify(namesByTokenIds));
 
           let count = 0;
           const saleRecords = [];
           const chainId = (store.getters['connection/network'] && store.getters['connection/network'].chainId) || 1;
           for (const sale of data.sales) {
-            // if (count == 0) {
-            //   console.log(sale.token.tokenId.substring(0, 20) + ", name: " + (sale.token.name ? sale.token.name : "(null)") + ", price: " + sale.price + ", from: " + sale.from.substr(0, 10) + ", to: " + sale.to.substr(0, 10) + ", timestamp: " + new Date(sale.timestamp * 1000).toUTCString());
+            if (count == 0) {
+              console.log(sale.token.tokenId.substring(0, 20) + ", name: " + (sale.token.name ? sale.token.name : "(null)") + ", price: " + sale.price + ", from: " + sale.from.substr(0, 10) + ", to: " + sale.to.substr(0, 10) + ", timestamp: " + new Date(sale.timestamp * 1000).toLocaleString());
             //   console.log(JSON.stringify(sale, null, 2));
-            // }
+            }
             const name = namesByTokenIds[sale.token.tokenId] ? namesByTokenIds[sale.token.tokenId] : sale.token.name;
             state.tempSales.push({
               name: name,
@@ -568,17 +561,30 @@ const salesModule = {
         }
 
 
+        const batchSize = 50;
         // --- fetchSales() start ---
-        logInfo("salesModule", "mutations.fetchSales() - startTimestamp: " + new Date(startTimestamp * 1000).toUTCString() + ", endTimestamp: " + new Date(endTimestamp * 1000).toUTCString());
-        const url = "https://api.reservoir.tools/sales/v3?contract=0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85&limit=50";
+        logInfo("salesModule", "mutations.fetchSales() - startTimestamp: " + startTimestamp.toLocaleString() + ", endTimestamp: " + endTimestamp.toLocaleString());
+        const url = "https://api.reservoir.tools/sales/v3?contract=0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85&limit=" + batchSize + "&startTimestamp=" + parseInt(startTimestamp / 1000) + "&endTimestamp="+ parseInt(endTimestamp / 1000);
 
-        await fetch(url)
-          .then(response => response.json())
-          .then(data => processSales(data));;
+        let continuation = null;
+
+        do {
+          let url1;
+          if (continuation == null) {
+            url1 = url;
+          } else {
+            url1 = url + "&continuation=" + continuation;
+          }
+          const data = await fetch(url1)
+            .then(response => response.json());
+          await processSales(data);
+          continuation = data.continuation;
+          // console.log("continuation: " + continuation);
+        } while (continuation != null);
       }
 
       // --- doit() start ---
-      logInfo("salesModule", "mutations.doit() - options: " + JSON.stringify(options) + " @ " + new Date().toUTCString());
+      logInfo("salesModule", "mutations.doit() - options: " + JSON.stringify(options) + " @ " + new Date().toLocaleString());
 
       const db0 = new Dexie("aenusdb");
       db0.version(1).stores({
@@ -592,7 +598,7 @@ const salesModule = {
       const latestDate = latestEntry ? new Date(latestEntry.timestamp * 1000) : null;
       console.log("latestDate: " + (latestDate ? latestDate.toLocaleString() : ''));
 
-      const retentionDays = 5;
+      const retentionDays = 1;
       const now = new Date();
       console.log("now: " + now.toLocaleString());
       const newDay = new Date();
@@ -612,7 +618,8 @@ const salesModule = {
         dates = {};
       };
       // dates = {};
-      while (from > retentionCutoffDate && !state.halt) {
+      const sales = {};
+      while (to > retentionCutoffDate && !state.halt) {
         if (!(from.toLocaleDateString() in dates)) {
           console.log("Checking " + from.toLocaleString() + " - " + to.toLocaleString());
           let processFrom = from;
@@ -623,6 +630,7 @@ const salesModule = {
             }
           }
           console.log("Processing " + new Date(processFrom).toLocaleString() + " - " + new Date(processTo).toLocaleString());
+          await fetchSales(processFrom, processTo);
           if (from != newDay) {
             dates[from.toLocaleDateString()] = true;
           }
@@ -635,19 +643,19 @@ const salesModule = {
       localStorage.dates = JSON.stringify(dates);
       console.log("dates: " + JSON.stringify(dates));
 
-      // get prices
-      // let keys = Object.keys(state.results);
-      const GETPRICEBATCHSIZE = 50;
-      // records = 0;
-      const sales = {};
-      const DELAYINMILLIS = 500;
-      let completed = false;
-      let startTimestamp = new Date()/1000 - SECONDSPERHOUR;
-      let endTimestamp = new Date()/1000;
-      while (!completed && !state.halt) {
-        await fetchSales(startTimestamp, endTimestamp);
-        completed = true;
-      }
+      // // get prices
+      // // let keys = Object.keys(state.results);
+      // const GETPRICEBATCHSIZE = 50;
+      // // records = 0;
+      // const sales = {};
+      // const DELAYINMILLIS = 500;
+      // let completed = false;
+      // let startTimestamp = new Date()/1000 - SECONDSPERHOUR;
+      // let endTimestamp = new Date()/1000;
+      // while (!completed && !state.halt) {
+      //   await fetchSales(startTimestamp, endTimestamp);
+      //   completed = true;
+      // }
 
       // for (let i = 0; i < keys.length && !state.halt; i += GETPRICEBATCHSIZE) {
       //   const batch = keys.slice(i, parseInt(i) + GETPRICEBATCHSIZE);
