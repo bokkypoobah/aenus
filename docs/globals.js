@@ -286,18 +286,6 @@ const ENSSUBGRAPHBBYTOKENIDSQUERY = `
         owner {
           id
         }
-        events {
-          id
-          blockNumber
-          transactionID
-          __typename
-        }
-      }
-      events {
-        id
-        blockNumber
-        transactionID
-        __typename
       }
     }
   }

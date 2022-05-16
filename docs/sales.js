@@ -18,7 +18,112 @@ const Sales = {
             </span>
           </b-card-body>
           <b-card-body class="m-1 p-1">
-            <b-table small striped hover :items="sales" table-class="w-auto" thead-class="hidden_header" class="mt-1">
+            <b-table small striped hover :fields="salesFields" :items="sales" table-class="w-auto" class="mt-1">
+              <template #cell(timestamp)="data">
+                {{ formatTimestamp(data.item.timestamp) }}
+              </template>
+              <template #cell(name)="data">
+                <b-link :id="'popover-target-name-' + data.index">
+                  {{ data.item.name }}
+                </b-link>
+                <b-popover :target="'popover-target-name-' + data.index" placement="right">
+                  <template #title>{{ data.item.name.substring(0, 64) }}:</template>
+                  <b-link :href="'https://app.ens.domains/name/' + data.item.name" v-b-popover.hover="'View in app.ens.domains'" target="_blank">
+                    ENS
+                  </b-link>
+                  <br />
+                  <b-link :href="'https://opensea.io/assets/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + data.item.tokenId" v-b-popover.hover="'View in opensea.io'" target="_blank">
+                    OpenSea
+                  </b-link>
+                  <br />
+                  <b-link :href="'https://looksrare.org/collections/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + data.item.tokenId" v-b-popover.hover="'View in looksrare.org'" target="_blank">
+                    LooksRare
+                  </b-link>
+                  <br />
+                  <b-link :href="'https://x2y2.io/eth/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + data.item.tokenId" v-b-popover.hover="'View in x2y2.io'" target="_blank">
+                    X2Y2
+                  </b-link>
+                  <br />
+                  <b-link v-if="data.item.name" :href="'https://etherscan.io/enslookup-search?search=' + data.item.name.replace('.eth', '')" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                    EtherScan
+                  </b-link>
+                  <br />
+                  <b-link v-if="data.item.name" :href="'https://duckduckgo.com/?q=' + data.item.name.replace('.eth', '')" v-b-popover.hover="'Search name in duckduckgo.com'" target="_blank">
+                    DuckDuckGo
+                  </b-link>
+                  <br />
+                  <b-link v-if="data.item.name" :href="'https://www.google.com/search?q=' + data.item.name.replace('.eth', '')" v-b-popover.hover="'Search name in google.com'" target="_blank">
+                    Google
+                  </b-link>
+                  <br />
+                  <b-link v-if="data.item.name" :href="'https://twitter.com/search?q=' + data.item.name.replace('.eth', '')" v-b-popover.hover="'Search name in twitter.com'" target="_blank">
+                    Twitter
+                  </b-link>
+                  <br />
+                  <b-link v-if="data.item.name" :href="'https://wikipedia.org/wiki/' + data.item.name.replace('.eth', '')" v-b-popover.hover="'Search name in wikipedia.org'" target="_blank">
+                    Wikipedia
+                  </b-link>
+                  <br />
+                  <b-link v-if="data.item.name" :href="'https://en.wiktionary.org/wiki/' + data.item.name.replace('.eth', '')" v-b-popover.hover="'Search name in wiktionary.org'" target="_blank">
+                    Wiktionary
+                  </b-link>
+                  <br />
+                  <b-link v-if="data.item.name" :href="'https://thesaurus.yourdictionary.com/' + data.item.name.replace('.eth', '')" v-b-popover.hover="'Search name in thesaurus.yourdictionary.com'" target="_blank">
+                    Thesaurus
+                  </b-link>
+                </b-popover>
+              </template>
+              <template #cell(from)="data">
+                <b-link :id="'popover-target-from-' + data.index">
+                  {{ data.item.from.substring(0, 12) }}
+                </b-link>
+                <b-popover :target="'popover-target-from-' + data.index" placement="right">
+                  <template #title>From: {{ data.item.from.substring(0, 12) }}:</template>
+                  <b-link :href="'https://opensea.io/' + data.item.from" v-b-popover.hover="'View in opensea.io'" target="_blank">
+                    OpenSea
+                  </b-link>
+                  <br />
+                  <b-link :href="'https://looksrare.org/accounts/' + data.item.from" v-b-popover.hover="'View in looksrare.org'" target="_blank">
+                    LooksRare
+                  </b-link>
+                  <br />
+                  <b-link :href="'https://x2y2.io/user/' + data.item.from + '/items'" v-b-popover.hover="'View in x2y2.io'" target="_blank">
+                    X2Y2
+                  </b-link>
+                  <br />
+                  <b-link :href="'https://etherscan.io/address/' + data.item.from" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                    EtherScan
+                  </b-link>
+                </b-popover>
+              </template>
+              <template #cell(to)="data">
+                <b-link :id="'popover-target-to-' + data.index">
+                  {{ data.item.to.substring(0, 12) }}
+                </b-link>
+                <b-popover :target="'popover-target-to-' + data.index" placement="right">
+                  <template #title>From: {{ data.item.to.substring(0, 12) }}:</template>
+                  <b-link :href="'https://opensea.io/' + data.item.to" v-b-popover.hover="'View in opensea.io'" target="_blank">
+                    OpenSea
+                  </b-link>
+                  <br />
+                  <b-link :href="'https://looksrare.org/accounts/' + data.item.to" v-b-popover.hover="'View in looksrare.org'" target="_blank">
+                    LooksRare
+                  </b-link>
+                  <br />
+                  <b-link :href="'https://x2y2.io/user/' + data.item.to + '/items'" v-b-popover.hover="'View in x2y2.io'" target="_blank">
+                    X2Y2
+                  </b-link>
+                  <br />
+                  <b-link :href="'https://etherscan.io/address/' + data.item.to" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                    EtherScan
+                  </b-link>
+                </b-popover>
+              </template>
+              <template #cell(txHash)="data">
+                <b-link :href="'https://etherscan.io/tx/' + data.item.txHash" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                  {{ data.item.txHash.substring(0, 12) }}
+                </b-link>
+              </template>
             </b-table>
           </b-card-body>
         </b-card>
@@ -227,6 +332,27 @@ const Sales = {
         { key: 'length', label: '#Names', thStyle: 'width: 5%;' },
         { key: 'names', label: 'Names', thStyle: 'width: 60%;' },
       ],
+
+      // saleRecords.push({
+      //   chainId: chainId,
+      //   contract: ENSADDRESS,
+      //   tokenId: sale.token.tokenId,
+      //   name: name,
+      //   from: sale.from,
+      //   to: sale.to,
+      //   price: sale.price,
+      //   timestamp: sale.timestamp,
+      //   // data: sale,
+      // });
+
+      salesFields: [
+        { key: 'timestamp', label: 'Timestamp', thStyle: 'width: 20%;' },
+        { key: 'name', label: 'Name', thStyle: 'width: 20%;' },
+        { key: 'from', label: 'From', thStyle: 'width: 20%;' },
+        { key: 'to', label: 'To', thStyle: 'width: 20%;' },
+        { key: 'price', label: 'ETH', thStyle: 'width: 20%;' },
+        { key: 'txHash', label: 'Tx', thStyle: 'width: 20%;' },
+      ],
     }
   },
   computed: {
@@ -409,6 +535,9 @@ const Sales = {
         }
       }
     },
+    formatTimestamp(ts) {
+      return new Date(ts * 1000).toLocaleString();
+    },
 
     setPowerOn() {
       store.dispatch('connection/setPowerOn', true);
@@ -460,7 +589,6 @@ const salesModule = {
   state: {
     sales: [],
     tempSales: [],
-    db0: null,
     message: null,
     halt: false,
     params: null,
@@ -502,19 +630,6 @@ const salesModule = {
           return data;
         }
         async function processSales(data) {
-          console.log("processSales - state.db0 before");
-          console.table(state.db0);
-          if (state.db0 == null) {
-            state.db0 = new Dexie("aenusdb");
-            state.db0.version(1).stores({
-              // nftData: '&tokenId,asset,timestamp',
-              sales: '[chainId+contract+tokenId],chainId,contract,tokenId,name,from,to,price,timestamp',
-              // tokenURIs: '[chainId+contract+tokenId],chainId,contract,tokenId,tokenURI,timestamp',
-            });
-          }
-          console.log("processSales - state.db0 after");
-          console.table(state.db0);
-
           if (data.sales && data.sales.length > 0) {
             console.log(JSON.stringify(data.sales[0], null, 2));
           }
@@ -529,14 +644,22 @@ const salesModule = {
 
           let count = 0;
           const saleRecords = [];
-          const chainId = 1; // store.getters['connection/network'].chainId`;
+          const chainId = (store.getters['connection/network'] && store.getters['connection/network'].chainId) || 1;
           for (const sale of data.sales) {
             if (count == 0) {
               console.log(sale.token.tokenId.substring(0, 20) + ", name: " + (sale.token.name ? sale.token.name : "(null)") + ", price: " + sale.price + ", from: " + sale.from.substr(0, 10) + ", to: " + sale.to.substr(0, 10) + ", timestamp: " + new Date(sale.timestamp * 1000).toUTCString());
               console.log(JSON.stringify(sale, null, 2));
             }
-            const name = namesByTokenIds[sale.token.tokenId];
-            state.tempSales.push( { name: name, from: sale.from, to: sale.to, price: sale.price, timestamp: sale.timestamp, tokenId: sale.token.tokenId } );
+            const name = namesByTokenIds[sale.token.tokenId] ? namesByTokenIds[sale.token.tokenId] : sale.token.name;
+            state.tempSales.push({
+              name: name,
+              from: sale.from,
+              to: sale.to,
+              price: sale.price,
+              timestamp: sale.timestamp,
+              tokenId: sale.token.tokenId,
+              txHash: sale.txHash,
+            });
             saleRecords.push({
               chainId: chainId,
               contract: ENSADDRESS,
@@ -546,26 +669,45 @@ const salesModule = {
               to: sale.to,
               price: sale.price,
               timestamp: sale.timestamp,
-              data: sale,
+              // data: sale,
             });
             count++;
           }
-          // await state.db0.sales.bulkPut(saleRecords).then (function() {
-          // }).catch(function(error) {
-          //   console.log("error: " + error);
-          // });
+          await db0.sales.bulkPut(saleRecords).then (function() {
+          }).catch(function(error) {
+            console.log("error: " + error);
+          });
+
+          console.log("Searching");
+          const earliest = await db0.sales.orderBy("timestamp").first();
+          console.log("earliest: " + JSON.stringify(earliest));
+          const latest = await db0.sales.orderBy("timestamp").last();
+          console.log("latest: " + JSON.stringify(latest));
         }
+
 
         // --- fetchSales() start ---
         logInfo("salesModule", "mutations.fetchSales() - startTimestamp: " + new Date(startTimestamp * 1000).toUTCString() + ", endTimestamp: " + new Date(endTimestamp * 1000).toUTCString());
         const url = "https://api.reservoir.tools/sales/v3?contract=0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85&limit=50";
+
+        const db0 = new Dexie("aenusdb");
+        db0.version(1).stores({
+          // nftData: '&tokenId,asset,timestamp',
+          sales: '[chainId+contract+tokenId],chainId,contract,tokenId,name,from,to,price,timestamp',
+        });
+
         await fetch(url)
           .then(response => response.json())
           .then(data => processSales(data));;
+
+        db0.close();
       }
 
       // --- doit() start ---
       logInfo("salesModule", "mutations.doit() - options: " + JSON.stringify(options) + " @ " + new Date().toUTCString());
+
+      const now = new Date();
+      console.log("now: " + now.toLocaleString());
 
       // get prices
       // let keys = Object.keys(state.results);
