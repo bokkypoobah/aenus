@@ -385,7 +385,7 @@ const Connection = {
       store.dispatch('connection/setTxError', "");
     },
     async execWeb3() {
-      logInfo("Connection", "execWeb3() start[" + this.count + "]");
+      // logInfo("Connection", "execWeb3() start[" + this.count + "]");
 
       if (this.powerOn) {
         if (!window.ethereum.isConnected() || !window.ethereum['isUnlocked']) {
@@ -472,13 +472,14 @@ const Connection = {
         }
       }
 
-      if (this.connected && this.network && this.network.chainId == 1) {
+      store.dispatch('sales/execWeb3', { count: this.count });
+      // if (this.connected && this.network && this.network.chainId == 1) {
         // store.dispatch('nixData/execWeb3', { count: this.count, listenersInstalled: this.listenersInstalled });
         // console.log("1");
         // TODO await store.dispatch('collectionData/execWeb3', { count: this.count, listenersInstalled: this.listenersInstalled });
         // console.log("2");
         // console.log("3");
-      }
+      // }
 
       if (!this.listenersInstalled) {
         this.listenersInstalled = true;
