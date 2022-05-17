@@ -533,9 +533,9 @@ const salesModule = {
         const saleRecords = [];
         const chainId = (store.getters['connection/network'] && store.getters['connection/network'].chainId) || 1;
         for (const sale of data.sales) {
-          if (count == 0) {
-            logInfo("salesModule", "mutations.doit().processSales() " + new Date(sale.timestamp * 1000).toLocaleString() + " " + (sale.token.name ? sale.token.name : "(null)") + ", price: " + sale.price + ", from: " + sale.from.substr(0, 10) + ", to: " + sale.to.substr(0, 10));
-          }
+          // if (count == 0) {
+          //   logInfo("salesModule", "mutations.doit().processSales() " + new Date(sale.timestamp * 1000).toLocaleString() + " " + (sale.token.name ? sale.token.name : "(null)") + ", price: " + sale.price + ", from: " + sale.from.substr(0, 10) + ", to: " + sale.to.substr(0, 10));
+          // }
           const name = namesByTokenIds[sale.token.tokenId] ? namesByTokenIds[sale.token.tokenId] : sale.token.name;
           saleRecords.push({
             chainId: chainId,
@@ -556,6 +556,7 @@ const salesModule = {
         }).catch(function(error) {
           console.log("error: " + error);
         });
+        return saleRecords.length;
       }
       // async function fetchSales(startTimestamp, endTimestamp) {
       //   logInfo("salesModule", "mutations.doit().fetchSales() - " + startTimestamp.toLocaleString() + " - " + endTimestamp.toLocaleString());
@@ -574,8 +575,8 @@ const salesModule = {
       //     continuation = data.continuation;
       //   } while (continuation != null);
       // }
-      async function refreshResultsFromAPI() {
-        logInfo("salesModule", "mutations.doit().refreshResultsFromAPI()");
+      async function updateDBFromAPI() {
+        logInfo("salesModule", "mutations.doit().updateDBFromAPI()");
         const now = new Date();
         const earliestEntry = await db0.sales.orderBy("timestamp").first();
         const earliestDate = earliestEntry ? new Date(earliestEntry.timestamp * 1000) : null;
@@ -601,6 +602,7 @@ const salesModule = {
         // dates = {};
         const sales = {};
         while (to > retrieveLastDate && !state.halt) {
+          let totalRecords = 0;
           if (!(from.toLocaleString() in dates)) {
             let processFrom = from;
             const processTo = to;
@@ -609,22 +611,25 @@ const salesModule = {
                 processFrom = latestDate;
               }
             }
-            logInfo("salesModule", "mutations.doit() - processing " + new Date(processFrom).toLocaleString() + " - " + new Date(processTo).toLocaleString());
-            // await fetchSales(processFrom, processTo);
             let continuation = null;
             do {
-              let url = "https://api.reservoir.tools/sales/v3?contract=0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85&limit=" + state.config.reservoirSalesV3BatchSize + "&startTimestamp=" + parseInt(processFrom / 1000) + "&endTimestamp="+ parseInt(processTo / 1000);
-              if (continuation != null) {
-                url = url + "&continuation=" + continuation;
-              }
+              let url = "https://api.reservoir.tools/sales/v3?contract=0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85" +
+                "&limit=" + state.config.reservoirSalesV3BatchSize +
+                "&startTimestamp=" + parseInt(processFrom / 1000) +
+                "&endTimestamp="+ parseInt(processTo / 1000) +
+                (continuation != null ? "&continuation=" + continuation : '');
+              console.log(url);
+              // logInfo("salesModule", "mutations.doit() - Retrieving records for " + new Date(processFrom).toLocaleString() + " to " + new Date(processTo).toLocaleString());
               const data = await fetch(url)
                 .then(response => response.json());
-              await processSales(data);
+              let numberOfRecords = await processSales(data);
+              totalRecords += numberOfRecords;
               continuation = data.continuation;
             } while (continuation != null);
             if (from != segmentStart && !state.halt) {
               dates[from.toLocaleString()] = true;
             }
+            logInfo("salesModule", "mutations.doit() - Retrieved " +  totalRecords + " record(s) for " + new Date(processFrom).toLocaleString() + " to " + new Date(processTo).toLocaleString());
           }
           to = from;
           from = new Date(from.getTime() - MILLISPERDAY/state.config.segmentsPerDay);
@@ -669,7 +674,7 @@ const salesModule = {
           // console.log("    execute: " + JSON.stringify(execute));
           // Refresh results from API to DB
           if (execute.action == "refresh") {
-            await refreshResultsFromAPI();
+            await updateDBFromAPI();
           }
           // Refresh results from DB to memory
           if (execute.action == "refresh") {

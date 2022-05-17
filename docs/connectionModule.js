@@ -487,7 +487,9 @@ const Connection = {
       logDebug("Connection", "execWeb3() end[" + this.count + "]");
     },
     async timeoutCallback() {
-      if (this.count++ % 30 == 0 || this.refreshNow) {
+      const executionQueue = store.getters['sales/executionQueue'];
+      // console.log("sales/executionQueue: " + JSON.stringify(executionQueue));
+      if (this.count++ % 30 == 0 || executionQueue.length > 0 || this.refreshNow) {
         if (this.refreshNow) {
           this.refreshNow = false;
         }
