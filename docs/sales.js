@@ -477,7 +477,7 @@ const salesModule = {
   state: {
     config: {
       background: true,
-      segmentsPerDay: 2,
+      segmentsPerDay: 6,
       retrieveLastDays: 1,
       deleteBeforeDays: 3,
       collections: [0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85],
@@ -557,26 +557,103 @@ const salesModule = {
           console.log("error: " + error);
         });
       }
-      async function fetchSales(startTimestamp, endTimestamp) {
-        logInfo("salesModule", "mutations.doit().fetchSales() - " + startTimestamp.toLocaleString() + " - " + endTimestamp.toLocaleString());
-        const url = "https://api.reservoir.tools/sales/v3?contract=0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85&limit=" + state.config.reservoirSalesV3BatchSize + "&startTimestamp=" + parseInt(startTimestamp / 1000) + "&endTimestamp="+ parseInt(endTimestamp / 1000);
-        let continuation = null;
-        do {
-          let url1;
-          if (continuation == null) {
-            url1 = url;
-          } else {
-            url1 = url + "&continuation=" + continuation;
+      // async function fetchSales(startTimestamp, endTimestamp) {
+      //   logInfo("salesModule", "mutations.doit().fetchSales() - " + startTimestamp.toLocaleString() + " - " + endTimestamp.toLocaleString());
+      //   const url = "https://api.reservoir.tools/sales/v3?contract=0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85&limit=" + state.config.reservoirSalesV3BatchSize + "&startTimestamp=" + parseInt(startTimestamp / 1000) + "&endTimestamp="+ parseInt(endTimestamp / 1000);
+      //   let continuation = null;
+      //   do {
+      //     let url1;
+      //     if (continuation == null) {
+      //       url1 = url;
+      //     } else {
+      //       url1 = url + "&continuation=" + continuation;
+      //     }
+      //     const data = await fetch(url1)
+      //       .then(response => response.json());
+      //     await processSales(data);
+      //     continuation = data.continuation;
+      //   } while (continuation != null);
+      // }
+      async function refreshResultsFromAPI() {
+        logInfo("salesModule", "mutations.doit().refreshResultsFromAPI()");
+        const now = new Date();
+        const earliestEntry = await db0.sales.orderBy("timestamp").first();
+        const earliestDate = earliestEntry ? new Date(earliestEntry.timestamp * 1000) : null;
+        const latestEntry = await db0.sales.orderBy("timestamp").last();
+        const latestDate = latestEntry ? new Date(latestEntry.timestamp * 1000) : null;
+        logInfo("salesModule", "mutations.doit() - db: " + (earliestDate ? earliestDate.toLocaleString() : '(null)') + " to " + (latestDate ? latestDate.toLocaleString() : '') + " @ " + now.toLocaleString());
+
+        const segmentStart = new Date();
+        segmentStart.setHours(parseInt(segmentStart.getHours() / state.config.segmentsPerDay) * state.config.segmentsPerDay, 0, 0, 0);
+        const retrieveLastDate = new Date(segmentStart.getTime() - state.config.retrieveLastDays * MILLISPERDAY);
+        const deleteBeforeDate = new Date(segmentStart.getTime() - state.config.deleteBeforeDays * MILLISPERDAY);
+        logInfo("salesModule", "mutations.doit() - segmentStart: " + segmentStart.toLocaleString() + ", retrieveLastDate: " + retrieveLastDate.toLocaleString() + ", deleteBeforeDate: " + deleteBeforeDate.toLocaleString());
+
+        // Get from start of today
+        let to = now;
+        let from = segmentStart;
+        let dates;
+        try {
+          dates = JSON.parse(localStorage.dates);
+        } catch (e) {
+          dates = {};
+        };
+        // dates = {};
+        const sales = {};
+        while (to > retrieveLastDate && !state.halt) {
+          if (!(from.toLocaleString() in dates)) {
+            let processFrom = from;
+            const processTo = to;
+            if (processFrom == segmentStart) {
+              if (processFrom < latestDate) {
+                processFrom = latestDate;
+              }
+            }
+            logInfo("salesModule", "mutations.doit() - processing " + new Date(processFrom).toLocaleString() + " - " + new Date(processTo).toLocaleString());
+            // await fetchSales(processFrom, processTo);
+            let continuation = null;
+            do {
+              let url = "https://api.reservoir.tools/sales/v3?contract=0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85&limit=" + state.config.reservoirSalesV3BatchSize + "&startTimestamp=" + parseInt(processFrom / 1000) + "&endTimestamp="+ parseInt(processTo / 1000);
+              if (continuation != null) {
+                url = url + "&continuation=" + continuation;
+              }
+              const data = await fetch(url)
+                .then(response => response.json());
+              await processSales(data);
+              continuation = data.continuation;
+            } while (continuation != null);
+            if (from != segmentStart && !state.halt) {
+              dates[from.toLocaleString()] = true;
+            }
           }
-          const data = await fetch(url1)
-            .then(response => response.json());
-          await processSales(data);
-          continuation = data.continuation;
-        } while (continuation != null);
+          to = from;
+          from = new Date(from.getTime() - MILLISPERDAY/state.config.segmentsPerDay);
+        }
+        localStorage.dates = JSON.stringify(dates);
+        logInfo("salesModule", "mutations.doit() - processed dates: " + JSON.stringify(Object.keys(dates)));
+      }
+      async function refreshResultsFromDB() {
+        const salesFromDB = await db0.sales.orderBy("timestamp").reverse().toArray();
+        const saleRecords = [];
+        let count = 0;
+        for (const sale of salesFromDB) {
+          saleRecords.push({
+            name: sale.name,
+            from: sale.from,
+            to: sale.to,
+            price: sale.price,
+            timestamp: sale.timestamp,
+            tokenId: sale.tokenId,
+            txHash: sale.txHash,
+          });
+          count++;
+        }
+        state.sales = saleRecords;
       }
       // --- doit() functions end ---
 
       // --- doit() start ---
+      state.executionQueue.push(options);
       logInfo("salesModule", "mutations.doit() - ----- options: " + JSON.stringify(options) + ", queue: " + JSON.stringify(state.executionQueue) + " @ " + new Date().toLocaleString() + " -----");
 
       const db0 = new Dexie("aenusdb");
@@ -584,72 +661,22 @@ const salesModule = {
         // nftData: '&tokenId,asset,timestamp',
         sales: '[chainId+contract+tokenId],chainId,contract,tokenId,name,from,to,price,timestamp',
       });
-      const now = new Date();
-      const earliestEntry = await db0.sales.orderBy("timestamp").first();
-      const earliestDate = earliestEntry ? new Date(earliestEntry.timestamp * 1000) : null;
-      const latestEntry = await db0.sales.orderBy("timestamp").last();
-      const latestDate = latestEntry ? new Date(latestEntry.timestamp * 1000) : null;
-      logInfo("salesModule", "mutations.doit() - db: " + (earliestDate ? earliestDate.toLocaleString() : '(null)') + " to " + (latestDate ? latestDate.toLocaleString() : '') + " @ " + now.toLocaleString());
 
-      const segmentStart = new Date();
-      segmentStart.setHours(parseInt(segmentStart.getHours() / state.config.segmentsPerDay) * state.config.segmentsPerDay, 0, 0, 0);
-      const retrieveLastDate = new Date(segmentStart.getTime() - state.config.retrieveLastDays * MILLISPERDAY);
-      const deleteBeforeDate = new Date(segmentStart.getTime() - state.config.deleteBeforeDays * MILLISPERDAY);
-      logInfo("salesModule", "mutations.doit() - segmentStart: " + segmentStart.toLocaleString() + ", retrieveLastDate: " + retrieveLastDate.toLocaleString() + ", deleteBeforeDate: " + deleteBeforeDate.toLocaleString());
-
-      // Get from start of today
-      let to = now;
-      let from = segmentStart;
-      let dates;
-      try {
-        dates = JSON.parse(localStorage.dates);
-      } catch (e) {
-        dates = {};
-      };
-      // dates = {};
-      const sales = {};
-      while (to > retrieveLastDate && !state.halt) {
-        if (!(from.toLocaleString() in dates)) {
-          let processFrom = from;
-          const processTo = to;
-          if (processFrom == segmentStart) {
-            if (processFrom < latestDate) {
-              processFrom = latestDate;
-            }
+      let execute;
+      do {
+        execute = state.executionQueue.shift();
+        if (execute) {
+          // console.log("    execute: " + JSON.stringify(execute));
+          // Refresh results from API to DB
+          if (execute.action == "refresh") {
+            await refreshResultsFromAPI();
           }
-          logInfo("salesModule", "mutations.doit() - processing " + new Date(processFrom).toLocaleString() + " - " + new Date(processTo).toLocaleString());
-          await fetchSales(processFrom, processTo);
-          if (from != segmentStart && !state.halt) {
-            dates[from.toLocaleString()] = true;
+          // Refresh results from DB to memory
+          if (execute.action == "refresh") {
+            await refreshResultsFromDB();
           }
         }
-        to = from;
-        from = new Date(from.getTime() - MILLISPERDAY/state.config.segmentsPerDay);
-      }
-      localStorage.dates = JSON.stringify(dates);
-      logInfo("salesModule", "mutations.doit() - processed dates: " + JSON.stringify(Object.keys(dates)));
-
-      // Retrieve results as filtered
-      const salesFromDB = await db0.sales.orderBy("timestamp").reverse().toArray();
-      const saleRecords = [];
-      let count = 0;
-      for (const sale of salesFromDB) {
-        // if (count == 0) {
-        //   logInfo("salesModule", "mutations.doit() - results " + JSON.stringify(sale));
-        // }
-        const name = /*namesByTokenIds[sale.token.tokenId] ? namesByTokenIds[sale.token.tokenId] :*/ sale.name;
-        saleRecords.push({
-          name: name,
-          from: sale.from,
-          to: sale.to,
-          price: sale.price,
-          timestamp: sale.timestamp,
-          tokenId: sale.tokenId,
-          txHash: sale.txHash,
-        });
-        count++;
-      }
-      state.sales = saleRecords;
+      } while (execute != null && !state.halt);
       state.message = null;
       state.halt = false;
 
