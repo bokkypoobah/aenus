@@ -12,12 +12,14 @@ const Sales = {
         <b-card no-body class="p-0 mt-1">
 
           <b-card-body class="m-1 p-1">
-            <b-button size="sm" @click="doit( { type: 'fullsync' } );" variant="primary">Retrieve Latest 50 Sales</b-button>
             <!--
+            <b-button size="sm" @click="doit( { type: 'fullsync' } );" variant="primary">Retrieve Latest 50 Sales</b-button>
             <span v-if="searchMessage != null">
               <b-button size="sm" @click="halt" variant="primary">Halt</b-button>
             </span>
             -->
+            <b-button size="sm" @click="doit( { action: 'startService' } );" variant="primary">Start Service</b-button>
+            <b-button size="sm" @click="doit( { action: 'stopService' } );" variant="primary">Stop Service</b-button>
           </b-card-body>
           <b-card-body class="m-1 p-1">
             <b-table small striped hover :fields="salesFields" :items="sales" table-class="w-auto" class="mt-1">
@@ -138,15 +140,15 @@ const Sales = {
       reschedule: true,
 
       settings: {
-        sortOption: 'nameasc',
-        randomise: false,
+        // sortOption: 'nameasc',
+        // randomise: false,
 
-        resultsPageSize: 100,
-        resultsCurrentPage: 1,
+        // resultsPageSize: 100,
+        // resultsCurrentPage: 1,
 
-        imageSize: '240',
+        // imageSize: '240',
 
-        resultsTabIndex: 0,
+        // resultsTabIndex: 0,
       },
 
       results: [],
@@ -189,9 +191,9 @@ const Sales = {
     formatTimestamp(ts) {
       return new Date(ts * 1000).toLocaleString();
     },
-    async doit(options) {
-      console.log("doit: " + JSON.stringify(options));
-      store.dispatch('sales/doit', options);
+    async doit(action) {
+      console.log("doit: " + JSON.stringify(action));
+      store.dispatch('sales/doit', action);
     },
     async halt() {
       store.dispatch('search/halt');
@@ -229,7 +231,7 @@ const salesModule = {
     config: {
       background: true,
       segmentsPerDay: 6,
-      retrieveLastDays: 1,
+      retrieveLastDays: 14,
       deleteBeforeDays: 3,
       collections: [0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85],
       reservoirSalesV3BatchSize: 50,
@@ -248,6 +250,17 @@ const salesModule = {
     executionQueue: state => state.executionQueue,
   },
   mutations: {
+    // --- addToExecutionQueue() ---
+    async addToExecutionQueue(state, action) {
+      logInfo("salesModule", "mutations.addToExecutionQueue() - executionQueue: " + JSON.stringify(state.executionQueue));
+      // TODO - Not working
+      if (!state.executionQueue.includes(action)) {
+        state.executionQueue.push(action);
+      } else {
+        logInfo("salesModule", "mutations.addToExecutionQueue() - already existing action: " + JSON.stringify(action) + ", queue: " + JSON.stringify(state.executionQueue));
+      }
+      logInfo("salesModule", "mutations.addToExecutionQueue() - action: " + JSON.stringify(action) + ", queue: " + JSON.stringify(state.executionQueue));
+    },
     // --- doit() ---
     async doit(state, options) {
       // --- doit() functions start ---
@@ -327,19 +340,19 @@ const salesModule = {
       //   } while (continuation != null);
       // }
       async function updateDBFromAPI() {
-        logInfo("salesModule", "mutations.doit().updateDBFromAPI()");
+        // logInfo("salesModule", "mutations.doit().updateDBFromAPI()");
         const now = new Date();
         const earliestEntry = await db0.sales.orderBy("timestamp").first();
         const earliestDate = earliestEntry ? new Date(earliestEntry.timestamp * 1000) : null;
         const latestEntry = await db0.sales.orderBy("timestamp").last();
         const latestDate = latestEntry ? new Date(latestEntry.timestamp * 1000) : null;
-        logInfo("salesModule", "mutations.doit() - db: " + (earliestDate ? earliestDate.toLocaleString() : '(null)') + " to " + (latestDate ? latestDate.toLocaleString() : '') + " @ " + now.toLocaleString());
+        // logInfo("salesModule", "mutations.doit() - db: " + (earliestDate ? earliestDate.toLocaleString() : '(null)') + " to " + (latestDate ? latestDate.toLocaleString() : '') + " @ " + now.toLocaleString());
 
         const segmentStart = new Date();
         segmentStart.setHours(parseInt(segmentStart.getHours() / state.config.segmentsPerDay) * state.config.segmentsPerDay, 0, 0, 0);
         const retrieveLastDate = new Date(segmentStart.getTime() - state.config.retrieveLastDays * MILLISPERDAY);
         const deleteBeforeDate = new Date(segmentStart.getTime() - state.config.deleteBeforeDays * MILLISPERDAY);
-        logInfo("salesModule", "mutations.doit() - segmentStart: " + segmentStart.toLocaleString() + ", retrieveLastDate: " + retrieveLastDate.toLocaleString() + ", deleteBeforeDate: " + deleteBeforeDate.toLocaleString());
+        // logInfo("salesModule", "mutations.doit() - segmentStart: " + segmentStart.toLocaleString() + ", retrieveLastDate: " + retrieveLastDate.toLocaleString() + ", deleteBeforeDate: " + deleteBeforeDate.toLocaleString());
 
         // Get from start of today
         let to = now;
@@ -352,14 +365,15 @@ const salesModule = {
         };
         // dates = {};
         const sales = {};
-        while (to > retrieveLastDate && !state.halt) {
+        let count = 0;
+        while (to > retrieveLastDate && !state.halt && count < 2) {
           let totalRecords = 0;
           if (!(from.toLocaleString() in dates)) {
             let processFrom = from;
             const processTo = to;
             if (processFrom == segmentStart) {
               if (processFrom < latestDate) {
-                processFrom = latestDate;
+                processFrom = new Date(latestDate.getTime() + 1000);
               }
             }
             let continuation = null;
@@ -369,7 +383,7 @@ const salesModule = {
                 "&startTimestamp=" + parseInt(processFrom / 1000) +
                 "&endTimestamp="+ parseInt(processTo / 1000) +
                 (continuation != null ? "&continuation=" + continuation : '');
-              console.log(url);
+              // logInfo("salesModule", "mutations.doit() - url: " + url);
               // logInfo("salesModule", "mutations.doit() - Retrieving records for " + new Date(processFrom).toLocaleString() + " to " + new Date(processTo).toLocaleString());
               const data = await fetch(url)
                 .then(response => response.json());
@@ -380,16 +394,21 @@ const salesModule = {
             if (from != segmentStart && !state.halt) {
               dates[from.toLocaleString()] = true;
             }
-            logInfo("salesModule", "mutations.doit() - Retrieved " +  totalRecords + " record(s) for " + new Date(processFrom).toLocaleString() + " to " + new Date(processTo).toLocaleString());
+            if (totalRecords > 0) {
+              logInfo("salesModule", "mutations.doit() - Retrieved " +  totalRecords + " record(s) for " + new Date(processFrom).toLocaleString() + " to " + new Date(processTo).toLocaleString());
+            } else {
+              logInfo("salesModule", "mutations.doit() - Nothing new");
+            }
+            count++;
           }
           to = from;
           from = new Date(from.getTime() - MILLISPERDAY/state.config.segmentsPerDay);
         }
         localStorage.dates = JSON.stringify(dates);
-        logInfo("salesModule", "mutations.doit() - processed dates: " + JSON.stringify(Object.keys(dates)));
+        // logInfo("salesModule", "mutations.doit() - processed dates: " + JSON.stringify(Object.keys(dates)));
       }
       async function refreshResultsFromDB() {
-        const salesFromDB = await db0.sales.orderBy("timestamp").reverse().toArray();
+        const salesFromDB = await db0.sales.orderBy("timestamp").reverse().limit(100).toArray();
         const saleRecords = [];
         let count = 0;
         for (const sale of salesFromDB) {
@@ -410,7 +429,7 @@ const salesModule = {
 
       // --- doit() start ---
       state.executionQueue.push(options);
-      logInfo("salesModule", "mutations.doit() - ----- options: " + JSON.stringify(options) + ", queue: " + JSON.stringify(state.executionQueue) + " @ " + new Date().toLocaleString() + " -----");
+      // logInfo("salesModule", "mutations.doit() - ----- options: " + JSON.stringify(options) + ", queue: " + JSON.stringify(state.executionQueue) + " @ " + new Date().toLocaleString() + " -----");
 
       const db0 = new Dexie("aenusdb");
       db0.version(1).stores({
@@ -444,13 +463,13 @@ const salesModule = {
     },
   },
   actions: {
-    async execWeb3( { state, commit, rootState }, { count } ) {
-      // logInfo("salesModule", "actions.execWeb3() - count: " + count);
+    execWeb3( { state, commit, rootState }, { count } ) {
+      logInfo("salesModule", "actions.execWeb3() - count: " + count);
       commit('doit', { action: "refresh" } );
     },
-    doit(context, options) {
-      logInfo("salesModule", "actions.doit() - options: " + JSON.stringify(options));
-      context.commit('doit', options);
+    doit(context, action) {
+      logInfo("salesModule", "actions.doit() - action: " + JSON.stringify(action));
+      context.commit('addToExecutionQueue', action);
     },
     halt(context) {
       // logInfo("salesModule", "actions.halt()");

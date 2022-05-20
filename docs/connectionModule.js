@@ -472,7 +472,9 @@ const Connection = {
         }
       }
 
-      store.dispatch('sales/execWeb3', { count: this.count });
+      // console.log("Before dispatch");
+      // store.dispatch('sales/execWeb3', { count: this.count });
+      // console.log("After dispatch");
       // if (this.connected && this.network && this.network.chainId == 1) {
         // store.dispatch('nixData/execWeb3', { count: this.count, listenersInstalled: this.listenersInstalled });
         // console.log("1");
