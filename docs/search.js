@@ -796,9 +796,9 @@ const Search = {
       tabs: [
         { name: 'names', text: 'Names', placeholder: '🔍 {name1}[.eth] {name2}[.eth], {name3}[.eth]\n{name4}[.eth] ...' },
         { name: 'owned', text: 'Owned', placeholder: '🔍 {name1}[.eth] {0xaddress1}, {name2}[.eth]\n{0xaddress2} ...' },
-        { name: 'contains', text: 'Contains', placeholder: '🔍 {term1} {term2}, {term3}\n{term4} ...' },
-        { name: 'startswith', text: 'Starts With', placeholder: '🔍 {term1} {term2}, {term3}\n{term4} ...' },
-        { name: 'endswith', text: 'Ends With', placeholder: '🔍 {term1} {term2}, {term3}\n{term4} ...' },
+        { name: 'contains', text: 'Contains', placeholder: '🔍 {term1} {term2}, {term3} \n{term4} ...' },
+        { name: 'startswith', text: 'Starts With', placeholder: '🔍 {term1} {term2}, {term3} \n{term4} ...' },
+        { name: 'endswith', text: 'Ends With', placeholder: '🔍 {term1} {term2}, {term3} \n{term4} ...' },
         { name: 'groups', text: 'Groups', placeholder: null },
         { name: 'sets', text: 'Sets', placeholder: null },
       ],
