@@ -13,7 +13,7 @@ const Search = {
 
           <!-- Search type tabs -->
           <b-tabs card align="left" no-body active-tab-class="m-0 p-0" v-model="settings.searchTabIndex">
-            <b-tab v-for="t in tabs" :key="'dyn-tabx-' + t.name" :title="t.text">
+            <b-tab v-for="t in tabs" :key="'dyn-tabx-' + t.name" :title="t.text" title-item-class="p-0" title-link-class="px-2">
             </b-tab>
           </b-tabs>
 
@@ -790,8 +790,8 @@ const Search = {
         { name: 'names', text: 'Names', placeholder: '🔍 {name1}[.eth] {name2}[.eth], {name3}[.eth]\n{name4}[.eth] ...' },
         { name: 'owned', text: 'Owned', placeholder: '🔍 {name1}[.eth] {0xaddress1}, {name2}[.eth]\n{0xaddress2} ...' },
         { name: 'contains', text: 'Contains', placeholder: '🔍 {term1} {term2}, {term3} \n{term4} ...' },
-        { name: 'startswith', text: 'StartsWith', placeholder: '🔍 {term1} {term2}, {term3} \n{term4} ...' },
-        { name: 'endswith', text: 'EndsWith', placeholder: '🔍 {term1} {term2}, {term3} \n{term4} ...' },
+        { name: 'startswith', text: 'Starts With', placeholder: '🔍 {term1} {term2}, {term3} \n{term4} ...' },
+        { name: 'endswith', text: 'Ends With', placeholder: '🔍 {term1} {term2}, {term3} \n{term4} ...' },
         { name: 'groups', text: 'Groups', placeholder: null },
         { name: 'sets', text: 'Sets', placeholder: null },
       ],
