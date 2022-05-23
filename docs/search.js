@@ -13,220 +13,126 @@ const Search = {
 
           <!-- Search type tabs -->
           <b-tabs card align="left" no-body active-tab-class="m-0 p-0" v-model="settings.searchTabIndex">
-            <b-tab title="Names">
-            </b-tab>
-            <b-tab title="Groups">
-            </b-tab>
-            <b-tab title="Sets">
+            <b-tab v-for="t in tabs" :key="'dyn-tabx-' + t.name" :title="t.text">
             </b-tab>
           </b-tabs>
 
           <!-- Search input -->
           <b-card-body class="m-1 p-1">
 
-            <b-card-text v-if="settings.searchTabIndex == 0" class="m-0 p-0">
-              <b-row>
-                <b-col>
-                  <b-form-textarea size="sm" v-model.trim="settings.searchString" placeholder="🔍 {name1}[.eth] {name2}[.eth], {name3}[.eth]\n{name4}[.eth] ..." rows="3" max-rows="100" class="w-50"></b-form-textarea>
+            <b-card-text class="m-0 p-0">
+              <b-row v-if="['names', 'owned', 'contains', 'startswith', 'endswith'].includes(tabs[settings.searchTabIndex].name)">
+                <b-col sm="6">
+                  <b-form-textarea size="sm" v-model.trim="settings.searchString" :placeholder="tabs[settings.searchTabIndex].placeholder" rows="3" max-rows="100"></b-form-textarea>
                 </b-col>
               </b-row>
-              <b-row>
-                <b-col class="mt-2">
-                  <b-form-select size="sm" v-model="settings.searchType" :options="searchOptions" class="w-25"></b-form-select>
+              <b-row v-if="['groups'].includes(tabs[settings.searchTabIndex].name)">
+                <b-col sm="6" class="mt-2">
+                  <b-form-select size="sm" v-model="settings.selectedGroup" :options="groupOptions" v-b-popover.hover="'Set up groups in Config'"></b-form-select>
                 </b-col>
               </b-row>
-              <b-row v-if="settings.searchType == 'exact'">
-                <b-col class="mt-2">
-                  <b-form-checkbox v-model.trim="settings.searchCommonRegistrants">
-                    Search names with common registrants
-                  </b-form-checkbox>
-                </b-col>
-              </b-row>
+              <div v-if="['sets'].includes(tabs[settings.searchTabIndex].name)" class="m-0 p-0">
+                <b-row class="m-0 p-0">
+                  <b-col sm="6" class="m-0 p-0">
+                    <b-form-group label-cols="3" content-cols="9" label="Set" label-class="m-0 p-0" class="text-right">
+                      <b-form-select size="sm" v-model="settings.selectedSet" :options="setOptions"></b-form-select>
+                    </b-form-group>
+                  </b-col>
+                </b-row>
+                <b-row class="m-0 p-0">
+                  <b-col sm="6" class="m-0 p-0">
+                    <b-form-group label-cols="3" content-cols="9" :label="'From' + (settings.setAttributes[settings.selectedSet].type == 'hours' ? ', hh': '')" label-class="m-0 p-0" class="text-right">
+                      <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].from"></b-form-input>
+                    </b-form-group>
+                  </b-col>
+                </b-row>
+                <b-row class="m-0 p-0">
+                  <b-col sm="6" class="m-0 p-0">
+                    <b-form-group label-cols="3" content-cols="9" :label="'To' + (settings.setAttributes[settings.selectedSet].type == 'hours' ? ', hh': '')" label-class="m-0 p-0" class="text-right">
+                      <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].to"></b-form-input>
+                    </b-form-group>
+                  </b-col>
+                </b-row>
+                <b-row class="m-0 p-0">
+                  <b-col sm="6" class="m-0 p-0">
+                    <b-form-group label-cols="3" content-cols="9" :label="'Step' + (settings.setAttributes[settings.selectedSet].type == 'hours' ? ', hh': '')" label-class="m-0 p-0" class="text-right">
+                      <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].step"></b-form-input>
+                    </b-form-group>
+                  </b-col>
+                </b-row>
+                <div v-if="settings.setAttributes[settings.selectedSet].type == 'hours'">
+                  <b-row class="m-0 p-0">
+                    <b-col sm="6" class="m-0 p-0">
+                      <b-form-group label-cols="3" content-cols="9" label="From, mm" label-class="m-0 p-0" class="text-right">
+                        <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].from2"></b-form-input>
+                      </b-form-group>
+                    </b-col>
+                  </b-row>
+                  <b-row class="m-0 p-0">
+                    <b-col sm="6" class="m-0 p-0">
+                      <b-form-group label-cols="3" content-cols="9" label="To, mm" label-class="m-0 p-0" class="text-right">
+                        <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].to2"></b-form-input>
+                      </b-form-group>
+                    </b-col>
+                  </b-row>
+                  <b-row class="m-0 p-0">
+                    <b-col sm="6" class="m-0 p-0">
+                      <b-form-group label-cols="3" content-cols="9" label="Step, mm" label-class="m-0 p-0" class="text-right">
+                        <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].step2"></b-form-input>
+                      </b-form-group>
+                    </b-col>
+                  </b-row>
+                </div>
+                <b-row v-if="'regex' in settings.setAttributes[settings.selectedSet]" class="m-0 p-0">
+                  <b-col sm="6" class="m-0 p-0">
+                    <b-form-group label-cols="3" content-cols="9" label="Regex" label-class="m-0 p-0" class="text-right">
+                      <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].regex" placeholder="🔍 {regex}, e.g., '^([0-9])([0-9])([0-9])\\3\\2\\1$' for 6 digit palindromes"></b-form-input>
+                    </b-form-group>
+                  </b-col>
+                </b-row>
+                <b-row v-if="'palindrome' in settings.setAttributes[settings.selectedSet]" class="m-0 p-0">
+                  <b-col sm="6" class="m-0 p-0">
+                    <b-form-group label-cols="3" content-cols="9" label="" label-class="m-0 p-0" class="text-right">
+                      <b-form-checkbox v-model.trim="settings.setAttributes[settings.selectedSet].palindrome">
+                        Palindrome
+                      </b-form-checkbox>
+                    </b-form-group>
+                  </b-col>
+                </b-row>
+                <b-row v-if="'prefix' in settings.setAttributes[settings.selectedSet]" class="m-0 p-0">
+                  <b-col sm="6" class="m-0 p-0">
+                    <b-form-group label-cols="3" content-cols="9" label="Prefix" label-class="m-0 p-0" class="text-right">
+                      <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].prefix" placeholder="optional prefix, e.g., 'mr'"></b-form-input>
+                    </b-form-group>
+                  </b-col>
+                </b-row>
+                <b-row v-if="'separator' in settings.setAttributes[settings.selectedSet]" class="m-0 p-0">
+                  <b-col sm="6" class="m-0 p-0">
+                    <b-form-group label-cols="3" content-cols="9" label="Separator" label-class="m-0 p-0" class="text-right">
+                      <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].separator" placeholder="optional separator, e.g., 'h'"></b-form-input>
+                    </b-form-group>
+                  </b-col>
+                </b-row>
+                <b-row v-if="'postfix' in settings.setAttributes[settings.selectedSet]" class="m-0 p-0">
+                  <b-col sm="6" class="m-0 p-0">
+                    <b-form-group label-cols="3" content-cols="9" label="Postfix" label-class="m-0 p-0" class="text-right">
+                      <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].postfix" placeholder="optional postfix, e.g., 'abc'"></b-form-input>
+                    </b-form-group>
+                  </b-col>
+                </b-row>
+              </div>
               <b-row>
-                <b-col class="mt-2">
-                  <b-button size="sm" @click="scan( { type: 'terms', search: settings.searchString, searchCommonRegistrants: settings.searchCommonRegistrants, searchType: settings.searchType } );" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
-                  <span v-if="searchMessage != null">
-                    <b-button size="sm" @click="halt" variant="primary">Halt</b-button>
-                  </span>
+                <b-col cols="2" class="mt-2 text-right">
+                </b-col>
+                <b-col sm="4" class="mt-2">
+                  <font size="-2">
+                    {{ searchMessage }}
+                  </font>
+                  <b-button v-if="searchMessage == null" size="sm" @click="scan( { searchType: tabs[settings.searchTabIndex].name, search: settings.searchString, group: settings.selectedGroup, setAttributes: settings.setAttributes[settings.selectedSet] } );" variant="primary" class="float-right">Search</b-button>
+                  <b-button v-if="searchMessage != null" size="sm" @click="halt" variant="primary" class="float-right">Halt</b-button>
                 </b-col>
               </b-row>
             </b-card-text>
-
-            <div v-if="settings.searchTabIndex == 1" class="m-0 p-0">
-              <b-row>
-                <b-col>
-                  <b-form-select size="sm" v-model="settings.selectedGroup" :options="groupOptions" v-b-popover.hover="'Set up groups in Config'" class="w-50"></b-form-select>
-                </b-col>
-              </b-row>
-              <b-row>
-                <b-col class="mt-2">
-                  <b-button size="sm" @click="scan( { type: 'group', group: settings.selectedGroup } )" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
-                  <span v-if="searchMessage != null">
-                    <b-button size="sm" @click="halt" variant="primary">Halt</b-button>
-                  </span>
-                </b-col>
-              </b-row>
-            </div>
-
-            <!-- Scan Sets -->
-            <div v-if="settings.searchTabIndex == 2" class="m-0 p-0">
-              <b-card-text>
-                <b-row>
-                  <b-col cols="3" class="m-0 p-1 text-right">
-                    Set
-                  </b-col>
-                  <b-col cols="4" class="m-0 p-1">
-                    <b-form-select size="sm" v-model="settings.selectedSet" :options="setOptions" class="w-100"></b-form-select>
-                  </b-col>
-                  <b-col cols="4" class="m-0 p-1">
-                  </b-col>
-                </b-row>
-
-                <b-row>
-                  <b-col cols="3" class="m-0 p-1 text-right">
-                    From<span v-if="settings.setAttributes[settings.selectedSet].type == 'hours'">, hh</span>
-                  </b-col>
-                  <b-col cols="4" class="m-0 p-1">
-                    <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].from" class="w-100"></b-form-input>
-                  </b-col>
-                  <b-col cols="4" class="m-0 p-1">
-                  </b-col>
-                </b-row>
-
-                <b-row>
-                  <b-col cols="3" class="m-0 p-1 text-right">
-                    To<span v-if="settings.setAttributes[settings.selectedSet].type == 'hours'">, hh</span>
-                  </b-col>
-                  <b-col cols="4" class="m-0 p-1">
-                    <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].to" class="w-100"></b-form-input>
-                  </b-col>
-                  <b-col cols="4" class="m-0 p-1">
-                  </b-col>
-                </b-row>
-
-                <b-row>
-                  <b-col cols="3" class="m-0 p-1 text-right">
-                    Step<span v-if="settings.setAttributes[settings.selectedSet].type == 'hours'">, hh</span>
-                  </b-col>
-                  <b-col cols="4" class="m-0 p-1">
-                    <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].step" class="w-100"></b-form-input>
-                  </b-col>
-                  <b-col cols="4" class="m-0 p-1">
-                  </b-col>
-                </b-row>
-
-                <div v-if="settings.setAttributes[settings.selectedSet].type == 'hours'">
-                  <b-row>
-                    <b-col cols="3" class="m-0 p-1 text-right">
-                      From, mm
-                    </b-col>
-                    <b-col cols="4" class="m-0 p-1">
-                      <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].from2" class="w-100"></b-form-input>
-                    </b-col>
-                    <b-col cols="4" class="m-0 p-1">
-                    </b-col>
-                  </b-row>
-
-                  <b-row>
-                    <b-col cols="3" class="m-0 p-1 text-right">
-                      To, mm
-                    </b-col>
-                    <b-col cols="4" class="m-0 p-1">
-                      <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].to2" class="w-100"></b-form-input>
-                    </b-col>
-                    <b-col cols="4" class="m-0 p-1">
-                    </b-col>
-                  </b-row>
-
-                  <b-row>
-                    <b-col cols="3" class="m-0 p-1 text-right">
-                      Step, mm
-                    </b-col>
-                    <b-col cols="4" class="m-0 p-1">
-                      <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].step2" class="w-100"></b-form-input>
-                    </b-col>
-                    <b-col cols="4" class="m-0 p-1">
-                    </b-col>
-                  </b-row>
-                </div>
-
-                <b-row v-if="'regex' in settings.setAttributes[settings.selectedSet]">
-                  <b-col cols="3" class="m-0 p-1 text-right">
-                    Regex
-                  </b-col>
-                  <b-col cols="4" class="m-0 p-1">
-                    <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].regex" placeholder="🔍 {regex}, e.g., '^([0-9])([0-9])([0-9])\\3\\2\\1$' for 6 digit palindromes" class="w-100"></b-form-input>
-                  </b-col>
-                  <b-col cols="4" class="m-0 p-1">
-                  </b-col>
-                </b-row>
-
-                <b-row v-if="'palindrome' in settings.setAttributes[settings.selectedSet]">
-                  <b-col cols="3" class="m-0 p-1 text-right">
-                  </b-col>
-                  <b-col cols="4" class="m-0 p-1">
-                    <b-form-checkbox v-model.trim="settings.setAttributes[settings.selectedSet].palindrome">
-                      Palindrome
-                    </b-form-checkbox>
-                  </b-col>
-                  <b-col cols="4" class="m-0 p-1">
-                  </b-col>
-                </b-row>
-
-                <b-row v-if="'prefix' in settings.setAttributes[settings.selectedSet]">
-                  <b-col cols="3" class="m-0 p-1 text-right">
-                    Prefix
-                  </b-col>
-                  <b-col cols="4" class="m-0 p-1">
-                    <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].prefix" placeholder="optional prefix, e.g., 'mr'" class="w-100"></b-form-input>
-                  </b-col>
-                  <b-col cols="4" class="m-0 p-1">
-                  </b-col>
-                </b-row>
-
-                <div v-if="'separator' in settings.setAttributes[settings.selectedSet]">
-                  <b-row>
-                    <b-col cols="3" class="m-0 p-1 text-right">
-                      Separator
-                    </b-col>
-                    <b-col cols="4" class="m-0 p-1">
-                      <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].separator" placeholder="optional separator, e.g., 'h'" class="w-100"></b-form-input>
-                    </b-col>
-                    <b-col cols="4" class="m-0 p-1">
-                    </b-col>
-                  </b-row>
-                </div>
-
-                <b-row v-if="'postfix' in settings.setAttributes[settings.selectedSet]">
-                  <b-col cols="3" class="m-0 p-1 text-right">
-                    Postfix
-                  </b-col>
-                  <b-col cols="4" class="m-0 p-1">
-                    <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].postfix" placeholder="optional postfix, e.g., 'abc'" class="w-100"></b-form-input>
-                  </b-col>
-                  <b-col cols="4" class="m-0 p-1">
-                  </b-col>
-                </b-row>
-
-                <b-row>
-                  <b-col cols="3" class="m-0 p-1 text-right">
-                  </b-col>
-                  <b-col cols="4" class="m-0 p-1">
-                    <b-button size="sm" @click="scan(settings.setAttributes[settings.selectedSet])" :disabled="searchMessage != null" variant="primary">{{ searchMessage ? searchMessage : 'Search'}}</b-button>
-                    <span v-if="searchMessage != null">
-                      <b-button size="sm" @click="halt" variant="primary">Halt</b-button>
-                    </span>
-                  </b-col>
-                </b-row>
-
-              </b-card-text>
-            </div>
-            <div v-if="settings.searchTabIndex == 3">
-              <b-card-text>
-                Hello 4
-              </b-card-text>
-            </div>
-
           </b-card-body>
         </b-card>
 
@@ -269,7 +175,7 @@ const Search = {
               </b-tab>
               <b-tab title="Unregistered" :disabled="unregistered.length == 0">
               </b-tab>
-              <b-tab title="Hours" v-if="settings.searchTabIndex == 2 && settings.setAttributes[settings.selectedSet].type == 'hours'">
+              <b-tab title="Hours" v-if="['sets'].includes(tabs[settings.searchTabIndex].name) && settings.setAttributes[settings.selectedSet].type == 'hours'">
               </b-tab>
             </b-tabs>
 
@@ -761,8 +667,6 @@ const Search = {
       settings: {
         searchTabIndex: 0,
         searchString: null,
-        searchCommonRegistrants: false,
-        searchType: 'exact',
         selectedGroup: null,
         selectedSet: 'digit999',
         filter: null,
@@ -882,11 +786,29 @@ const Search = {
         },
       },
 
+      // <b-tab title="Names">
+      // </b-tab>
+      // <b-tab title="Groups">
+      // </b-tab>
+      // <b-tab title="Sets">
+      // </b-tab>
+
+      tabs: [
+        { name: 'names', text: 'Names', placeholder: '🔍 {name1}[.eth] {name2}[.eth], {name3}[.eth]\n{name4}[.eth] ...' },
+        { name: 'owned', text: 'Owned', placeholder: '🔍 {name1}[.eth] {0xaddress1}, {name2}[.eth]\n{0xaddress2} ...' },
+        { name: 'contains', text: 'Contains', placeholder: '🔍 {term1} {term2}, {term3}\n{term4} ...' },
+        { name: 'startswith', text: 'Starts With', placeholder: '🔍 {term1} {term2}, {term3}\n{term4} ...' },
+        { name: 'endswith', text: 'Ends With', placeholder: '🔍 {term1} {term2}, {term3}\n{term4} ...' },
+        { name: 'groups', text: 'Groups', placeholder: null },
+        { name: 'sets', text: 'Sets', placeholder: null },
+      ],
+
       searchOptions: [
-        { value: 'exact', text: 'Exact Name' },
-        { value: 'contains', text: 'Name Contains' },
-        { value: 'startswith', text: 'Name Starts With' },
-        { value: 'endswith', text: 'Name Ends With' },
+        { value: 'names', text: 'Exact names' },
+        { value: 'owned', text: 'Names owned by names and/or addresses' },
+        { value: 'contains', text: 'Names containing' },
+        { value: 'startswith', text: 'Names starting with' },
+        { value: 'endswith', text: 'Names ending with' },
       ],
 
       pageSizes: [
@@ -1306,12 +1228,13 @@ const searchModule = {
           yield records.splice(0, batchsize);
         }
       }
-      function* generateDigitSequence(options) {
-        const regex = options.regex ? new RegExp(options.regex, 'i') : null;
-        for (let i = options.from; i <= options.to; i = parseInt(i) + parseInt(options.step)) {
+      function* generateDigitSequence(setAttributes) {
+        logInfo("searchModule", "mutations.scan().generateDigitSequence() - setAttributes: " + JSON.stringify(setAttributes));
+        const regex = setAttributes.regex ? new RegExp(setAttributes.regex, 'i') : null;
+        for (let i = setAttributes.from; i <= setAttributes.to; i = parseInt(i) + parseInt(setAttributes.step)) {
           let include = true;
-          const number = i.toString().padStart(options.length, '0');
-          if (options.palindrome) {
+          const number = i.toString().padStart(setAttributes.length, '0');
+          if (setAttributes.palindrome) {
             const reverse = number.split('').reverse().join('');
             if (number !== reverse) {
               include = false;
@@ -1323,17 +1246,17 @@ const searchModule = {
             }
           }
           if (include) {
-            yield (options.prefix || '') + number + (options.postfix || '');
+            yield (setAttributes.prefix || '') + number + (setAttributes.postfix || '');
           }
         }
       }
-      function* generateHourSequence(options) {
-        const regex = options.regex ? new RegExp(options.regex, 'i') : null;
-        for (let i = options.from; i <= options.to; i = parseInt(i) + parseInt(options.step)) {
-          for (let j = options.from2; j <= options.to2; j = parseInt(j) + parseInt(options.step2)) {
-            const number = i.toString().padStart(options.length, '0') + (options.separator || '') + j.toString().padStart(options.length, '0');
+      function* generateHourSequence(setAttributes) {
+        const regex = setAttributes.regex ? new RegExp(setAttributes.regex, 'i') : null;
+        for (let i = setAttributes.from; i <= setAttributes.to; i = parseInt(i) + parseInt(setAttributes.step)) {
+          for (let j = setAttributes.from2; j <= setAttributes.to2; j = parseInt(j) + parseInt(setAttributes.step2)) {
+            const number = i.toString().padStart(setAttributes.length, '0') + (setAttributes.separator || '') + j.toString().padStart(setAttributes.length, '0');
             let include = true;
-            if (options.palindrome) {
+            if (setAttributes.palindrome) {
               const reverse = number.split('').reverse().join('');
               if (number !== reverse) {
                 include = false;
@@ -1345,7 +1268,7 @@ const searchModule = {
               }
             }
             if (include) {
-              yield (options.prefix || '') + number + (options.postfix || '');
+              yield (setAttributes.prefix || '') + number + (setAttributes.postfix || '');
             }
           }
         }
@@ -1473,11 +1396,15 @@ const searchModule = {
       // --- Scan start ---
       logInfo("searchModule", "mutations.scan() - options: " + JSON.stringify(options));
       let generator = null;
-      if (options.type == 'digits') {
-        generator = generateDigitSequence(options);
-      } else if (options.type == 'hours') {
-        generator = generateHourSequence(options);
-      } else if (options.type == 'terms' || options.type == 'owner') {
+      if (options.searchType == 'sets') {
+        if (options.setAttributes.type == 'digits') {
+          logInfo("searchModule", "mutations.scan() - digits");
+          generator = generateDigitSequence(options.setAttributes);
+        } else if (options.setAttributes.type == 'hours') {
+          logInfo("searchModule", "mutations.scan() - hours");
+          generator = generateHourSequence(options.setAttributes);
+        }
+      } else if (['names', 'owned', 'contains', 'startswith', 'endswith'].includes(options.searchType)) {
         const searchForNames = options.search == null ? [] : options.search.split(/[, \t\n]+/)
           .map(function(name) { return name.toLowerCase().trim(); })
           .filter(function (name) { return !(name.length == 42 && name.substring(0, 2) == '0x'); })
@@ -1495,7 +1422,7 @@ const searchModule = {
       state.message = "Retrieving";
 
       if (generator) {
-        if (options.searchType != 'exact' && !(options.type == 'digits' || options.type == 'hours')) {
+        if (['contains', 'startswith', 'endswith'].includes(options.searchType)) {
           let result = generator.next();
           while (!result.done && !state.halt) {
             await fetchRegistrationsByApproximateName(result.value, options.searchType);
@@ -1525,13 +1452,13 @@ const searchModule = {
         state.unregistered = state.tempUnregistered;
       }
 
-      if (options.searchCommonRegistrants && options.searchType == 'exact') {
+      if (options.searchType == 'owned') {
         let searchForAccounts = options.search == null ? [] : options.search.split(/[, \t\n]+/)
           .map(function(name) { return name.toLowerCase().trim(); })
           .filter(function (name) { return name.length == 42 && name.substring(0, 2) == '0x'; });
         searchForAccounts = [ ...searchForAccounts, ...Object.keys(state.tempRegistrants) ];
         await fetchRegistrationsByAccount(searchForAccounts);
-      } else if (options.type == 'group') {
+      } else if (options.searchType == 'groups') {
         let searchForAccounts = null;
         if (options.group == null) {
           if (store.getters['connection/coinbase'] != null) {
