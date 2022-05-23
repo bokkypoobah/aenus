@@ -178,7 +178,7 @@ const Search = {
             </b-tabs>
 
             <!-- Results Toolbar -->
-            <div v-if="Object.keys(searchResults).length > 0" class="d-flex m-0 mt-2 p-0" style="height: 37px;">
+            <div v-if="Object.keys(searchResults).length > 0" class="d-flex flex-wrap m-0 mt-2 p-0" style="min-height: 37px;">
               <div v-if="settings.resultsTabIndex != 4" class="pr-4">
                 <b-form-input type="text" size="sm" v-model.trim="settings.filter" debounce="600" class="w-100" placeholder="🔍 {regex}"></b-form-input>
               </div>
@@ -192,7 +192,7 @@ const Search = {
                 <b-form-input type="text" size="sm" v-model.trim="settings.priceTo" debounce="600" class="w-100" placeholder="ETH to"></b-form-input>
               </div>
               <div v-if="settings.resultsTabIndex != 4" class="pl-1">
-                <font size="-2">{{ filteredResults.length }} of {{ Object.keys(searchResults).length }}</font>
+                <font size="-2">{{ filteredResults.length }}/{{ Object.keys(searchResults).length }}</font>
               </div>
               <div class="pr-1 flex-grow-1">
               </div>
@@ -1218,7 +1218,7 @@ const searchModule = {
         }
       }
       function* generateDigitSequence(setAttributes) {
-        logInfo("searchModule", "mutations.scan().generateDigitSequence() - setAttributes: " + JSON.stringify(setAttributes));
+        // logInfo("searchModule", "mutations.scan().generateDigitSequence() - setAttributes: " + JSON.stringify(setAttributes));
         const regex = setAttributes.regex ? new RegExp(setAttributes.regex, 'i') : null;
         for (let i = setAttributes.from; i <= setAttributes.to; i = parseInt(i) + parseInt(setAttributes.step)) {
           let include = true;
@@ -1386,14 +1386,14 @@ const searchModule = {
       }
 
       // --- Scan start ---
-      logInfo("searchModule", "mutations.scan() - options: " + JSON.stringify(options));
+      // logInfo("searchModule", "mutations.scan() - options: " + JSON.stringify(options));
       let generator = null;
       if (options.searchType == 'sets') {
         if (options.setAttributes.type == 'digits') {
-          logInfo("searchModule", "mutations.scan() - digits");
+          // logInfo("searchModule", "mutations.scan() - digits");
           generator = generateDigitSequence(options.setAttributes);
         } else if (options.setAttributes.type == 'hours') {
-          logInfo("searchModule", "mutations.scan() - hours");
+          // logInfo("searchModule", "mutations.scan() - hours");
           generator = generateHourSequence(options.setAttributes);
         }
       } else if (['names', 'owned', 'contains', 'startswith', 'endswith'].includes(options.searchType)) {
