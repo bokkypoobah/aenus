@@ -122,9 +122,7 @@ const Search = {
                 </b-row>
               </div>
               <b-row>
-                <b-col cols="2" class="mt-2 text-right">
-                </b-col>
-                <b-col sm="4" class="mt-2">
+                <b-col sm="6" class="mt-2">
                   <font size="-2">
                     {{ searchMessage }}
                   </font>
@@ -838,8 +836,6 @@ const Search = {
         { value: '6000', text: '6,000%' },
         { value: '12000', text: '12,000%' },
       ],
-
-      results: [],
 
       sortOptions: [
         { value: 'nameasc', text: 'Name Ascending' },
