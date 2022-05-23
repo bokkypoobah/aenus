@@ -1483,7 +1483,7 @@ const searchModule = {
         }
         const data = await fetch(url).then(response => response.json());
         records = records + data.tokens.length;
-        state.message = "Reservoir prices " + records;
+        state.message = "Retrieving price " + records;
         // console.log(JSON.stringify(data, null, 2));
         for (price of data.tokens) {
           prices[price.tokenId] = {
