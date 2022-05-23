@@ -1353,6 +1353,9 @@ const searchModule = {
           state.message = "Retrieved " + Object.keys(state.tempResults).length;
           skip += ENSSUBGRAPHBATCHSIZE;
         }
+        if (Object.keys(state.tempResults).length == 0) {
+          state.tempUnregistered.push(name);
+        }
       }
       async function fetchRegistrationsByAccount(accounts) {
         for (account of accounts) {
