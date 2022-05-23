@@ -786,19 +786,12 @@ const Search = {
         },
       },
 
-      // <b-tab title="Names">
-      // </b-tab>
-      // <b-tab title="Groups">
-      // </b-tab>
-      // <b-tab title="Sets">
-      // </b-tab>
-
       tabs: [
         { name: 'names', text: 'Names', placeholder: '🔍 {name1}[.eth] {name2}[.eth], {name3}[.eth]\n{name4}[.eth] ...' },
         { name: 'owned', text: 'Owned', placeholder: '🔍 {name1}[.eth] {0xaddress1}, {name2}[.eth]\n{0xaddress2} ...' },
         { name: 'contains', text: 'Contains', placeholder: '🔍 {term1} {term2}, {term3} \n{term4} ...' },
-        { name: 'startswith', text: 'Starts With', placeholder: '🔍 {term1} {term2}, {term3} \n{term4} ...' },
-        { name: 'endswith', text: 'Ends With', placeholder: '🔍 {term1} {term2}, {term3} \n{term4} ...' },
+        { name: 'startswith', text: 'StartsWith', placeholder: '🔍 {term1} {term2}, {term3} \n{term4} ...' },
+        { name: 'endswith', text: 'EndsWith', placeholder: '🔍 {term1} {term2}, {term3} \n{term4} ...' },
         { name: 'groups', text: 'Groups', placeholder: null },
         { name: 'sets', text: 'Sets', placeholder: null },
       ],
