@@ -1139,7 +1139,7 @@ const Search = {
           result.name,
           new Date(parseInt(result.registrationDate) * 1000).toISOString().replace('T', ' ').replace('.000Z', ''),
           new Date(parseInt(result.expiryDate) * 1000).toISOString().replace('T', ' ').replace('.000Z', ''),
-          ethers.utils.formatEther(result.cost),
+          (result.cost ? ethers.utils.formatEther(result.cost) : null),
           result.registrant,
           result.owner,
           result.resolver,
@@ -1315,7 +1315,10 @@ const searchModule = {
             variables: { labelNames: batch },
           })
         }).then(response => response.json())
-          .then(data => processRegistrations(data.data.registrations));
+          .then(data => processRegistrations(data.data.registrations))
+          .catch(function(e) {
+            console.log("error: " + e);
+          });
         state.message = "Retrieved " + Object.keys(state.tempResults).length;
         const namesFound = Object.keys(state.tempResults).map(function(name) { return name.replace('.eth', ''); });
         const unregistered = batch.filter(name => !namesFound.includes(name));
