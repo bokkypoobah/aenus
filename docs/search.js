@@ -1460,7 +1460,7 @@ const searchModule = {
             searchForAccounts = [ store.getters['connection/coinbase'] ];
           }
         } else {
-          searchForAccounts = store.getters['config/groups'][options.group].accounts;
+          searchForAccounts = store.getters['config/groups'][options.group].accounts.map(function(name) { return name.toLowerCase().trim(); });
         }
         await fetchRegistrationsByAccount(searchForAccounts.map(function(name) { return name.toLowerCase().trim(); }));
       }
