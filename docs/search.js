@@ -1462,7 +1462,7 @@ const searchModule = {
         } else {
           searchForAccounts = store.getters['config/groups'][options.group].accounts.map(function(name) { return name.toLowerCase().trim(); });
         }
-        await fetchRegistrationsByAccount(searchForAccounts.map(function(name) { return name.toLowerCase().trim(); }));
+        await fetchRegistrationsByAccount(searchForAccounts);
       }
       state.results = state.tempResults;
       state.tempResults = {};
