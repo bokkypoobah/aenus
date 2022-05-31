@@ -1471,7 +1471,7 @@ const searchModule = {
 
       // get prices
       let keys = Object.keys(state.results);
-      const GETPRICEBATCHSIZE = 50;
+      const GETPRICEBATCHSIZE = 20;
       records = 0;
       const prices = {};
       const DELAYINMILLIS = 1000;
