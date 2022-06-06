@@ -15,6 +15,10 @@ const routes = [{
     component: Sales,
     name: 'Sales',
   }, {
+    path: '/cryptopunks',
+    component: CryptoPunks,
+    name: 'CryptoPunks',
+  }, {
     path: '/search',
     component: Search,
     name: 'Search',

@@ -68,6 +68,7 @@ const store = new Vuex.Store({
     config: configModule,
     search: searchModule,
     sales: salesModule,
+    cryptoPunks: cryptoPunksModule,
     transactions: transactionsModule,
     // collections: collectionsModule,
   }
