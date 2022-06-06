@@ -20,7 +20,11 @@ const CryptoPunks = {
             </b-row>
             <b-row>
               <b-col sm="6" class="mt-2">
-                <b-button size="sm" @click="search" variant="primary" class="float-right">Search</b-button>
+                <font size="-2">
+                  {{ message }}
+                </font>
+                <b-button v-if="message == null" size="sm" @click="search" variant="primary" class="float-right">Search</b-button>
+                <b-button v-if="message != null" size="sm" @click="halt" variant="primary" class="float-right">Halt</b-button>
               </b-col>
             </b-row>
 
@@ -213,6 +217,9 @@ const CryptoPunks = {
     sales() {
       return store.getters['sales/sales'];
     },
+    message() {
+      return store.getters['cryptoPunks/message'];
+    },
   },
   methods: {
     formatETH(e) {
@@ -388,12 +395,13 @@ const cryptoPunksModule = {
         // state.tempUnregistered.push(...unregistered);
       }
 
+      state.message = "Syncing";
       // console.log("PUNKTRAITS: " + JSON.stringify(PUNKTRAITS));
       const traitsLookup = {};
-      for (const [key, value] of Object.entries(PUNKTRAITS)) {
-        // console.log(key + " => " + value);
-        for (trait of value) {
-          traitsLookup[trait] = key;
+      for (const [attribute, traits] of Object.entries(PUNKTRAITS)) {
+        // console.log(attribute + " => " + traits);
+        for (trait of traits) {
+          traitsLookup[trait] = attribute;
         }
       }
       // console.log("traitsLookup: " + JSON.stringify(traitsLookup));
@@ -414,12 +422,14 @@ const cryptoPunksModule = {
           // console.log( [...batch] );
           count = 0;
           batch = [];
+          state.message = "Retrieved " + Object.keys(state.tempPunks).length;
         }
         result = generator.next();
       }
       if (count > 0){
         // console.log( [...batch] );
         await fetchPunksByIds(batch);
+        state.message = "Retrieved " + Object.keys(state.tempPunks).length;
       }
       let kount = 0;
       for (const [key, value] of Object.entries(state.tempPunks)) {
@@ -429,6 +439,7 @@ const cryptoPunksModule = {
         }
         kount++;
       }
+      state.message = null;
     },
 
 
