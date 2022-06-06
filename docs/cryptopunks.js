@@ -12,15 +12,28 @@ const CryptoPunks = {
         <b-card no-body class="p-0 mt-1">
 
           <b-card-body class="m-1 p-1">
+
+            <b-row>
+              <b-col sm="6">
+                <b-form-input type="text" size="sm" v-model.trim="settings.searchString" debounce="600" placeholder="🔍 {id}"></b-form-input>
+              </b-col>
+            </b-row>
+            <b-row>
+              <b-col sm="6" class="mt-2">
+                <b-button size="sm" @click="search" variant="primary" class="float-right">Search</b-button>
+              </b-col>
+            </b-row>
+
             <!--
             <b-button size="sm" @click="doit( { type: 'fullsync' } );" variant="primary">Retrieve Latest 50 Sales</b-button>
             <span v-if="searchMessage != null">
               <b-button size="sm" @click="halt" variant="primary">Halt</b-button>
             </span>
-            -->
             <b-button size="sm" @click="doit( { action: 'startService' } );" variant="primary">Start Service</b-button>
             <b-button size="sm" @click="doit( { action: 'stopService' } );" variant="primary">Stop Service</b-button>
+            -->
           </b-card-body>
+          <!--
           <b-card-body class="m-1 p-1">
             <div class="d-flex flex-wrap m-0 mt-2 p-0" style="min-height: 37px;">
               <div class="pr-4">
@@ -146,6 +159,7 @@ const CryptoPunks = {
               </template>
             </b-table>
           </b-card-body>
+          -->
         </b-card>
       </b-card>
     </div>
@@ -156,6 +170,7 @@ const CryptoPunks = {
       reschedule: true,
 
       settings: {
+        searchString: "4947",
         // sortOption: 'nameasc',
         // randomise: false,
 
@@ -213,6 +228,27 @@ const CryptoPunks = {
     updateFilter(field, filter) {
       console.log("updateFilter: " + field + " => " + JSON.stringify(filter));
       store.dispatch('sales/updateFilter', { field, filter} );
+    },
+    async search() {
+      console.log("search");
+      const data = await fetch(ENSSUBGRAPHURL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          query: ENSSUBGRAPHNAMEQUERY,
+          variables: { labelNames: ["bokky"] },
+        })
+      }).then(response => response.json());
+      console.log(JSON.stringify(data));
+        // .then(data => processRegistrations(data.data.registrations))
+        // .then(data => console.log(JSON.stringify(data.data.registrations)))
+        // .catch(function(e) {
+        //   console.log("error: " + e);
+        // });
+      // store.dispatch('sales/doit', action);
     },
     async doit(action) {
       console.log("doit: " + JSON.stringify(action));
@@ -511,10 +547,3 @@ const cryptoPunksModule = {
     },
   },
 };
-
-
-// history.pushState({}, null, `${this.$route.path}#${encodeURIComponent(params)}`);
-// history.pushState({}, null, `${this.$route.path}#blah`);
-
-// console.log("navigator.userAgent: " + navigator.userAgent);
-// console.log("isMobile: " + (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)));
