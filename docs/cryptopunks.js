@@ -36,6 +36,9 @@ const CryptoPunks = {
             <b-button size="sm" @click="doit( { action: 'startService' } );" variant="primary">Start Service</b-button>
             <b-button size="sm" @click="doit( { action: 'stopService' } );" variant="primary">Stop Service</b-button>
             -->
+
+            <b-table small striped hover :items="results" table-class="w-auto" class="mt-1">
+            </b-table>
           </b-card-body>
           <!--
           <b-card-body class="m-1 p-1">
@@ -186,7 +189,7 @@ const CryptoPunks = {
         // resultsTabIndex: 0,
       },
 
-      results: [],
+      // results: [],
 
       salesFields: [
         { key: 'timestamp', label: 'Timestamp', thStyle: 'width: 20%;' },
@@ -216,6 +219,9 @@ const CryptoPunks = {
     },
     sales() {
       return store.getters['sales/sales'];
+    },
+    results() {
+      return store.getters['cryptoPunks/results'];
     },
     message() {
       return store.getters['cryptoPunks/message'];
@@ -309,6 +315,7 @@ const cryptoPunksModule = {
     },
     punks: [],
     tempPunks: [],
+    results: [],
     sales: [],
     message: null,
     halt: false,
@@ -320,6 +327,7 @@ const cryptoPunksModule = {
     config: state => state.config,
     filter: state => state.filter,
     punks: state => state.punks,
+    results: state => state.results,
     sales: state => state.sales,
     message: state => state.message,
     params: state => state.params,
@@ -463,6 +471,26 @@ const cryptoPunksModule = {
         return null;
       }
 
+      async function refreshResultsFromDB() {
+        const punks = await db0.punks.orderBy("timestamp").reverse().limit(100).toArray();
+        const records = [];
+        for (const punk of punks) {
+          records.push({
+            punkId: punk.punkId,
+            owner: punk.owner,
+            claimer: punk.claimer,
+            timestamp: punk.timestamp,
+            traits: punk.traits,
+            wrapped: punk.wrapped,
+            currentBid: punk.currentBid,
+            currentAsk: punk.currentAsk,
+            attributes: punk.attributes,
+          });
+        }
+        state.results = records;
+        console.log(JSON.stringify(records, null, 2));
+      }
+
       // --- loadPunks() start ---
       logInfo("cryptoPunksModule", "mutations.loadPunks() start");
       state.message = "Syncing";
@@ -523,6 +551,7 @@ const cryptoPunksModule = {
           state.message = "Retrieved " + totalRecords;
         }
       }
+      await refreshResultsFromDB();
       state.message = null;
       state.halt = false;
       db0.close();
