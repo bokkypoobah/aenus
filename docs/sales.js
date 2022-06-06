@@ -22,6 +22,22 @@ const Sales = {
             <b-button size="sm" @click="doit( { action: 'stopService' } );" variant="primary">Stop Service</b-button>
           </b-card-body>
           <b-card-body class="m-1 p-1">
+            <div class="d-flex flex-wrap m-0 mt-2 p-0" style="min-height: 37px;">
+              <div class="pr-4">
+                <b-form-input type="text" size="sm" :value="filter.searchString" @change="updateFilter('searchString', $event)" debounce="600" placeholder="🔍 {regex}"></b-form-input>
+              </div>
+              <div class="pr-1" style="max-width: 100px;">
+                <b-form-input type="text" size="sm" :value="filter.priceFrom" @change="updateFilter('priceFrom', $event)" debounce="600" placeholder="ETH from"></b-form-input>
+              </div>
+              <div class="pr-1">
+                -
+              </div>
+              <div class="pr-2" style="max-width: 100px;">
+              <b-form-input type="text" size="sm" :value="filter.priceTo" @change="updateFilter('priceTo', $event)" debounce="600" placeholder="ETH to"></b-form-input>
+              </div>
+              <div class="pr-1 flex-grow-1">
+              </div>
+            </div>
             <b-table small striped hover :fields="salesFields" :items="sales" table-class="w-auto" class="mt-1">
               <template #cell(timestamp)="data">
                 {{ formatTimestamp(data.item.timestamp) }}
@@ -176,6 +192,9 @@ const Sales = {
     network() {
       return store.getters['connection/network'];
     },
+    filter() {
+      return store.getters['sales/filter'];
+    },
     sales() {
       return store.getters['sales/sales'];
     },
@@ -190,6 +209,10 @@ const Sales = {
     },
     formatTimestamp(ts) {
       return new Date(ts * 1000).toLocaleString();
+    },
+    updateFilter(field, filter) {
+      console.log("updateFilter: " + field + " => " + JSON.stringify(filter));
+      store.dispatch('sales/updateFilter', { field, filter} );
     },
     async doit(action) {
       console.log("doit: " + JSON.stringify(action));
@@ -236,6 +259,11 @@ const salesModule = {
       collections: [0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85],
       reservoirSalesV3BatchSize: 50,
     },
+    filter: {
+      searchString: "^[0-9]*$",
+      priceFrom: 0.01,
+      priceTo: 12.34,
+    },
     sales: [],
     message: null,
     halt: false,
@@ -244,6 +272,8 @@ const salesModule = {
     executionQueue: [],
   },
   getters: {
+    config: state => state.config,
+    filter: state => state.filter,
     sales: state => state.sales,
     message: state => state.message,
     params: state => state.params,
@@ -380,8 +410,8 @@ const salesModule = {
             do {
               let url = "https://api.reservoir.tools/sales/v3?contract=0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85" +
                 "&limit=" + state.config.reservoirSalesV3BatchSize +
-                "&startTimestamp=" + parseInt(processFrom / 1000) +
-                "&endTimestamp="+ parseInt(processTo / 1000) +
+                "&startTimestamp=" + parseInt(processFrom.getTime() / 1000) +
+                "&endTimestamp="+ parseInt(processTo.getTime() / 1000) +
                 (continuation != null ? "&continuation=" + continuation : '');
               // logInfo("salesModule", "mutations.doit() - url: " + url);
               // logInfo("salesModule", "mutations.doit() - Retrieving records for " + new Date(processFrom).toLocaleString() + " to " + new Date(processTo).toLocaleString());
@@ -466,6 +496,10 @@ const salesModule = {
     execWeb3( { state, commit, rootState }, { count } ) {
       logInfo("salesModule", "actions.execWeb3() - count: " + count);
       commit('doit', { action: "refresh" } );
+    },
+    updateFilter(context, action) {
+      logInfo("salesModule", "actions.updateFilter() - action: " + JSON.stringify(action));
+      // context.commit('addToExecutionQueue', action);
     },
     doit(context, action) {
       logInfo("salesModule", "actions.doit() - action: " + JSON.stringify(action));
