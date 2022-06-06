@@ -314,6 +314,18 @@ const CRYPTOPUNKSPUNKBYIDSQUERY = `
       purchasedBy {
         id
       }
+      owner {
+        id
+      }
+      wrapped
+      currentAsk {
+        amount
+        open
+      }
+      currentBid {
+        amount
+        open
+      }
       events {
         from {
           id
@@ -328,6 +340,28 @@ const CRYPTOPUNKSPUNKBYIDSQUERY = `
         txHash
         timestamp
       }
+    }
+  }
+`;
+
+const CRYPTOPUNKSEVENTSQUERY = `
+  query getPunkEvents($timestamp_gt: Int!) {
+    events(orderBy: timestamp, orderDirection: asc, first: 250, skip: 0, where: { timestamp_gt: $timestamp_gt }) {
+      nft {
+        id
+      }
+      from {
+        id
+      }
+      to {
+        id
+      }
+      amount
+      type
+      blockNumber
+      blockHash
+      txHash
+      timestamp
     }
   }
 `;

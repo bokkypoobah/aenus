@@ -327,7 +327,7 @@ const cryptoPunksModule = {
   },
   mutations: {
     async loadPunks(state, options) {
-      function* getBatch(records, batchsize = ENSSUBGRAPHBATCHSCANSIZE) {
+      function* getBatch(records, batchsize = CRYPTOPUNKSSUBGRAPHBATCHSIZE) {
         while (records.length) {
           yield records.splice(0, batchsize);
         }
@@ -382,12 +382,15 @@ const cryptoPunksModule = {
           });
           records.push({
             punkId: punk.id,
-            owner: punk.purchasedBy == null ? punk.assignedTo.id : punk.purchasedBy.id,
+            owner: punk.owner && punk.owner.id || null,
             claimer: punk.assignedTo && punk.assignedTo.id || null,
             timestamp: latestTimestamp,
             traits: traits,
             // transferedTo: punk.transferedTo && punk.transferedTo.id || null,
             // purchasedBy: punk.purchasedBy && punk.purchasedBy.id || null,
+            wrapped: punk.wrapped,
+            currentBid: punk.currentBid && punk.currentBid.open && punk.currentBid.amount || null,
+            currentAsk: punk.currentAsk && punk.currentAsk.open && punk.currentAsk.amount || null,
             attributes: attributes,
             events: events,
           });
@@ -399,7 +402,6 @@ const cryptoPunksModule = {
         });
         return records.length;
       }
-
       async function fetchPunksByIds(batch) {
         // console.log( [...batch] );
         const data = await fetch(CRYPTOPUNKSSUBGRAPHURL, {
@@ -416,8 +418,49 @@ const cryptoPunksModule = {
           .catch(function(e) {
             console.log("error: " + e);
           });
-        let numberOfRecords = await processPunks(data.data.punks);
-        return numberOfRecords;
+        // console.log(JSON.stringify(data, null, 2));
+        if (data && data.data && data.data.punks && data.data.punks.length > 0) {
+          return await processPunks(data.data.punks);
+        }
+        return 0;
+      }
+      async function fetchLatestEvents() {
+        const results = {};
+        const latestRecord = await db0.punks.orderBy("timestamp").last();
+        if (latestRecord != null) {
+          let latestTimestamp = parseInt(latestRecord.timestamp) - 24 * 60 * 60;
+          let data;
+          do {
+            logInfo("cryptoPunksModule", "mutations.loadPunks().fetchLatestEvents() latestTimestamp: " + new Date(latestTimestamp * 1000).toLocaleString() + " = " + latestTimestamp);
+            data = await fetch(CRYPTOPUNKSSUBGRAPHURL, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+              },
+              body: JSON.stringify({
+                query: CRYPTOPUNKSEVENTSQUERY,
+                variables: { timestamp_gt: latestTimestamp },
+              })
+            }).then(response => response.json())
+              .catch(function(e) {
+                console.log("error: " + e);
+              });
+
+            // console.log(JSON.stringify(data, null, 2));
+            for (let event of data.data.events) {
+              if (event.nft) {
+                // console.log(JSON.stringify(event, null, 2));
+                results[parseInt(event.nft.id)] = true;
+              }
+              latestTimestamp = parseInt(event.timestamp);
+              // logInfo("cryptoPunksModule", "mutations.loadPunks().fetchLatestEvents() event.timestamp: " + new Date(event.timestamp * 1000).toLocaleString() + " = " + event.timestamp);
+            }
+            // console.log(JSON.stringify(data.data.events, null, 2));
+          } while (data && data.data && data.data.events && data.data.events.length != 0);
+          return Object.keys(results);
+        }
+        return null;
       }
 
       // --- loadPunks() start ---
@@ -439,49 +482,52 @@ const cryptoPunksModule = {
         }
       }
 
-      let from = 0;
-      let to = parseInt(from) + 9999;
-      let generator = generateRange(from, to);
-      // console.log( [...generator] );
+      const latestEventPunkIds = await fetchLatestEvents();
+      logInfo("cryptoPunksModule", "mutations.loadPunks() latestEventPunkIds: " + JSON.stringify(latestEventPunkIds));
 
-      let count = 0;
-      let result = generator.next();
-      let batch = [];
       let totalRecords = 0;
-      while (!result.done && !state.halt) {
-        batch.push(result.value);
-        count++;
-        if (count >= CRYPTOPUNKSSUBGRAPHBATCHSIZE) {
+      if (latestEventPunkIds != null) {
+        for (let i = 0; i < latestEventPunkIds.length && !state.halt; i += CRYPTOPUNKSSUBGRAPHBATCHSIZE) {
+          const batch = latestEventPunkIds.slice(i, parseInt(i) + CRYPTOPUNKSSUBGRAPHBATCHSIZE);
+          // console.log("batch: " + JSON.stringify(batch));
           let numberOfRecords = await fetchPunksByIds(batch);
           // console.log( [...batch] );
           totalRecords += numberOfRecords;
-          count = 0;
-          batch = [];
           state.message = "Retrieved " + totalRecords;
         }
-        result = generator.next();
+      } else {
+        let from = 0;
+        let to = parseInt(from) + 9999;
+        let generator = generateRange(from, to);
+        // console.log( [...generator] );
+        let count = 0;
+        let result = generator.next();
+        let batch = [];
+        while (!result.done && !state.halt) {
+          batch.push(result.value);
+          count++;
+          if (count >= CRYPTOPUNKSSUBGRAPHBATCHSIZE) {
+            let numberOfRecords = await fetchPunksByIds(batch);
+            // console.log( [...batch] );
+            totalRecords += numberOfRecords;
+            count = 0;
+            batch = [];
+            state.message = "Retrieved " + totalRecords;
+          }
+          result = generator.next();
+        }
+        if (count > 0){
+          // console.log( [...batch] );
+          let numberOfRecords = await fetchPunksByIds(batch);
+          totalRecords += numberOfRecords;
+          state.message = "Retrieved " + totalRecords;
+        }
       }
-      if (count > 0){
-        // console.log( [...batch] );
-        let numberOfRecords = await fetchPunksByIds(batch);
-        totalRecords += numberOfRecords;
-        state.message = "Retrieved " + totalRecords;
-      }
-      // let kount = 0;
-      // for (const [key, value] of Object.entries(state.tempPunks)) {
-      //   console.log(JSON.stringify(value, null, 2));
-      //   if (kount > 10) {
-      //     break;
-      //   }
-      //   kount++;
-      // }
       state.message = null;
       state.halt = false;
       db0.close();
       logInfo("cryptoPunksModule", "mutations.loadPunks() end");
     },
-
-
 
 
     // --- addToExecutionQueue() ---
