@@ -327,15 +327,13 @@ const cryptoPunksModule = {
   },
   mutations: {
     async loadPunks(state, options) {
-      logInfo("cryptoPunksModule", "mutations.loadPunks()");
-
       function* getBatch(records, batchsize = ENSSUBGRAPHBATCHSCANSIZE) {
         while (records.length) {
           yield records.splice(0, batchsize);
         }
       }
       function* generateRange(from, to) {
-        logInfo("cryptoPunksModule", "mutations.loadPunks().generateRange() - from: " + from + ", to: " + to);
+        // logInfo("cryptoPunksModule", "mutations.loadPunks().generateRange() - from: " + from + ", to: " + to);
         for (let i = from; i <= to; i++) {
           yield i;
         }
@@ -343,13 +341,10 @@ const cryptoPunksModule = {
       async function processPunks(punks) {
         const records = [];
         for (const punk of punks) {
-          console.log(JSON.stringify(punk, null, 2));
-
-          // console.log(JSON.stringify(punk.metadata.traits, null, 2));
-
+          // console.log(JSON.stringify(punk, null, 2));
           const attributes = [];
           const traits = [];
-          for (trait of punk.metadata.traits) {
+          for (let trait of punk.metadata.traits) {
             // console.log(JSON.stringify(trait.id, null, 2));
             const attribute = traitsLookup[trait.id];
             // console.log(trait.id + " => " + attribute);
@@ -364,22 +359,45 @@ const cryptoPunksModule = {
               console.log("Punk " + punk.id + " not categorised " + trait.id);
             }
           }
+          const events = [];
+          let latestTimestamp = 0;
+          for (let event of punk.events) {
+            // console.log(JSON.stringify(event));
+            events.push({
+              from: event.from && event.from.id || null,
+              to: event.to && event.to.id || null,
+              amount: event.amount || null,
+              type: event.type,
+              blockNumber: event.blockNumber,
+              blockHash: event.blockHash,
+              txHash: event.txHash,
+              timestamp: event.timestamp,
+            });
+            if (event.timestamp > latestTimestamp) {
+              latestTimestamp = event.timestamp;
+            }
+          }
+          events.sort(function (a, b) {
+            return a.blockNumber - b.blockNumber;
+          });
           records.push({
             punkId: punk.id,
             owner: punk.purchasedBy == null ? punk.assignedTo.id : punk.purchasedBy.id,
             claimer: punk.assignedTo && punk.assignedTo.id || null,
+            timestamp: latestTimestamp,
             traits: traits,
             // transferedTo: punk.transferedTo && punk.transferedTo.id || null,
             // purchasedBy: punk.purchasedBy && punk.purchasedBy.id || null,
             attributes: attributes,
+            events: events,
           });
         }
-        console.log("records: " + JSON.stringify(records));
+        // console.log("records: " + JSON.stringify(records));
         await db0.punks.bulkPut(records).then (function() {
         }).catch(function(error) {
           console.log("error: " + error);
         });
-        // punks: '&punkId,owner,claimer,*traits',
+        return records.length;
       }
 
       async function fetchPunksByIds(batch) {
@@ -395,25 +413,21 @@ const cryptoPunksModule = {
             variables: { ids: batch },
           })
         }).then(response => response.json())
-          // .then(data => await processPunks(data.data.punks))
           .catch(function(e) {
             console.log("error: " + e);
           });
-        await processPunks(data.data.punks);
-        // console.log(JSON.stringify(data));
-        // state.message = "Retrieved " + Object.keys(state.tempResults).length;
-        // const namesFound = Object.keys(state.tempResults).map(function(name) { return name.replace('.eth', ''); });
-        // const unregistered = batch.filter(name => !namesFound.includes(name));
-        // state.tempUnregistered.push(...unregistered);
+        let numberOfRecords = await processPunks(data.data.punks);
+        return numberOfRecords;
       }
 
       // --- loadPunks() start ---
+      logInfo("cryptoPunksModule", "mutations.loadPunks() start");
       state.message = "Syncing";
 
       const db0 = new Dexie("aenusdb");
       db0.version(1).stores({
         // nftData: '&tokenId,asset,timestamp',
-        punks: '&punkId,owner,claimer,*traits',
+        punks: '&punkId,owner,claimer,timestamp,*traits',
       });
 
       const traitsLookup = {};
@@ -425,42 +439,46 @@ const cryptoPunksModule = {
         }
       }
 
-      let next = 4199;
-      let generator = generateRange(next, parseInt(next) + 9);
+      let from = 0;
+      let to = parseInt(from) + 9999;
+      let generator = generateRange(from, to);
       // console.log( [...generator] );
 
       let count = 0;
       let result = generator.next();
       let batch = [];
+      let totalRecords = 0;
       while (!result.done && !state.halt) {
         batch.push(result.value);
         count++;
         if (count >= CRYPTOPUNKSSUBGRAPHBATCHSIZE) {
-          await fetchPunksByIds(batch);
+          let numberOfRecords = await fetchPunksByIds(batch);
           // console.log( [...batch] );
+          totalRecords += numberOfRecords;
           count = 0;
           batch = [];
-          state.message = "Retrieved " + Object.keys(state.tempPunks).length;
+          state.message = "Retrieved " + totalRecords;
         }
         result = generator.next();
       }
       if (count > 0){
         // console.log( [...batch] );
-        await fetchPunksByIds(batch);
-        state.message = "Retrieved " + Object.keys(state.tempPunks).length;
+        let numberOfRecords = await fetchPunksByIds(batch);
+        totalRecords += numberOfRecords;
+        state.message = "Retrieved " + totalRecords;
       }
-      let kount = 0;
-      for (const [key, value] of Object.entries(state.tempPunks)) {
-        console.log(JSON.stringify(value, null, 2));
-        if (kount > 10) {
-          break;
-        }
-        kount++;
-      }
+      // let kount = 0;
+      // for (const [key, value] of Object.entries(state.tempPunks)) {
+      //   console.log(JSON.stringify(value, null, 2));
+      //   if (kount > 10) {
+      //     break;
+      //   }
+      //   kount++;
+      // }
       state.message = null;
       state.halt = false;
-
       db0.close();
+      logInfo("cryptoPunksModule", "mutations.loadPunks() end");
     },
 
 
