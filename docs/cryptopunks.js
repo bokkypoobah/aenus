@@ -23,7 +23,7 @@ const CryptoPunks = {
                 <font size="-2">
                   {{ message }}
                 </font>
-                <b-button v-if="message == null" size="sm" @click="search" variant="primary" class="float-right">Search</b-button>
+                <b-button v-if="message == null" size="sm" @click="search" variant="primary" class="float-right">Sync</b-button>
                 <b-button v-if="message != null" size="sm" @click="halt" variant="primary" class="float-right">Halt</b-button>
               </b-col>
             </b-row>
@@ -37,7 +37,26 @@ const CryptoPunks = {
             <b-button size="sm" @click="doit( { action: 'stopService' } );" variant="primary">Stop Service</b-button>
             -->
 
-            <b-table small striped hover :items="results" table-class="w-auto" class="mt-1">
+            <b-table small striped hover :fields="resultsFields" :items="results" table-class="w-auto" class="mt-1">
+              <template #cell(punkId)="data">
+                <b-link :href="'https://cryptopunks.app/cryptopunks/details/' + data.item.punkId" v-b-popover.hover="'View in original website'" target="_blank">
+                  {{ data.item.punkId }}
+                </b-link>
+              </template>
+              <template #cell(image)="data">
+                <b-link :href="'https://cryptopunks.app/cryptopunks/details/' + data.item.punkId" v-b-popover.hover="'View in original website'" target="_blank">
+                  <b-img-lazy width="100%" :src="'images/punks/punk' + data.item.punkId.toString().padStart(4, '0') + '.png'" />
+                </b-link>
+              </template>
+              <template #cell(currentBid)="data">
+                {{ formatETH(data.item.currentBid) }}
+              </template>
+              <template #cell(currentAsk)="data">
+                {{ formatETH(data.item.currentAsk) }}
+              </template>
+              <template #cell(timestamp)="data">
+                {{ formatTimestamp(data.item.timestamp) }}
+              </template>
             </b-table>
           </b-card-body>
           <!--
@@ -190,6 +209,14 @@ const CryptoPunks = {
       },
 
       // results: [],
+      resultsFields: [
+        { key: 'punkId', label: 'Id', thStyle: 'width: 10%;' },
+        { key: 'image', label: 'Image', thStyle: 'width: 10%;' },
+        { key: 'owner', label: 'Owner', thStyle: 'width: 20%;' },
+        { key: 'currentBid', label: 'Current Bid', thStyle: 'width: 20%;' },
+        { key: 'currentAsk', label: 'Current Ask', thStyle: 'width: 20%;' },
+        { key: 'timestamp', label: 'Timestamp', thStyle: 'width: 20%;' },
+      ],
 
       salesFields: [
         { key: 'timestamp', label: 'Timestamp', thStyle: 'width: 20%;' },
