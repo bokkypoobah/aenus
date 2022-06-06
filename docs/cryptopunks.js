@@ -270,7 +270,7 @@ const CryptoPunks = {
       store.dispatch('sales/updateFilter', { field, filter} );
     },
     async search() {
-      console.log("search");
+      // console.log("search");
       // const data = await fetch(ENSSUBGRAPHURL, {
       //   method: 'POST',
       //   headers: {
@@ -486,14 +486,14 @@ const cryptoPunksModule = {
             for (let event of data.data.events) {
               if (event.nft) {
                 // console.log(JSON.stringify(event, null, 2));
-                results[parseInt(event.nft.id)] = true;
+                results[event.nft.id] = true;
               }
               latestTimestamp = parseInt(event.timestamp);
               // logInfo("cryptoPunksModule", "mutations.loadPunks().fetchLatestEvents() event.timestamp: " + new Date(event.timestamp * 1000).toLocaleString() + " = " + event.timestamp);
             }
             // console.log(JSON.stringify(data.data.events, null, 2));
           } while (data && data.data && data.data.events && data.data.events.length != 0);
-          return Object.keys(results);
+          return Object.keys(results).map(function(id) { return parseInt(id); });
         }
         return null;
       }
@@ -515,7 +515,7 @@ const cryptoPunksModule = {
           });
         }
         state.results = records;
-        console.log(JSON.stringify(records, null, 2));
+        // console.log(JSON.stringify(records, null, 2));
       }
 
       // --- loadPunks() start ---
@@ -544,7 +544,7 @@ const cryptoPunksModule = {
       if (latestEventPunkIds != null) {
         for (let i = 0; i < latestEventPunkIds.length && !state.halt; i += CRYPTOPUNKSSUBGRAPHBATCHSIZE) {
           const batch = latestEventPunkIds.slice(i, parseInt(i) + CRYPTOPUNKSSUBGRAPHBATCHSIZE);
-          // console.log("batch: " + JSON.stringify(batch));
+          console.log("batch: " + JSON.stringify(batch));
           let numberOfRecords = await fetchPunksByIds(batch);
           // console.log( [...batch] );
           totalRecords += numberOfRecords;
