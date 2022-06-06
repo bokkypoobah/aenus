@@ -478,13 +478,13 @@ const cryptoPunksModule = {
           records.push({
             punkId: punk.punkId,
             owner: punk.owner,
-            claimer: punk.claimer,
+            // claimer: punk.claimer,
             timestamp: punk.timestamp,
-            traits: punk.traits,
-            wrapped: punk.wrapped,
+            // traits: punk.traits,
+            // wrapped: punk.wrapped,
             currentBid: punk.currentBid,
             currentAsk: punk.currentAsk,
-            attributes: punk.attributes,
+            // attributes: punk.attributes,
           });
         }
         state.results = records;
