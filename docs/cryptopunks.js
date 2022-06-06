@@ -231,24 +231,24 @@ const CryptoPunks = {
     },
     async search() {
       console.log("search");
-      const data = await fetch(ENSSUBGRAPHURL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          query: ENSSUBGRAPHNAMEQUERY,
-          variables: { labelNames: ["bokky"] },
-        })
-      }).then(response => response.json());
-      console.log(JSON.stringify(data));
+      // const data = await fetch(ENSSUBGRAPHURL, {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //     'Accept': 'application/json',
+      //   },
+      //   body: JSON.stringify({
+      //     query: ENSSUBGRAPHNAMEQUERY,
+      //     variables: { labelNames: ["bokky"] },
+      //   })
+      // }).then(response => response.json());
+      // console.log(JSON.stringify(data));
         // .then(data => processRegistrations(data.data.registrations))
         // .then(data => console.log(JSON.stringify(data.data.registrations)))
         // .catch(function(e) {
         //   console.log("error: " + e);
         // });
-      // store.dispatch('sales/doit', action);
+      store.dispatch('cryptoPunks/loadPunks');
     },
     async doit(action) {
       console.log("doit: " + JSON.stringify(action));
@@ -300,6 +300,8 @@ const cryptoPunksModule = {
       priceFrom: 0.01,
       priceTo: 12.34,
     },
+    punks: [],
+    tempPunks: [],
     sales: [],
     message: null,
     halt: false,
@@ -310,12 +312,128 @@ const cryptoPunksModule = {
   getters: {
     config: state => state.config,
     filter: state => state.filter,
+    punks: state => state.punks,
     sales: state => state.sales,
     message: state => state.message,
     params: state => state.params,
     executionQueue: state => state.executionQueue,
   },
   mutations: {
+    async loadPunks(state, options) {
+      logInfo("cryptoPunksModule", "mutations.loadPunks()");
+
+      function* getBatch(records, batchsize = ENSSUBGRAPHBATCHSCANSIZE) {
+        while (records.length) {
+          yield records.splice(0, batchsize);
+        }
+      }
+      function* generateRange(from, to) {
+        logInfo("cryptoPunksModule", "mutations.loadPunks().generateRange() - from: " + from + ", to: " + to);
+        for (let i = from; i <= to; i++) {
+          yield i;
+        }
+      }
+      function processPunks(punks) {
+        for (const punk of punks) {
+          // console.log(JSON.stringify(punk, null, 2));
+
+          // console.log(JSON.stringify(punk.metadata.traits, null, 2));
+
+          const attributes = [];
+          for (trait of punk.metadata.traits) {
+            // console.log(JSON.stringify(trait.id, null, 2));
+            const attribute = traitsLookup[trait.id];
+            // console.log(trait.id + " => " + attribute);
+            if (attribute) {
+              if (attribute == trait.id) {
+                attributes.push({ trait_type: attribute, value: true });
+              } else {
+                attributes.push({ trait_type: attribute, value: trait.id });
+              }
+            } else {
+              console.log("Punk " + punk.id + " not categorised " + trait.id);
+            }
+          }
+          state.tempPunks[punk.id] = {
+            id: punk.id,
+            transferedTo: punk.transferedTo && punk.transferedTo.id || null,
+            assignedTo: punk.assignedTo && punk.assignedTo.id || null,
+            purchasedBy: punk.purchasedBy && punk.purchasedBy.id || null,
+            attributes: attributes,
+          };
+        }
+      }
+
+      async function fetchPunksByIds(batch) {
+        // console.log( [...batch] );
+        await fetch(CRYPTOPUNKSSUBGRAPHURL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify({
+            query: CRYPTOPUNKSPUNKBYIDSQUERY,
+            variables: { ids: batch },
+          })
+        }).then(response => response.json())
+          .then(data => processPunks(data.data.punks))
+          .catch(function(e) {
+            console.log("error: " + e);
+          });
+        // console.log(JSON.stringify(data));
+        // state.message = "Retrieved " + Object.keys(state.tempResults).length;
+        // const namesFound = Object.keys(state.tempResults).map(function(name) { return name.replace('.eth', ''); });
+        // const unregistered = batch.filter(name => !namesFound.includes(name));
+        // state.tempUnregistered.push(...unregistered);
+      }
+
+      // console.log("PUNKTRAITS: " + JSON.stringify(PUNKTRAITS));
+      const traitsLookup = {};
+      for (const [key, value] of Object.entries(PUNKTRAITS)) {
+        // console.log(key + " => " + value);
+        for (trait of value) {
+          traitsLookup[trait] = key;
+        }
+      }
+      // console.log("traitsLookup: " + JSON.stringify(traitsLookup));
+
+
+      let next = 9001;
+      let generator = generateRange(next, parseInt(next) + 999);
+      // console.log( [...generator] );
+
+      let count = 0;
+      let result = generator.next();
+      let batch = [];
+      while (!result.done && !state.halt) {
+        batch.push(result.value);
+        count++;
+        if (count >= CRYPTOPUNKSSUBGRAPHBATCHSIZE) {
+          await fetchPunksByIds(batch);
+          // console.log( [...batch] );
+          count = 0;
+          batch = [];
+        }
+        result = generator.next();
+      }
+      if (count > 0){
+        // console.log( [...batch] );
+        await fetchPunksByIds(batch);
+      }
+      let kount = 0;
+      for (const [key, value] of Object.entries(state.tempPunks)) {
+        console.log(JSON.stringify(value, null, 2));
+        if (kount > 10) {
+          break;
+        }
+        kount++;
+      }
+    },
+
+
+
+
     // --- addToExecutionQueue() ---
     async addToExecutionQueue(state, action) {
       logInfo("cryptoPunksModule", "mutations.addToExecutionQueue() - executionQueue: " + JSON.stringify(state.executionQueue));
@@ -529,6 +647,10 @@ const cryptoPunksModule = {
     },
   },
   actions: {
+    loadPunks(context) {
+      logInfo("cryptoPunksModule", "actions.loadPunks()");
+      context.commit('loadPunks');
+    },
     execWeb3( { state, commit, rootState }, { count } ) {
       logInfo("cryptoPunksModule", "actions.execWeb3() - count: " + count);
       commit('doit', { action: "refresh" } );

@@ -7,6 +7,9 @@ const ENSSUBGRAPHURL = "https://api.thegraph.com/subgraphs/name/ensdomains/ens";
 const ENSSUBGRAPHBATCHSIZE = 250;
 const ENSSUBGRAPHBATCHSCANSIZE = 250;
 
+const CRYPTOPUNKSSUBGRAPHURL = "https://api.thegraph.com/subgraphs/name/itsjerryokolo/cryptopunks";
+const CRYPTOPUNKSSUBGRAPHBATCHSIZE = 250;
+
 const ENSSUBGRAPHNAMEQUERY = `
   query getRegistrations($labelNames: [String!]!) {
     registrations(first: 1000, orderBy: labelName, orderDirection: asc, where: { labelName_in: $labelNames }) {
@@ -290,6 +293,64 @@ const ENSSUBGRAPHBBYTOKENIDSQUERY = `
     }
   }
 `;
+
+const CRYPTOPUNKSPUNKBYIDSQUERY = `
+  query getPunksByIds($ids: [Int!]!) {
+    punks(first: 1000, skip: 0, where: { id_in: $ids }) {
+      id
+      metadata {
+        tokenURI
+        imageURI
+        traits {
+          id
+        }
+      }
+      transferedTo {
+        id
+      }
+      assignedTo {
+        id
+      }
+      purchasedBy {
+        id
+      }
+      events {
+        from {
+          id
+        }
+        to {
+          id
+        }
+        amount
+        type
+        blockNumber
+        blockHash
+        txHash
+        timestamp
+      }
+    }
+  }
+`;
+
+const PUNKTRAITS = {
+  "body" : ["alien", "ape", "female", "male", "zombie"],
+  "chinstrap" : ["chinstrap"],
+  "clown-nose" : ["clown-nose"],
+  "earring" : ["earring"],
+  "eyes": ["3d-glasses", "big-shades", "blue-eye-shadow", "classic-shades", "clown-eyes-blue", "clown-eyes-green", "eye-mask", "eye-patch", "green-eye-shadow", "horned-rim-glasses", "nerd-glasses", "purple-eye-shadow", "regular-shades", "small-shades", "vr", "welding-goggles"],
+  "feature" : ["buck-teeth", "rosy-cheeks", "spots"],
+  "frown" : ["frown"],
+  "hair": ["blonde-short", "cap", "clown-hair-green", "crazy-hair", "dark-hair", "frumpy-hair", "half-shaved", "messy-hair", "mohawk", "mohawk-dark", "mohawk-thin", "orange-side", "peak-spike", "pigtails", "purple-hair", "red-mohawk", "shaved-head", "straight-hair", "straight-hair-blonde", "straight-hair-dark", "stringy-hair", "vampire-hair", "wild-blonde", "wild-hair", "wild-white-hair"],
+  "hat": ["bandana", "beanie", "blonde-bob", "cap-forward", "cowboy-hat", "do-rag", "fedora", "knitted-cap", "hoodie", "pilot-helmet", "pink-with-hat", "police-cap", "tassle-hat", "tiara", "top-hat"],
+  "headband": ["headband"],
+  "mole": ["mole"],
+  "mouth": ["big-beard", "black-lipstick", "front-beard", "front-beard-dark", "goat", "handlebars", "hot-lipstick", "luxurious-beard", "muttonchops", "normal-beard", "normal-beard-black", "purple-lipstick", "shadow-beard"],
+  "mouthext": ["cigarette", "medical-mask", "pipe", "vape"],
+  "mustache": ["mustache"],
+  "smile": ["smile"],
+  "special": ["choker", "gold-chain", "silver-chain"],
+};
+
 
 function formatNumber(n) {
     return n == null ? "" : n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
