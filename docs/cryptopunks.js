@@ -340,13 +340,15 @@ const cryptoPunksModule = {
           yield i;
         }
       }
-      function processPunks(punks) {
+      async function processPunks(punks) {
+        const records = [];
         for (const punk of punks) {
-          // console.log(JSON.stringify(punk, null, 2));
+          console.log(JSON.stringify(punk, null, 2));
 
           // console.log(JSON.stringify(punk.metadata.traits, null, 2));
 
           const attributes = [];
+          const traits = [];
           for (trait of punk.metadata.traits) {
             // console.log(JSON.stringify(trait.id, null, 2));
             const attribute = traitsLookup[trait.id];
@@ -357,23 +359,32 @@ const cryptoPunksModule = {
               } else {
                 attributes.push({ trait_type: attribute, value: trait.id });
               }
+              traits.push(trait.id);
             } else {
               console.log("Punk " + punk.id + " not categorised " + trait.id);
             }
           }
-          state.tempPunks[punk.id] = {
-            id: punk.id,
-            transferedTo: punk.transferedTo && punk.transferedTo.id || null,
-            assignedTo: punk.assignedTo && punk.assignedTo.id || null,
-            purchasedBy: punk.purchasedBy && punk.purchasedBy.id || null,
+          records.push({
+            punkId: punk.id,
+            owner: punk.purchasedBy == null ? punk.assignedTo.id : punk.purchasedBy.id,
+            claimer: punk.assignedTo && punk.assignedTo.id || null,
+            traits: traits,
+            // transferedTo: punk.transferedTo && punk.transferedTo.id || null,
+            // purchasedBy: punk.purchasedBy && punk.purchasedBy.id || null,
             attributes: attributes,
-          };
+          });
         }
+        console.log("records: " + JSON.stringify(records));
+        await db0.punks.bulkPut(records).then (function() {
+        }).catch(function(error) {
+          console.log("error: " + error);
+        });
+        // punks: '&punkId,owner,claimer,*traits',
       }
 
       async function fetchPunksByIds(batch) {
         // console.log( [...batch] );
-        await fetch(CRYPTOPUNKSSUBGRAPHURL, {
+        const data = await fetch(CRYPTOPUNKSSUBGRAPHURL, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -384,10 +395,11 @@ const cryptoPunksModule = {
             variables: { ids: batch },
           })
         }).then(response => response.json())
-          .then(data => processPunks(data.data.punks))
+          // .then(data => await processPunks(data.data.punks))
           .catch(function(e) {
             console.log("error: " + e);
           });
+        await processPunks(data.data.punks);
         // console.log(JSON.stringify(data));
         // state.message = "Retrieved " + Object.keys(state.tempResults).length;
         // const namesFound = Object.keys(state.tempResults).map(function(name) { return name.replace('.eth', ''); });
@@ -395,20 +407,26 @@ const cryptoPunksModule = {
         // state.tempUnregistered.push(...unregistered);
       }
 
+      // --- loadPunks() start ---
       state.message = "Syncing";
-      // console.log("PUNKTRAITS: " + JSON.stringify(PUNKTRAITS));
+
+      const db0 = new Dexie("aenusdb");
+      db0.version(1).stores({
+        // nftData: '&tokenId,asset,timestamp',
+        punks: '&punkId,owner,claimer,*traits',
+      });
+
       const traitsLookup = {};
       for (const [attribute, traits] of Object.entries(PUNKTRAITS)) {
-        // console.log(attribute + " => " + traits);
         for (trait of traits) {
+          // const title = trait.replace(/-/g, ' ').replace(/\b[a-z]/g, function() { return arguments[0].toUpperCase(); }).replace('3d', '3D').replace('Vr', 'VR');
+          // console.log(attribute + " - " + trait + " " + title);
           traitsLookup[trait] = attribute;
         }
       }
-      // console.log("traitsLookup: " + JSON.stringify(traitsLookup));
 
-
-      let next = 9001;
-      let generator = generateRange(next, parseInt(next) + 999);
+      let next = 4199;
+      let generator = generateRange(next, parseInt(next) + 9);
       // console.log( [...generator] );
 
       let count = 0;
@@ -440,6 +458,9 @@ const cryptoPunksModule = {
         kount++;
       }
       state.message = null;
+      state.halt = false;
+
+      db0.close();
     },
 
 
