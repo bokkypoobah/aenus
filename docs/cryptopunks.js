@@ -45,8 +45,11 @@ const CryptoPunks = {
               </template>
               <template #cell(image)="data">
                 <b-link :href="'https://cryptopunks.app/cryptopunks/details/' + data.item.punkId" v-b-popover.hover="'View in original website'" target="_blank">
-                  <b-img-lazy width="100%" :src="'images/punks/punk' + data.item.punkId.toString().padStart(4, '0') + '.png'" />
+                  <b-img-lazy width="100%" :src="'images/punks/punk' + data.item.punkId.toString().padStart(4, '0') + '.png'" style="background-color: #638596"/>
                 </b-link>
+              </template>
+              <template #head(currentBid)="data">
+                Bid <b-icon-exclamation-circle shift-v="+1" font-scale="1.0" variant="warning" v-b-popover.hover="'Some cancelled bid show as active in the data from the CryptoPunks subgraph'"></b-icon-exclamation-circle>
               </template>
               <template #cell(currentBid)="data">
                 {{ formatETH(data.item.currentBid) }}
@@ -215,7 +218,7 @@ const CryptoPunks = {
         { key: 'owner', label: 'Owner', thStyle: 'width: 20%;' },
         { key: 'currentBid', label: 'Bid', thStyle: 'width: 20%;' },
         { key: 'currentAsk', label: 'Ask', thStyle: 'width: 20%;' },
-        { key: 'timestamp', label: 'Latest Event', thStyle: 'width: 20%;' },
+        { key: 'timestamp', label: 'Latest Activity', thStyle: 'width: 20%;' },
       ],
 
       salesFields: [
@@ -376,7 +379,9 @@ const cryptoPunksModule = {
       async function processPunks(punks) {
         const records = [];
         for (const punk of punks) {
-          // console.log(JSON.stringify(punk, null, 2));
+          if (punk.id == 8801) {
+            console.log(JSON.stringify(punk, null, 2));
+          }
           const attributes = [];
           const traits = [];
           for (let trait of punk.metadata.traits) {
@@ -396,8 +401,13 @@ const cryptoPunksModule = {
           }
           const events = [];
           let latestTimestamp = 0;
-          for (let event of punk.events) {
-            // console.log(JSON.stringify(event));
+          const sortedEvents = punk.events.sort(function (a, b) {
+            return a.blockNumber - b.blockNumber;
+          });
+          if (punk.id == 8801) {
+            console.log(JSON.stringify(sortedEvents, null, 2));
+          }
+          for (let event of sortedEvents) {
             events.push({
               from: event.from && event.from.id || null,
               to: event.to && event.to.id || null,
