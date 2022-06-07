@@ -37,7 +37,7 @@ const CryptoPunks = {
             <b-button size="sm" @click="doit( { action: 'stopService' } );" variant="primary">Stop Service</b-button>
             -->
 
-            <b-table small striped hover :fields="resultsFields" :items="results" table-class="w-auto" class="mt-1">
+            <b-table small striped hover :fields="resultsFields" :items="results" table-class="w-100" class="mt-1">
               <template #cell(punkId)="data">
                 <b-link :href="'https://cryptopunks.app/cryptopunks/details/' + data.item.punkId" v-b-popover.hover="'View in original website'" target="_blank">
                   {{ data.item.punkId }}
@@ -211,11 +211,11 @@ const CryptoPunks = {
       // results: [],
       resultsFields: [
         { key: 'punkId', label: 'Id', thStyle: 'width: 10%;' },
-        { key: 'image', label: 'Image', thStyle: 'width: 10%;' },
+        { key: 'image', label: '', thStyle: 'width: 10%;' },
         { key: 'owner', label: 'Owner', thStyle: 'width: 20%;' },
-        { key: 'currentBid', label: 'Current Bid', thStyle: 'width: 20%;' },
-        { key: 'currentAsk', label: 'Current Ask', thStyle: 'width: 20%;' },
-        { key: 'timestamp', label: 'Timestamp', thStyle: 'width: 20%;' },
+        { key: 'currentBid', label: 'Bid', thStyle: 'width: 20%;' },
+        { key: 'currentAsk', label: 'Ask', thStyle: 'width: 20%;' },
+        { key: 'timestamp', label: 'Latest Event', thStyle: 'width: 20%;' },
       ],
 
       salesFields: [
