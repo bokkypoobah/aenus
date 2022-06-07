@@ -155,7 +155,7 @@ const Search = {
             This application uses technology and data from <a href="https://twitter.com/ensdomains" target="_blank">ens.eth</a>, <a href="https://twitter.com/graphprotocol" target="_blank">The Graph</a> and <a href="https://twitter.com/reservoir0x" target="_blank">Reservoir</a> that we are not affliated with.
           </b-card-text>
           <b-card-text class="mt-5">
-            Enjoy. aenus advanced ENS utilities (c) Bok Consulting Pty Ltd 2022
+            Enjoy. aenus advanced ENS and NFT utilities (c) Bok Consulting Pty Ltd 2022
           </b-card-text>
         </b-card>
 
