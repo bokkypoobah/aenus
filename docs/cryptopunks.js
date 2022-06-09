@@ -40,8 +40,26 @@ const CryptoPunks = {
                 -
               </div>
               <div class="pr-2" style="max-width: 100px;">
-              <b-form-input type="text" size="sm" v-model.trim="settings.priceTo" debounce="600" placeholder="ETH to"></b-form-input>
+                <b-form-input type="text" size="sm" v-model.trim="settings.priceTo" debounce="600" placeholder="ETH to"></b-form-input>
               </div>
+              <!--
+              <div class="pr-1">
+                <b-form-group>
+                  <b-form-checkbox-group v-model="settings.filterBid">bid</b-form-checkbox-group>
+                  <b-form-checkbox-group v-model="settings.filterAsk">ask</b-form-checkbox-group>
+                  <b-form-checkbox-group v-model="settings.filterLast">last</b-form-checkbox-group>
+                </b-form-group>
+
+                <b-form-group>
+                  <b-form-checkbox-group v-model="settings.filterPriceBy">
+                    <b-form-checkbox value="bid">bid</b-form-checkbox>
+                    <b-form-checkbox value="ask">ask</b-form-checkbox>
+                    <b-form-checkbox value="last">last</b-form-checkbox>
+                  </b-form-checkbox-group>
+                </b-form-group>
+
+              </div>
+              -->
               <div class="pr-1 flex-grow-1">
               </div>
               <div class="pr-1">
@@ -70,21 +88,27 @@ const CryptoPunks = {
               </template>
               <template #cell(owner)="data">
                 <b-link :href="'https://cryptopunks.app/cryptopunks/accountInfo?account=' + data.item.owner" v-b-popover.hover="'View in original website'" target="_blank">
-                  {{ data.item.owner }}
+                  {{ data.item.owner.substring(0, 16) }}
                 </b-link>
               </template>
               <template #head(bid)="data">
-                Bid <b-icon-exclamation-circle shift-v="+1" font-scale="1.0" variant="warning" v-b-popover.hover="'Some cancelled bid show as active in the data from the CryptoPunks subgraph'"></b-icon-exclamation-circle>
+                <b-form-checkbox v-model="settings.filterBid" v-b-popover.hover="'Filter by bids'" >Bid</b-form-checkbox>
               </template>
               <template #cell(bid)="data">
                 <span v-if="data.item.bid.amount" v-b-popover.hover="formatTimestamp(data.item.bid.timestamp)">
                   {{ formatETH(data.item.bid.amount) }}
                 </span>
               </template>
+              <template #head(ask)="data">
+                <b-form-checkbox v-model="settings.filterAsk" v-b-popover.hover="'Filter by asks'" >Ask</b-form-checkbox>
+              </template>
               <template #cell(ask)="data">
                 <span v-if="data.item.ask.amount" v-b-popover.hover="formatTimestamp(data.item.ask.timestamp)">
                   {{ formatETH(data.item.ask.amount) }}
                 </span>
+              </template>
+              <template #head(last)="data">
+                <b-form-checkbox v-model="settings.filterLast" v-b-popover.hover="'Filter by last prices'" >Last</b-form-checkbox>
               </template>
               <template #cell(last)="data">
                 <span v-if="data.item.last.amount" v-b-popover.hover="formatTimestamp(data.item.last.timestamp)">
@@ -109,6 +133,10 @@ const CryptoPunks = {
         searchString: null,
         priceFrom: 2.02,
         priceTo: null,
+        filterPriceBy: false,
+        filterBid: false,
+        filterAsk: true,
+        filterLast: false,
         currentPage: 1,
         pageSize: 100,
 
@@ -127,9 +155,9 @@ const CryptoPunks = {
         { key: 'punkId', label: 'Id', thStyle: 'width: 10%;' },
         { key: 'image', label: '', thStyle: 'width: 10%;' },
         { key: 'owner', label: 'Owner', thStyle: 'width: 30%;' },
-        { key: 'bid', label: 'Bid', thStyle: 'width: 10%;' },
-        { key: 'ask', label: 'Ask', thStyle: 'width: 10%;' },
-        { key: 'last', label: 'Last', thStyle: 'width: 10%;' },
+        { key: 'bid', label: 'Bid', thStyle: 'width: 10%;', thClass: 'text-right', tdClass: 'text-right' },
+        { key: 'ask', label: 'Ask', thStyle: 'width: 10%;', thClass: 'text-right', tdClass: 'text-right' },
+        { key: 'last', label: 'Last', thStyle: 'width: 10%;', thClass: 'text-right', tdClass: 'text-right' },
         { key: 'timestamp', label: 'Latest Activity', thStyle: 'width: 20%;' },
       ],
     }
@@ -181,16 +209,33 @@ const CryptoPunks = {
         }
       }
 
+      const filterBid = this.settings.filterBid;
+      const filterAsk = this.settings.filterAsk;
+      const filterLast = this.settings.filterLast;
+
       let stage2Data = stage1Data;
-      if (priceFrom != null || priceTo != null) {
+      if ((priceFrom != null || priceTo != null) && (filterBid || filterAsk || filterLast)) {
+        console.log("settings: " + JSON.stringify(this.settings));
         stage2Data = [];
         for (let d of stage1Data) {
           const bid = d.bid.amount ? ethers.utils.formatEther(d.bid.amount) : null;
           const ask = d.ask.amount ? ethers.utils.formatEther(d.ask.amount) : null;
           const last = d.last.amount ? ethers.utils.formatEther(d.last.amount) : null;
           // console.log(d.punkId + " " + bid + " " + ask + " " + last);
-          if ((priceFrom == null || ((bid != null && bid >= priceFrom) || (ask != null && ask >= priceFrom) || (last != null && last >= priceFrom))) &&
-            (priceTo == null || ((bid != null && bid <= priceTo) || (ask != null && ask <= priceTo) || (last != null && last <= priceTo)))) {
+          if (
+            (priceFrom == null ||
+              (
+                (filterBid && bid != null && bid >= priceFrom) ||
+                (filterAsk && ask != null && ask >= priceFrom) ||
+                (filterLast && last != null && last >= priceFrom))
+              ) &&
+            (priceTo == null ||
+              (
+                (filterBid && bid != null && bid <= priceTo) ||
+                (filterAsk && ask != null && ask <= priceTo) ||
+                (filterLast && last != null && last <= priceTo))
+              )
+            ) {
             stage2Data.push(d);
           }
         }
@@ -201,8 +246,23 @@ const CryptoPunks = {
   },
   methods: {
     formatETH(e) {
+      if (e) {
+        try {
+          const float = ethers.utils.formatEther(e);
+          if (float != 0 && float < 0.001) {
+            return "< 0.001"
+          } else if (float > 10000000) {
+            return "> 10,000,000"
+          } else {
+            return ethers.utils.commify(float);
+          }
+        } catch (err) {
+        }
+      }
+      return null;
       try {
-        return e ? ethers.utils.commify(ethers.utils.formatEther(e)) : null;
+        const float = ethers.utils.formatEther(e);
+        return e ? ethers.utils.commify(float) : null;
       } catch (err) {
       }
       return e.toFixed(9);
