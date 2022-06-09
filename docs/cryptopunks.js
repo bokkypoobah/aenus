@@ -44,9 +44,20 @@ const CryptoPunks = {
               </div>
               <div class="pr-1 flex-grow-1">
               </div>
+              <div class="pr-1">
+                Mid
+              </div>
+              <div class="pr-1 flex-grow-1">
+              </div>
+              <div class="pl-1">
+                <font size="-2">{{ filteredResults.length }}/10000</font>
+              </div>
+              <div class="pl-1">
+                <b-pagination size="sm" v-model="settings.currentPage" :total-rows="filteredResults.length" :per-page="settings.pageSize"></b-pagination>
+              </div>
             </div>
 
-            <b-table small striped hover :fields="resultsFields" :items="filteredResults" table-class="w-100" class="mt-1">
+            <b-table small striped hover :fields="resultsFields" :items="pagedFilteredResults" table-class="w-100" class="mt-0">
               <template #cell(punkId)="data">
                 <b-link :href="'https://cryptopunks.app/cryptopunks/details/' + data.item.punkId" v-b-popover.hover="'View in original website'" target="_blank">
                   {{ data.item.punkId }}
@@ -95,9 +106,11 @@ const CryptoPunks = {
       reschedule: true,
 
       settings: {
-        searchString: "4947",
-        priceFrom: 0.02,
-        priceTo: 23.45,
+        searchString: null,
+        priceFrom: 2.02,
+        priceTo: null,
+        currentPage: 1,
+        pageSize: 100,
 
         // sortOption: 'nameasc',
         // randomise: false,
@@ -140,8 +153,50 @@ const CryptoPunks = {
     message() {
       return store.getters['cryptoPunks/message'];
     },
+    pagedFilteredResults() {
+      return this.filteredResults.slice((this.settings.currentPage - 1) * this.settings.pageSize, this.settings.currentPage * this.settings.pageSize);
+    },
     filteredResults() {
-      return this.results.slice(0, 100);
+      const priceFrom = this.settings.priceFrom && parseFloat(this.settings.priceFrom) > 0 ? parseFloat(this.settings.priceFrom) : null;
+      const priceTo = this.settings.priceTo && parseFloat(this.settings.priceTo) > 0 ? parseFloat(this.settings.priceTo) : null;
+
+      let data = this.results.slice(0);
+      let stage1Data = data;
+
+      if (this.settings.searchString != null && this.settings.searchString.length > 0) {
+        const searchTokenIds = this.settings.searchString.split(/[, \t\n]+/).map(function(item) { return item.trim(); });
+        stage1Data = [];
+        for (s of searchTokenIds) {
+          var range = s.match(/(\d+)-(\d+)/)
+          if (range != null) {
+            for (let i = range[1]; i <= range[2]; i++) {
+              stage1Data.push(data[i]);
+            }
+          }
+          if (s >= 0 && s < 10000) {
+            if (s < data.length) {
+              stage1Data.push(data[s]);
+            }
+          }
+        }
+      }
+
+      let stage2Data = stage1Data;
+      if (priceFrom != null || priceTo != null) {
+        stage2Data = [];
+        for (let d of stage1Data) {
+          const bid = d.bid.amount ? ethers.utils.formatEther(d.bid.amount) : null;
+          const ask = d.ask.amount ? ethers.utils.formatEther(d.ask.amount) : null;
+          const last = d.last.amount ? ethers.utils.formatEther(d.last.amount) : null;
+          // console.log(d.punkId + " " + bid + " " + ask + " " + last);
+          if ((priceFrom == null || ((bid != null && bid >= priceFrom) || (ask != null && ask >= priceFrom) || (last != null && last >= priceFrom))) &&
+            (priceTo == null || ((bid != null && bid <= priceTo) || (ask != null && ask <= priceTo) || (last != null && last <= priceTo)))) {
+            stage2Data.push(d);
+          }
+        }
+      }
+
+      return stage2Data;
     },
   },
   methods: {
