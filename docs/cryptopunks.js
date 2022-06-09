@@ -10,14 +10,7 @@ const CryptoPunks = {
       <b-card no-body header="CryptoPunks" class="border-0" header-class="p-0">
 
         <b-card no-body class="p-0 mt-1">
-
           <b-card-body class="m-1 p-1">
-
-            <b-row>
-              <b-col sm="6">
-                <b-form-input type="text" size="sm" v-model.trim="settings.searchString" debounce="600" placeholder="🔍 {id}"></b-form-input>
-              </b-col>
-            </b-row>
             <b-row>
               <b-col sm="6" class="mt-2">
                 <font size="-2">
@@ -38,16 +31,16 @@ const CryptoPunks = {
             -->
             <div class="d-flex flex-wrap m-0 mt-2 p-0" style="min-height: 37px;">
               <div class="pr-4">
-                <b-form-input type="text" size="sm" :value="filter.searchString" @change="updateFilter('searchString', $event)" debounce="600" placeholder="🔍 {regex}"></b-form-input>
+                <b-form-input type="text" size="sm" v-model.trim="settings.searchString" debounce="600" placeholder="🔍 id1, id2-id3, ..."></b-form-input>
               </div>
               <div class="pr-1" style="max-width: 100px;">
-                <b-form-input type="text" size="sm" :value="filter.priceFrom" @change="updateFilter('priceFrom', $event)" debounce="600" placeholder="ETH from"></b-form-input>
+                <b-form-input type="text" size="sm" v-model.trim="settings.priceFrom" debounce="600" placeholder="ETH from"></b-form-input>
               </div>
               <div class="pr-1">
                 -
               </div>
               <div class="pr-2" style="max-width: 100px;">
-              <b-form-input type="text" size="sm" :value="filter.priceTo" @change="updateFilter('priceTo', $event)" debounce="600" placeholder="ETH to"></b-form-input>
+              <b-form-input type="text" size="sm" v-model.trim="settings.priceTo" debounce="600" placeholder="ETH to"></b-form-input>
               </div>
               <div class="pr-1 flex-grow-1">
               </div>
@@ -92,133 +85,6 @@ const CryptoPunks = {
               </template>
             </b-table>
           </b-card-body>
-          <!--
-          <b-card-body class="m-1 p-1">
-            <div class="d-flex flex-wrap m-0 mt-2 p-0" style="min-height: 37px;">
-              <div class="pr-4">
-                <b-form-input type="text" size="sm" :value="filter.searchString" @change="updateFilter('searchString', $event)" debounce="600" placeholder="🔍 {regex}"></b-form-input>
-              </div>
-              <div class="pr-1" style="max-width: 100px;">
-                <b-form-input type="text" size="sm" :value="filter.priceFrom" @change="updateFilter('priceFrom', $event)" debounce="600" placeholder="ETH from"></b-form-input>
-              </div>
-              <div class="pr-1">
-                -
-              </div>
-              <div class="pr-2" style="max-width: 100px;">
-              <b-form-input type="text" size="sm" :value="filter.priceTo" @change="updateFilter('priceTo', $event)" debounce="600" placeholder="ETH to"></b-form-input>
-              </div>
-              <div class="pr-1 flex-grow-1">
-              </div>
-            </div>
-            <b-table small striped hover :fields="salesFields" :items="sales" table-class="w-auto" class="mt-1">
-              <template #cell(timestamp)="data">
-                {{ formatTimestamp(data.item.timestamp) }}
-              </template>
-              <template #cell(name)="data">
-                <b-link :id="'popover-target-name-' + data.index">
-                  {{ data.item.name }}
-                </b-link>
-                <b-popover :target="'popover-target-name-' + data.index" placement="right">
-                  <template #title>{{ data.item.name.substring(0, 64) }}:</template>
-                  <b-link :href="'https://app.ens.domains/name/' + data.item.name" v-b-popover.hover="'View in app.ens.domains'" target="_blank">
-                    ENS
-                  </b-link>
-                  <br />
-                  <b-link :href="'https://opensea.io/assets/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + data.item.tokenId" v-b-popover.hover="'View in opensea.io'" target="_blank">
-                    OpenSea
-                  </b-link>
-                  <br />
-                  <b-link :href="'https://looksrare.org/collections/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + data.item.tokenId" v-b-popover.hover="'View in looksrare.org'" target="_blank">
-                    LooksRare
-                  </b-link>
-                  <br />
-                  <b-link :href="'https://x2y2.io/eth/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + data.item.tokenId" v-b-popover.hover="'View in x2y2.io'" target="_blank">
-                    X2Y2
-                  </b-link>
-                  <br />
-                  <b-link v-if="data.item.name" :href="'https://etherscan.io/enslookup-search?search=' + data.item.name.replace('.eth', '')" v-b-popover.hover="'View in etherscan.io'" target="_blank">
-                    EtherScan
-                  </b-link>
-                  <br />
-                  <b-link v-if="data.item.name" :href="'https://duckduckgo.com/?q=' + data.item.name.replace('.eth', '')" v-b-popover.hover="'Search name in duckduckgo.com'" target="_blank">
-                    DuckDuckGo
-                  </b-link>
-                  <br />
-                  <b-link v-if="data.item.name" :href="'https://www.google.com/search?q=' + data.item.name.replace('.eth', '')" v-b-popover.hover="'Search name in google.com'" target="_blank">
-                    Google
-                  </b-link>
-                  <br />
-                  <b-link v-if="data.item.name" :href="'https://twitter.com/search?q=' + data.item.name.replace('.eth', '')" v-b-popover.hover="'Search name in twitter.com'" target="_blank">
-                    Twitter
-                  </b-link>
-                  <br />
-                  <b-link v-if="data.item.name" :href="'https://wikipedia.org/wiki/' + data.item.name.replace('.eth', '')" v-b-popover.hover="'Search name in wikipedia.org'" target="_blank">
-                    Wikipedia
-                  </b-link>
-                  <br />
-                  <b-link v-if="data.item.name" :href="'https://en.wiktionary.org/wiki/' + data.item.name.replace('.eth', '')" v-b-popover.hover="'Search name in wiktionary.org'" target="_blank">
-                    Wiktionary
-                  </b-link>
-                  <br />
-                  <b-link v-if="data.item.name" :href="'https://thesaurus.yourdictionary.com/' + data.item.name.replace('.eth', '')" v-b-popover.hover="'Search name in thesaurus.yourdictionary.com'" target="_blank">
-                    Thesaurus
-                  </b-link>
-                </b-popover>
-              </template>
-              <template #cell(from)="data">
-                <b-link :id="'popover-target-from-' + data.index">
-                  {{ data.item.from.substring(0, 12) }}
-                </b-link>
-                <b-popover :target="'popover-target-from-' + data.index" placement="right">
-                  <template #title>From: {{ data.item.from.substring(0, 12) }}:</template>
-                  <b-link :href="'https://opensea.io/' + data.item.from" v-b-popover.hover="'View in opensea.io'" target="_blank">
-                    OpenSea
-                  </b-link>
-                  <br />
-                  <b-link :href="'https://looksrare.org/accounts/' + data.item.from" v-b-popover.hover="'View in looksrare.org'" target="_blank">
-                    LooksRare
-                  </b-link>
-                  <br />
-                  <b-link :href="'https://x2y2.io/user/' + data.item.from + '/items'" v-b-popover.hover="'View in x2y2.io'" target="_blank">
-                    X2Y2
-                  </b-link>
-                  <br />
-                  <b-link :href="'https://etherscan.io/address/' + data.item.from" v-b-popover.hover="'View in etherscan.io'" target="_blank">
-                    EtherScan
-                  </b-link>
-                </b-popover>
-              </template>
-              <template #cell(to)="data">
-                <b-link :id="'popover-target-to-' + data.index">
-                  {{ data.item.to.substring(0, 12) }}
-                </b-link>
-                <b-popover :target="'popover-target-to-' + data.index" placement="right">
-                  <template #title>From: {{ data.item.to.substring(0, 12) }}:</template>
-                  <b-link :href="'https://opensea.io/' + data.item.to" v-b-popover.hover="'View in opensea.io'" target="_blank">
-                    OpenSea
-                  </b-link>
-                  <br />
-                  <b-link :href="'https://looksrare.org/accounts/' + data.item.to" v-b-popover.hover="'View in looksrare.org'" target="_blank">
-                    LooksRare
-                  </b-link>
-                  <br />
-                  <b-link :href="'https://x2y2.io/user/' + data.item.to + '/items'" v-b-popover.hover="'View in x2y2.io'" target="_blank">
-                    X2Y2
-                  </b-link>
-                  <br />
-                  <b-link :href="'https://etherscan.io/address/' + data.item.to" v-b-popover.hover="'View in etherscan.io'" target="_blank">
-                    EtherScan
-                  </b-link>
-                </b-popover>
-              </template>
-              <template #cell(txHash)="data">
-                <b-link :href="'https://etherscan.io/tx/' + data.item.txHash" v-b-popover.hover="'View in etherscan.io'" target="_blank">
-                  {{ data.item.txHash.substring(0, 12) }}
-                </b-link>
-              </template>
-            </b-table>
-          </b-card-body>
-          -->
         </b-card>
       </b-card>
     </div>
@@ -230,6 +96,9 @@ const CryptoPunks = {
 
       settings: {
         searchString: "4947",
+        priceFrom: 0.02,
+        priceTo: 23.45,
+
         // sortOption: 'nameasc',
         // randomise: false,
 
@@ -241,7 +110,6 @@ const CryptoPunks = {
         // resultsTabIndex: 0,
       },
 
-      // results: [],
       resultsFields: [
         { key: 'punkId', label: 'Id', thStyle: 'width: 10%;' },
         { key: 'image', label: '', thStyle: 'width: 10%;' },
@@ -250,15 +118,6 @@ const CryptoPunks = {
         { key: 'ask', label: 'Ask', thStyle: 'width: 10%;' },
         { key: 'last', label: 'Last', thStyle: 'width: 10%;' },
         { key: 'timestamp', label: 'Latest Activity', thStyle: 'width: 20%;' },
-      ],
-
-      salesFields: [
-        { key: 'timestamp', label: 'Timestamp', thStyle: 'width: 20%;' },
-        { key: 'name', label: 'Name', thStyle: 'width: 20%;' },
-        { key: 'from', label: 'From', thStyle: 'width: 20%;' },
-        { key: 'to', label: 'To', thStyle: 'width: 20%;' },
-        { key: 'price', label: 'ETH', thStyle: 'width: 20%;' },
-        { key: 'txHash', label: 'Tx', thStyle: 'width: 20%;' },
       ],
     }
   },
@@ -274,12 +133,6 @@ const CryptoPunks = {
     },
     network() {
       return store.getters['connection/network'];
-    },
-    filter() {
-      return store.getters['sales/filter'];
-    },
-    sales() {
-      return store.getters['sales/sales'];
     },
     results() {
       return store.getters['cryptoPunks/results'];
