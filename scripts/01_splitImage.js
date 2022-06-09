@@ -4,8 +4,6 @@ const sharp = require("sharp");
 // Downloaded from https://raw.githubusercontent.com/larvalabs/cryptopunks/master/punks.png
 const punkspng = "punks.png";
 const OUTPUTDIR = "../docs/images/punks/";
-var fs = require('fs');
-const util = require('util');
 
 async function doit() {
   console.log("Output to: " + OUTPUTDIR);
