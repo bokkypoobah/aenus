@@ -139,16 +139,9 @@ const CryptoPunks = {
         filterLast: false,
         currentPage: 1,
         pageSize: 100,
-
         // sortOption: 'nameasc',
         // randomise: false,
-
-        // resultsPageSize: 100,
-        // resultsCurrentPage: 1,
-
         // imageSize: '240',
-
-        // resultsTabIndex: 0,
       },
 
       resultsFields: [
@@ -158,7 +151,7 @@ const CryptoPunks = {
         { key: 'bid', label: 'Bid', thStyle: 'width: 10%;', thClass: 'text-right', tdClass: 'text-right' },
         { key: 'ask', label: 'Ask', thStyle: 'width: 10%;', thClass: 'text-right', tdClass: 'text-right' },
         { key: 'last', label: 'Last', thStyle: 'width: 10%;', thClass: 'text-right', tdClass: 'text-right' },
-        { key: 'timestamp', label: 'Latest Activity', thStyle: 'width: 20%;' },
+        { key: 'timestamp', label: 'Latest Activity', thStyle: 'width: 20%;', thClass: 'text-right', tdClass: 'text-right' },
       ],
     }
   },
@@ -249,10 +242,8 @@ const CryptoPunks = {
       if (e) {
         try {
           const float = ethers.utils.formatEther(e);
-          if (float != 0 && float < 0.001) {
-            return "< 0.001"
-          } else if (float > 10000000) {
-            return "> 10,000,000"
+          if ((float != 0 && float < 0.001) || float > 10000000) {
+            return parseFloat(float);
           } else {
             return ethers.utils.commify(float);
           }
