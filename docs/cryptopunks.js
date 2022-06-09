@@ -63,7 +63,7 @@ const CryptoPunks = {
               <div class="pr-1 flex-grow-1">
               </div>
               <div class="pr-1">
-                Mid
+                <b-form-select size="sm" v-model="settings.sortOption" :options="sortOptions" class="w-100"></b-form-select>
               </div>
               <div class="pr-1 flex-grow-1">
               </div>
@@ -131,7 +131,7 @@ const CryptoPunks = {
 
       settings: {
         searchString: null,
-        priceFrom: 2.02,
+        priceFrom: null,
         priceTo: null,
         filterPriceBy: false,
         filterBid: false,
@@ -139,10 +139,22 @@ const CryptoPunks = {
         filterLast: false,
         currentPage: 1,
         pageSize: 100,
-        // sortOption: 'nameasc',
+        sortOption: 'idasc',
         // randomise: false,
         // imageSize: '240',
       },
+
+      sortOptions: [
+        { value: 'idasc', text: 'Id Ascending' },
+        { value: 'iddsc', text: 'Id Descending' },
+        { value: 'bidasc', text: 'Bid Ascending' },
+        { value: 'biddsc', text: 'Bid Descending' },
+        { value: 'askasc', text: 'Ask Ascending' },
+        { value: 'askdsc', text: 'Ask Descending' },
+        { value: 'lastasc', text: 'Last Price Ascending' },
+        { value: 'lastdsc', text: 'Last Price Descending' },
+        { value: 'random', text: 'Random' },
+      ],
 
       resultsFields: [
         { key: 'punkId', label: 'Id', thStyle: 'width: 10%;' },
@@ -232,6 +244,100 @@ const CryptoPunks = {
             stage2Data.push(d);
           }
         }
+      }
+
+      if (this.settings.sortOption == 'idasc') {
+        stage2Data.sort((a, b) => {
+          return a.punkId - b.punkId;
+        });
+      } else if (this.settings.sortOption == 'iddsc') {
+        stage2Data.sort((a, b) => {
+          return b.punkId - a.punkId;
+        });
+      } else if (this.settings.sortOption == 'bidasc') {
+        stage2Data.sort((a, b) => {
+          const pricea = a.bid.amount ? a.bid.amount : null;
+          const priceb = b.bid.amount ? b.bid.amount : null;
+          if (pricea == priceb) {
+            return a.punkId - b.punkId;
+          } else if (pricea != null && priceb == null) {
+            return -1;
+          } else if (pricea == null && priceb != null) {
+            return 1;
+          } else {
+            return pricea - priceb;
+          }
+        });
+      } else if (this.settings.sortOption == 'biddsc') {
+        stage2Data.sort((a, b) => {
+          const pricea = a.bid.amount ? a.bid.amount : null;
+          const priceb = b.bid.amount ? b.bid.amount : null;
+          if (pricea == priceb) {
+            return a.punkId - b.punkId;
+          } else if (pricea != null && priceb == null) {
+            return -1;
+          } else if (pricea == null && priceb != null) {
+            return 1;
+          } else {
+            return priceb - pricea;
+          }
+        });
+      } else if (this.settings.sortOption == 'askasc') {
+        stage2Data.sort((a, b) => {
+          const pricea = a.ask.amount ? a.ask.amount : null;
+          const priceb = b.ask.amount ? b.ask.amount : null;
+          if (pricea == priceb) {
+            return a.punkId - b.punkId;
+          } else if (pricea != null && priceb == null) {
+            return -1;
+          } else if (pricea == null && priceb != null) {
+            return 1;
+          } else {
+            return pricea - priceb;
+          }
+        });
+      } else if (this.settings.sortOption == 'askdsc') {
+        stage2Data.sort((a, b) => {
+          const pricea = a.ask.amount ? a.ask.amount : null;
+          const priceb = b.ask.amount ? b.ask.amount : null;
+          if (pricea == priceb) {
+            return a.punkId - b.punkId;
+          } else if (pricea != null && priceb == null) {
+            return -1;
+          } else if (pricea == null && priceb != null) {
+            return 1;
+          } else {
+            return priceb - pricea;
+          }
+        });
+      } else if (this.settings.sortOption == 'lastasc') {
+        stage2Data.sort((a, b) => {
+          const pricea = a.last.amount ? a.last.amount : null;
+          const priceb = b.last.amount ? b.last.amount : null;
+          if (pricea == priceb) {
+            return a.punkId - b.punkId;
+          } else if (pricea != null && priceb == null) {
+            return -1;
+          } else if (pricea == null && priceb != null) {
+            return 1;
+          } else {
+            return pricea - priceb;
+          }
+        });
+      } else if (this.settings.sortOption == 'lastdsc') {
+        stage2Data.sort((a, b) => {
+          const pricea = a.last.amount ? a.last.amount : null;
+          const priceb = b.last.amount ? b.last.amount : null;
+          if (pricea == priceb) {
+            return a.punkId - b.punkId;
+          } else if (pricea != null && priceb == null) {
+            return -1;
+          } else if (pricea == null && priceb != null) {
+            return 1;
+          } else {
+            return priceb - pricea;
+          }
+        });
       }
 
       return stage2Data;
