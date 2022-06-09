@@ -68,7 +68,7 @@ const CryptoPunks = {
               <div class="pr-1 flex-grow-1">
               </div>
               <div class="pl-1">
-                <font size="-2">{{ filteredResults.length }}/10000</font>
+                <font size="-2">{{ filteredResults.length }}</font>
               </div>
               <div class="pl-1">
                 <b-pagination size="sm" v-model="settings.currentPage" :total-rows="filteredResults.length" :per-page="settings.pageSize"></b-pagination>
@@ -88,7 +88,7 @@ const CryptoPunks = {
               </template>
               <template #cell(owner)="data">
                 <b-link :href="'https://cryptopunks.app/cryptopunks/accountInfo?account=' + data.item.owner" v-b-popover.hover="'View in original website'" target="_blank">
-                  {{ data.item.owner.substring(0, 16) }}
+                  {{ data.item.owner }}
                 </b-link>
               </template>
               <template #head(bid)="data">
@@ -178,8 +178,8 @@ const CryptoPunks = {
       return this.filteredResults.slice((this.settings.currentPage - 1) * this.settings.pageSize, this.settings.currentPage * this.settings.pageSize);
     },
     filteredResults() {
-      const priceFrom = this.settings.priceFrom && parseFloat(this.settings.priceFrom) > 0 ? parseFloat(this.settings.priceFrom) : null;
-      const priceTo = this.settings.priceTo && parseFloat(this.settings.priceTo) > 0 ? parseFloat(this.settings.priceTo) : null;
+      const priceFrom = this.settings.priceFrom && parseFloat(this.settings.priceFrom) >= 0 ? parseFloat(this.settings.priceFrom) : null;
+      const priceTo = this.settings.priceTo && parseFloat(this.settings.priceTo) >= 0 ? parseFloat(this.settings.priceTo) : null;
 
       let data = this.results.slice(0);
       let stage1Data = data;
