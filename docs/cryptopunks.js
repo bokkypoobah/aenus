@@ -155,10 +155,6 @@ const CryptoPunks = {
     formatTimestamp(ts) {
       return new Date(ts * 1000).toLocaleString();
     },
-    updateFilter(field, filter) {
-      console.log("updateFilter: " + field + " => " + JSON.stringify(filter));
-      store.dispatch('sales/updateFilter', { field, filter} );
-    },
     async search() {
       // console.log("search");
       // const data = await fetch(ENSSUBGRAPHURL, {
@@ -540,220 +536,12 @@ const cryptoPunksModule = {
           state.message = "Retrieved " + totalRecords;
         }
       }
+      logInfo("cryptoPunksModule", "mutations.loadPunks() refreshing from db");
       await refreshResultsFromDB();
       state.message = null;
       state.halt = false;
       db0.close();
       logInfo("cryptoPunksModule", "mutations.loadPunks() end");
-    },
-
-
-    // --- addToExecutionQueue() ---
-    async addToExecutionQueue(state, action) {
-      logInfo("cryptoPunksModule", "mutations.addToExecutionQueue() - executionQueue: " + JSON.stringify(state.executionQueue));
-      // TODO - Not working
-      if (!state.executionQueue.includes(action)) {
-        state.executionQueue.push(action);
-      } else {
-        logInfo("cryptoPunksModule", "mutations.addToExecutionQueue() - already existing action: " + JSON.stringify(action) + ", queue: " + JSON.stringify(state.executionQueue));
-      }
-      logInfo("cryptoPunksModule", "mutations.addToExecutionQueue() - action: " + JSON.stringify(action) + ", queue: " + JSON.stringify(state.executionQueue));
-    },
-    // --- doit() ---
-    async doit(state, options) {
-      // --- doit() functions start ---
-      function processRegistrations(registrations) {
-        const results = {};
-        for (const registration of registrations) {
-          const tokenId = new BigNumber(registration.domain.labelhash.substring(2), 16).toFixed(0);
-          results[tokenId] = registration.domain.name;
-        }
-        return results;
-      }
-      async function fetchNamesByTokenIds(tokenIds) {
-        const data = await fetch(ENSSUBGRAPHURL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          body: JSON.stringify({
-            query: ENSSUBGRAPHBBYTOKENIDSQUERY,
-            variables: { tokenIds: tokenIds },
-          })
-        }).then(response => response.json())
-          .then(data => processRegistrations(data.data.registrations));
-        // console.log(JSON.stringify(data, null, 2));
-        return data;
-      }
-      async function processSales(data) {
-        const searchForNamesByTokenIds = data.sales
-          .map(function(sale) { return sale.token.tokenId; })
-          .map(function(tokenId) { return "0x" + new BigNumber(tokenId, 10).toString(16); });
-        const namesByTokenIds = await fetchNamesByTokenIds(searchForNamesByTokenIds);
-        let count = 0;
-        const saleRecords = [];
-        const chainId = (store.getters['connection/network'] && store.getters['connection/network'].chainId) || 1;
-        for (const sale of data.sales) {
-          // if (count == 0) {
-          //   logInfo("cryptoPunksModule", "mutations.doit().processSales() " + new Date(sale.timestamp * 1000).toLocaleString() + " " + (sale.token.name ? sale.token.name : "(null)") + ", price: " + sale.price + ", from: " + sale.from.substr(0, 10) + ", to: " + sale.to.substr(0, 10));
-          // }
-          const name = namesByTokenIds[sale.token.tokenId] ? namesByTokenIds[sale.token.tokenId] : sale.token.name;
-          saleRecords.push({
-            chainId: chainId,
-            contract: ENSADDRESS,
-            tokenId: sale.token.tokenId,
-            name: name,
-            from: sale.from,
-            to: sale.to,
-            price: sale.price,
-            timestamp: sale.timestamp,
-            tokenId: sale.token.tokenId,
-            txHash: sale.txHash,
-            data: sale,
-          });
-          count++;
-        }
-        await db0.sales.bulkPut(saleRecords).then (function() {
-        }).catch(function(error) {
-          console.log("error: " + error);
-        });
-        return saleRecords.length;
-      }
-      // async function fetchSales(startTimestamp, endTimestamp) {
-      //   logInfo("cryptoPunksModule", "mutations.doit().fetchSales() - " + startTimestamp.toLocaleString() + " - " + endTimestamp.toLocaleString());
-      //   const url = "https://api.reservoir.tools/sales/v3?contract=0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85&limit=" + state.config.reservoirSalesV3BatchSize + "&startTimestamp=" + parseInt(startTimestamp / 1000) + "&endTimestamp="+ parseInt(endTimestamp / 1000);
-      //   let continuation = null;
-      //   do {
-      //     let url1;
-      //     if (continuation == null) {
-      //       url1 = url;
-      //     } else {
-      //       url1 = url + "&continuation=" + continuation;
-      //     }
-      //     const data = await fetch(url1)
-      //       .then(response => response.json());
-      //     await processSales(data);
-      //     continuation = data.continuation;
-      //   } while (continuation != null);
-      // }
-      async function updateDBFromAPI() {
-        // logInfo("cryptoPunksModule", "mutations.doit().updateDBFromAPI()");
-        const now = new Date();
-        const earliestEntry = await db0.sales.orderBy("timestamp").first();
-        const earliestDate = earliestEntry ? new Date(earliestEntry.timestamp * 1000) : null;
-        const latestEntry = await db0.sales.orderBy("timestamp").last();
-        const latestDate = latestEntry ? new Date(latestEntry.timestamp * 1000) : null;
-        // logInfo("cryptoPunksModule", "mutations.doit() - db: " + (earliestDate ? earliestDate.toLocaleString() : '(null)') + " to " + (latestDate ? latestDate.toLocaleString() : '') + " @ " + now.toLocaleString());
-
-        const segmentStart = new Date();
-        segmentStart.setHours(parseInt(segmentStart.getHours() / state.config.segmentsPerDay) * state.config.segmentsPerDay, 0, 0, 0);
-        const retrieveLastDate = new Date(segmentStart.getTime() - state.config.retrieveLastDays * MILLISPERDAY);
-        const deleteBeforeDate = new Date(segmentStart.getTime() - state.config.deleteBeforeDays * MILLISPERDAY);
-        // logInfo("cryptoPunksModule", "mutations.doit() - segmentStart: " + segmentStart.toLocaleString() + ", retrieveLastDate: " + retrieveLastDate.toLocaleString() + ", deleteBeforeDate: " + deleteBeforeDate.toLocaleString());
-
-        // Get from start of today
-        let to = now;
-        let from = segmentStart;
-        let dates;
-        try {
-          dates = JSON.parse(localStorage.dates);
-        } catch (e) {
-          dates = {};
-        };
-        // dates = {};
-        const sales = {};
-        let count = 0;
-        while (to > retrieveLastDate && !state.halt && count < 2) {
-          let totalRecords = 0;
-          if (!(from.toLocaleString() in dates)) {
-            let processFrom = from;
-            const processTo = to;
-            if (processFrom == segmentStart) {
-              if (processFrom < latestDate) {
-                processFrom = new Date(latestDate.getTime() + 1000);
-              }
-            }
-            let continuation = null;
-            do {
-              let url = "https://api.reservoir.tools/sales/v3?contract=0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85" +
-                "&limit=" + state.config.reservoirSalesV3BatchSize +
-                "&startTimestamp=" + parseInt(processFrom.getTime() / 1000) +
-                "&endTimestamp="+ parseInt(processTo.getTime() / 1000) +
-                (continuation != null ? "&continuation=" + continuation : '');
-              // logInfo("cryptoPunksModule", "mutations.doit() - url: " + url);
-              // logInfo("cryptoPunksModule", "mutations.doit() - Retrieving records for " + new Date(processFrom).toLocaleString() + " to " + new Date(processTo).toLocaleString());
-              const data = await fetch(url)
-                .then(response => response.json());
-              let numberOfRecords = await processSales(data);
-              totalRecords += numberOfRecords;
-              continuation = data.continuation;
-            } while (continuation != null);
-            if (from != segmentStart && !state.halt) {
-              dates[from.toLocaleString()] = true;
-            }
-            if (totalRecords > 0) {
-              logInfo("cryptoPunksModule", "mutations.doit() - Retrieved " +  totalRecords + " record(s) for " + new Date(processFrom).toLocaleString() + " to " + new Date(processTo).toLocaleString());
-            } else {
-              logInfo("cryptoPunksModule", "mutations.doit() - Nothing new");
-            }
-            count++;
-          }
-          to = from;
-          from = new Date(from.getTime() - MILLISPERDAY/state.config.segmentsPerDay);
-        }
-        localStorage.dates = JSON.stringify(dates);
-        // logInfo("cryptoPunksModule", "mutations.doit() - processed dates: " + JSON.stringify(Object.keys(dates)));
-      }
-      async function refreshResultsFromDB() {
-        const salesFromDB = await db0.sales.orderBy("timestamp").reverse().limit(100).toArray();
-        const saleRecords = [];
-        let count = 0;
-        for (const sale of salesFromDB) {
-          saleRecords.push({
-            name: sale.name,
-            from: sale.from,
-            to: sale.to,
-            price: sale.price,
-            timestamp: sale.timestamp,
-            tokenId: sale.tokenId,
-            txHash: sale.txHash,
-          });
-          count++;
-        }
-        state.sales = saleRecords;
-      }
-      // --- doit() functions end ---
-
-      // --- doit() start ---
-      state.executionQueue.push(options);
-      // logInfo("cryptoPunksModule", "mutations.doit() - ----- options: " + JSON.stringify(options) + ", queue: " + JSON.stringify(state.executionQueue) + " @ " + new Date().toLocaleString() + " -----");
-
-      const db0 = new Dexie("aenuspunksdb");
-      db0.version(1).stores({
-        // nftData: '&tokenId,asset,timestamp',
-        sales: '[chainId+contract+tokenId],chainId,contract,tokenId,name,from,to,price,timestamp',
-      });
-
-      let execute;
-      do {
-        execute = state.executionQueue.shift();
-        if (execute) {
-          // console.log("    execute: " + JSON.stringify(execute));
-          // Refresh results from API to DB
-          if (execute.action == "refresh") {
-            await updateDBFromAPI();
-          }
-          // Refresh results from DB to memory
-          if (execute.action == "refresh") {
-            await refreshResultsFromDB();
-          }
-        }
-      } while (execute != null && !state.halt);
-      state.message = null;
-      state.halt = false;
-
-      db0.close();
     },
 
     halt(state) {
@@ -764,18 +552,6 @@ const cryptoPunksModule = {
     loadPunks(context) {
       logInfo("cryptoPunksModule", "actions.loadPunks()");
       context.commit('loadPunks');
-    },
-    execWeb3( { state, commit, rootState }, { count } ) {
-      logInfo("cryptoPunksModule", "actions.execWeb3() - count: " + count);
-      commit('doit', { action: "refresh" } );
-    },
-    updateFilter(context, action) {
-      logInfo("cryptoPunksModule", "actions.updateFilter() - action: " + JSON.stringify(action));
-      // context.commit('addToExecutionQueue', action);
-    },
-    doit(context, action) {
-      logInfo("cryptoPunksModule", "actions.doit() - action: " + JSON.stringify(action));
-      context.commit('addToExecutionQueue', action);
     },
     halt(context) {
       // logInfo("cryptoPunksModule", "actions.halt()");
