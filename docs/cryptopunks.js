@@ -16,7 +16,8 @@ const CryptoPunks = {
                 <font size="-2">
                   {{ message }}
                 </font>
-                <b-button v-if="message == null" size="sm" @click="search" variant="primary" class="float-right">Sync</b-button>
+                <b-button v-if="message == null" size="sm" @click="search" variant="primary" class="float-right mx-1">Sync</b-button>
+                <b-button v-if="message == null" size="sm" @click="searchLogs" :disabled="false && (!powerOn || network.chainId != 1)" v-b-popover.hover="'Connect to web3 to enable'" variant="primary" class="float-right mx-1">Search Logs</b-button>
                 <b-button v-if="message != null" size="sm" @click="halt" variant="primary" class="float-right">Halt</b-button>
               </b-col>
             </b-row>
@@ -65,6 +66,9 @@ const CryptoPunks = {
               <div class="pr-1">
                 <b-form-select size="sm" v-model="settings.sortOption" :options="sortOptions" class="w-100"></b-form-select>
               </div>
+              <div class="pr-1">
+                <b-button size="sm" :pressed.sync="settings.randomise" @click="settings.sortOption = 'random'; " variant="link" v-b-popover.hover="'Randomise'"><b-icon-arrow-clockwise shift-v="-1" font-scale="1.4"></b-icon-arrow-clockwise></b-button>
+              </div>
               <div class="pr-1 flex-grow-1">
               </div>
               <div class="pl-1">
@@ -72,6 +76,9 @@ const CryptoPunks = {
               </div>
               <div class="pl-1">
                 <b-pagination size="sm" v-model="settings.currentPage" :total-rows="filteredResults.length" :per-page="settings.pageSize"></b-pagination>
+              </div>
+              <div class="pl-1">
+                <b-form-select size="sm" v-model="settings.pageSize" :options="pageSizes"></b-form-select>
               </div>
             </div>
 
@@ -139,8 +146,8 @@ const CryptoPunks = {
         filterLast: false,
         currentPage: 1,
         pageSize: 100,
-        sortOption: 'idasc',
-        // randomise: false,
+        sortOption: 'latestsale',
+        randomise: false,
         // imageSize: '240',
       },
 
@@ -153,7 +160,22 @@ const CryptoPunks = {
         { value: 'askdsc', text: 'Ask Descending' },
         { value: 'lastasc', text: 'Last Price Ascending' },
         { value: 'lastdsc', text: 'Last Price Descending' },
+        { value: 'latestbid', text: 'Latest Bid' },
+        { value: 'earliestbid', text: 'Earliest Bid' },
+        { value: 'latestask', text: 'Latest Ask' },
+        { value: 'earliestask', text: 'Earliest Ask' },
+        { value: 'latestsale', text: 'Latest Sale' },
+        { value: 'earliestsale', text: 'Earliest Sale' },
         { value: 'random', text: 'Random' },
+      ],
+
+      pageSizes: [
+        { value: 10, text: '10/P' },
+        { value: 100, text: '100/P' },
+        { value: 500, text: '500/P' },
+        { value: 1000, text: '1,000/P' },
+        { value: 2145, text: '2,145/P' },
+        { value: 66666, text: 'ALL' },
       ],
 
       resultsFields: [
@@ -193,7 +215,7 @@ const CryptoPunks = {
       const priceFrom = this.settings.priceFrom && parseFloat(this.settings.priceFrom) >= 0 ? parseFloat(this.settings.priceFrom) : null;
       const priceTo = this.settings.priceTo && parseFloat(this.settings.priceTo) >= 0 ? parseFloat(this.settings.priceTo) : null;
 
-      let data = this.results.slice(0);
+      let data = this.settings.randomise ? this.results.slice(0) : this.results.slice(0);
       let stage1Data = data;
 
       if (this.settings.searchString != null && this.settings.searchString.length > 0) {
@@ -338,6 +360,94 @@ const CryptoPunks = {
             return priceb - pricea;
           }
         });
+      } else if (this.settings.sortOption == 'latestbid') {
+        stage2Data.sort((a, b) => {
+          const timestampa = a.bid.timestamp ? a.bid.timestamp : null;
+          const timestampb = b.bid.timestamp ? b.bid.timestamp : null;
+          if (timestampa == timestampb) {
+            return a.punkId - b.punkId;
+          } else if (timestampa != null && timestampb == null) {
+            return -1;
+          } else if (timestampa == null && timestampb != null) {
+            return 1;
+          } else {
+            return timestampb - timestampa;
+          }
+        });
+      } else if (this.settings.sortOption == 'earliestbid') {
+        stage2Data.sort((a, b) => {
+          const timestampa = a.bid.timestamp ? a.bid.timestamp : null;
+          const timestampb = b.bid.timestamp ? b.bid.timestamp : null;
+          if (timestampa == timestampb) {
+            return a.punkId - b.punkId;
+          } else if (timestampa != null && timestampb == null) {
+            return -1;
+          } else if (timestampa == null && timestampb != null) {
+            return 1;
+          } else {
+            return timestampa - timestampb;
+          }
+        });
+      } else if (this.settings.sortOption == 'latestask') {
+        stage2Data.sort((a, b) => {
+          const timestampa = a.ask.timestamp ? a.ask.timestamp : null;
+          const timestampb = b.ask.timestamp ? b.ask.timestamp : null;
+          if (timestampa == timestampb) {
+            return a.punkId - b.punkId;
+          } else if (timestampa != null && timestampb == null) {
+            return -1;
+          } else if (timestampa == null && timestampb != null) {
+            return 1;
+          } else {
+            return timestampb - timestampa;
+          }
+        });
+      } else if (this.settings.sortOption == 'earliestask') {
+        stage2Data.sort((a, b) => {
+          const timestampa = a.ask.timestamp ? a.ask.timestamp : null;
+          const timestampb = b.ask.timestamp ? b.ask.timestamp : null;
+          if (timestampa == timestampb) {
+            return a.punkId - b.punkId;
+          } else if (timestampa != null && timestampb == null) {
+            return -1;
+          } else if (timestampa == null && timestampb != null) {
+            return 1;
+          } else {
+            return timestampa - timestampb;
+          }
+        });
+      } else if (this.settings.sortOption == 'latestsale') {
+        stage2Data.sort((a, b) => {
+          const timestampa = a.last.timestamp ? a.last.timestamp : null;
+          const timestampb = b.last.timestamp ? b.last.timestamp : null;
+          if (timestampa == timestampb) {
+            return a.punkId - b.punkId;
+          } else if (timestampa != null && timestampb == null) {
+            return -1;
+          } else if (timestampa == null && timestampb != null) {
+            return 1;
+          } else {
+            return timestampb - timestampa;
+          }
+        });
+      } else if (this.settings.sortOption == 'earliestsale') {
+        stage2Data.sort((a, b) => {
+          const timestampa = a.last.timestamp ? a.last.timestamp : null;
+          const timestampb = b.last.timestamp ? b.last.timestamp : null;
+          if (timestampa == timestampb) {
+            return a.punkId - b.punkId;
+          } else if (timestampa != null && timestampb == null) {
+            return -1;
+          } else if (timestampa == null && timestampb != null) {
+            return 1;
+          } else {
+            return timestampa - timestampb;
+          }
+        });
+      } else {
+        stage2Data.sort(() => {
+          return Math.random() - 0.5;
+        });
       }
 
       return stage2Data;
@@ -366,6 +476,106 @@ const CryptoPunks = {
     },
     formatTimestamp(ts) {
       return new Date(ts * 1000).toLocaleString();
+    },
+    async searchLogs() {
+      if (!this.powerOn || this.network.chainId != 1) {
+        alert("Connect to web3 using the power button on the top right, in a web3 enabled browser");
+      } else {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        // const balance = await provider.getBalance(this.coinbase);
+        // console.log("searchLogs - balance: " + ethers.utils.formatEther(balance));
+        const cryptoPunksMarket = new ethers.Contract(CRYPTOPUNKSMARKETADDRESS, CRYPTOPUNKSMARKETABI, provider);
+        // const totalSupply = await cryptoPunksMarket.totalSupply();
+        // console.log("searchLogs - totalSupply: " + totalSupply);
+        const block = store.getters['connection/block'];
+        // console.log("searchLogs - block: " + JSON.stringify(block));
+        if (block) {
+          // const blockNumber = block.number;
+          console.log("searchLogs - block.number: " + block.number);
+
+          // const lookback = 100000;
+          // const filter = {
+          //   address: CRYPTOPUNKSMARKETADDRESS, // [NIXADDRESS, weth.address],
+          //   fromBlock: CRYPTOPUNKSMARKETDEPLOYMENTBLOCK, // blockNumber - lookback,
+          //   toBlock: parseInt(CRYPTOPUNKSMARKETDEPLOYMENTBLOCK) + 5000, // blockNumber,
+          //   topics: [[
+          //     '0x8a0e37b73a0d9c82e205d4d1a3ff3d0b57ce5f4d7bccf6bac03336dc101cb7ba', //  Assign (index_topic_1 address to, uint256 punkIndex)
+          //     '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef', //  Transfer (index_topic_1 address from, index_topic_2 address to, uint256 value)
+          //     '0x05af636b70da6819000c49f85b21fa82081c632069bb626f30932034099107d8', //  PunkTransfer (index_topic_1 address from, index_topic_2 address to, uint256 punkIndex)
+          //     '0x3c7b682d5da98001a9b8cbda6c647d2c63d698a4184fd1d55e2ce7b66f5d21eb', //  PunkOffered (index_topic_1 uint256 punkIndex, uint256 minValue, index_topic_2 address toAddress)
+          //     '0x5b859394fabae0c1ba88baffe67e751ab5248d2e879028b8c8d6897b0519f56a', //  PunkBidEntered (index_topic_1 uint256 punkIndex, uint256 value, index_topic_2 address fromAddress)
+          //     '0x6f30e1ee4d81dcc7a8a478577f65d2ed2edb120565960ac45fe7c50551c87932', //  PunkBidWithdrawn (index_topic_1 uint256 punkIndex, uint256 value, index_topic_2 address fromAddress)
+          //     '0x58e5d5a525e3b40bc15abaa38b5882678db1ee68befd2f60bafe3a7fd06db9e3', //  PunkBought (index_topic_1 uint256 punkIndex, uint256 value, index_topic_2 address fromAddress, index_topic_3 address toAddress)
+          //     '0xb0e0a660b4e50f26f0b7ce75c24655fc76cc66e3334a54ff410277229fa10bd4', //  PunkNoLongerForSale (index_topic_1 uint256 punkIndex)
+          //   ]],
+          // };
+          // const events = await provider.getLogs(filter);
+          // console.log("searchLogs - events: " + JSON.stringify(events));
+
+          const db0 = new Dexie("aenuspunkeventsdb");
+          db0.version(1).stores({
+            // nftData: '&tokenId,asset,timestamp',
+            // events: '&punkId,owner,claimer,timestamp,*traits',
+            events: '[blockNumber+logIndex],blockNumber',
+          });
+
+          const earliestEntry = await db0.events.orderBy("blockNumber").first();
+          const latestEntry = await db0.events.orderBy("blockNumber").last();
+          let total = await db0.events.orderBy("blockNumber").count();
+          logInfo("CryptoPunks", "searchLogs() - earliestEntry.blockNumber: " + (earliestEntry == null ? null : earliestEntry.blockNumber));
+          logInfo("CryptoPunks", "searchLogs() - latestEntry.blockNumber: " + (latestEntry == null ? null : latestEntry.blockNumber));
+          logInfo("CryptoPunks", "searchLogs() - total: " + total);
+
+          if (true) {
+            let fromBlock = (latestEntry != null) ? parseInt(latestEntry.blockNumber) + 1 : CRYPTOPUNKSMARKETDEPLOYMENTBLOCK;
+            let count = 0;
+            let blocks = 5000; // Cater for the assignment of 10k punks at the start
+            do {
+              let toBlock = parseInt(fromBlock) + blocks;
+              if (toBlock > block.number) {
+                toBlock = block.number;
+              }
+              const filter = {
+                address: CRYPTOPUNKSMARKETADDRESS, // [NIXADDRESS, weth.address],
+                fromBlock: fromBlock,
+                toBlock: toBlock,
+                topics: null,
+              };
+              const events = await provider.getLogs(filter);
+              await db0.events.bulkPut(events).then (function() {
+              }).catch(function(error) {
+                console.log("error: " + error);
+              });
+              total = parseInt(total) + events.length;
+              if (count % 20 == 0) {
+                logInfo("CryptoPunks", "searchLogs(): " + fromBlock + " " + total);
+              }
+              fromBlock = parseInt(fromBlock) + blocks;
+              blocks = 25000;
+              count++;
+            } while (fromBlock < block.number);
+          }
+          logInfo("CryptoPunks", "searchLogs() - total: " + total);
+
+          // db0.events.orderBy('blockNumber').uniqueKeys(function (keysArray) {
+          //   console.log(JSON.stringify(keysArray));
+          // });
+          const blockNumbers = await db0.events.orderBy('[blockNumber+logIndex]').toArray(); // .uniqueKeys();
+          // logInfo("CryptoPunks", "searchLogs() - blockNumbers: " + JSON.stringify(blockNumbers));
+          logInfo("CryptoPunks", "searchLogs() - blockNumbers.length: " + blockNumbers.length);
+
+          // count = 0;
+          // for (blockNumber of blockNumbers) {
+          //   const block = await provider.getBlock(blockNumber);
+          //   if (count % 20 == 0) {
+          //     logInfo("CryptoPunks", "searchLogs() - count: " + count + ", blockNumber: " + blockNumber + " " + new Date(block.timestamp * 1000).toLocaleString());
+          //   }
+          //   count++;
+          // }
+
+          db0.close();
+        }
+      }
     },
     async search() {
       // console.log("search");
@@ -688,7 +898,7 @@ const cryptoPunksModule = {
       // --- loadPunks() start ---
       logInfo("cryptoPunksModule", "mutations.loadPunks() start");
       state.message = "Syncing";
-      const debug = null; // [4576]; // [4000]; // null; // [9863];
+      const debug = [4576]; // [4000]; // null; // [9863];
 
       // Dexie.delete("aenuspunksdb");
 
