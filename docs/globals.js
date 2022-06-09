@@ -326,7 +326,7 @@ const CRYPTOPUNKSPUNKBYIDSQUERY = `
         amount
         open
       }
-      events {
+      events(first: 1000) {
         from {
           id
         }
@@ -344,7 +344,7 @@ const CRYPTOPUNKSPUNKBYIDSQUERY = `
   }
 `;
 
-const CRYPTOPUNKSEVENTSQUERY = `
+const CRYPTOPUNKSEVENTSBYTIMESTAMPQUERY = `
   query getPunkEvents($timestamp_gt: Int!) {
     events(orderBy: timestamp, orderDirection: asc, first: 250, skip: 0, where: { timestamp_gt: $timestamp_gt }) {
       nft {

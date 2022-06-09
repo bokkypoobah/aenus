@@ -48,6 +48,11 @@ const CryptoPunks = {
                   <b-img-lazy width="100%" :src="'images/punks/punk' + data.item.punkId.toString().padStart(4, '0') + '.png'" style="background-color: #638596"/>
                 </b-link>
               </template>
+              <template #cell(owner)="data">
+                <b-link :href="'https://cryptopunks.app/cryptopunks/accountInfo?account=' + data.item.owner" v-b-popover.hover="'View in original website'" target="_blank">
+                  {{ data.item.owner }}
+                </b-link>
+              </template>
               <template #head(currentBid)="data">
                 Bid <b-icon-exclamation-circle shift-v="+1" font-scale="1.0" variant="warning" v-b-popover.hover="'Some cancelled bid show as active in the data from the CryptoPunks subgraph'"></b-icon-exclamation-circle>
               </template>
@@ -379,8 +384,9 @@ const cryptoPunksModule = {
       async function processPunks(punks) {
         const records = [];
         for (const punk of punks) {
-          if (punk.id == 8801) {
-            console.log(JSON.stringify(punk, null, 2));
+          // if (debug && debug.includes(punk.id)) {
+          if (debug) {
+            console.log("processPunks: " + JSON.stringify(punk, null, 2));
           }
           const attributes = [];
           const traits = [];
@@ -402,12 +408,31 @@ const cryptoPunksModule = {
           const events = [];
           let latestTimestamp = 0;
           const sortedEvents = punk.events.sort(function (a, b) {
-            return a.blockNumber - b.blockNumber;
+            // return a.blockNumber - b.blockNumber;
+            if (a.blockNumber == b.blockNumber) {
+              return ('' + a.type).localeCompare(b.type);
+            } else {
+              return a.blockNumber - b.blockNumber;
+            }
           });
-          if (punk.id == 8801) {
-            console.log(JSON.stringify(sortedEvents, null, 2));
+          if (debug && sortedEvents.length >= 100) {
+            console.log(punk.id + " - sortedEvents.length: " + sortedEvents.length);
           }
+          if (debug) {
+            console.log(punk.id + " - sortedEvents: " + JSON.stringify(sortedEvents, null, 2));
+          }
+          let bid = null;
+          let bidTimestamp = null;
+          let bidder = null;
+          let ask = null;
+          let askTimestamp = null;
+          let sale = null;
+          let saleTimestamp = null;
+
           for (let event of sortedEvents) {
+            if (debug) {
+              console.log("event: " + JSON.stringify(event, null, 2));
+            }
             events.push({
               from: event.from && event.from.id || null,
               to: event.to && event.to.id || null,
@@ -421,10 +446,45 @@ const cryptoPunksModule = {
             if (event.timestamp > latestTimestamp) {
               latestTimestamp = event.timestamp;
             }
+            if (event.type == "BID_CREATED") {
+              bid = event.amount;
+              bidTimestamp = event.timestamp;
+              bidder = event.from && event.from.id || null;
+            } else if (event.type == "BID_REMOVED") {
+              bid = null;
+              bidTimestamp = null;
+            } else if (event.type == "ASK_CREATED") {
+              ask = event.amount;
+              askTimestamp = event.timestamp;
+            } else if (event.type == "ASK_REMOVED") {
+              ask = null;
+              askTimestamp = null;
+            } else if (event.type == "SALE") {
+              if (bid != null && bidder == event.to.id) {
+                // L180 - Check for the case where there is a bid from the new owner and refund it.
+                bid = null;
+                bidTimestamp = null;
+                // console.log("HERE");
+              }
+              ask = null;
+              askTimestamp = null;
+              sale = event.amount;
+              saleTimestamp = event.timestamp;
+            } else {
+            }
           }
-          events.sort(function (a, b) {
-            return a.blockNumber - b.blockNumber;
-          });
+
+          const currentBid = punk.currentBid && punk.currentBid.open && punk.currentBid.amount || null;
+          const currentAsk = punk.currentAsk && punk.currentAsk.open && punk.currentAsk.amount || null;
+          if ((currentBid != null && bid == null) || (currentBid == null && bid != null)) {
+            console.log(punk.id + " - currentBid: " + currentBid + " does not match calculated bid: " + bid + " @ " + bidTimestamp + " " + (bidTimestamp != null ? new Date(bidTimestamp * 1000).toLocaleString() : ''));
+          }
+          // Events within the same block data cannot be sorted without the event logIndex data. Use the subgraph currentAsk
+          // if ((currentAsk != null && ask == null) || (currentAsk == null && ask != null)) {
+          //   console.log(punk.id + " - currentAsk: " + currentAsk + " does not match calculated ask: " + ask + " @ " + askTimestamp + " " + (askTimestamp != null ? new Date(askTimestamp * 1000).toLocaleString() : ''));
+          // }
+          // console.log(punk.id + " - mismatch sale: " + sale + " @ " + saleTimestamp + " " + (saleTimestamp != null ? new Date(saleTimestamp * 1000).toLocaleString() : ''));
+
           records.push({
             punkId: punk.id,
             owner: punk.owner && punk.owner.id || null,
@@ -434,8 +494,8 @@ const cryptoPunksModule = {
             // transferedTo: punk.transferedTo && punk.transferedTo.id || null,
             // purchasedBy: punk.purchasedBy && punk.purchasedBy.id || null,
             wrapped: punk.wrapped,
-            currentBid: punk.currentBid && punk.currentBid.open && punk.currentBid.amount || null,
-            currentAsk: punk.currentAsk && punk.currentAsk.open && punk.currentAsk.amount || null,
+            currentBid: bid,
+            currentAsk: currentAsk,
             attributes: attributes,
             events: events,
           });
@@ -463,7 +523,9 @@ const cryptoPunksModule = {
           .catch(function(e) {
             console.log("error: " + e);
           });
-        // console.log(JSON.stringify(data, null, 2));
+        if (debug) {
+          console.log(JSON.stringify(data, null, 2));
+        }
         if (data && data.data && data.data.punks && data.data.punks.length > 0) {
           return await processPunks(data.data.punks);
         }
@@ -484,7 +546,7 @@ const cryptoPunksModule = {
                 'Accept': 'application/json',
               },
               body: JSON.stringify({
-                query: CRYPTOPUNKSEVENTSQUERY,
+                query: CRYPTOPUNKSEVENTSBYTIMESTAMPQUERY,
                 variables: { timestamp_gt: latestTimestamp },
               })
             }).then(response => response.json())
@@ -492,7 +554,9 @@ const cryptoPunksModule = {
                 console.log("error: " + e);
               });
 
-            // console.log(JSON.stringify(data, null, 2));
+            if (debug) {
+              console.log(JSON.stringify(data, null, 2));
+            }
             for (let event of data.data.events) {
               if (event.nft) {
                 // console.log(JSON.stringify(event, null, 2));
@@ -531,8 +595,11 @@ const cryptoPunksModule = {
       // --- loadPunks() start ---
       logInfo("cryptoPunksModule", "mutations.loadPunks() start");
       state.message = "Syncing";
+      const debug = null; // [4576]; // [4000]; // null; // [9863];
 
-      const db0 = new Dexie("aenusdb");
+      Dexie.delete("aenuspunksdb");
+
+      const db0 = new Dexie("aenuspunksdb");
       db0.version(1).stores({
         // nftData: '&tokenId,asset,timestamp',
         punks: '&punkId,owner,claimer,timestamp,*traits',
@@ -547,7 +614,7 @@ const cryptoPunksModule = {
         }
       }
 
-      const latestEventPunkIds = await fetchLatestEvents();
+      const latestEventPunkIds = debug ? debug : await fetchLatestEvents();
       logInfo("cryptoPunksModule", "mutations.loadPunks() latestEventPunkIds: " + JSON.stringify(latestEventPunkIds));
 
       let totalRecords = 0;
@@ -777,7 +844,7 @@ const cryptoPunksModule = {
       state.executionQueue.push(options);
       // logInfo("cryptoPunksModule", "mutations.doit() - ----- options: " + JSON.stringify(options) + ", queue: " + JSON.stringify(state.executionQueue) + " @ " + new Date().toLocaleString() + " -----");
 
-      const db0 = new Dexie("aenusdb");
+      const db0 = new Dexie("aenuspunksdb");
       db0.version(1).stores({
         // nftData: '&tokenId,asset,timestamp',
         sales: '[chainId+contract+tokenId],chainId,contract,tokenId,name,from,to,price,timestamp',
