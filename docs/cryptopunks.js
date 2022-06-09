@@ -36,8 +36,24 @@ const CryptoPunks = {
             <b-button size="sm" @click="doit( { action: 'startService' } );" variant="primary">Start Service</b-button>
             <b-button size="sm" @click="doit( { action: 'stopService' } );" variant="primary">Stop Service</b-button>
             -->
+            <div class="d-flex flex-wrap m-0 mt-2 p-0" style="min-height: 37px;">
+              <div class="pr-4">
+                <b-form-input type="text" size="sm" :value="filter.searchString" @change="updateFilter('searchString', $event)" debounce="600" placeholder="🔍 {regex}"></b-form-input>
+              </div>
+              <div class="pr-1" style="max-width: 100px;">
+                <b-form-input type="text" size="sm" :value="filter.priceFrom" @change="updateFilter('priceFrom', $event)" debounce="600" placeholder="ETH from"></b-form-input>
+              </div>
+              <div class="pr-1">
+                -
+              </div>
+              <div class="pr-2" style="max-width: 100px;">
+              <b-form-input type="text" size="sm" :value="filter.priceTo" @change="updateFilter('priceTo', $event)" debounce="600" placeholder="ETH to"></b-form-input>
+              </div>
+              <div class="pr-1 flex-grow-1">
+              </div>
+            </div>
 
-            <b-table small striped hover :fields="resultsFields" :items="results" table-class="w-100" class="mt-1">
+            <b-table small striped hover :fields="resultsFields" :items="filteredResults" table-class="w-100" class="mt-1">
               <template #cell(punkId)="data">
                 <b-link :href="'https://cryptopunks.app/cryptopunks/details/' + data.item.punkId" v-b-popover.hover="'View in original website'" target="_blank">
                   {{ data.item.punkId }}
@@ -53,14 +69,23 @@ const CryptoPunks = {
                   {{ data.item.owner }}
                 </b-link>
               </template>
-              <template #head(currentBid)="data">
+              <template #head(bid)="data">
                 Bid <b-icon-exclamation-circle shift-v="+1" font-scale="1.0" variant="warning" v-b-popover.hover="'Some cancelled bid show as active in the data from the CryptoPunks subgraph'"></b-icon-exclamation-circle>
               </template>
-              <template #cell(currentBid)="data">
-                {{ formatETH(data.item.currentBid) }}
+              <template #cell(bid)="data">
+                <span v-if="data.item.bid.amount" v-b-popover.hover="formatTimestamp(data.item.bid.timestamp)">
+                  {{ formatETH(data.item.bid.amount) }}
+                </span>
               </template>
-              <template #cell(currentAsk)="data">
-                {{ formatETH(data.item.currentAsk) }}
+              <template #cell(ask)="data">
+                <span v-if="data.item.ask.amount" v-b-popover.hover="formatTimestamp(data.item.ask.timestamp)">
+                  {{ formatETH(data.item.ask.amount) }}
+                </span>
+              </template>
+              <template #cell(last)="data">
+                <span v-if="data.item.last.amount" v-b-popover.hover="formatTimestamp(data.item.last.timestamp)">
+                  {{ formatETH(data.item.last.amount) }}
+                </span>
               </template>
               <template #cell(timestamp)="data">
                 {{ formatTimestamp(data.item.timestamp) }}
@@ -220,9 +245,10 @@ const CryptoPunks = {
       resultsFields: [
         { key: 'punkId', label: 'Id', thStyle: 'width: 10%;' },
         { key: 'image', label: '', thStyle: 'width: 10%;' },
-        { key: 'owner', label: 'Owner', thStyle: 'width: 20%;' },
-        { key: 'currentBid', label: 'Bid', thStyle: 'width: 20%;' },
-        { key: 'currentAsk', label: 'Ask', thStyle: 'width: 20%;' },
+        { key: 'owner', label: 'Owner', thStyle: 'width: 30%;' },
+        { key: 'bid', label: 'Bid', thStyle: 'width: 10%;' },
+        { key: 'ask', label: 'Ask', thStyle: 'width: 10%;' },
+        { key: 'last', label: 'Last', thStyle: 'width: 10%;' },
         { key: 'timestamp', label: 'Latest Activity', thStyle: 'width: 20%;' },
       ],
 
@@ -260,6 +286,9 @@ const CryptoPunks = {
     },
     message() {
       return store.getters['cryptoPunks/message'];
+    },
+    filteredResults() {
+      return this.results.slice(0, 100);
     },
   },
   methods: {
@@ -458,7 +487,7 @@ const cryptoPunksModule = {
               askTimestamp = event.timestamp;
             } else if (event.type == "ASK_REMOVED") {
               ask = null;
-              askTimestamp = null;
+              // askTimestamp = null; // Workaround as order of events in the same block is unknown - use the subgraph currentAsk
             } else if (event.type == "SALE") {
               if (bid != null && bidder == event.to.id) {
                 // L180 - Check for the case where there is a bid from the new owner and refund it.
@@ -467,18 +496,18 @@ const cryptoPunksModule = {
                 // console.log("HERE");
               }
               ask = null;
-              askTimestamp = null;
+              // askTimestamp = null; // Workaround as order of events in the same block is unknown - use the subgraph currentAsk
               sale = event.amount;
               saleTimestamp = event.timestamp;
             } else {
             }
           }
 
-          const currentBid = punk.currentBid && punk.currentBid.open && punk.currentBid.amount || null;
+          // const currentBid = punk.currentBid && punk.currentBid.open && punk.currentBid.amount || null;
           const currentAsk = punk.currentAsk && punk.currentAsk.open && punk.currentAsk.amount || null;
-          if ((currentBid != null && bid == null) || (currentBid == null && bid != null)) {
-            console.log(punk.id + " - currentBid: " + currentBid + " does not match calculated bid: " + bid + " @ " + bidTimestamp + " " + (bidTimestamp != null ? new Date(bidTimestamp * 1000).toLocaleString() : ''));
-          }
+          // if ((currentBid != null && bid == null) || (currentBid == null && bid != null)) {
+          //   console.log(punk.id + " - currentBid: " + currentBid + " does not match calculated bid: " + bid + " @ " + bidTimestamp + " " + (bidTimestamp != null ? new Date(bidTimestamp * 1000).toLocaleString() : ''));
+          // }
           // Events within the same block data cannot be sorted without the event logIndex data. Use the subgraph currentAsk
           // if ((currentAsk != null && ask == null) || (currentAsk == null && ask != null)) {
           //   console.log(punk.id + " - currentAsk: " + currentAsk + " does not match calculated ask: " + ask + " @ " + askTimestamp + " " + (askTimestamp != null ? new Date(askTimestamp * 1000).toLocaleString() : ''));
@@ -486,7 +515,7 @@ const cryptoPunksModule = {
           // console.log(punk.id + " - mismatch sale: " + sale + " @ " + saleTimestamp + " " + (saleTimestamp != null ? new Date(saleTimestamp * 1000).toLocaleString() : ''));
 
           records.push({
-            punkId: punk.id,
+            punkId: parseInt(punk.id),
             owner: punk.owner && punk.owner.id || null,
             claimer: punk.assignedTo && punk.assignedTo.id || null,
             timestamp: latestTimestamp,
@@ -494,8 +523,9 @@ const cryptoPunksModule = {
             // transferedTo: punk.transferedTo && punk.transferedTo.id || null,
             // purchasedBy: punk.purchasedBy && punk.purchasedBy.id || null,
             wrapped: punk.wrapped,
-            currentBid: bid,
-            currentAsk: currentAsk,
+            bid: { amount: bid, timestamp: bidTimestamp },
+            ask: { amount: currentAsk, timestamp: currentAsk ? askTimestamp : null },
+            last: { amount: sale, timestamp: saleTimestamp },
             attributes: attributes,
             events: events,
           });
@@ -535,7 +565,7 @@ const cryptoPunksModule = {
         const results = {};
         const latestRecord = await db0.punks.orderBy("timestamp").last();
         if (latestRecord != null) {
-          let latestTimestamp = parseInt(latestRecord.timestamp) - 24 * 60 * 60;
+          let latestTimestamp = parseInt(latestRecord.timestamp) - 6 * 60 * 60;
           let data;
           do {
             logInfo("cryptoPunksModule", "mutations.loadPunks().fetchLatestEvents() latestTimestamp: " + new Date(latestTimestamp * 1000).toLocaleString() + " = " + latestTimestamp);
@@ -573,7 +603,8 @@ const cryptoPunksModule = {
       }
 
       async function refreshResultsFromDB() {
-        const punks = await db0.punks.orderBy("timestamp").reverse().limit(100).toArray();
+        // const punks = await db0.punks.orderBy("timestamp").reverse().limit(100).toArray();
+        const punks = await db0.punks.orderBy("punkId").toArray();
         const records = [];
         for (const punk of punks) {
           records.push({
@@ -583,8 +614,9 @@ const cryptoPunksModule = {
             timestamp: punk.timestamp,
             // traits: punk.traits,
             // wrapped: punk.wrapped,
-            currentBid: punk.currentBid,
-            currentAsk: punk.currentAsk,
+            bid: punk.bid,
+            ask: punk.ask,
+            last: punk.last,
             // attributes: punk.attributes,
           });
         }
@@ -597,7 +629,7 @@ const cryptoPunksModule = {
       state.message = "Syncing";
       const debug = null; // [4576]; // [4000]; // null; // [9863];
 
-      Dexie.delete("aenuspunksdb");
+      // Dexie.delete("aenuspunksdb");
 
       const db0 = new Dexie("aenuspunksdb");
       db0.version(1).stores({
