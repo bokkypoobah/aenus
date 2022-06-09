@@ -17,9 +17,7 @@ async function doit() {
       console.log("Processing: " + punkId);
       image
         .extract({ left: x * 24, top: y * 24, width: 24, height: 24 })
-        // .png({ quality: 100, compressionLevel: 0 })
         .toFile(OUTPUTDIR + "punk" + punkId.toString().padStart(4, '0') + ".png", function(err) {
-          // Save the top of the image to a file named "top.jpg"
         });
     }
   }
