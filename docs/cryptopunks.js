@@ -898,7 +898,7 @@ const cryptoPunksModule = {
       // --- loadPunks() start ---
       logInfo("cryptoPunksModule", "mutations.loadPunks() start");
       state.message = "Syncing";
-      const debug = [4576]; // [4000]; // null; // [9863];
+      const debug = null; // [9863];
 
       // Dexie.delete("aenuspunksdb");
 
