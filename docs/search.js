@@ -1157,7 +1157,7 @@ const Search = {
   mounted() {
     logInfo("Search", "mounted() $route: " + JSON.stringify(this.$route.params) + ", props['search']: " + this.search + ", props['topic']: " + this.topic);
 
-    const tabIndex = this.tabs.findIndex(tab => tab === this.$route.hash)
+    // const tabIndex = this.tabs.findIndex(tab => tab === this.$route.hash)
 
     if (this.search == "names") {
       this.settings.searchTabIndex = 0;

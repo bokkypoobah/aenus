@@ -17,7 +17,7 @@ const CryptoPunks = {
                   {{ message }}
                 </font>
                 <b-button v-if="message == null" size="sm" @click="search" variant="primary" class="float-right mx-1">Sync</b-button>
-                <b-button v-if="message == null" size="sm" @click="searchLogs" :disabled="false && (!powerOn || network.chainId != 1)" v-b-popover.hover="'Connect to web3 to enable'" variant="primary" class="float-right mx-1">Search Logs</b-button>
+                <!-- <b-button v-if="message == null" size="sm" @click="searchLogs" :disabled="false && (!powerOn || network.chainId != 1)" v-b-popover.hover="'Connect to web3 to enable'" variant="primary" class="float-right mx-1">Search Logs</b-button> -->
                 <b-button v-if="message != null" size="sm" @click="halt" variant="primary" class="float-right">Halt</b-button>
               </b-col>
             </b-row>
