@@ -63,7 +63,7 @@ const Welcome = {
                 <li>
                   From your Linux, OS/X (or equivalent terminal) using <b-link href="https://www.npmjs.com/package/anywhere" target="_blank">anywhere</b-link>:
 
-                  <pre class="ml-3 pl-3 my-1 py-1 w-50 border">
+                  <pre class="ml-3 pl-3 my-1 py-1 border">
 $ mkdir newfolder
 $ chdir newfolder
 $ git clone https://github.com/bokkypoobah/aenus.git
