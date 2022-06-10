@@ -1,11 +1,11 @@
-# aenus advanced ENS utilities
+# aenus advanced ENS and NFT utilities
 
-UI (WIP): https://bokkypoobah.github.io/aenus/
+See  https://bokkypoobah.github.io/aenus/ for live app and documentation.
 
----
+<br />
 
-## Notes
+<br />
 
-https://github.com/logaretm/villus
+<br />
 
-v1.0.1 https://unpkg.com/villus@latest/dist/villus.min.js
+Enjoy. aenus advanced ENS and NFT utilities (c) Bok Consulting Pty Ltd 2022.
