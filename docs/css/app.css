@@ -29,9 +29,11 @@
   text-align: right;
 }
 
+/*
 .navbar-toggler {
     display: block !important;
 }
+*/
 
 .form-control-plaintext {
   background-color: #F8F8F8 !important;

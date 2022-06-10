@@ -1,6 +1,6 @@
 const Welcome = {
   template: `
-    <div class="mt-5 pt-3">
+    <div class="m-0 p-0">
 
       <b-card no-body header="Welcome" class="border-0" header-class="p-1">
         <b-card no-body class="border-0 m-0 mt-2">
