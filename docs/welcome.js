@@ -64,7 +64,7 @@ const Welcome = {
                 <h6>Run Locally</h6>
                 <ul>
                   <li>
-                    From your Linux, OS/X (or equivalent terminal) using <b-link href="https://www.npmjs.com/package/anywhere" target="_blank">https://www.npmjs.com/package/anywhere</b-link>:
+                    From your Linux, OS/X (or equivalent terminal) using <b-link href="https://www.npmjs.com/package/anywhere" target="_blank">anywhere</b-link>:
 
                     <pre class="ml-3 pl-3 my-1 py-1 w-50 border">
 $ mkdir newfolder
