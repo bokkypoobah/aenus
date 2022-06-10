@@ -45,7 +45,7 @@ const Welcome = {
               <h6>This App</h6>
               <ul>
                 <li>
-                  Runs in your browser to crafts your queries to the data services and summarises the results.
+                  Runs in your browser to craft your queries to the data services and summarises the results.
                 </li>
                 <li>
                   Does not track your usage. If run from GitHub, retrival of this the app pages, and related (NFT) images will be logged.
@@ -54,7 +54,7 @@ const Welcome = {
                   Data service providers <b-link href="https://thegraph.com/" target="_blank">The Graph</b-link> (ENS and CryptoPunks subgraph queries) and <b-link href="https://api.reservoir.tools/#/1.%20Order%20Book/getOrdersAllV1" target="_blank">Reservoir API</b-link> (price data) will log your queries.
                 </li>
                 <li>
-                  Source code at <b-link href="https://github.com/bokkypoobah/aenus" target="_blank">https://github.com/bokkypoobah/aenus</b-link>. Feel free to fork and customise.
+                  Source code at <b-link href="https://github.com/bokkypoobah/aenus" target="_blank">github.com/bokkypoobah/aenus</b-link>. Feel free to fork and customise.
                 </li>
               </ul>
 
