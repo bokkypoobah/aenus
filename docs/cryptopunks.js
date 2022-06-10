@@ -31,7 +31,7 @@ const CryptoPunks = {
             <b-button size="sm" @click="doit( { action: 'stopService' } );" variant="primary">Stop Service</b-button>
             -->
             <div class="d-flex flex-wrap m-0 p-0" style="min-height: 37px;">
-              <div class="pr-4">
+              <div class="mt-2 pr-4">
                 <b-form-input type="text" size="sm" v-model.trim="settings.searchString" debounce="600" placeholder="🔍 id1, id2-id3, ..."></b-form-input>
               </div>
               <div class="mt-2 pr-1" style="max-width: 100px;">
