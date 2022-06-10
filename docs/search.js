@@ -1174,6 +1174,13 @@ const Search = {
     } else if (this.search == "sets") {
       this.settings.searchTabIndex = 6;
     }
+
+    if (this.topic) {
+      this.settings.searchString = this.topic;
+      // scan( { searchType: tabs[settings.searchTabIndex].name, search: settings.searchString, group: settings.selectedGroup, setAttributes: settings.setAttributes[settings.selectedSet] } );
+      store.dispatch('search/scan', { searchType: this.search, search: this.topic, group: this.topic });
+    }
+
     this.reschedule = true;
     logDebug("Search", "Calling timeoutCallback()");
     this.timeoutCallback();
@@ -1508,7 +1515,7 @@ const searchModule = {
   },
   actions: {
     scan(context, options) {
-      // logInfo("searchModule", "actions.scan() - options: " + JSON.stringify(options));
+      logInfo("searchModule", "actions.scan() - options: " + JSON.stringify(options));
       context.commit('scan', options);
     },
     halt(context) {
