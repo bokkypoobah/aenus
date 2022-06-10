@@ -32,16 +32,16 @@ const Welcome = {
                 <h6>Ethereum Name Service</h6>
                 <ul>
                   <li>
-                    Search <router-link to="/ens/name/">exact</router-link> names, or names that <router-link to="/ens/contain/">contain</router-link>, <router-link to="/ens/startswith/">start with</router-link> or <router-link to="/ens/endswith/">end with</router-link> terms.
+                    Search <router-link to="/ens/names/">names</router-link>, or names that <router-link to="/ens/contains/">contain</router-link>, <router-link to="/ens/startswith/">start with</router-link> or <router-link to="/ens/endswith/">end with</router-link> terms.
                   </li>
                   <li>
                     Search names including those <router-link to="/ens/owned/">owned</router-link> by the same registrants.
                   </li>
                   <li>
-                    Search for <router-link to="/ens/sets/">sets</router-link> like ranges of digits with optional prefix/postfix, e.g., 999Club, 10kClub, or the 24 hour set
+                    Search <router-link to="/ens/groups/">groups</router-link> of accounts configured in the <router-link to="/config/">Config</router-link> page.
                   </li>
                   <li>
-                    Organise your Ethereum accounts into <router-link to="/config/">groups</router-link> and <router-link to="/ens/group/">search by group</router-link>.
+                    Search for <router-link to="/ens/sets/">sets</router-link> like ranges of digits with optional prefix/postfix, e.g., 999Club, 10kClub, or the 24 hour set
                   </li>
                 </ul>
 

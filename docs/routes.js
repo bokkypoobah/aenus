@@ -2,6 +2,7 @@ const routes = [{
     path: '/ens/:search/:topic?',
     component: Search,
     name: 'Search',
+    props: true,
   }, {
     path: '/enssales/',
     component: Sales,

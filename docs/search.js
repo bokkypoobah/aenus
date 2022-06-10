@@ -10,10 +10,13 @@ const Search = {
       <b-card no-body header="Search Registered ENS Names" class="border-0" header-class="p-0">
 
         <b-card no-body class="p-0 mt-1">
+          <!--
+          PROPS: {{ search }}
+          -->
 
           <!-- Search type tabs -->
           <b-tabs card align="left" no-body active-tab-class="m-0 p-0" v-model="settings.searchTabIndex">
-            <b-tab v-for="t in tabs" :key="'dyn-tabx-' + t.name" :title="t.text" title-item-class="p-0" title-link-class="px-2">
+            <b-tab v-for="t in tabs" :key="'dyn-tabx-' + t.name" @click="updateURL(t.name);" :title="t.text" title-item-class="p-0" title-link-class="px-2">
             </b-tab>
           </b-tabs>
 
@@ -639,6 +642,7 @@ const Search = {
       </b-card>
     </div>
   `,
+  props: ['search', 'topic'],
   data: function () {
     return {
       count: 0,
@@ -768,20 +772,12 @@ const Search = {
 
       tabs: [
         { name: 'names', text: 'Names', placeholder: '🔍 {name1}[.eth] {name2}[.eth], {name3}[.eth]\n{name4}[.eth] ...' },
-        { name: 'owned', text: 'Owned', placeholder: '🔍 {name1}[.eth] {0xaddress1}, {name2}[.eth]\n{0xaddress2} ...' },
         { name: 'contains', text: 'Contains', placeholder: '🔍 {term1} {term2}, {term3} \n{term4} ...' },
         { name: 'startswith', text: 'Starts With', placeholder: '🔍 {term1} {term2}, {term3} \n{term4} ...' },
         { name: 'endswith', text: 'Ends With', placeholder: '🔍 {term1} {term2}, {term3} \n{term4} ...' },
+        { name: 'owned', text: 'Owned', placeholder: '🔍 {name1}[.eth] {0xaddress1}, {name2}[.eth]\n{0xaddress2} ...' },
         { name: 'groups', text: 'Groups', placeholder: null },
         { name: 'sets', text: 'Sets', placeholder: null },
-      ],
-
-      searchOptions: [
-        { value: 'names', text: 'Exact names' },
-        { value: 'owned', text: 'Names owned by names and/or addresses' },
-        { value: 'contains', text: 'Names containing' },
-        { value: 'startswith', text: 'Names starting with' },
-        { value: 'endswith', text: 'Names ending with' },
       ],
 
       pageSizes: [
@@ -1063,6 +1059,10 @@ const Search = {
     },
   },
   methods: {
+    updateURL(where) {
+      // console.log("goto: " + where);
+      this.$router.push('/ens/' + where);
+    },
     formatETH(e) {
       try {
         return e ? ethers.utils.commify(ethers.utils.formatEther(e)) : null;
@@ -1155,7 +1155,25 @@ const Search = {
     logDebug("Search", "beforeDestroy()");
   },
   mounted() {
-    logInfo("Search", "mounted() $route: " + JSON.stringify(this.$route.params));
+    logInfo("Search", "mounted() $route: " + JSON.stringify(this.$route.params) + ", props['search']: " + this.search + ", props['topic']: " + this.topic);
+
+    const tabIndex = this.tabs.findIndex(tab => tab === this.$route.hash)
+
+    if (this.search == "names") {
+      this.settings.searchTabIndex = 0;
+    } else if (this.search == "contains") {
+      this.settings.searchTabIndex = 1;
+    } else if (this.search == "startswith") {
+      this.settings.searchTabIndex = 2;
+    } else if (this.search == "endswith") {
+      this.settings.searchTabIndex = 3;
+    } else if (this.search == "owned") {
+      this.settings.searchTabIndex = 4;
+    } else if (this.search == "groups") {
+      this.settings.searchTabIndex = 5;
+    } else if (this.search == "sets") {
+      this.settings.searchTabIndex = 6;
+    }
     this.reschedule = true;
     logDebug("Search", "Calling timeoutCallback()");
     this.timeoutCallback();
