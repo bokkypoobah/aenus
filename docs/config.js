@@ -7,79 +7,79 @@ const Config = {
         </b-card-text>
       </b-card>
 
-      <b-card no-body header="Configuration" class="border-0" header-class="p-0">
+      <b-card no-body header="Configuration" class="border-0" header-class="p-1">
+        <b-card-body class="p-0">
+          <b-modal id="bv-modal-addgroup" size="lg" hide-footer>
+            <template v-slot:modal-title>
+              Add New Group
+            </template>
+            <b-card-body class="m-0 p-0">
+              <b-card-text class="mt-5">
+                <b-form-group label-cols="3" label-size="sm" label="New Group" description="New group name">
+                  <b-form-input size="sm" v-model="newGroupName" class="w-50"></b-form-input>
+                </b-form-group>
+                <b-form-group label-cols="3" label-size="sm" label="">
+                  <b-button size="sm" @click="$bvModal.hide('bv-modal-addgroup'); newGroup(newGroupName); newGroupName = null;" :disabled="newGroupName == null || newGroupName.length == 0" variant="warning">Add</b-button>
+                </b-form-group>
+              </b-card-text>
+            </b-card-body>
+          </b-modal>
 
-        <b-modal id="bv-modal-addgroup" size="lg" hide-footer>
-          <template v-slot:modal-title>
-            Add New Group
-          </template>
-          <b-card-body class="m-0 p-0">
-            <b-card-text class="mt-5">
-              <b-form-group label-cols="3" label-size="sm" label="New Group" description="New group name">
-                <b-form-input size="sm" v-model="newGroupName" class="w-50"></b-form-input>
-              </b-form-group>
-              <b-form-group label-cols="3" label-size="sm" label="">
-                <b-button size="sm" @click="$bvModal.hide('bv-modal-addgroup'); newGroup(newGroupName); newGroupName = null;" :disabled="newGroupName == null || newGroupName.length == 0" variant="warning">Add</b-button>
-              </b-form-group>
-            </b-card-text>
-          </b-card-body>
-        </b-modal>
+          <b-modal id="bv-modal-addaccount" size="lg" hide-footer>
+            <template v-slot:modal-title>
+              Add New Account To Group {{ groups[selectedGroupIndex].name }}
+            </template>
+            <b-card-body class="m-0 p-0">
+              <b-card-text class="mt-5">
+                <b-form-group label-cols="3" label-size="sm" label="New Account">
+                  <b-form-input size="sm" v-model="newAccount" class="w-50"></b-form-input>
+                </b-form-group>
+                <b-form-group label-cols="3" label-size="sm" label="">
+                  <b-button size="sm" @click="newGroupAccount(selectedGroupIndex, newAccount); $bvModal.hide('bv-modal-addaccount')" :disabled="newAccount == null || newAccount.length == 0" variant="warning">Add</b-button>
+                </b-form-group>
+              </b-card-text>
+            </b-card-body>
+          </b-modal>
 
-        <b-modal id="bv-modal-addaccount" size="lg" hide-footer>
-          <template v-slot:modal-title>
-            Add New Account To Group {{ groups[selectedGroupIndex].name }}
-          </template>
-          <b-card-body class="m-0 p-0">
-            <b-card-text class="mt-5">
-              <b-form-group label-cols="3" label-size="sm" label="New Account">
-                <b-form-input size="sm" v-model="newAccount" class="w-50"></b-form-input>
-              </b-form-group>
-              <b-form-group label-cols="3" label-size="sm" label="">
-                <b-button size="sm" @click="newGroupAccount(selectedGroupIndex, newAccount); $bvModal.hide('bv-modal-addaccount')" :disabled="newAccount == null || newAccount.length == 0" variant="warning">Add</b-button>
-              </b-form-group>
-            </b-card-text>
-          </b-card-body>
-        </b-modal>
+          <b-card class="m-1 p-1">
+            <template #header>
+              <h6>
+                Account Groups
+                <b-button size="sm" class="float-right m-0 p-0" href="#" @click="$bvModal.show('bv-modal-addgroup')" variant="link" v-b-popover.hover="'Add new group'"><b-icon-plus shift-v="-2" font-scale="1.4"></b-icon-plus></b-button>
+              </h6>
+            </template>
+            <div v-if="groups.length == 0">
+              <b-card-text>
+                Organise your ETH accounts (not ENS names) into groups. Use these groups in your ENS searches.
 
-        <b-card class="m-1 p-1">
-          <template #header>
-            <h6>
-              Account Groups
-              <b-button size="sm" class="float-right m-0 p-0" href="#" @click="$bvModal.show('bv-modal-addgroup')" variant="link" v-b-popover.hover="'Add new group'"><b-icon-plus shift-v="-2" font-scale="1.4"></b-icon-plus></b-button>
-            </h6>
-          </template>
-          <div v-if="groups.length == 0">
-            <b-card-text>
-              Organise your ETH accounts (not ENS names) into groups. Use these groups in your ENS searches.
+                <br />
+                <br />
 
-              <br />
-              <br />
-
-              Click on the + button to add a new group.
-            </b-card-text>
-          </div>
-          <div v-for="(group, groupIndex) in groups">
-            <b-card class="mb-2">
-              <template #header>
-                <h6>
-                  {{ groupIndex+1 }}. <em>{{ group.name }}</em>
-                  <b-button size="sm" class="m-0 p-0" @click="deleteGroup(groupIndex, group)" variant="link" v-b-popover.hover="'Delete ' + group.name + '!'"><b-icon-trash style="color: #ff0000;" shift-v="+1" font-scale="1.0"></b-icon-trash></b-button>
-                  <b-button size="sm" class="float-right m-0 p-0" href="#" @click="selectedGroupIndex = groupIndex; $bvModal.show('bv-modal-addaccount')" variant="link" v-b-popover.hover="'Add new account'"><b-icon-plus shift-v="+1" font-scale="1.4"></b-icon-plus></b-button>
-                </h6>
-              </template>
-              <div v-if="group.accounts.length == 0">
-                <b-card-text>
-                  Click on the + button to add a new account
-                </b-card-text>
-              </div>
-              <div v-for="(account, accountIndex) in group.accounts">
-                {{ accountIndex+1 }}. {{ account }}
-                <b-button size="sm" class="float-right m-0 p-0" @click="deleteAccountFromGroup(groupIndex, accountIndex, account)" variant="link" v-b-popover.hover="'Delete account ' + account + '!'"><b-icon-trash style="color: #ff0000;" shift-v="+1" font-scale="1.0"></b-icon-trash></b-button>
-              </div>
-            </b-card>
-          </div>
-        </b-card>
-
+                Click on the + button to add a new group.
+              </b-card-text>
+            </div>
+            <div v-for="(group, groupIndex) in groups">
+              <b-card class="mb-2">
+                <template #header>
+                  <h6>
+                    {{ groupIndex+1 }}. <em>{{ group.name }}</em>
+                    <b-button size="sm" class="m-0 p-0" @click="deleteGroup(groupIndex, group)" variant="link" v-b-popover.hover="'Delete ' + group.name + '!'"><b-icon-trash style="color: #ff0000;" shift-v="+1" font-scale="1.0"></b-icon-trash></b-button>
+                    <b-button size="sm" class="float-right m-0 p-0" href="#" @click="selectedGroupIndex = groupIndex; $bvModal.show('bv-modal-addaccount')" variant="link" v-b-popover.hover="'Add new account'"><b-icon-plus shift-v="+1" font-scale="1.4"></b-icon-plus></b-button>
+                  </h6>
+                </template>
+                <div v-if="group.accounts.length == 0">
+                  <b-card-text>
+                    Click on the + button to add a new account
+                  </b-card-text>
+                </div>
+                <div v-for="(account, accountIndex) in group.accounts">
+                  {{ accountIndex+1 }}. {{ account }}
+                  <b-button size="sm" class="float-right m-0 p-0" @click="deleteAccountFromGroup(groupIndex, accountIndex, account)" variant="link" v-b-popover.hover="'Delete account ' + account + '!'"><b-icon-trash style="color: #ff0000;" shift-v="+1" font-scale="1.0"></b-icon-trash></b-button>
+                </div>
+              </b-card>
+            </div>
+          </b-card>
+        <b-card-body class="p-2">
       </b-card>
     </div>
   `,
