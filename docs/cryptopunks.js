@@ -30,17 +30,17 @@ const CryptoPunks = {
             <b-button size="sm" @click="doit( { action: 'startService' } );" variant="primary">Start Service</b-button>
             <b-button size="sm" @click="doit( { action: 'stopService' } );" variant="primary">Stop Service</b-button>
             -->
-            <div class="d-flex flex-wrap m-0 mt-2 p-0" style="min-height: 37px;">
+            <div class="d-flex flex-wrap m-0 p-0" style="min-height: 37px;">
               <div class="pr-4">
                 <b-form-input type="text" size="sm" v-model.trim="settings.searchString" debounce="600" placeholder="🔍 id1, id2-id3, ..."></b-form-input>
               </div>
-              <div class="pr-1" style="max-width: 100px;">
+              <div class="mt-2 pr-1" style="max-width: 100px;">
                 <b-form-input type="text" size="sm" v-model.trim="settings.priceFrom" debounce="600" placeholder="ETH from"></b-form-input>
               </div>
-              <div class="pr-1">
+              <div class="mt-2 pr-1">
                 -
               </div>
-              <div class="pr-2" style="max-width: 100px;">
+              <div class="mt-2 pr-2" style="max-width: 100px;">
                 <b-form-input type="text" size="sm" v-model.trim="settings.priceTo" debounce="600" placeholder="ETH to"></b-form-input>
               </div>
               <!--
@@ -61,23 +61,23 @@ const CryptoPunks = {
 
               </div>
               -->
-              <div class="pr-1 flex-grow-1">
+              <div class="mt-2 pr-1 flex-grow-1">
               </div>
-              <div class="pr-1">
+              <div class="mt-2 pr-1">
                 <b-form-select size="sm" v-model="settings.sortOption" :options="sortOptions" class="w-100"></b-form-select>
               </div>
-              <div class="pr-1">
+              <div class="mt-2 pr-1">
                 <b-button size="sm" :pressed.sync="settings.randomise" @click="settings.sortOption = 'random'; " variant="link" v-b-popover.hover="'Randomise'"><b-icon-arrow-clockwise shift-v="-1" font-scale="1.4"></b-icon-arrow-clockwise></b-button>
               </div>
-              <div class="pr-1 flex-grow-1">
+              <div class="mt-2 pr-1 flex-grow-1">
               </div>
-              <div class="pl-1">
+              <div class="mt-2 pl-1">
                 <font size="-2">{{ filteredResults.length }}</font>
               </div>
-              <div class="pl-1">
+              <div class="mt-2 pl-1">
                 <b-pagination size="sm" v-model="settings.currentPage" :total-rows="filteredResults.length" :per-page="settings.pageSize"></b-pagination>
               </div>
-              <div class="pl-1">
+              <div class="mt-2 pl-1">
                 <b-form-select size="sm" v-model="settings.pageSize" :options="pageSizes"></b-form-select>
               </div>
             </div>

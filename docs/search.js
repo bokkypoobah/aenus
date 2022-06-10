@@ -163,31 +163,31 @@ const Search = {
             </b-tabs>
 
             <!-- Results Toolbar -->
-            <div v-if="Object.keys(searchResults).length > 0" class="d-flex flex-wrap m-0 mt-2 p-0" style="min-height: 37px;">
-              <div v-if="settings.resultsTabIndex != 4" class="pr-4">
+            <div v-if="Object.keys(searchResults).length > 0" class="d-flex flex-wrap m-0 p-0" style="min-height: 37px;">
+              <div v-if="settings.resultsTabIndex != 4" class="mt-2 pr-4">
                 <b-form-input type="text" size="sm" v-model.trim="settings.filter" debounce="600" class="w-100" placeholder="🔍 {regex}"></b-form-input>
               </div>
-              <div v-if="settings.resultsTabIndex != 4" class="pr-1" style="max-width: 100px;">
+              <div v-if="settings.resultsTabIndex != 4" class="mt-2 pr-1" style="max-width: 100px;">
                 <b-form-input type="text" size="sm" v-model.trim="settings.priceFrom" debounce="600" class="w-100" placeholder="ETH from"></b-form-input>
               </div>
-              <div v-if="settings.resultsTabIndex != 4" class="pr-1">
+              <div v-if="settings.resultsTabIndex != 4" class="mt-2 pr-1">
                 -
               </div>
-              <div v-if="settings.resultsTabIndex != 4" class="pr-2" style="max-width: 100px;">
+              <div v-if="settings.resultsTabIndex != 4" class="mt-2 pr-2" style="max-width: 100px;">
                 <b-form-input type="text" size="sm" v-model.trim="settings.priceTo" debounce="600" class="w-100" placeholder="ETH to"></b-form-input>
               </div>
-              <div v-if="settings.resultsTabIndex != 4" class="pl-1">
+              <div v-if="settings.resultsTabIndex != 4" class="mt-2 pl-1">
                 <font size="-2">{{ filteredResults.length }}/{{ Object.keys(searchResults).length }}</font>
               </div>
               <div class="pr-1 flex-grow-1">
               </div>
-              <div v-if="settings.resultsTabIndex != 4 && settings.resultsTabIndex != 5" class="pl-1" style="max-width: 200px;">
+              <div v-if="settings.resultsTabIndex != 4 && settings.resultsTabIndex != 5" class="mt-2 pl-1" style="max-width: 200px;">
                 <b-form-select size="sm" v-model="settings.sortOption" :options="sortOptions" class="w-100"></b-form-select>
               </div>
-              <div v-if="settings.resultsTabIndex != 4 && settings.resultsTabIndex != 5" class="pl-1">
+              <div v-if="settings.resultsTabIndex != 4 && settings.resultsTabIndex != 5" class="mt-2 pl-1">
                 <b-button size="sm" :pressed.sync="settings.randomise" @click="settings.sortOption = 'random'; " variant="link" v-b-popover.hover="'Randomise'"><b-icon-arrow-clockwise shift-v="-1" font-scale="1.4"></b-icon-arrow-clockwise></b-button>
               </div>
-              <div v-if="settings.resultsTabIndex != 4" class="pl-1">
+              <div v-if="settings.resultsTabIndex != 4" class="mt-2 pl-1">
                 <b-button size="sm" @click="exportNames" :disabled="Object.keys(searchResults).length == 0" variant="link">Export</b-button>
               </div>
               <div class="pr-1 flex-grow-1">
@@ -197,10 +197,10 @@ const Search = {
                 <b-form-select size="sm" v-model="settings.imageSize" :options="imageSizeOptions"></b-form-select>
               </div>
               -->
-              <div v-if="settings.resultsTabIndex == 1 || settings.resultsTabIndex == 2" class="pl-1">
+              <div v-if="settings.resultsTabIndex == 1 || settings.resultsTabIndex == 2" class="mt-2 pl-1">
                 <b-pagination size="sm" v-model="settings.resultsCurrentPage" :total-rows="filteredResults.length" :per-page="settings.resultsPageSize"></b-pagination>
               </div>
-              <div v-if="settings.resultsTabIndex == 1 || settings.resultsTabIndex == 2" class="pl-1" style="max-width: 200px;">
+              <div v-if="settings.resultsTabIndex == 1 || settings.resultsTabIndex == 2" class="mt-2 pl-1" style="max-width: 200px;">
                 <b-form-select size="sm" v-model="settings.resultsPageSize" :options="pageSizes"></b-form-select>
               </div>
             </div>

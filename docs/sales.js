@@ -22,20 +22,20 @@ const Sales = {
             <b-button size="sm" @click="doit( { action: 'stopService' } );" variant="primary">Stop Service</b-button>
           </b-card-body>
           <b-card-body class="m-1 p-1">
-            <div class="d-flex flex-wrap m-0 mt-2 p-0" style="min-height: 37px;">
-              <div class="pr-4">
+            <div class="d-flex flex-wrap m-0 p-0" style="min-height: 37px;">
+              <div class="mt-2 pr-4">
                 <b-form-input type="text" size="sm" :value="filter.searchString" @change="updateFilter('searchString', $event)" debounce="600" placeholder="🔍 {regex}"></b-form-input>
               </div>
-              <div class="pr-1" style="max-width: 100px;">
+              <div class="mt-2 pr-1" style="max-width: 100px;">
                 <b-form-input type="text" size="sm" :value="filter.priceFrom" @change="updateFilter('priceFrom', $event)" debounce="600" placeholder="ETH from"></b-form-input>
               </div>
-              <div class="pr-1">
+              <div class="mt-2 pr-1">
                 -
               </div>
-              <div class="pr-2" style="max-width: 100px;">
+              <div class="mt-2 pr-2" style="max-width: 100px;">
               <b-form-input type="text" size="sm" :value="filter.priceTo" @change="updateFilter('priceTo', $event)" debounce="600" placeholder="ETH to"></b-form-input>
               </div>
-              <div class="pr-1 flex-grow-1">
+              <div class="mt-2 pr-1 flex-grow-1">
               </div>
             </div>
             <b-table small striped hover :fields="salesFields" :items="sales" table-class="w-auto" class="mt-1">
