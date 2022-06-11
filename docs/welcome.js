@@ -48,7 +48,7 @@ const Welcome = {
                   Runs in your browser to craft your queries to the data services and summarises the results.
                 </li>
                 <li>
-                  Does not track your usage. If run from GitHub, retrival of this the app pages, and related (NFT) images will be logged.
+                  Does not track your usage. If run from GitHub, retrival of this the app pages and related (NFT) images will be logged.
                 </li>
                 <li>
                   Data service providers <b-link href="https://thegraph.com/" target="_blank">The Graph</b-link> (ENS and CryptoPunks subgraph queries) and <b-link href="https://api.reservoir.tools/#/1.%20Order%20Book/getOrdersAllV1" target="_blank">Reservoir API</b-link> (price data) will log your queries.
