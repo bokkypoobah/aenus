@@ -24,6 +24,8 @@ const CryptoPunks = {
             </b-row>
 
             <!--
+            {{ attributes }}
+
             <b-button size="sm" @click="doit( { type: 'fullsync' } );" variant="primary">Retrieve Latest 50 Sales</b-button>
             <span v-if="searchMessage != null">
               <b-button size="sm" @click="halt" variant="primary">Halt</b-button>
@@ -507,6 +509,22 @@ const CryptoPunks = {
       }
 
       return stage3Data;
+    },
+    attributes() {
+      const collator = {};
+      for (const d of this.results) {
+        for (let attribute of d.attributes) {
+          if (!collator[attribute.trait_type]) {
+            collator[attribute.trait_type] = {};
+          }
+          if (!collator[attribute.trait_type][attribute.value]) {
+            collator[attribute.trait_type][attribute.value] = 1;
+          } else {
+            collator[attribute.trait_type][attribute.value]++;
+          }
+        }
+      }
+      return collator;
     },
   },
   methods: {
