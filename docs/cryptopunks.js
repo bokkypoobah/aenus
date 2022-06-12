@@ -16,9 +16,10 @@ const CryptoPunks = {
                 <font size="-2">
                   {{ message }}
                 </font>
-                <b-button v-if="message == null" size="sm" @click="search" variant="primary" class="float-right mx-1">Sync</b-button>
+                <b-button v-if="message == null" size="sm" @click="search(fullSync)" variant="primary" class="float-right mx-1">Sync</b-button>
                 <!-- <b-button v-if="message == null" size="sm" @click="searchLogs" :disabled="false && (!powerOn || network.chainId != 1)" v-b-popover.hover.bottom="'Connect to web3 to enable'" variant="primary" class="float-right mx-1">Search Logs</b-button> -->
                 <b-button v-if="message != null" size="sm" @click="halt" variant="primary" class="float-right">Halt</b-button>
+                <b-form-checkbox v-model="fullSync" :disabled="message != null" v-b-popover.hover.bottom="'Full or incremental sync'" class="float-right mr-2">Full sync</b-form-checkbox>
               </b-col>
             </b-row>
 
@@ -138,6 +139,8 @@ const CryptoPunks = {
     return {
       count: 0,
       reschedule: true,
+
+      fullSync: false,
 
       settings: {
         searchString: null,
@@ -630,26 +633,8 @@ const CryptoPunks = {
         }
       }
     },
-    async search() {
-      // console.log("search");
-      // const data = await fetch(ENSSUBGRAPHURL, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'Accept': 'application/json',
-      //   },
-      //   body: JSON.stringify({
-      //     query: ENSSUBGRAPHNAMEQUERY,
-      //     variables: { labelNames: ["bokky"] },
-      //   })
-      // }).then(response => response.json());
-      // console.log(JSON.stringify(data));
-        // .then(data => processRegistrations(data.data.registrations))
-        // .then(data => console.log(JSON.stringify(data.data.registrations)))
-        // .catch(function(e) {
-        //   console.log("error: " + e);
-        // });
-      store.dispatch('cryptoPunks/loadPunks');
+    async search(fullSync) {
+      store.dispatch('cryptoPunks/loadPunks', fullSync);
     },
     async doit(action) {
       console.log("doit: " + JSON.stringify(action));
@@ -725,7 +710,8 @@ const cryptoPunksModule = {
     executionQueue: state => state.executionQueue,
   },
   mutations: {
-    async loadPunks(state, options) {
+    async loadPunks(state, fullSync) {
+      logInfo("cryptoPunksModule", "mutations.loadPunks() - fullSync: " + fullSync);
       function* getBatch(records, batchsize = CRYPTOPUNKSSUBGRAPHBATCHSIZE) {
         while (records.length) {
           yield records.splice(0, batchsize);
@@ -930,52 +916,19 @@ const cryptoPunksModule = {
       }
 
       async function fetchExchangeRates() {
-        // const results = {};
-        // const latestRecord = await db0.punks.orderBy("timestamp").last();
-        // if (latestRecord != null) {
-          // let latestTimestamp = parseInt(latestRecord.timestamp) - 6 * 60 * 60;
-          // let data;
-
-          // TODO: Use toTs={timestamp} when > 2000 days - https://min-api.cryptocompare.com/documentation?key=Historical&cat=dataHistoday
-          // console.log(new Date("2017-07-22").toLocaleString());
-          const days = parseInt((new Date() - new Date("2017-07-22")) / (24 * 60 * 60 * 1000));
-          // console.log(days);
-
-          // do {
-            const url = "https://min-api.cryptocompare.com/data/v2/histoday?fsym=ETH&tsym=" + state.config.currency + "&limit=" + days;
-            // logInfo("cryptoPunksModule", "mutations.loadPunks().fetchLatestEvents() url: " + url);
-            const data = await fetch(url)
-              .then(response => response.json())
-              .catch(function(e) {
-                console.log("error: " + e);
-              });
-            // logInfo("cryptoPunksModule", "mutations.loadPunks().fetchLatestEvents() data.Data.Data: " + JSON.stringify(data.Data.Data));
-
-            // {"time":1653609600,"high":1820.36,"low":1706.95,"open":1791,"volumefrom":620989.67,"volumeto":1091437639.61,"close":1724.73,"conversionType":"direct","conversionSymbol":""}
-
-            const results = {};
-            for (day of data.Data.Data) {
-              // results[new Date(day.time * 1000).toISOString().substring(0, 10)] = day.close;
-              results[day.time] = day.close;
-            }
-            // console.log(JSON.stringify(results));
-
-
-            // if (debug) {
-            //   console.log(JSON.stringify(data, null, 2));
-            // }
-            // for (let event of data.data.events) {
-            //   if (event.nft) {
-            //     // console.log(JSON.stringify(event, null, 2));
-            //     results[event.nft.id] = true;
-            //   }
-            //   latestTimestamp = parseInt(event.timestamp);
-            //   // logInfo("cryptoPunksModule", "mutations.loadPunks().fetchLatestEvents() event.timestamp: " + new Date(event.timestamp * 1000).toLocaleString() + " = " + event.timestamp);
-            // }
-            // console.log(JSON.stringify(data.data.events, null, 2));
-          // } while (data && data.data && data.data.events && data.data.events.length != 0);
-          // return Object.keys(results).map(function(id) { return parseInt(id); });
-        // }
+        // TODO: Use toTs={timestamp} when > 2000 days - https://min-api.cryptocompare.com/documentation?key=Historical&cat=dataHistoday
+        const days = parseInt((new Date() - new Date("2017-07-22")) / (24 * 60 * 60 * 1000));
+        const url = "https://min-api.cryptocompare.com/data/v2/histoday?fsym=ETH&tsym=" + state.config.currency + "&limit=" + days;
+        // logInfo("cryptoPunksModule", "mutations.loadPunks().fetchLatestEvents() url: " + url);
+        const data = await fetch(url)
+          .then(response => response.json())
+          .catch(function(e) {
+            console.log("error: " + e);
+          });
+        const results = {};
+        for (day of data.Data.Data) {
+          results[day.time] = day.close;
+        }
         return results;
       }
 
@@ -1006,7 +959,10 @@ const cryptoPunksModule = {
       state.message = "Syncing";
       const debug = null; // [9863];
 
-      // Dexie.delete("aenuspunksdb");
+      if (fullSync) {
+        logInfo("cryptoPunksModule", "mutations.loadPunks() fullSync - deleting db");
+        Dexie.delete("aenuspunksdb");
+      }
 
       const db0 = new Dexie("aenuspunksdb");
       db0.version(1).stores({
@@ -1080,9 +1036,9 @@ const cryptoPunksModule = {
     },
   },
   actions: {
-    loadPunks(context) {
-      logInfo("cryptoPunksModule", "actions.loadPunks()");
-      context.commit('loadPunks');
+    loadPunks(context, fullSync) {
+      // logInfo("cryptoPunksModule", "actions.loadPunks() - fullSync: " + fullSync);
+      context.commit('loadPunks', fullSync);
     },
     halt(context) {
       // logInfo("cryptoPunksModule", "actions.halt()");
