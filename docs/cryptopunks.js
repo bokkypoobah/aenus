@@ -23,7 +23,7 @@ const CryptoPunks = {
               </b-col>
             </b-row>
             <div>
-              <b-sidebar id="sidebar-1" width="300px" title="Filter By Attributes" right shadow>
+              <b-sidebar id="sidebar-1" width="360px" title="Filter By Attributes" right shadow>
                 <div class="px-1 py-2">
                   <div v-for="(attributeKey, attributeIndex) in Object.keys(attributes).sort()" v-bind:key="attributeIndex">
                     <b-card body-class="p-0" header-class="m-0 p-0 pl-2" footer-class="p-1" class="m-3 p-0">
@@ -48,10 +48,7 @@ const CryptoPunks = {
               </b-sidebar>
             </div>
             <div class="d-flex flex-wrap m-0 p-0" style="min-height: 37px;">
-              <div class="mt-2 px-0">
-                <b-button size="sm" v-b-toggle.sidebar-1 variant="link" v-b-popover.hover.bottom="'Filter by Attributes'"><b-icon-filter-left shift-v="-1" font-scale="1.4"></b-icon-filter-left></b-button>
-              </div>
-              <div class="mt-2 pl-2" style="max-width: 150px;">
+              <div class="mt-2" style="max-width: 150px;">
                 <b-form-input type="text" size="sm" v-model.trim="settings.searchString" debounce="600" v-b-popover.hover.bottom="'Filter by list of punkIds'" placeholder="🔍 id1 id2-id3 ..."></b-form-input>
               </div>
               <div class="mt-2 pl-2" style="max-width: 150px;">
@@ -102,6 +99,9 @@ const CryptoPunks = {
               </div>
               <div class="mt-2 pl-1">
                 <b-form-select size="sm" v-model="settings.pageSize" :options="pageSizes"></b-form-select>
+              </div>
+              <div class="mt-2 pl-1">
+                <b-button size="sm" v-b-toggle.sidebar-1 variant="link" v-b-popover.hover.bottom="'Filter by Attributes'"><b-icon-filter-right shift-v="-1" font-scale="1.4"></b-icon-filter-right></b-button>
               </div>
             </div>
 
