@@ -878,6 +878,7 @@ const cryptoPunksModule = {
             } else if (event.type == "BID_REMOVED") {
               bid = null;
               bidTimestamp = null;
+              bidder = null;
             } else if (event.type == "ASK_CREATED") {
               ask = event.amount;
               askTimestamp = event.timestamp;
@@ -889,13 +890,19 @@ const cryptoPunksModule = {
                 // L180 - Check for the case where there is a bid from the new owner and refund it.
                 bid = null;
                 bidTimestamp = null;
+                bidder = null;
                 // console.log("HERE");
               }
               ask = null;
               // askTimestamp = null; // Workaround as order of events in the same block is unknown - use the subgraph currentAsk
               sale = event.amount;
               saleTimestamp = event.timestamp;
-            } else {
+            } else if (event.type == "TRANSFER") {
+              if (bidder == event.to.id) {
+                bid = null;
+                bidTimestamp = null;
+                bidder = null;
+              }
             }
           }
 
