@@ -31,10 +31,13 @@ const CryptoPunks = {
             <b-button size="sm" @click="doit( { action: 'stopService' } );" variant="primary">Stop Service</b-button>
             -->
             <div class="d-flex flex-wrap m-0 p-0" style="min-height: 37px;">
-              <div class="mt-2 pr-4">
+              <div class="mt-2">
                 <b-form-input type="text" size="sm" v-model.trim="settings.searchString" debounce="600" placeholder="🔍 id1, id2-id3, ..."></b-form-input>
               </div>
-              <div class="mt-2 pr-1" style="max-width: 100px;">
+              <div class="mt-2 pl-2">
+                <b-form-input type="text" size="sm" v-model.trim="settings.searchAccount" debounce="600" placeholder="🔍 0x12..., 0x23..., ..."></b-form-input>
+              </div>
+              <div class="mt-2 pl-2" style="max-width: 100px;">
                 <b-form-input type="text" size="sm" v-model.trim="settings.priceFrom" debounce="600" placeholder="ETH from"></b-form-input>
               </div>
               <div class="mt-2 pr-1">
@@ -138,6 +141,7 @@ const CryptoPunks = {
 
       settings: {
         searchString: null,
+        searchAccount: null,
         priceFrom: null,
         priceTo: null,
         filterPriceBy: false,
@@ -166,6 +170,8 @@ const CryptoPunks = {
         { value: 'earliestask', text: 'Earliest Ask' },
         { value: 'latestsale', text: 'Latest Sale' },
         { value: 'earliestsale', text: 'Earliest Sale' },
+        { value: 'latestactivity', text: 'Latest Activity' },
+        { value: 'earliestactivity', text: 'Earliest Activity' },
         { value: 'random', text: 'Random' },
       ],
 
@@ -219,7 +225,7 @@ const CryptoPunks = {
       let stage1Data = data;
 
       if (this.settings.searchString != null && this.settings.searchString.length > 0) {
-        const searchTokenIds = this.settings.searchString.split(/[, \t\n]+/).map(function(item) { return item.trim(); });
+        const searchTokenIds = this.settings.searchString.split(/[, \t\n]+/).map(function(s) { return s.trim(); });
         stage1Data = [];
         for (s of searchTokenIds) {
           var range = s.match(/(\d+)-(\d+)/)
@@ -242,7 +248,7 @@ const CryptoPunks = {
 
       let stage2Data = stage1Data;
       if ((priceFrom != null || priceTo != null) && (filterBid || filterAsk || filterLast)) {
-        console.log("settings: " + JSON.stringify(this.settings));
+        // console.log("settings: " + JSON.stringify(this.settings));
         stage2Data = [];
         for (let d of stage1Data) {
           const bid = d.bid.amount ? ethers.utils.formatEther(d.bid.amount) : null;
@@ -268,16 +274,39 @@ const CryptoPunks = {
         }
       }
 
+      let stage3Data = stage2Data;
+      if (this.settings.searchAccount != null && this.settings.searchAccount.length > 0) {
+        const searchAccounts = this.settings.searchAccount.split(/[, \t\n]+/).map(function(s) { return s.toLowerCase(); });
+        console.log("searchAccounts: " + JSON.stringify(searchAccounts));
+        stage3Data = [];
+        for (let d of stage2Data) {
+      //     const owner = this.owners[d.tokenId] ? this.owners[d.tokenId].toLowerCase() : null;
+      //     const ensName = owner == null ? null : this.ensMap[owner];
+          for (searchAccount of searchAccounts) {
+      //       const s = searchAccount.toLowerCase();
+      //       if (owner != null && owner.includes(s)) {
+      //         stage5Data.push(d);
+      //         break;
+      //       } else if (ensName != null && ensName.includes(s)) {
+      //         stage5Data.push(d);
+      //         break;
+      //       }
+          }
+        }
+      }
+      // console.log("stage5Data.length: " + stage5Data.length);
+
+
       if (this.settings.sortOption == 'idasc') {
-        stage2Data.sort((a, b) => {
+        stage3Data.sort((a, b) => {
           return a.punkId - b.punkId;
         });
       } else if (this.settings.sortOption == 'iddsc') {
-        stage2Data.sort((a, b) => {
+        stage3Data.sort((a, b) => {
           return b.punkId - a.punkId;
         });
       } else if (this.settings.sortOption == 'bidasc') {
-        stage2Data.sort((a, b) => {
+        stage3Data.sort((a, b) => {
           const pricea = a.bid.amount ? a.bid.amount : null;
           const priceb = b.bid.amount ? b.bid.amount : null;
           if (pricea == priceb) {
@@ -291,7 +320,7 @@ const CryptoPunks = {
           }
         });
       } else if (this.settings.sortOption == 'biddsc') {
-        stage2Data.sort((a, b) => {
+        stage3Data.sort((a, b) => {
           const pricea = a.bid.amount ? a.bid.amount : null;
           const priceb = b.bid.amount ? b.bid.amount : null;
           if (pricea == priceb) {
@@ -305,7 +334,7 @@ const CryptoPunks = {
           }
         });
       } else if (this.settings.sortOption == 'askasc') {
-        stage2Data.sort((a, b) => {
+        stage3Data.sort((a, b) => {
           const pricea = a.ask.amount ? a.ask.amount : null;
           const priceb = b.ask.amount ? b.ask.amount : null;
           if (pricea == priceb) {
@@ -319,7 +348,7 @@ const CryptoPunks = {
           }
         });
       } else if (this.settings.sortOption == 'askdsc') {
-        stage2Data.sort((a, b) => {
+        stage3Data.sort((a, b) => {
           const pricea = a.ask.amount ? a.ask.amount : null;
           const priceb = b.ask.amount ? b.ask.amount : null;
           if (pricea == priceb) {
@@ -333,7 +362,7 @@ const CryptoPunks = {
           }
         });
       } else if (this.settings.sortOption == 'lastasc') {
-        stage2Data.sort((a, b) => {
+        stage3Data.sort((a, b) => {
           const pricea = a.last.amount ? a.last.amount : null;
           const priceb = b.last.amount ? b.last.amount : null;
           if (pricea == priceb) {
@@ -347,7 +376,7 @@ const CryptoPunks = {
           }
         });
       } else if (this.settings.sortOption == 'lastdsc') {
-        stage2Data.sort((a, b) => {
+        stage3Data.sort((a, b) => {
           const pricea = a.last.amount ? a.last.amount : null;
           const priceb = b.last.amount ? b.last.amount : null;
           if (pricea == priceb) {
@@ -361,7 +390,7 @@ const CryptoPunks = {
           }
         });
       } else if (this.settings.sortOption == 'latestbid') {
-        stage2Data.sort((a, b) => {
+        stage3Data.sort((a, b) => {
           const timestampa = a.bid.timestamp ? a.bid.timestamp : null;
           const timestampb = b.bid.timestamp ? b.bid.timestamp : null;
           if (timestampa == timestampb) {
@@ -375,7 +404,7 @@ const CryptoPunks = {
           }
         });
       } else if (this.settings.sortOption == 'earliestbid') {
-        stage2Data.sort((a, b) => {
+        stage3Data.sort((a, b) => {
           const timestampa = a.bid.timestamp ? a.bid.timestamp : null;
           const timestampb = b.bid.timestamp ? b.bid.timestamp : null;
           if (timestampa == timestampb) {
@@ -389,7 +418,7 @@ const CryptoPunks = {
           }
         });
       } else if (this.settings.sortOption == 'latestask') {
-        stage2Data.sort((a, b) => {
+        stage3Data.sort((a, b) => {
           const timestampa = a.ask.timestamp ? a.ask.timestamp : null;
           const timestampb = b.ask.timestamp ? b.ask.timestamp : null;
           if (timestampa == timestampb) {
@@ -403,7 +432,7 @@ const CryptoPunks = {
           }
         });
       } else if (this.settings.sortOption == 'earliestask') {
-        stage2Data.sort((a, b) => {
+        stage3Data.sort((a, b) => {
           const timestampa = a.ask.timestamp ? a.ask.timestamp : null;
           const timestampb = b.ask.timestamp ? b.ask.timestamp : null;
           if (timestampa == timestampb) {
@@ -417,7 +446,7 @@ const CryptoPunks = {
           }
         });
       } else if (this.settings.sortOption == 'latestsale') {
-        stage2Data.sort((a, b) => {
+        stage3Data.sort((a, b) => {
           const timestampa = a.last.timestamp ? a.last.timestamp : null;
           const timestampb = b.last.timestamp ? b.last.timestamp : null;
           if (timestampa == timestampb) {
@@ -431,7 +460,7 @@ const CryptoPunks = {
           }
         });
       } else if (this.settings.sortOption == 'earliestsale') {
-        stage2Data.sort((a, b) => {
+        stage3Data.sort((a, b) => {
           const timestampa = a.last.timestamp ? a.last.timestamp : null;
           const timestampb = b.last.timestamp ? b.last.timestamp : null;
           if (timestampa == timestampb) {
@@ -444,8 +473,36 @@ const CryptoPunks = {
             return timestampa - timestampb;
           }
         });
+      } else if (this.settings.sortOption == 'latestactivity') {
+        stage3Data.sort((a, b) => {
+          const timestampa = a.timestamp ? a.timestamp : null;
+          const timestampb = b.timestamp ? b.timestamp : null;
+          if (timestampa == timestampb) {
+            return a.punkId - b.punkId;
+          } else if (timestampa != null && timestampb == null) {
+            return -1;
+          } else if (timestampa == null && timestampb != null) {
+            return 1;
+          } else {
+            return timestampb - timestampa;
+          }
+        });
+      } else if (this.settings.sortOption == 'earliestactivity') {
+        stage3Data.sort((a, b) => {
+          const timestampa = a.timestamp ? a.timestamp : null;
+          const timestampb = b.timestamp ? b.timestamp : null;
+          if (timestampa == timestampb) {
+            return a.punkId - b.punkId;
+          } else if (timestampa != null && timestampb == null) {
+            return -1;
+          } else if (timestampa == null && timestampb != null) {
+            return 1;
+          } else {
+            return timestampa - timestampb;
+          }
+        });
       } else {
-        stage2Data.sort(() => {
+        stage3Data.sort(() => {
           return Math.random() - 0.5;
         });
       }
@@ -642,6 +699,7 @@ const cryptoPunksModule = {
       deleteBeforeDays: 3,
       collections: [0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85],
       reservoirSalesV3BatchSize: 50,
+      currency: 'USD',
     },
     filter: {
       searchString: "^[0-9]*$",
@@ -649,6 +707,7 @@ const cryptoPunksModule = {
       priceTo: 12.34,
     },
     punks: [],
+    exchangeRates: {},
     tempPunks: [],
     results: [],
     sales: [],
@@ -662,6 +721,7 @@ const cryptoPunksModule = {
     config: state => state.config,
     filter: state => state.filter,
     punks: state => state.punks,
+    exchangeRates: state => state.exchangeRates,
     results: state => state.results,
     sales: state => state.sales,
     message: state => state.message,
@@ -836,7 +896,7 @@ const cryptoPunksModule = {
         const results = {};
         const latestRecord = await db0.punks.orderBy("timestamp").last();
         if (latestRecord != null) {
-          let latestTimestamp = parseInt(latestRecord.timestamp) - 6 * 60 * 60;
+          let latestTimestamp = parseInt(latestRecord.timestamp) - 2 * 60 * 60;
           let data;
           do {
             logInfo("cryptoPunksModule", "mutations.loadPunks().fetchLatestEvents() latestTimestamp: " + new Date(latestTimestamp * 1000).toLocaleString() + " = " + latestTimestamp);
@@ -873,6 +933,56 @@ const cryptoPunksModule = {
         return null;
       }
 
+      async function fetchExchangeRates() {
+        // const results = {};
+        // const latestRecord = await db0.punks.orderBy("timestamp").last();
+        // if (latestRecord != null) {
+          // let latestTimestamp = parseInt(latestRecord.timestamp) - 6 * 60 * 60;
+          // let data;
+
+          // TODO: Use toTs={timestamp} when > 2000 days - https://min-api.cryptocompare.com/documentation?key=Historical&cat=dataHistoday
+          // console.log(new Date("2017-07-22").toLocaleString());
+          const days = parseInt((new Date() - new Date("2017-07-22")) / (24 * 60 * 60 * 1000));
+          // console.log(days);
+
+          // do {
+            const url = "https://min-api.cryptocompare.com/data/v2/histoday?fsym=ETH&tsym=" + state.config.currency + "&limit=" + days;
+            // logInfo("cryptoPunksModule", "mutations.loadPunks().fetchLatestEvents() url: " + url);
+            const data = await fetch(url)
+              .then(response => response.json())
+              .catch(function(e) {
+                console.log("error: " + e);
+              });
+            // logInfo("cryptoPunksModule", "mutations.loadPunks().fetchLatestEvents() data.Data.Data: " + JSON.stringify(data.Data.Data));
+
+            // {"time":1653609600,"high":1820.36,"low":1706.95,"open":1791,"volumefrom":620989.67,"volumeto":1091437639.61,"close":1724.73,"conversionType":"direct","conversionSymbol":""}
+
+            const results = {};
+            for (day of data.Data.Data) {
+              // results[new Date(day.time * 1000).toISOString().substring(0, 10)] = day.close;
+              results[day.time] = day.close;
+            }
+            // console.log(JSON.stringify(results));
+
+
+            // if (debug) {
+            //   console.log(JSON.stringify(data, null, 2));
+            // }
+            // for (let event of data.data.events) {
+            //   if (event.nft) {
+            //     // console.log(JSON.stringify(event, null, 2));
+            //     results[event.nft.id] = true;
+            //   }
+            //   latestTimestamp = parseInt(event.timestamp);
+            //   // logInfo("cryptoPunksModule", "mutations.loadPunks().fetchLatestEvents() event.timestamp: " + new Date(event.timestamp * 1000).toLocaleString() + " = " + event.timestamp);
+            // }
+            // console.log(JSON.stringify(data.data.events, null, 2));
+          // } while (data && data.data && data.data.events && data.data.events.length != 0);
+          // return Object.keys(results).map(function(id) { return parseInt(id); });
+        // }
+        return results;
+      }
+
       async function refreshResultsFromDB() {
         // const punks = await db0.punks.orderBy("timestamp").reverse().limit(100).toArray();
         const punks = await db0.punks.orderBy("punkId").toArray();
@@ -888,7 +998,7 @@ const cryptoPunksModule = {
             bid: punk.bid,
             ask: punk.ask,
             last: punk.last,
-            // attributes: punk.attributes,
+            attributes: punk.attributes,
           });
         }
         state.results = records;
@@ -916,6 +1026,9 @@ const cryptoPunksModule = {
           traitsLookup[trait] = attribute;
         }
       }
+
+      state.exchangeRates = await fetchExchangeRates();
+      logInfo("cryptoPunksModule", "mutations.loadPunks() exchangeRates: " + JSON.stringify(state.exchangeRates));
 
       const latestEventPunkIds = debug ? debug : await fetchLatestEvents();
       logInfo("cryptoPunksModule", "mutations.loadPunks() latestEventPunkIds: " + JSON.stringify(latestEventPunkIds));
