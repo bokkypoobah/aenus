@@ -164,17 +164,20 @@ const Search = {
 
             <!-- Results Toolbar -->
             <div v-if="Object.keys(searchResults).length > 0" class="d-flex flex-wrap m-0 p-0" style="min-height: 37px;">
-              <div v-if="settings.resultsTabIndex != 4" class="mt-2" style="max-width: 130px;">
-                <b-form-input type="text" size="sm" v-model.trim="settings.filter" debounce="600" placeholder="🔍 {regex}"></b-form-input>
+              <div v-if="settings.resultsTabIndex != 4" class="mt-2" style="max-width: 150px;">
+                <b-form-input type="text" size="sm" v-model.trim="settings.filter" debounce="600" v-b-popover.hover="'Filter by regular expression'" placeholder="🔍 {regex}"></b-form-input>
               </div>
-              <div v-if="settings.resultsTabIndex != 4" class="mt-2 pl-2" style="max-width: 90px;">
-                <b-form-input type="text" size="sm" v-model.trim="settings.priceFrom" debounce="600" placeholder="ETH from"></b-form-input>
+              <div v-if="settings.resultsTabIndex != 4" class="mt-2 pl-2" style="max-width: 150px;">
+                <b-form-input type="text" size="sm" v-model.trim="settings.filterAccount" debounce="600" v-b-popover.hover="'Filter by list of registrant addresses'" placeholder="🔍 0x12... ..."></b-form-input>
+              </div>
+              <div v-if="settings.resultsTabIndex != 4" class="mt-2 pl-2" style="max-width: 80px;">
+                <b-form-input type="text" size="sm" v-model.trim="settings.priceFrom" debounce="600" v-b-popover.hover="'ETH from'" placeholder="from"></b-form-input>
               </div>
               <div v-if="settings.resultsTabIndex != 4" class="mt-2">
                 -
               </div>
-              <div v-if="settings.resultsTabIndex != 4" class="mt-2 pr-2" style="max-width: 90px;">
-                <b-form-input type="text" size="sm" v-model.trim="settings.priceTo" debounce="600" placeholder="ETH to"></b-form-input>
+              <div v-if="settings.resultsTabIndex != 4" class="mt-2 pr-2" style="max-width: 80px;">
+                <b-form-input type="text" size="sm" v-model.trim="settings.priceTo" debounce="600" v-b-popover.hover="'ETH to'" placeholder="to"></b-form-input>
               </div>
               <div v-if="settings.resultsTabIndex != 4" class="mt-2 pl-1">
                 <font size="-2">{{ filteredResults.length }}/{{ Object.keys(searchResults).length }}</font>
@@ -654,6 +657,7 @@ const Search = {
         selectedGroup: null,
         selectedSet: 'digit999',
         filter: null,
+        filterAccount: null,
         priceFrom: null,
         priceTo: null,
         sortOption: 'nameasc',
@@ -893,10 +897,11 @@ const Search = {
     filteredResults() {
       const results = this.settings.randomise ? [] : [];
       const regex = this.settings.filter != null && this.settings.filter.length > 0 ? new RegExp(this.settings.filter, 'i') : null;
+      const searchAccounts = this.settings.filterAccount ? this.settings.filterAccount.split(/[, \t\n]+/).map(function(s) { return s.toLowerCase(); }) : [];
       const priceFrom = this.settings.priceFrom && parseFloat(this.settings.priceFrom) > 0 ? parseFloat(this.settings.priceFrom) : null;
       const priceTo = this.settings.priceTo && parseFloat(this.settings.priceTo) > 0 ? parseFloat(this.settings.priceTo) : null;
 
-      if (regex == null && priceFrom == null && priceTo == 0) {
+      if (regex == null && priceFrom == null && priceTo == 0 && searchAccounts.length == 0) {
         for (result of Object.values(this.searchResults)) {
           results.push(result);
         }
@@ -905,6 +910,18 @@ const Search = {
           let include = true;
           if (regex && !regex.test(result.labelName)) {
             include = false;
+          }
+          if (include && searchAccounts.length > 0) {
+            let found = false;
+            for (searchAccount of searchAccounts) {
+              if (result.registrant.includes(searchAccount)) {
+                found = true;
+                break;
+              }
+            }
+            if (!found) {
+              include = false;
+            }
           }
           if (include && (priceFrom || priceTo)) {
             const price = this.prices[result.tokenId] && this.prices[result.tokenId].floorAskPrice;

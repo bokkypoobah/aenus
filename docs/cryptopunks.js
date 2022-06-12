@@ -31,20 +31,20 @@ const CryptoPunks = {
             <b-button size="sm" @click="doit( { action: 'stopService' } );" variant="primary">Stop Service</b-button>
             -->
             <div class="d-flex flex-wrap m-0 p-0" style="min-height: 37px;">
-              <div class="mt-2" style="max-width: 130px;">
-                <b-form-input type="text" size="sm" v-model.trim="settings.searchString" debounce="600" placeholder="🔍 id1 id2-id3 ..."></b-form-input>
+              <div class="mt-2" style="max-width: 150px;">
+                <b-form-input type="text" size="sm" v-model.trim="settings.searchString" debounce="600" v-b-popover.hover="'Filter by list of punkIds'" placeholder="🔍 id1 id2-id3 ..."></b-form-input>
               </div>
-              <div class="mt-2 pl-2" style="max-width: 130px;">
-                <b-form-input type="text" size="sm" v-model.trim="settings.searchAccount" debounce="600" placeholder="🔍 0x12... 0x23... ..."></b-form-input>
+              <div class="mt-2 pl-2" style="max-width: 150px;">
+                <b-form-input type="text" size="sm" v-model.trim="settings.searchAccount" debounce="600" v-b-popover.hover="'Filter by list of owner addresses'" placeholder="🔍 0x12... ..."></b-form-input>
               </div>
-              <div class="mt-2 pl-2" style="max-width: 90px;">
-                <b-form-input type="text" size="sm" v-model.trim="settings.priceFrom" debounce="600" placeholder="ETH from"></b-form-input>
+              <div class="mt-2 pl-2" style="max-width: 80px;">
+                <b-form-input type="text" size="sm" v-model.trim="settings.priceFrom" debounce="600" v-b-popover.hover="'ETH from'" placeholder="from"></b-form-input>
               </div>
               <div class="mt-2">
                 -
               </div>
-              <div class="mt-2 pr-2" style="max-width: 90px;">
-                <b-form-input type="text" size="sm" v-model.trim="settings.priceTo" debounce="600" placeholder="ETH to"></b-form-input>
+              <div class="mt-2 pr-2" style="max-width: 80px;">
+                <b-form-input type="text" size="sm" v-model.trim="settings.priceTo" debounce="600" v-b-popover.hover="'ETH to'" placeholder="to"></b-form-input>
               </div>
               <!--
               <div class="pr-1">
