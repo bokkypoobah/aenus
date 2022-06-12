@@ -164,17 +164,17 @@ const Search = {
 
             <!-- Results Toolbar -->
             <div v-if="Object.keys(searchResults).length > 0" class="d-flex flex-wrap m-0 p-0" style="min-height: 37px;">
-              <div v-if="settings.resultsTabIndex != 4" class="mt-2 pr-4">
-                <b-form-input type="text" size="sm" v-model.trim="settings.filter" debounce="600" class="w-100" placeholder="🔍 {regex}"></b-form-input>
+              <div v-if="settings.resultsTabIndex != 4" class="mt-2" style="max-width: 130px;">
+                <b-form-input type="text" size="sm" v-model.trim="settings.filter" debounce="600" placeholder="🔍 {regex}"></b-form-input>
               </div>
-              <div v-if="settings.resultsTabIndex != 4" class="mt-2 pr-1" style="max-width: 100px;">
-                <b-form-input type="text" size="sm" v-model.trim="settings.priceFrom" debounce="600" class="w-100" placeholder="ETH from"></b-form-input>
+              <div v-if="settings.resultsTabIndex != 4" class="mt-2 pl-2" style="max-width: 90px;">
+                <b-form-input type="text" size="sm" v-model.trim="settings.priceFrom" debounce="600" placeholder="ETH from"></b-form-input>
               </div>
-              <div v-if="settings.resultsTabIndex != 4" class="mt-2 pr-1">
+              <div v-if="settings.resultsTabIndex != 4" class="mt-2">
                 -
               </div>
-              <div v-if="settings.resultsTabIndex != 4" class="mt-2 pr-2" style="max-width: 100px;">
-                <b-form-input type="text" size="sm" v-model.trim="settings.priceTo" debounce="600" class="w-100" placeholder="ETH to"></b-form-input>
+              <div v-if="settings.resultsTabIndex != 4" class="mt-2 pr-2" style="max-width: 90px;">
+                <b-form-input type="text" size="sm" v-model.trim="settings.priceTo" debounce="600" placeholder="ETH to"></b-form-input>
               </div>
               <div v-if="settings.resultsTabIndex != 4" class="mt-2 pl-1">
                 <font size="-2">{{ filteredResults.length }}/{{ Object.keys(searchResults).length }}</font>
