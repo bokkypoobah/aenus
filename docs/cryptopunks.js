@@ -65,20 +65,22 @@ const CryptoPunks = {
               </div>
               <div class="mt-2 pr-1 flex-grow-1">
               </div>
-              <div class="mt-2 pr-1">
-                <b-form-select size="sm" v-model="settings.sortOption" :options="sortOptions" class="w-100"></b-form-select>
-              </div>
-              <div class="mt-2 pr-1">
-                <b-button size="sm" :pressed.sync="settings.randomise" @click="settings.sortOption = 'random'; " variant="link" v-b-popover.hover.bottom="'Randomise'"><b-icon-arrow-clockwise shift-v="-1" font-scale="1.4"></b-icon-arrow-clockwise></b-button>
-              </div>
-              <div class="mt-2 pr-1 flex-grow-1">
-              </div>
               <div class="mt-2 pl-1">
                 <font size="-2">{{ filteredResults.length }}</font>
               </div>
               <div class="mt-2 pl-1">
                 <b-pagination size="sm" v-model="settings.currentPage" :total-rows="filteredResults.length" :per-page="settings.pageSize"></b-pagination>
               </div>
+
+              <div class="mt-2 pr-1 flex-grow-1">
+              </div>
+              <div class="mt-2 pr-1">
+                <b-form-select size="sm" v-model="settings.sortOption" :options="sortOptions" class="w-100"></b-form-select>
+              </div>
+              <div class="mt-2 pr-1">
+                <b-button size="sm" :pressed.sync="settings.randomise" @click="settings.sortOption = 'random'; " variant="link" v-b-popover.hover.bottom="'Randomise'"><b-icon-arrow-clockwise shift-v="-1" font-scale="1.4"></b-icon-arrow-clockwise></b-button>
+              </div>
+
               <div class="mt-2 pl-1">
                 <b-form-select size="sm" v-model="settings.pageSize" :options="pageSizes"></b-form-select>
               </div>
@@ -745,6 +747,7 @@ const CryptoPunks = {
   },
   mounted() {
     logInfo("CryptoPunks", "mounted() $route: " + JSON.stringify(this.$route.params));
+    store.dispatch('cryptoPunks/loadPunks', false);
     this.reschedule = true;
     logDebug("CryptoPunks", "Calling timeoutCallback()");
     this.timeoutCallback();
@@ -1057,7 +1060,7 @@ const cryptoPunksModule = {
       }
 
       state.exchangeRates = await fetchExchangeRates();
-      logInfo("cryptoPunksModule", "mutations.loadPunks() exchangeRates: " + JSON.stringify(state.exchangeRates));
+      logInfo("cryptoPunksModule", "mutations.loadPunks() exchangeRates: " + JSON.stringify(state.exchangeRates).substring(0, 60) + " ...");
 
       const latestEventPunkIds = debug ? debug : await fetchLatestEvents();
       logInfo("cryptoPunksModule", "mutations.loadPunks() latestEventPunkIds: " + JSON.stringify(latestEventPunkIds));
