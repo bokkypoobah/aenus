@@ -31,19 +31,19 @@ const CryptoPunks = {
             <b-button size="sm" @click="doit( { action: 'stopService' } );" variant="primary">Stop Service</b-button>
             -->
             <div class="d-flex flex-wrap m-0 p-0" style="min-height: 37px;">
-              <div class="mt-2">
-                <b-form-input type="text" size="sm" v-model.trim="settings.searchString" debounce="600" placeholder="🔍 id1, id2-id3, ..."></b-form-input>
+              <div class="mt-2" style="max-width: 130px;">
+                <b-form-input type="text" size="sm" v-model.trim="settings.searchString" debounce="600" placeholder="🔍 id1 id2-id3 ..."></b-form-input>
               </div>
-              <div class="mt-2 pl-2">
-                <b-form-input type="text" size="sm" v-model.trim="settings.searchAccount" debounce="600" placeholder="🔍 0x12..., 0x23..., ..."></b-form-input>
+              <div class="mt-2 pl-2" style="max-width: 130px;">
+                <b-form-input type="text" size="sm" v-model.trim="settings.searchAccount" debounce="600" placeholder="🔍 0x12... 0x23... ..."></b-form-input>
               </div>
-              <div class="mt-2 pl-2" style="max-width: 100px;">
+              <div class="mt-2 pl-2" style="max-width: 90px;">
                 <b-form-input type="text" size="sm" v-model.trim="settings.priceFrom" debounce="600" placeholder="ETH from"></b-form-input>
               </div>
-              <div class="mt-2 pr-1">
+              <div class="mt-2">
                 -
               </div>
-              <div class="mt-2 pr-2" style="max-width: 100px;">
+              <div class="mt-2 pr-2" style="max-width: 90px;">
                 <b-form-input type="text" size="sm" v-model.trim="settings.priceTo" debounce="600" placeholder="ETH to"></b-form-input>
               </div>
               <!--
