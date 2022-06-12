@@ -22,19 +22,36 @@ const CryptoPunks = {
                 <b-form-checkbox v-model="fullSync" :disabled="message != null" v-b-popover.hover.bottom="'Full or incremental sync'" class="float-right mr-2">Full sync</b-form-checkbox>
               </b-col>
             </b-row>
-
-            <!--
-            {{ attributes }}
-
-            <b-button size="sm" @click="doit( { type: 'fullsync' } );" variant="primary">Retrieve Latest 50 Sales</b-button>
-            <span v-if="searchMessage != null">
-              <b-button size="sm" @click="halt" variant="primary">Halt</b-button>
-            </span>
-            <b-button size="sm" @click="doit( { action: 'startService' } );" variant="primary">Start Service</b-button>
-            <b-button size="sm" @click="doit( { action: 'stopService' } );" variant="primary">Stop Service</b-button>
-            -->
+            <div>
+              <b-sidebar id="sidebar-1" width="300px" title="Filter By Attributes" shadow>
+                <div class="px-1 py-2">
+                  <div v-for="(attributeKey, attributeIndex) in Object.keys(attributes).sort()" v-bind:key="attributeIndex">
+                    <b-card body-class="p-0" header-class="m-0 p-0 pl-2" footer-class="p-1" class="m-3 p-0">
+                      <template #header>
+                        <span variant="secondary" class="small truncate">
+                          {{ slugToTitle(attributeKey) }}
+                        </span>
+                      </template>
+                      <font size="-2">
+                        <b-table small fixed striped sticky-header="200px" :fields="attributeFields" :items="getSortedValuesForAttribute(attributeKey)" head-variant="light">
+                          <template #cell(select)="data">
+                            <b-form-checkbox @change="filterChange(attributeKey, data.item.attributeOption)"></b-form-checkbox>
+                          </template>
+                          <template #cell(attributeOption)="data">
+                            {{ slugToTitle(data.item.attributeOption) }}
+                          </template>
+                        </b-table>
+                      </font>
+                    </b-card>
+                  </div>
+                </div>
+              </b-sidebar>
+            </div>
             <div class="d-flex flex-wrap m-0 p-0" style="min-height: 37px;">
-              <div class="mt-2" style="max-width: 150px;">
+              <div class="mt-2 px-0">
+                <b-button size="sm" v-b-toggle.sidebar-1 variant="link" v-b-popover.hover.bottom="'Filter by Attributes'"><b-icon-filter-left shift-v="-1" font-scale="1.4"></b-icon-filter-left></b-button>
+              </div>
+              <div class="mt-2 pl-2" style="max-width: 150px;">
                 <b-form-input type="text" size="sm" v-model.trim="settings.searchString" debounce="600" v-b-popover.hover.bottom="'Filter by list of punkIds'" placeholder="🔍 id1 id2-id3 ..."></b-form-input>
               </div>
               <div class="mt-2 pl-2" style="max-width: 150px;">
@@ -187,6 +204,13 @@ const CryptoPunks = {
         { value: 1000, text: '1,000/P' },
         { value: 2145, text: '2,145/P' },
         { value: 66666, text: 'ALL' },
+      ],
+
+      attributeFilter: {},
+      attributeFields: [
+        { key: 'select', label: '', thStyle: 'width: 10%;' },
+        { key: 'attributeOption', label: 'Attribute', sortable: true },
+        { key: 'attributeTotal', label: 'Count', sortable: true, thStyle: 'width: 30%;', thClass: 'text-right', tdClass: 'text-right' },
       ],
 
       resultsFields: [
@@ -514,13 +538,18 @@ const CryptoPunks = {
       const collator = {};
       for (const d of this.results) {
         for (let attribute of d.attributes) {
-          if (!collator[attribute.trait_type]) {
-            collator[attribute.trait_type] = {};
+          const traitType = attribute.trait_type;
+          let value = attribute.value;
+          if (typeof value == "boolean") {
+            value = traitType;
           }
-          if (!collator[attribute.trait_type][attribute.value]) {
-            collator[attribute.trait_type][attribute.value] = 1;
+          if (!collator[traitType]) {
+            collator[traitType] = {};
+          }
+          if (!collator[traitType][value]) {
+            collator[traitType][value] = 1;
           } else {
-            collator[attribute.trait_type][attribute.value]++;
+            collator[traitType][value]++;
           }
         }
       }
@@ -528,6 +557,39 @@ const CryptoPunks = {
     },
   },
   methods: {
+    slugToTitle(slug) {
+      var words = slug.split("-");
+      return words.map(function(word) {
+        return word.charAt(0).toUpperCase() + word.substring(1).toLowerCase();
+      }).join(' ');
+    },
+    getSortedValuesForAttribute(category) {
+      const results = [];
+      for (let attributeKey in this.attributes[category]) {
+        const c = this.attributes[category][attributeKey];
+        results.push({ attributeOption: attributeKey, attributeTotal: c })
+      }
+      results.sort(function(a, b) {
+        return b.attributeTotal - a.attributeTotal;
+      });
+      return results;
+    },
+    filterChange(attribute, option) {
+      if (!this.attributeFilter[attribute]) {
+        Vue.set(this.attributeFilter, attribute, {});
+      }
+      if (this.attributeFilter[attribute][option]) {
+        Vue.delete(this.attributeFilter[attribute], option);
+        if (Object.keys(this.attributeFilter[attribute]) == 0) {
+          Vue.delete(this.attributeFilter, attribute);
+        }
+      } else {
+        Vue.set(this.attributeFilter[attribute], option, true);
+      }
+      // this.attributeFilter = this.attributeFilter;
+      console.log("filterChange: " + JSON.stringify(this.attributeFilter));
+      // this.recalculate('filterChange');
+    },
     formatETH(e) {
       if (e) {
         try {
@@ -1007,7 +1069,7 @@ const cryptoPunksModule = {
       if (latestEventPunkIds != null) {
         for (let i = 0; i < latestEventPunkIds.length && !state.halt; i += CRYPTOPUNKSSUBGRAPHBATCHSIZE) {
           const batch = latestEventPunkIds.slice(i, parseInt(i) + CRYPTOPUNKSSUBGRAPHBATCHSIZE);
-          console.log("batch: " + JSON.stringify(batch));
+          // console.log("batch: " + JSON.stringify(batch));
           let numberOfRecords = await fetchPunksByIds(batch);
           // console.log( [...batch] );
           totalRecords += numberOfRecords;
