@@ -31,7 +31,7 @@ const Search = {
               </b-row>
               <b-row v-if="['groups'].includes(tabs[settings.searchTabIndex].name)">
                 <b-col sm="6" class="mt-2">
-                  <b-form-select size="sm" v-model="settings.selectedGroup" :options="groupOptions" v-b-popover.hover="'Set up groups in Config'"></b-form-select>
+                  <b-form-select size="sm" v-model="settings.selectedGroup" :options="groupOptions" v-b-popover.hover.bottom="'Set up groups in Config'"></b-form-select>
                 </b-col>
               </b-row>
               <div v-if="['sets'].includes(tabs[settings.searchTabIndex].name)" class="m-0 p-0">
@@ -165,19 +165,19 @@ const Search = {
             <!-- Results Toolbar -->
             <div v-if="Object.keys(searchResults).length > 0" class="d-flex flex-wrap m-0 p-0" style="min-height: 37px;">
               <div v-if="settings.resultsTabIndex != 4" class="mt-2" style="max-width: 150px;">
-                <b-form-input type="text" size="sm" v-model.trim="settings.filter" debounce="600" v-b-popover.hover="'Filter by regular expression'" placeholder="🔍 {regex}"></b-form-input>
+                <b-form-input type="text" size="sm" v-model.trim="settings.filter" debounce="600" v-b-popover.hover.bottom="'Filter by regular expression'" placeholder="🔍 {regex}"></b-form-input>
               </div>
               <div v-if="settings.resultsTabIndex != 4" class="mt-2 pl-2" style="max-width: 150px;">
-                <b-form-input type="text" size="sm" v-model.trim="settings.filterAccount" debounce="600" v-b-popover.hover="'Filter by list of registrant addresses'" placeholder="🔍 0x12... ..."></b-form-input>
+                <b-form-input type="text" size="sm" v-model.trim="settings.filterAccount" debounce="600" v-b-popover.hover.bottom="'Filter by list of registrant addresses'" placeholder="🔍 0x12... ..."></b-form-input>
               </div>
               <div v-if="settings.resultsTabIndex != 4" class="mt-2 pl-2" style="max-width: 80px;">
-                <b-form-input type="text" size="sm" v-model.trim="settings.priceFrom" debounce="600" v-b-popover.hover="'ETH from'" placeholder="from"></b-form-input>
+                <b-form-input type="text" size="sm" v-model.trim="settings.priceFrom" debounce="600" v-b-popover.hover.bottom="'ETH from'" placeholder="from"></b-form-input>
               </div>
               <div v-if="settings.resultsTabIndex != 4" class="mt-2">
                 -
               </div>
               <div v-if="settings.resultsTabIndex != 4" class="mt-2 pr-2" style="max-width: 80px;">
-                <b-form-input type="text" size="sm" v-model.trim="settings.priceTo" debounce="600" v-b-popover.hover="'ETH to'" placeholder="to"></b-form-input>
+                <b-form-input type="text" size="sm" v-model.trim="settings.priceTo" debounce="600" v-b-popover.hover.bottom="'ETH to'" placeholder="to"></b-form-input>
               </div>
               <div v-if="settings.resultsTabIndex != 4" class="mt-2 pl-1">
                 <font size="-2">{{ filteredResults.length }}/{{ Object.keys(searchResults).length }}</font>
@@ -188,7 +188,7 @@ const Search = {
                 <b-form-select size="sm" v-model="settings.sortOption" :options="sortOptions" class="w-100"></b-form-select>
               </div>
               <div v-if="settings.resultsTabIndex != 4 && settings.resultsTabIndex != 5" class="mt-2 pl-1">
-                <b-button size="sm" :pressed.sync="settings.randomise" @click="settings.sortOption = 'random'; " variant="link" v-b-popover.hover="'Randomise'"><b-icon-arrow-clockwise shift-v="-1" font-scale="1.4"></b-icon-arrow-clockwise></b-button>
+                <b-button size="sm" :pressed.sync="settings.randomise" @click="settings.sortOption = 'random'; " variant="link" v-b-popover.hover.bottom="'Randomise'"><b-icon-arrow-clockwise shift-v="-1" font-scale="1.4"></b-icon-arrow-clockwise></b-button>
               </div>
               <div v-if="settings.resultsTabIndex != 4" class="mt-2 pl-1">
                 <b-button size="sm" @click="exportNames" :disabled="Object.keys(searchResults).length == 0" variant="link">Export</b-button>
@@ -218,55 +218,55 @@ const Search = {
                         {{ result.labelName }}
                       </span>
                       <span v-if="result.warn != null">
-                        <b-badge v-if="result.warn != null" v-b-popover.hover="'Expiring ' + formatDate(result.expiryDate) + ' UTC'" variant="warning">{{ result.labelName }}</b-badge>
+                        <b-badge v-if="result.warn != null" v-b-popover.hover.bottom="'Expiring ' + formatDate(result.expiryDate) + ' UTC'" variant="warning">{{ result.labelName }}</b-badge>
                       </span>
                     </b-button>
                     <span v-if="prices[result.tokenId]">
-                      <font shift-v="+3" size="-1"><b-badge v-b-popover.hover="'Floor ask price in ETH'" variant="success">{{ prices[result.tokenId].floorAskPrice }}</b-badge></font>
+                      <font shift-v="+3" size="-1"><b-badge v-b-popover.hover.bottom="'Floor ask price in ETH'" variant="success">{{ prices[result.tokenId].floorAskPrice }}</b-badge></font>
                     </span>
                     <b-popover :target="'popover-target-' + result.labelName + '-' + resultIndex" placement="right">
                       <template #title>{{ result.name }} links</template>
-                      <b-link :href="'https://app.ens.domains/name/' + result.name" v-b-popover.hover="'View in app.ens.domains'" target="_blank">
+                      <b-link :href="'https://app.ens.domains/name/' + result.name" v-b-popover.hover.bottom="'View in app.ens.domains'" target="_blank">
                         ENS
                       </b-link>
                       <br />
-                      <b-link :href="'https://opensea.io/assets/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + result.tokenId" v-b-popover.hover="'View in opensea.io'" target="_blank">
+                      <b-link :href="'https://opensea.io/assets/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + result.tokenId" v-b-popover.hover.bottom="'View in opensea.io'" target="_blank">
                         OpenSea
                       </b-link>
                       <br />
-                      <b-link :href="'https://looksrare.org/collections/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + result.tokenId" v-b-popover.hover="'View in looksrare.org'" target="_blank">
+                      <b-link :href="'https://looksrare.org/collections/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + result.tokenId" v-b-popover.hover.bottom="'View in looksrare.org'" target="_blank">
                         LooksRare
                       </b-link>
                       <br />
-                      <b-link :href="'https://x2y2.io/eth/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + result.tokenId" v-b-popover.hover="'View in x2y2.io'" target="_blank">
+                      <b-link :href="'https://x2y2.io/eth/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + result.tokenId" v-b-popover.hover.bottom="'View in x2y2.io'" target="_blank">
                         X2Y2
                       </b-link>
                       <br />
-                      <b-link :href="'https://etherscan.io/enslookup-search?search=' + result.name" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                      <b-link :href="'https://etherscan.io/enslookup-search?search=' + result.name" v-b-popover.hover.bottom="'View in etherscan.io'" target="_blank">
                         EtherScan
                       </b-link>
                       <br />
-                      <b-link :href="'https://duckduckgo.com/?q=' + result.labelName" v-b-popover.hover="'Search name in duckduckgo.com'" target="_blank">
+                      <b-link :href="'https://duckduckgo.com/?q=' + result.labelName" v-b-popover.hover.bottom="'Search name in duckduckgo.com'" target="_blank">
                         DuckDuckGo
                       </b-link>
                       <br />
-                      <b-link :href="'https://www.google.com/search?q=' + result.labelName" v-b-popover.hover="'Search name in google.com'" target="_blank">
+                      <b-link :href="'https://www.google.com/search?q=' + result.labelName" v-b-popover.hover.bottom="'Search name in google.com'" target="_blank">
                         Google
                       </b-link>
                       <br />
-                      <b-link :href="'https://twitter.com/search?q=' + result.name" v-b-popover.hover="'Search name in twitter.com'" target="_blank">
+                      <b-link :href="'https://twitter.com/search?q=' + result.name" v-b-popover.hover.bottom="'Search name in twitter.com'" target="_blank">
                         Twitter
                       </b-link>
                       <br />
-                      <b-link :href="'https://wikipedia.org/wiki/' + result.labelName" v-b-popover.hover="'Search name in wikipedia.org'" target="_blank">
+                      <b-link :href="'https://wikipedia.org/wiki/' + result.labelName" v-b-popover.hover.bottom="'Search name in wikipedia.org'" target="_blank">
                         Wikipedia
                       </b-link>
                       <br />
-                      <b-link :href="'https://en.wiktionary.org/wiki/' + result.labelName" v-b-popover.hover="'Search name in wiktionary.org'" target="_blank">
+                      <b-link :href="'https://en.wiktionary.org/wiki/' + result.labelName" v-b-popover.hover.bottom="'Search name in wiktionary.org'" target="_blank">
                         Wiktionary
                       </b-link>
                       <br />
-                      <b-link :href="'https://thesaurus.yourdictionary.com/' + result.labelName" v-b-popover.hover="'Search name in thesaurus.yourdictionary.com'" target="_blank">
+                      <b-link :href="'https://thesaurus.yourdictionary.com/' + result.labelName" v-b-popover.hover.bottom="'Search name in thesaurus.yourdictionary.com'" target="_blank">
                         Thesaurus
                       </b-link>
                     </b-popover>
@@ -296,54 +296,54 @@ const Search = {
                   </b-button>
                   <b-popover :target="'popover-target-name-' + data.index" placement="right">
                     <template #title>{{ data.item.name.substring(0, 64) }}:</template>
-                    <b-link :href="'https://app.ens.domains/name/' + data.item.name" v-b-popover.hover="'View in app.ens.domains'" target="_blank">
+                    <b-link :href="'https://app.ens.domains/name/' + data.item.name" v-b-popover.hover.bottom="'View in app.ens.domains'" target="_blank">
                       ENS
                     </b-link>
                     <br />
-                    <b-link :href="'https://opensea.io/assets/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + data.item.tokenId" v-b-popover.hover="'View in opensea.io'" target="_blank">
+                    <b-link :href="'https://opensea.io/assets/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + data.item.tokenId" v-b-popover.hover.bottom="'View in opensea.io'" target="_blank">
                       OpenSea
                     </b-link>
                     <br />
-                    <b-link :href="'https://looksrare.org/collections/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + data.item.tokenId" v-b-popover.hover="'View in looksrare.org'" target="_blank">
+                    <b-link :href="'https://looksrare.org/collections/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + data.item.tokenId" v-b-popover.hover.bottom="'View in looksrare.org'" target="_blank">
                       LooksRare
                     </b-link>
                     <br />
-                    <b-link :href="'https://x2y2.io/eth/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + data.item.tokenId" v-b-popover.hover="'View in x2y2.io'" target="_blank">
+                    <b-link :href="'https://x2y2.io/eth/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + data.item.tokenId" v-b-popover.hover.bottom="'View in x2y2.io'" target="_blank">
                       X2Y2
                     </b-link>
                     <br />
-                    <b-link :href="'https://etherscan.io/enslookup-search?search=' + data.item.name" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                    <b-link :href="'https://etherscan.io/enslookup-search?search=' + data.item.name" v-b-popover.hover.bottom="'View in etherscan.io'" target="_blank">
                       EtherScan
                     </b-link>
                     <br />
-                    <b-link :href="'https://duckduckgo.com/?q=' + data.item.labelName" v-b-popover.hover="'Search name in duckduckgo.com'" target="_blank">
+                    <b-link :href="'https://duckduckgo.com/?q=' + data.item.labelName" v-b-popover.hover.bottom="'Search name in duckduckgo.com'" target="_blank">
                       DuckDuckGo
                     </b-link>
                     <br />
-                    <b-link :href="'https://www.google.com/search?q=' + data.item.labelName" v-b-popover.hover="'Search name in google.com'" target="_blank">
+                    <b-link :href="'https://www.google.com/search?q=' + data.item.labelName" v-b-popover.hover.bottom="'Search name in google.com'" target="_blank">
                       Google
                     </b-link>
                     <br />
-                    <b-link :href="'https://twitter.com/search?q=' + data.item.name" v-b-popover.hover="'Search name in twitter.com'" target="_blank">
+                    <b-link :href="'https://twitter.com/search?q=' + data.item.name" v-b-popover.hover.bottom="'Search name in twitter.com'" target="_blank">
                       Twitter
                     </b-link>
                     <br />
-                    <b-link :href="'https://wikipedia.org/wiki/' + data.item.labelName" v-b-popover.hover="'Search name in wikipedia.org'" target="_blank">
+                    <b-link :href="'https://wikipedia.org/wiki/' + data.item.labelName" v-b-popover.hover.bottom="'Search name in wikipedia.org'" target="_blank">
                       Wikipedia
                     </b-link>
                     <br />
-                    <b-link :href="'https://en.wiktionary.org/wiki/' + data.item.labelName" v-b-popover.hover="'Search name in wiktionary.org'" target="_blank">
+                    <b-link :href="'https://en.wiktionary.org/wiki/' + data.item.labelName" v-b-popover.hover.bottom="'Search name in wiktionary.org'" target="_blank">
                       Wiktionary
                     </b-link>
                     <br />
-                    <b-link :href="'https://thesaurus.yourdictionary.com/' + data.item.labelName" v-b-popover.hover="'Search name in thesaurus.yourdictionary.com'" target="_blank">
+                    <b-link :href="'https://thesaurus.yourdictionary.com/' + data.item.labelName" v-b-popover.hover.bottom="'Search name in thesaurus.yourdictionary.com'" target="_blank">
                       Thesaurus
                     </b-link>
                   </b-popover>
                   <br />
                   <br />
                   <span v-if="prices[data.item.tokenId]">
-                    <font shift-v="+3" size="-1"><b-badge v-b-popover.hover="'Floor ask price in ETH'" variant="success">{{ prices[data.item.tokenId].floorAskPrice }}</b-badge></font>
+                    <font shift-v="+3" size="-1"><b-badge v-b-popover.hover.bottom="'Floor ask price in ETH'" variant="success">{{ prices[data.item.tokenId].floorAskPrice }}</b-badge></font>
                   </span>
 
                 </template>
@@ -353,19 +353,19 @@ const Search = {
                   </b-button>
                   <b-popover :target="'popover-target-registrant-' + data.index" placement="right">
                     <template #title>Registrant: {{ data.item.registrant.substring(0, 12) }}:</template>
-                    <b-link :href="'https://opensea.io/' + data.item.registrant" v-b-popover.hover="'View in opensea.io'" target="_blank">
+                    <b-link :href="'https://opensea.io/' + data.item.registrant" v-b-popover.hover.bottom="'View in opensea.io'" target="_blank">
                       OpenSea
                     </b-link>
                     <br />
-                    <b-link :href="'https://looksrare.org/accounts/' + data.item.registrant" v-b-popover.hover="'View in looksrare.org'" target="_blank">
+                    <b-link :href="'https://looksrare.org/accounts/' + data.item.registrant" v-b-popover.hover.bottom="'View in looksrare.org'" target="_blank">
                       LooksRare
                     </b-link>
                     <br />
-                    <b-link :href="'https://x2y2.io/user/' + data.item.registrant + '/items'" v-b-popover.hover="'View in x2y2.io'" target="_blank">
+                    <b-link :href="'https://x2y2.io/user/' + data.item.registrant + '/items'" v-b-popover.hover.bottom="'View in x2y2.io'" target="_blank">
                       X2Y2
                     </b-link>
                     <br />
-                    <b-link :href="'https://etherscan.io/address/' + data.item.registrant" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                    <b-link :href="'https://etherscan.io/address/' + data.item.registrant" v-b-popover.hover.bottom="'View in etherscan.io'" target="_blank">
                       EtherScan
                     </b-link>
                   </b-popover>
@@ -377,19 +377,19 @@ const Search = {
                     </b-button>
                     <b-popover :target="'popover-target-owner-' + data.index" placement="right">
                       <template #title>Controller: {{ data.item.owner.substring(0, 12) }}:</template>
-                      <b-link :href="'https://opensea.io/' + data.item.owner" v-b-popover.hover="'View in opensea.io'" target="_blank">
+                      <b-link :href="'https://opensea.io/' + data.item.owner" v-b-popover.hover.bottom="'View in opensea.io'" target="_blank">
                         OpenSea
                       </b-link>
                       <br />
-                      <b-link :href="'https://looksrare.org/accounts/' + data.item.owner" v-b-popover.hover="'View in looksrare.org'" target="_blank">
+                      <b-link :href="'https://looksrare.org/accounts/' + data.item.owner" v-b-popover.hover.bottom="'View in looksrare.org'" target="_blank">
                         LooksRare
                       </b-link>
                       <br />
-                      <b-link :href="'https://x2y2.io/user/' + data.item.owner + '/items'" v-b-popover.hover="'View in x2y2.io'" target="_blank">
+                      <b-link :href="'https://x2y2.io/user/' + data.item.owner + '/items'" v-b-popover.hover.bottom="'View in x2y2.io'" target="_blank">
                         X2Y2
                       </b-link>
                       <br />
-                      <b-link :href="'https://etherscan.io/address/' + data.item.owner" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                      <b-link :href="'https://etherscan.io/address/' + data.item.owner" v-b-popover.hover.bottom="'View in etherscan.io'" target="_blank">
                         EtherScan
                       </b-link>
                     </b-popover>
@@ -401,19 +401,19 @@ const Search = {
                     </b-button>
                     <b-popover :target="'popover-target-resolvedAddress-' + data.index" placement="right">
                       <template #title>Resolved Addr: {{ data.item.resolvedAddress.substring(0, 12) }}:</template>
-                      <b-link :href="'https://opensea.io/' + data.item.resolvedAddress" v-b-popover.hover="'View in opensea.io'" target="_blank">
+                      <b-link :href="'https://opensea.io/' + data.item.resolvedAddress" v-b-popover.hover.bottom="'View in opensea.io'" target="_blank">
                         OpenSea
                       </b-link>
                       <br />
-                      <b-link :href="'https://looksrare.org/accounts/' + data.item.resolvedAddress" v-b-popover.hover="'View in looksrare.org'" target="_blank">
+                      <b-link :href="'https://looksrare.org/accounts/' + data.item.resolvedAddress" v-b-popover.hover.bottom="'View in looksrare.org'" target="_blank">
                         LooksRare
                       </b-link>
                       <br />
-                      <b-link :href="'https://x2y2.io/user/' + data.item.resolvedAddress + '/items'" v-b-popover.hover="'View in x2y2.io'" target="_blank">
+                      <b-link :href="'https://x2y2.io/user/' + data.item.resolvedAddress + '/items'" v-b-popover.hover.bottom="'View in x2y2.io'" target="_blank">
                         X2Y2
                       </b-link>
                       <br />
-                      <b-link :href="'https://etherscan.io/address/' + data.item.resolvedAddress" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                      <b-link :href="'https://etherscan.io/address/' + data.item.resolvedAddress" v-b-popover.hover.bottom="'View in etherscan.io'" target="_blank">
                         EtherScan
                       </b-link>
                     </b-popover>
@@ -442,7 +442,7 @@ const Search = {
                   <b-card overlay :id="'popover-target-image-' + record.name" :img-src="'https://metadata.ens.domains/mainnet/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + record.tokenId + '/image'" class="m-2 p-0">
                     <div v-if="prices[record.tokenId]">
                       <b-col cols="10" class="m-0 p-1 text-right">
-                        <font shift-v="+3" size="-1"><b-badge v-b-popover.hover="'Floor ask price in ETH'" variant="success">{{ prices[record.tokenId].floorAskPrice }}</b-badge></font>
+                        <font shift-v="+3" size="-1"><b-badge v-b-popover.hover.bottom="'Floor ask price in ETH'" variant="success">{{ prices[record.tokenId].floorAskPrice }}</b-badge></font>
                       </b-col>
                     </div>
                   </b-card>
@@ -468,19 +468,19 @@ const Search = {
                   </b-button>
                   <b-popover :target="'popover-target-owner-' + data.item.registrant + '-' + data.index" placement="right">
                     <template #title>Registrant: {{ data.item.registrant.substring(0, 12) }}:</template>
-                    <b-link :href="'https://opensea.io/' + data.item.registrant" v-b-popover.hover="'View in opensea.io'" target="_blank">
+                    <b-link :href="'https://opensea.io/' + data.item.registrant" v-b-popover.hover.bottom="'View in opensea.io'" target="_blank">
                       OpenSea
                     </b-link>
                     <br />
-                    <b-link :href="'https://looksrare.org/accounts/' + data.item.registrant" v-b-popover.hover="'View in looksrare.org'" target="_blank">
+                    <b-link :href="'https://looksrare.org/accounts/' + data.item.registrant" v-b-popover.hover.bottom="'View in looksrare.org'" target="_blank">
                       LooksRare
                     </b-link>
                     <br />
-                    <b-link :href="'https://x2y2.io/user/' + data.item.registrant + '/items'" v-b-popover.hover="'View in x2y2.io'" target="_blank">
+                    <b-link :href="'https://x2y2.io/user/' + data.item.registrant + '/items'" v-b-popover.hover.bottom="'View in x2y2.io'" target="_blank">
                       X2Y2
                     </b-link>
                     <br />
-                    <b-link :href="'https://chat.blockscan.com/index?a=' + data.item.registrant" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                    <b-link :href="'https://chat.blockscan.com/index?a=' + data.item.registrant" v-b-popover.hover.bottom="'View in etherscan.io'" target="_blank">
                       Blockscan
                     </b-link>
                   </b-popover>
@@ -491,51 +491,51 @@ const Search = {
                       {{ result.labelName }}
                     </b-button>
                     <span v-if="prices[result.tokenId]">
-                      <font shift-v="+3" size="-1"><b-badge v-b-popover.hover="'Floor ask price in ETH'" variant="success">{{ prices[result.tokenId].floorAskPrice }}</b-badge></font>
+                      <font shift-v="+3" size="-1"><b-badge v-b-popover.hover.bottom="'Floor ask price in ETH'" variant="success">{{ prices[result.tokenId].floorAskPrice }}</b-badge></font>
                     </span>
                     <b-popover :target="'popover-target-' + data.item.registrant + '-' + resultIndex" placement="right">
                       <template #title>{{ result.name }} links</template>
-                      <b-link :href="'https://app.ens.domains/name/' + result.name" v-b-popover.hover="'View in app.ens.domains'" target="_blank">
+                      <b-link :href="'https://app.ens.domains/name/' + result.name" v-b-popover.hover.bottom="'View in app.ens.domains'" target="_blank">
                         ENS
                       </b-link>
                       <br />
-                      <b-link :href="'https://opensea.io/assets/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + result.tokenId" v-b-popover.hover="'View in opensea.io'" target="_blank">
+                      <b-link :href="'https://opensea.io/assets/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + result.tokenId" v-b-popover.hover.bottom="'View in opensea.io'" target="_blank">
                         OpenSea
                       </b-link>
                       <br />
-                      <b-link :href="'https://looksrare.org/collections/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + result.tokenId" v-b-popover.hover="'View in looksrare.org'" target="_blank">
+                      <b-link :href="'https://looksrare.org/collections/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + result.tokenId" v-b-popover.hover.bottom="'View in looksrare.org'" target="_blank">
                         LooksRare
                       </b-link>
                       <br />
-                      <b-link :href="'https://x2y2.io/eth/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + result.tokenId" v-b-popover.hover="'View in x2y2.io'" target="_blank">
+                      <b-link :href="'https://x2y2.io/eth/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + result.tokenId" v-b-popover.hover.bottom="'View in x2y2.io'" target="_blank">
                         X2Y2
                       </b-link>
                       <br />
-                      <b-link :href="'https://etherscan.io/enslookup-search?search=' + result.name" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                      <b-link :href="'https://etherscan.io/enslookup-search?search=' + result.name" v-b-popover.hover.bottom="'View in etherscan.io'" target="_blank">
                         EtherScan
                       </b-link>
                       <br />
-                      <b-link :href="'https://duckduckgo.com/?q=' + result.labelName" v-b-popover.hover="'Search name in duckduckgo.com'" target="_blank">
+                      <b-link :href="'https://duckduckgo.com/?q=' + result.labelName" v-b-popover.hover.bottom="'Search name in duckduckgo.com'" target="_blank">
                         DuckDuckGo
                       </b-link>
                       <br />
-                      <b-link :href="'https://www.google.com/search?q=' + result.labelName" v-b-popover.hover="'Search name in google.com'" target="_blank">
+                      <b-link :href="'https://www.google.com/search?q=' + result.labelName" v-b-popover.hover.bottom="'Search name in google.com'" target="_blank">
                         Google
                       </b-link>
                       <br />
-                      <b-link :href="'https://twitter.com/search?q=' + result.name" v-b-popover.hover="'Search name in twitter.com'" target="_blank">
+                      <b-link :href="'https://twitter.com/search?q=' + result.name" v-b-popover.hover.bottom="'Search name in twitter.com'" target="_blank">
                         Twitter
                       </b-link>
                       <br />
-                      <b-link :href="'https://wikipedia.org/wiki/' + result.labelName" v-b-popover.hover="'Search name in wikipedia.org'" target="_blank">
+                      <b-link :href="'https://wikipedia.org/wiki/' + result.labelName" v-b-popover.hover.bottom="'Search name in wikipedia.org'" target="_blank">
                         Wikipedia
                       </b-link>
                       <br />
-                      <b-link :href="'https://en.wiktionary.org/wiki/' + result.labelName" v-b-popover.hover="'Search name in wiktionary.org'" target="_blank">
+                      <b-link :href="'https://en.wiktionary.org/wiki/' + result.labelName" v-b-popover.hover.bottom="'Search name in wiktionary.org'" target="_blank">
                         Wiktionary
                       </b-link>
                       <br />
-                      <b-link :href="'https://thesaurus.yourdictionary.com/' + result.labelName" v-b-popover.hover="'Search name in thesaurus.yourdictionary.com'" target="_blank">
+                      <b-link :href="'https://thesaurus.yourdictionary.com/' + result.labelName" v-b-popover.hover.bottom="'Search name in thesaurus.yourdictionary.com'" target="_blank">
                         Thesaurus
                       </b-link>
                     </b-popover>
@@ -570,7 +570,7 @@ const Search = {
                     <div v-if="hhmm">
                       <font size="-2">
                         <div v-if="prices[hhmm.tokenId] && prices[hhmm.tokenId].floorAskPrice != null">
-                          <b-badge v-b-popover.hover="'Floor ask price in ETH'" variant="success">
+                          <b-badge v-b-popover.hover.bottom="'Floor ask price in ETH'" variant="success">
                             {{ prices[hhmm.tokenId].floorAskPrice }}
                           </b-badge>
                         </div>
@@ -582,54 +582,54 @@ const Search = {
                           </b-link>
                         </span>
                         <span v-if="hhmm.warn != null">
-                          <b-link v-if="hhmm" :id="'popover-target-' + hhmm.labelName" style="background: yellow; " v-b-popover.hover="'Expiring ' + formatDate(hhmm.expiryDate) + ' UTC'">
+                          <b-link v-if="hhmm" :id="'popover-target-' + hhmm.labelName" style="background: yellow; " v-b-popover.hover.bottom="'Expiring ' + formatDate(hhmm.expiryDate) + ' UTC'">
                             {{ hhmm.labelName }}
                           </b-link>
                         </span>
                       </font>
                       <b-popover :target="'popover-target-' + hhmm.labelName" placement="right">
                         <template #title>{{ hhmm.labelName }}:</template>
-                        <b-link :href="'https://app.ens.domains/name/' + hhmm.name" v-b-popover.hover="'View in app.ens.domains'" target="_blank">
+                        <b-link :href="'https://app.ens.domains/name/' + hhmm.name" v-b-popover.hover.bottom="'View in app.ens.domains'" target="_blank">
                           ENS
                         </b-link>
                         <br />
-                        <b-link :href="'https://opensea.io/assets/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + hhmm.tokenId" v-b-popover.hover="'View in opensea.io'" target="_blank">
+                        <b-link :href="'https://opensea.io/assets/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + hhmm.tokenId" v-b-popover.hover.bottom="'View in opensea.io'" target="_blank">
                           OpenSea
                         </b-link>
                         <br />
-                        <b-link :href="'https://looksrare.org/collections/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + hhmm.tokenId" v-b-popover.hover="'View in looksrare.org'" target="_blank">
+                        <b-link :href="'https://looksrare.org/collections/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + hhmm.tokenId" v-b-popover.hover.bottom="'View in looksrare.org'" target="_blank">
                           LooksRare
                         </b-link>
                         <br />
-                        <b-link :href="'https://x2y2.io/eth/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + hhmm.tokenId" v-b-popover.hover="'View in x2y2.io'" target="_blank">
+                        <b-link :href="'https://x2y2.io/eth/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + hhmm.tokenId" v-b-popover.hover.bottom="'View in x2y2.io'" target="_blank">
                           X2Y2
                         </b-link>
                         <br />
-                        <b-link :href="'https://etherscan.io/enslookup-search?search=' + hhmm.name" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                        <b-link :href="'https://etherscan.io/enslookup-search?search=' + hhmm.name" v-b-popover.hover.bottom="'View in etherscan.io'" target="_blank">
                           EtherScan
                         </b-link>
                         <br />
-                        <b-link :href="'https://duckduckgo.com/?q=' + hhmm.labelName" v-b-popover.hover="'Search name in duckduckgo.com'" target="_blank">
+                        <b-link :href="'https://duckduckgo.com/?q=' + hhmm.labelName" v-b-popover.hover.bottom="'Search name in duckduckgo.com'" target="_blank">
                           DuckDuckGo
                         </b-link>
                         <br />
-                        <b-link :href="'https://www.google.com/search?q=' + hhmm.labelName" v-b-popover.hover="'Search name in google.com'" target="_blank">
+                        <b-link :href="'https://www.google.com/search?q=' + hhmm.labelName" v-b-popover.hover.bottom="'Search name in google.com'" target="_blank">
                           Google
                         </b-link>
                         <br />
-                        <b-link :href="'https://twitter.com/search?q=' + hhmm.name" v-b-popover.hover="'Search name in twitter.com'" target="_blank">
+                        <b-link :href="'https://twitter.com/search?q=' + hhmm.name" v-b-popover.hover.bottom="'Search name in twitter.com'" target="_blank">
                           Twitter
                         </b-link>
                         <br />
-                        <b-link :href="'https://wikipedia.org/wiki/' + hhmm.labelName" v-b-popover.hover="'Search name in wikipedia.org'" target="_blank">
+                        <b-link :href="'https://wikipedia.org/wiki/' + hhmm.labelName" v-b-popover.hover.bottom="'Search name in wikipedia.org'" target="_blank">
                           Wikipedia
                         </b-link>
                         <br />
-                        <b-link :href="'https://en.wiktionary.org/wiki/' + hhmm.labelName" v-b-popover.hover="'Search name in wiktionary.org'" target="_blank">
+                        <b-link :href="'https://en.wiktionary.org/wiki/' + hhmm.labelName" v-b-popover.hover.bottom="'Search name in wiktionary.org'" target="_blank">
                           Wiktionary
                         </b-link>
                         <br />
-                        <b-link :href="'https://thesaurus.yourdictionary.com/' + hhmm.labelName" v-b-popover.hover="'Search name in thesaurus.yourdictionary.com'" target="_blank">
+                        <b-link :href="'https://thesaurus.yourdictionary.com/' + hhmm.labelName" v-b-popover.hover.bottom="'Search name in thesaurus.yourdictionary.com'" target="_blank">
                           Thesaurus
                         </b-link>
                       </b-popover>

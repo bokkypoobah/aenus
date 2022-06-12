@@ -17,7 +17,7 @@ const CryptoPunks = {
                   {{ message }}
                 </font>
                 <b-button v-if="message == null" size="sm" @click="search" variant="primary" class="float-right mx-1">Sync</b-button>
-                <!-- <b-button v-if="message == null" size="sm" @click="searchLogs" :disabled="false && (!powerOn || network.chainId != 1)" v-b-popover.hover="'Connect to web3 to enable'" variant="primary" class="float-right mx-1">Search Logs</b-button> -->
+                <!-- <b-button v-if="message == null" size="sm" @click="searchLogs" :disabled="false && (!powerOn || network.chainId != 1)" v-b-popover.hover.bottom="'Connect to web3 to enable'" variant="primary" class="float-right mx-1">Search Logs</b-button> -->
                 <b-button v-if="message != null" size="sm" @click="halt" variant="primary" class="float-right">Halt</b-button>
               </b-col>
             </b-row>
@@ -32,19 +32,19 @@ const CryptoPunks = {
             -->
             <div class="d-flex flex-wrap m-0 p-0" style="min-height: 37px;">
               <div class="mt-2" style="max-width: 150px;">
-                <b-form-input type="text" size="sm" v-model.trim="settings.searchString" debounce="600" v-b-popover.hover="'Filter by list of punkIds'" placeholder="🔍 id1 id2-id3 ..."></b-form-input>
+                <b-form-input type="text" size="sm" v-model.trim="settings.searchString" debounce="600" v-b-popover.hover.bottom="'Filter by list of punkIds'" placeholder="🔍 id1 id2-id3 ..."></b-form-input>
               </div>
               <div class="mt-2 pl-2" style="max-width: 150px;">
-                <b-form-input type="text" size="sm" v-model.trim="settings.searchAccount" debounce="600" v-b-popover.hover="'Filter by list of owner addresses'" placeholder="🔍 0x12... ..."></b-form-input>
+                <b-form-input type="text" size="sm" v-model.trim="settings.searchAccount" debounce="600" v-b-popover.hover.bottom="'Filter by list of owner addresses'" placeholder="🔍 0x12... ..."></b-form-input>
               </div>
               <div class="mt-2 pl-2" style="max-width: 80px;">
-                <b-form-input type="text" size="sm" v-model.trim="settings.priceFrom" debounce="600" v-b-popover.hover="'ETH from'" placeholder="from"></b-form-input>
+                <b-form-input type="text" size="sm" v-model.trim="settings.priceFrom" debounce="600" v-b-popover.hover.bottom="'ETH from'" placeholder="from"></b-form-input>
               </div>
               <div class="mt-2">
                 -
               </div>
               <div class="mt-2 pr-2" style="max-width: 80px;">
-                <b-form-input type="text" size="sm" v-model.trim="settings.priceTo" debounce="600" v-b-popover.hover="'ETH to'" placeholder="to"></b-form-input>
+                <b-form-input type="text" size="sm" v-model.trim="settings.priceTo" debounce="600" v-b-popover.hover.bottom="'ETH to'" placeholder="to"></b-form-input>
               </div>
               <!--
               <div class="pr-1">
@@ -70,7 +70,7 @@ const CryptoPunks = {
                 <b-form-select size="sm" v-model="settings.sortOption" :options="sortOptions" class="w-100"></b-form-select>
               </div>
               <div class="mt-2 pr-1">
-                <b-button size="sm" :pressed.sync="settings.randomise" @click="settings.sortOption = 'random'; " variant="link" v-b-popover.hover="'Randomise'"><b-icon-arrow-clockwise shift-v="-1" font-scale="1.4"></b-icon-arrow-clockwise></b-button>
+                <b-button size="sm" :pressed.sync="settings.randomise" @click="settings.sortOption = 'random'; " variant="link" v-b-popover.hover.bottom="'Randomise'"><b-icon-arrow-clockwise shift-v="-1" font-scale="1.4"></b-icon-arrow-clockwise></b-button>
               </div>
               <div class="mt-2 pr-1 flex-grow-1">
               </div>
@@ -87,41 +87,41 @@ const CryptoPunks = {
 
             <b-table small striped hover :fields="resultsFields" :items="pagedFilteredResults" table-class="w-100" class="mt-0">
               <template #cell(punkId)="data">
-                <b-link :href="'https://cryptopunks.app/cryptopunks/details/' + data.item.punkId" v-b-popover.hover="'View in original website'" target="_blank">
+                <b-link :href="'https://cryptopunks.app/cryptopunks/details/' + data.item.punkId" v-b-popover.hover.bottom="'View in original website'" target="_blank">
                   {{ data.item.punkId }}
                 </b-link>
               </template>
               <template #cell(image)="data">
-                <b-link :href="'https://cryptopunks.app/cryptopunks/details/' + data.item.punkId" v-b-popover.hover="'View in original website'" target="_blank">
+                <b-link :href="'https://cryptopunks.app/cryptopunks/details/' + data.item.punkId" v-b-popover.hover.bottom="'View in original website'" target="_blank">
                   <b-img-lazy width="100%" :src="'images/punks/punk' + data.item.punkId.toString().padStart(4, '0') + '.png'" style="background-color: #638596"/>
                 </b-link>
               </template>
               <template #cell(owner)="data">
-                <b-link :href="'https://cryptopunks.app/cryptopunks/accountInfo?account=' + data.item.owner" v-b-popover.hover="'View in original website'" target="_blank">
+                <b-link :href="'https://cryptopunks.app/cryptopunks/accountInfo?account=' + data.item.owner" v-b-popover.hover.bottom="'View in original website'" target="_blank">
                   {{ data.item.owner }}
                 </b-link>
               </template>
               <template #head(bid)="data">
-                <b-form-checkbox v-model="settings.filterBid" v-b-popover.hover="'Filter by bids'" >Bid</b-form-checkbox>
+                <b-form-checkbox v-model="settings.filterBid" v-b-popover.hover.bottom="'Filter by bids'" >Bid</b-form-checkbox>
               </template>
               <template #cell(bid)="data">
-                <span v-if="data.item.bid.amount" v-b-popover.hover="formatTimestamp(data.item.bid.timestamp)">
+                <span v-if="data.item.bid.amount" v-b-popover.hover.bottom="formatTimestamp(data.item.bid.timestamp)">
                   {{ formatETH(data.item.bid.amount) }}
                 </span>
               </template>
               <template #head(ask)="data">
-                <b-form-checkbox v-model="settings.filterAsk" v-b-popover.hover="'Filter by asks'" >Ask</b-form-checkbox>
+                <b-form-checkbox v-model="settings.filterAsk" v-b-popover.hover.bottom="'Filter by asks'" >Ask</b-form-checkbox>
               </template>
               <template #cell(ask)="data">
-                <span v-if="data.item.ask.amount" v-b-popover.hover="formatTimestamp(data.item.ask.timestamp)">
+                <span v-if="data.item.ask.amount" v-b-popover.hover.bottom="formatTimestamp(data.item.ask.timestamp)">
                   {{ formatETH(data.item.ask.amount) }}
                 </span>
               </template>
               <template #head(last)="data">
-                <b-form-checkbox v-model="settings.filterLast" v-b-popover.hover="'Filter by last prices'" >Last</b-form-checkbox>
+                <b-form-checkbox v-model="settings.filterLast" v-b-popover.hover.bottom="'Filter by last prices'" >Last</b-form-checkbox>
               </template>
               <template #cell(last)="data">
-                <span v-if="data.item.last.amount" v-b-popover.hover="formatTimestamp(data.item.last.timestamp)">
+                <span v-if="data.item.last.amount" v-b-popover.hover.bottom="formatTimestamp(data.item.last.timestamp)">
                   {{ formatETH(data.item.last.amount) }}
                 </span>
               </template>
