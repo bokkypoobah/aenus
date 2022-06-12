@@ -277,25 +277,21 @@ const CryptoPunks = {
       let stage3Data = stage2Data;
       if (this.settings.searchAccount != null && this.settings.searchAccount.length > 0) {
         const searchAccounts = this.settings.searchAccount.split(/[, \t\n]+/).map(function(s) { return s.toLowerCase(); });
-        console.log("searchAccounts: " + JSON.stringify(searchAccounts));
         stage3Data = [];
         for (let d of stage2Data) {
-      //     const owner = this.owners[d.tokenId] ? this.owners[d.tokenId].toLowerCase() : null;
-      //     const ensName = owner == null ? null : this.ensMap[owner];
+          // const ensName = owner == null ? null : this.ensMap[owner];
           for (searchAccount of searchAccounts) {
-      //       const s = searchAccount.toLowerCase();
-      //       if (owner != null && owner.includes(s)) {
-      //         stage5Data.push(d);
-      //         break;
-      //       } else if (ensName != null && ensName.includes(s)) {
-      //         stage5Data.push(d);
-      //         break;
-      //       }
+            if (d.owner.includes(searchAccount)) {
+              stage3Data.push(d);
+              break;
+            // } else if (ensName != null && ensName.includes(s)) {
+            //   stage3Data.push(d);
+            //   break;
+            }
           }
         }
       }
-      // console.log("stage5Data.length: " + stage5Data.length);
-
+      // console.log("stage3Data.length: " + stage3Data.length);
 
       if (this.settings.sortOption == 'idasc') {
         stage3Data.sort((a, b) => {
@@ -507,7 +503,7 @@ const CryptoPunks = {
         });
       }
 
-      return stage2Data;
+      return stage3Data;
     },
   },
   methods: {
