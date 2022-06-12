@@ -78,7 +78,8 @@ const CryptoPunks = {
                 <b-form-select size="sm" v-model="settings.sortOption" :options="sortOptions" class="w-100"></b-form-select>
               </div>
               <div class="mt-2 pr-1">
-                <b-button size="sm" :pressed.sync="settings.randomise" @click="settings.sortOption = 'random'; " variant="link" v-b-popover.hover.bottom="'Randomise'"><b-icon-arrow-clockwise shift-v="-1" font-scale="1.4"></b-icon-arrow-clockwise></b-button>
+                <!-- <b-button size="sm" :pressed.sync="settings.randomise" @click="settings.sortOption = 'random'; " variant="link" v-b-popover.hover.bottom="'Randomise'"><b-icon-arrow-clockwise shift-v="-1" font-scale="1.4"></b-icon-arrow-clockwise></b-button> -->
+                <b-button size="sm" :pressed.sync="settings.randomise" @click="settings.sortOption = 'random'; " variant="link" v-b-popover.hover.bottom="'Randomise'"><b-icon-shuffle shift-v="-1" font-scale="1.2"></b-icon-shuffle></b-button>
               </div>
 
               <div class="mt-2 pl-1">
@@ -832,7 +833,8 @@ const cryptoPunksModule = {
           let latestTimestamp = 0;
           const sortedEvents = punk.events.sort(function (a, b) {
             if (a.blockNumber == b.blockNumber) {
-              return ('' + a.type).localeCompare(b.type);
+              return a.logNumber - b.logNumber;
+              // return ('' + a.type).localeCompare(b.type);
             } else {
               return a.blockNumber - b.blockNumber;
             }
@@ -861,6 +863,7 @@ const cryptoPunksModule = {
               amount: event.amount || null,
               type: event.type,
               blockNumber: event.blockNumber,
+              logNumber: event.logNumber,
               blockHash: event.blockHash,
               txHash: event.txHash,
               timestamp: event.timestamp,
@@ -1059,8 +1062,8 @@ const cryptoPunksModule = {
         }
       }
 
-      state.exchangeRates = await fetchExchangeRates();
-      logInfo("cryptoPunksModule", "mutations.loadPunks() exchangeRates: " + JSON.stringify(state.exchangeRates).substring(0, 60) + " ...");
+      // state.exchangeRates = await fetchExchangeRates();
+      // logInfo("cryptoPunksModule", "mutations.loadPunks() exchangeRates: " + JSON.stringify(state.exchangeRates).substring(0, 60) + " ...");
 
       const latestEventPunkIds = debug ? debug : await fetchLatestEvents();
       logInfo("cryptoPunksModule", "mutations.loadPunks() latestEventPunkIds: " + JSON.stringify(latestEventPunkIds));

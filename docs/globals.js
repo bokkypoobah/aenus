@@ -340,6 +340,7 @@ const CRYPTOPUNKSPUNKBYIDSQUERY = `
         amount
         type
         blockNumber
+        logNumber
         blockHash
         txHash
         timestamp
@@ -363,6 +364,7 @@ const CRYPTOPUNKSEVENTSBYTIMESTAMPQUERY = `
       amount
       type
       blockNumber
+      logNumber
       blockHash
       txHash
       timestamp
