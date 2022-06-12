@@ -23,7 +23,7 @@ const CryptoPunks = {
               </b-col>
             </b-row>
             <div>
-              <b-sidebar id="sidebar-1" width="300px" title="Filter By Attributes" shadow>
+              <b-sidebar id="sidebar-1" width="300px" title="Filter By Attributes" right shadow>
                 <div class="px-1 py-2">
                   <div v-for="(attributeKey, attributeIndex) in Object.keys(attributes).sort()" v-bind:key="attributeIndex">
                     <b-card body-class="p-0" header-class="m-0 p-0 pl-2" footer-class="p-1" class="m-3 p-0">
@@ -322,16 +322,42 @@ const CryptoPunks = {
       }
       // console.log("stage3Data.length: " + stage3Data.length);
 
+      function getAttribute(data1, category) {
+        for (let attributeIndex in data1.attributes) {
+          const attribute = data1.attributes[attributeIndex];
+          if (attribute.trait_type == category) {
+            return attribute.value;
+          }
+        }
+        return null;
+      }
+
+      let results = [];
+      for (let i in stage3Data) {
+        const d = stage3Data[i];
+        let include = true;
+        for (const [key, value] of Object.entries(this.attributeFilter)) {
+          const attributeValue = getAttribute(d, key);
+          if (!value[attributeValue]) {
+            include = false;
+            break;
+          }
+        }
+        if (include) {
+          results.push(d);
+        }
+      }
+
       if (this.settings.sortOption == 'idasc') {
-        stage3Data.sort((a, b) => {
+        results.sort((a, b) => {
           return a.punkId - b.punkId;
         });
       } else if (this.settings.sortOption == 'iddsc') {
-        stage3Data.sort((a, b) => {
+        results.sort((a, b) => {
           return b.punkId - a.punkId;
         });
       } else if (this.settings.sortOption == 'bidasc') {
-        stage3Data.sort((a, b) => {
+        results.sort((a, b) => {
           const pricea = a.bid.amount ? a.bid.amount : null;
           const priceb = b.bid.amount ? b.bid.amount : null;
           if (pricea == priceb) {
@@ -345,7 +371,7 @@ const CryptoPunks = {
           }
         });
       } else if (this.settings.sortOption == 'biddsc') {
-        stage3Data.sort((a, b) => {
+        results.sort((a, b) => {
           const pricea = a.bid.amount ? a.bid.amount : null;
           const priceb = b.bid.amount ? b.bid.amount : null;
           if (pricea == priceb) {
@@ -359,7 +385,7 @@ const CryptoPunks = {
           }
         });
       } else if (this.settings.sortOption == 'askasc') {
-        stage3Data.sort((a, b) => {
+        results.sort((a, b) => {
           const pricea = a.ask.amount ? a.ask.amount : null;
           const priceb = b.ask.amount ? b.ask.amount : null;
           if (pricea == priceb) {
@@ -373,7 +399,7 @@ const CryptoPunks = {
           }
         });
       } else if (this.settings.sortOption == 'askdsc') {
-        stage3Data.sort((a, b) => {
+        results.sort((a, b) => {
           const pricea = a.ask.amount ? a.ask.amount : null;
           const priceb = b.ask.amount ? b.ask.amount : null;
           if (pricea == priceb) {
@@ -387,7 +413,7 @@ const CryptoPunks = {
           }
         });
       } else if (this.settings.sortOption == 'lastasc') {
-        stage3Data.sort((a, b) => {
+        results.sort((a, b) => {
           const pricea = a.last.amount ? a.last.amount : null;
           const priceb = b.last.amount ? b.last.amount : null;
           if (pricea == priceb) {
@@ -401,7 +427,7 @@ const CryptoPunks = {
           }
         });
       } else if (this.settings.sortOption == 'lastdsc') {
-        stage3Data.sort((a, b) => {
+        results.sort((a, b) => {
           const pricea = a.last.amount ? a.last.amount : null;
           const priceb = b.last.amount ? b.last.amount : null;
           if (pricea == priceb) {
@@ -415,7 +441,7 @@ const CryptoPunks = {
           }
         });
       } else if (this.settings.sortOption == 'latestbid') {
-        stage3Data.sort((a, b) => {
+        results.sort((a, b) => {
           const timestampa = a.bid.timestamp ? a.bid.timestamp : null;
           const timestampb = b.bid.timestamp ? b.bid.timestamp : null;
           if (timestampa == timestampb) {
@@ -429,7 +455,7 @@ const CryptoPunks = {
           }
         });
       } else if (this.settings.sortOption == 'earliestbid') {
-        stage3Data.sort((a, b) => {
+        results.sort((a, b) => {
           const timestampa = a.bid.timestamp ? a.bid.timestamp : null;
           const timestampb = b.bid.timestamp ? b.bid.timestamp : null;
           if (timestampa == timestampb) {
@@ -443,7 +469,7 @@ const CryptoPunks = {
           }
         });
       } else if (this.settings.sortOption == 'latestask') {
-        stage3Data.sort((a, b) => {
+        results.sort((a, b) => {
           const timestampa = a.ask.timestamp ? a.ask.timestamp : null;
           const timestampb = b.ask.timestamp ? b.ask.timestamp : null;
           if (timestampa == timestampb) {
@@ -457,7 +483,7 @@ const CryptoPunks = {
           }
         });
       } else if (this.settings.sortOption == 'earliestask') {
-        stage3Data.sort((a, b) => {
+        results.sort((a, b) => {
           const timestampa = a.ask.timestamp ? a.ask.timestamp : null;
           const timestampb = b.ask.timestamp ? b.ask.timestamp : null;
           if (timestampa == timestampb) {
@@ -471,7 +497,7 @@ const CryptoPunks = {
           }
         });
       } else if (this.settings.sortOption == 'latestsale') {
-        stage3Data.sort((a, b) => {
+        results.sort((a, b) => {
           const timestampa = a.last.timestamp ? a.last.timestamp : null;
           const timestampb = b.last.timestamp ? b.last.timestamp : null;
           if (timestampa == timestampb) {
@@ -485,7 +511,7 @@ const CryptoPunks = {
           }
         });
       } else if (this.settings.sortOption == 'earliestsale') {
-        stage3Data.sort((a, b) => {
+        results.sort((a, b) => {
           const timestampa = a.last.timestamp ? a.last.timestamp : null;
           const timestampb = b.last.timestamp ? b.last.timestamp : null;
           if (timestampa == timestampb) {
@@ -499,7 +525,7 @@ const CryptoPunks = {
           }
         });
       } else if (this.settings.sortOption == 'latestactivity') {
-        stage3Data.sort((a, b) => {
+        results.sort((a, b) => {
           const timestampa = a.timestamp ? a.timestamp : null;
           const timestampb = b.timestamp ? b.timestamp : null;
           if (timestampa == timestampb) {
@@ -513,7 +539,7 @@ const CryptoPunks = {
           }
         });
       } else if (this.settings.sortOption == 'earliestactivity') {
-        stage3Data.sort((a, b) => {
+        results.sort((a, b) => {
           const timestampa = a.timestamp ? a.timestamp : null;
           const timestampb = b.timestamp ? b.timestamp : null;
           if (timestampa == timestampb) {
@@ -527,22 +553,19 @@ const CryptoPunks = {
           }
         });
       } else {
-        stage3Data.sort(() => {
+        results.sort(() => {
           return Math.random() - 0.5;
         });
       }
 
-      return stage3Data;
+      return results;
     },
     attributes() {
       const collator = {};
       for (const d of this.results) {
         for (let attribute of d.attributes) {
           const traitType = attribute.trait_type;
-          let value = attribute.value;
-          if (typeof value == "boolean") {
-            value = traitType;
-          }
+          const value = attribute.value;
           if (!collator[traitType]) {
             collator[traitType] = {};
           }
@@ -806,22 +829,15 @@ const cryptoPunksModule = {
       async function processPunks(punks) {
         const records = [];
         for (const punk of punks) {
-          // if (debug && debug.includes(punk.id)) {
           if (debug) {
             console.log("processPunks: " + JSON.stringify(punk, null, 2));
           }
           const attributes = [];
           const traits = [];
           for (let trait of punk.metadata.traits) {
-            // console.log(JSON.stringify(trait.id, null, 2));
             const attribute = traitsLookup[trait.id];
-            // console.log(trait.id + " => " + attribute);
             if (attribute) {
-              if (attribute == trait.id) {
-                attributes.push({ trait_type: attribute, value: true });
-              } else {
-                attributes.push({ trait_type: attribute, value: trait.id });
-              }
+              attributes.push({ trait_type: attribute, value: trait.id });
               traits.push(trait.id);
             } else {
               console.log("Punk " + punk.id + " not categorised " + trait.id);
@@ -830,7 +846,6 @@ const cryptoPunksModule = {
           const events = [];
           let latestTimestamp = 0;
           const sortedEvents = punk.events.sort(function (a, b) {
-            // return a.blockNumber - b.blockNumber;
             if (a.blockNumber == b.blockNumber) {
               return ('' + a.type).localeCompare(b.type);
             } else {
