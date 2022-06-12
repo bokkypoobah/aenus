@@ -99,18 +99,18 @@
           <b-navbar toggleable="sm" variant="light">
             <b-navbar-brand to="/" variant="primary">
               <b-avatar rounded variant="light" size="3.0rem" src="images/ZombieBaby_001_gp2_3871_8601_10786.gif" v-b-popover.hover.bottom="'Welcome'" class="ml-0"></b-avatar>
-              <em v-b-popover.hover="'advanced ENS and NFT utilities'">aenus</em>
+              <em v-b-popover.hover.bottom="'advanced ENS and NFT utilities'">aenus</em>
             </b-navbar-brand>
             <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
             <b-collapse id="nav-collapse" is-nav>
               <b-navbar-nav class="ml-auto">
-                <b-nav-item size="sm" to="/ens/names/" active-class="active" v-b-popover.hover="'Search ENS Names'">ENS Search</b-nav-item>
-                <!-- <b-nav-item size="sm" to="/enssales/" active-class="active" disabled v-b-popover.hover="'ENS Sales'">ENS Sales</b-nav-item> -->
-                <b-nav-item size="sm" to="/cryptopunks/" active-class="active" v-b-popover.hover="'CryptoPunks V2'">CryptoPunks</b-nav-item>
-                <b-nav-item size="sm" to="/config" active-class="active" v-b-popover.hover="'Configure Account Groups'">Config</b-nav-item>
+                <b-nav-item size="sm" to="/ens/names/" active-class="active" v-b-popover.hover.bottom="'Search ENS Names'">ENS Search</b-nav-item>
+                <!-- <b-nav-item size="sm" to="/enssales/" active-class="active" disabled v-b-popover.hover.bottom="'ENS Sales'">ENS Sales</b-nav-item> -->
+                <b-nav-item size="sm" to="/cryptopunks/" active-class="active" v-b-popover.hover.bottom="'CryptoPunks V2'">CryptoPunks</b-nav-item>
+                <b-nav-item size="sm" to="/config" active-class="active" v-b-popover.hover.bottom="'Configure Account Groups'">Config</b-nav-item>
                 <b-nav-form>
-                  <b-button size="sm" variant="link" class="ml-4" v-b-popover.hover="'Power up this app'" @click="setPowerOn();" v-if="!powerOn"><b-icon-power shift-v="-1" font-scale="1.5"></b-icon-power></b-button>
-                  <b-button size="sm" variant="link" v-b-popover.hover="'Show status'" v-b-toggle.sidebar-status v-if="powerOn"><b-icon-layout-sidebar-reverse class="ml-4 mr-2" shift-v="-1" font-scale="1.3"></b-icon-layout-sidebar-reverse><b-spinner class="m-0" :variant="spinnerVariant" v-if="powerOn" style="animation: spinner-grow 3.75s linear infinite;" small type="grow" label="Spinning"></b-spinner></b-button>
+                  <b-button size="sm" variant="link" class="ml-4" v-b-popover.hover.bottom="'Power up this app'" @click="setPowerOn();" v-if="!powerOn"><b-icon-power shift-v="-1" font-scale="1.5"></b-icon-power></b-button>
+                  <b-button size="sm" variant="link" v-b-popover.hover.bottom="'Show status'" v-b-toggle.sidebar-status v-if="powerOn"><b-icon-layout-sidebar-reverse class="ml-4 mr-2" shift-v="-1" font-scale="1.3"></b-icon-layout-sidebar-reverse><b-spinner class="m-0" :variant="spinnerVariant" v-if="powerOn" style="animation: spinner-grow 3.75s linear infinite;" small type="grow" label="Spinning"></b-spinner></b-button>
                 </b-nav-form>
               </b-navbar-nav>
             </b-collapse>
@@ -119,10 +119,10 @@
             <template v-slot:title="{ hide }">
               <div class="d-flex flex-row justify-content-between m-0 p-0" style="height: 37px;">
                 <div class="m-0 p-0">
-                  <b-button size="sm" variant="link" class="m-0 p-0" v-b-popover.hover="'Close sidebar'" @click="hide"><b-icon-x shift-v="-1" font-scale="1.7"></b-icon-x></b-button>
+                  <b-button size="sm" variant="link" class="m-0 p-0" v-b-popover.hover.bottom="'Close sidebar'" @click="hide"><b-icon-x shift-v="-1" font-scale="1.7"></b-icon-x></b-button>
                 </div>
                 <div class="m-0 p-0">
-                  <b-button size="sm" variant="link" class="m-0 p-0" v-b-popover.hover="'Power down this app'" @click="setPowerOff();" v-if="powerOn"><b-icon-power shift-v="-1" font-scale="1.5"></b-icon-power></b-button>
+                  <b-button size="sm" variant="link" class="m-0 p-0" v-b-popover.hover.bottom="'Power down this app'" @click="setPowerOff();" v-if="powerOn"><b-icon-power shift-v="-1" font-scale="1.5"></b-icon-power></b-button>
                 </div>
                 <div class="m-0 p-0 pl-4">
                   Status

@@ -63,24 +63,6 @@ const CryptoPunks = {
               <div class="mt-2 pr-2" style="max-width: 80px;">
                 <b-form-input type="text" size="sm" v-model.trim="settings.priceTo" debounce="600" v-b-popover.hover.bottom="'ETH to'" placeholder="to"></b-form-input>
               </div>
-              <!--
-              <div class="pr-1">
-                <b-form-group>
-                  <b-form-checkbox-group v-model="settings.filterBid">bid</b-form-checkbox-group>
-                  <b-form-checkbox-group v-model="settings.filterAsk">ask</b-form-checkbox-group>
-                  <b-form-checkbox-group v-model="settings.filterLast">last</b-form-checkbox-group>
-                </b-form-group>
-
-                <b-form-group>
-                  <b-form-checkbox-group v-model="settings.filterPriceBy">
-                    <b-form-checkbox value="bid">bid</b-form-checkbox>
-                    <b-form-checkbox value="ask">ask</b-form-checkbox>
-                    <b-form-checkbox value="last">last</b-form-checkbox>
-                  </b-form-checkbox-group>
-                </b-form-group>
-
-              </div>
-              -->
               <div class="mt-2 pr-1 flex-grow-1">
               </div>
               <div class="mt-2 pr-1">
