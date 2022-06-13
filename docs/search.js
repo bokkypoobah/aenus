@@ -171,13 +171,13 @@ const Search = {
                 <b-form-input type="text" size="sm" v-model.trim="settings.filterAccount" debounce="600" v-b-popover.hover.bottom="'Filter by list of registrant addresses'" placeholder="🔍 0x12... ..."></b-form-input>
               </div>
               <div v-if="settings.resultsTabIndex != 4" class="mt-2 pl-2" style="max-width: 80px;">
-                <b-form-input type="text" size="sm" v-model.trim="settings.priceFrom" debounce="600" v-b-popover.hover.bottom="'ETH from'" placeholder="from"></b-form-input>
+                <b-form-input type="text" size="sm" v-model.trim="settings.priceFrom" debounce="600" v-b-popover.hover.bottom="'ETH from'" placeholder="min"></b-form-input>
               </div>
               <div v-if="settings.resultsTabIndex != 4" class="mt-2">
                 -
               </div>
               <div v-if="settings.resultsTabIndex != 4" class="mt-2 pr-2" style="max-width: 80px;">
-                <b-form-input type="text" size="sm" v-model.trim="settings.priceTo" debounce="600" v-b-popover.hover.bottom="'ETH to'" placeholder="to"></b-form-input>
+                <b-form-input type="text" size="sm" v-model.trim="settings.priceTo" debounce="600" v-b-popover.hover.bottom="'ETH to'" placeholder="max"></b-form-input>
               </div>
               <div v-if="settings.resultsTabIndex != 4" class="mt-2 pl-1">
                 <font size="-2">{{ filteredResults.length }}/{{ Object.keys(searchResults).length }}</font>
@@ -1373,15 +1373,15 @@ const searchModule = {
           }).then(response => response.json());
           const registrations = data.data && data.data.registrations || [];
           if (registrations.length == 0) {
+            if (skip == 0) {
+              state.tempUnregistered.push(name);
+            }
             completed = true;
           } else {
             processRegistrations(data.data.registrations)
           }
           state.message = "Retrieved " + Object.keys(state.tempResults).length;
           skip += ENSSUBGRAPHBATCHSIZE;
-        }
-        if (Object.keys(state.tempResults).length == 0) {
-          state.tempUnregistered.push(name);
         }
       }
       async function fetchRegistrationsByAccount(accounts) {
@@ -1510,7 +1510,7 @@ const searchModule = {
         }
         const data = await fetch(url).then(response => response.json());
         records = records + data.tokens.length;
-        state.message = "Retrieving price " + records;
+        state.message = "Retrieving prices " + records;
         // console.log(JSON.stringify(data, null, 2));
         for (price of data.tokens) {
           prices[price.tokenId] = {

@@ -55,13 +55,13 @@ const CryptoPunks = {
                 <b-form-input type="text" size="sm" v-model.trim="settings.searchAccount" debounce="600" v-b-popover.hover.bottom="'Filter by list of owner addresses'" placeholder="🔍 0x12... ..."></b-form-input>
               </div>
               <div class="mt-2 pl-2" style="max-width: 80px;">
-                <b-form-input type="text" size="sm" v-model.trim="settings.priceFrom" debounce="600" v-b-popover.hover.bottom="'ETH from'" placeholder="from"></b-form-input>
+                <b-form-input type="text" size="sm" v-model.trim="settings.priceFrom" debounce="600" v-b-popover.hover.bottom="'ETH from'" placeholder="min"></b-form-input>
               </div>
               <div class="mt-2">
                 -
               </div>
               <div class="mt-2 pr-2" style="max-width: 80px;">
-                <b-form-input type="text" size="sm" v-model.trim="settings.priceTo" debounce="600" v-b-popover.hover.bottom="'ETH to'" placeholder="to"></b-form-input>
+                <b-form-input type="text" size="sm" v-model.trim="settings.priceTo" debounce="600" v-b-popover.hover.bottom="'ETH to'" placeholder="max"></b-form-input>
               </div>
               <div class="mt-2 pr-1 flex-grow-1">
               </div>
@@ -83,7 +83,7 @@ const CryptoPunks = {
               </div>
 
               <div class="mt-2 pl-1">
-                <b-form-select size="sm" v-model="settings.pageSize" :options="pageSizes"></b-form-select>
+                <b-form-select size="sm" v-model="settings.pageSize" :options="pageSizes" v-b-popover.hover.bottom="'Page size'"></b-form-select>
               </div>
               <div class="mt-2 pl-1">
                 <b-button size="sm" v-b-toggle.sidebar-1 variant="link" v-b-popover.hover.bottom="'Filter by Attributes'"><b-icon-filter-right shift-v="-1" font-scale="1.4"></b-icon-filter-right></b-button>
@@ -183,12 +183,12 @@ const CryptoPunks = {
       ],
 
       pageSizes: [
-        { value: 10, text: '10/P' },
-        { value: 100, text: '100/P' },
-        { value: 500, text: '500/P' },
-        { value: 1000, text: '1,000/P' },
-        { value: 2145, text: '2,145/P' },
-        { value: 66666, text: 'ALL' },
+        { value: 10, text: '10' },
+        { value: 100, text: '100' },
+        { value: 500, text: '500' },
+        { value: 1000, text: '1,000' },
+        { value: 2500, text: '2,500' },
+        { value: 10000, text: '(all)' },
       ],
 
       attributeFilter: {},
