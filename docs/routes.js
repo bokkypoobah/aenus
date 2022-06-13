@@ -1,5 +1,5 @@
 const routes = [{
-    path: '/ens/:search/:topic?',
+    path: '/ens/:search?/:topic?',
     component: Search,
     name: 'Search',
     props: true,
