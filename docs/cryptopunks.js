@@ -12,7 +12,17 @@ const CryptoPunks = {
         <b-card no-body class="p-0 mt-1">
           <b-card-body class="m-1 p-1">
             <div>
-              <b-sidebar id="sidebar-1" width="360px" title="Filter By Attributes" right shadow>
+              <b-sidebar id="sidebar-1" width="360px" title="Filter By Attributes" right shadow no-header-close header-class="m-0 p-0">
+                <template v-slot:title="{ hide }">
+                  <div class="d-flex flex-row justify-content-between m-0 p-0" style="height: 37px;">
+                    <div class="m-0 p-0">
+                      <b-button size="sm" variant="link" class="m-0 p-0" v-b-popover.hover="'Close sidebar'" @click="hide"><b-icon-x shift-v="-1" font-scale="1.7"></b-icon-x></b-button>
+                    </div>
+                    <div class="m-0 p-0 pl-4">
+                      Filter By Attributes
+                    </div>
+                  </div>
+                </template>
                 <div class="px-1 py-2">
                   <div v-for="(attributeKey, attributeIndex) in Object.keys(attributes).sort()" v-bind:key="attributeIndex">
                     <b-card body-class="p-0" header-class="m-0 p-0 pl-2" footer-class="p-1" class="m-3 p-0">
@@ -24,7 +34,7 @@ const CryptoPunks = {
                       <font size="-2">
                         <b-table small fixed striped sticky-header="200px" :fields="attributeFields" :items="getSortedValuesForAttribute(attributeKey)" head-variant="light">
                           <template #cell(select)="data">
-                            <b-form-checkbox @change="filterChange(attributeKey, data.item.attributeOption)"></b-form-checkbox>
+                            <b-form-checkbox :checked="(attributeFilter[attributeKey] && attributeFilter[attributeKey].attributeOption) ? 1 : 0" value="1" @change="filterChange(attributeKey, data.item.attributeOption)"></b-form-checkbox>
                           </template>
                           <template #cell(attributeOption)="data">
                             {{ slugToTitle(data.item.attributeOption) }}
@@ -190,8 +200,8 @@ const CryptoPunks = {
       attributeFilter: {},
       attributeFields: [
         { key: 'select', label: '', thStyle: 'width: 10%;' },
-        { key: 'attributeOption', label: 'Attribute', sortable: true },
-        { key: 'attributeTotal', label: 'Count', sortable: true, thStyle: 'width: 30%;', thClass: 'text-right', tdClass: 'text-right' },
+        { key: 'attributeOption', label: 'Attribute' /*, sortable: true*/ },
+        { key: 'attributeTotal', label: 'Count', /*sortable: true,*/ thStyle: 'width: 30%;', thClass: 'text-right', tdClass: 'text-right' },
       ],
 
       resultsFields: [
