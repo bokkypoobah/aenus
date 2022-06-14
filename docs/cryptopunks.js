@@ -1079,7 +1079,7 @@ const cryptoPunksModule = {
           let numberOfRecords = await fetchPunksByIds(batch);
           // console.log( [...batch] );
           totalRecords += numberOfRecords;
-          state.message = "Sync: " + totalRecords;
+          state.message = "Punks: " + totalRecords;
         }
       } else {
         let from = 0;
@@ -1098,7 +1098,7 @@ const cryptoPunksModule = {
             totalRecords += numberOfRecords;
             count = 0;
             batch = [];
-            state.message = "Sync: " + totalRecords;
+            state.message = "Punks: " + totalRecords;
           }
           result = generator.next();
         }
@@ -1106,7 +1106,7 @@ const cryptoPunksModule = {
           // console.log( [...batch] );
           let numberOfRecords = await fetchPunksByIds(batch);
           totalRecords += numberOfRecords;
-          state.message = "Sync: " + totalRecords;
+          state.message = "Punks: " + totalRecords;
         }
       }
       logInfo("cryptoPunksModule", "mutations.loadPunks() refreshing from db");

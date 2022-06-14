@@ -38,7 +38,10 @@ const Welcome = {
                   Search <router-link to="/ens/groups/">groups</router-link> of accounts configured in the <router-link to="/config/">Config</router-link> page.
                 </li>
                 <li>
-                  Search for <router-link to="/ens/sets/">sets</router-link> like ranges of digits with optional prefix/postfix, e.g., 999Club, 10kClub, or the 24 hour set
+                  Search for <router-link to="/ens/sets/">sets</router-link> like ranges of digits with optional prefix/postfix, e.g., 999Club, 10kClub, or the 24 hour set.
+                </li>
+                <li>
+                  Data source <b-link href="https://thegraph.com/hosted-service/subgraph/ensdomains/ens" target="_blank">ENS Subgraph</b-link> and <b-link href="https://api.reservoir.tools/#/1.%20Order%20Book/getOrdersAllV1" target="_blank">Reservoir API</b-link>.
                 </li>
               </ul>
 
@@ -46,6 +49,9 @@ const Welcome = {
               <ul>
                 <li>
                   Browse through the <router-link to="/cryptopunks/">CryptoPunks</router-link> collection, filtering by addresses, price ranges or attributes.
+                </li>
+                <li>
+                  Data source <b-link href="https://thegraph.com/hosted-service/subgraph/itsjerryokolo/cryptopunks" target="_blank">Cryptopunks Subgraph</b-link>.
                 </li>
               </ul>
 
@@ -55,7 +61,7 @@ const Welcome = {
                   Runs in your browser to craft your queries to the data services and summarises the results.
                 </li>
                 <li>
-                  Does not track your usage. Data, metadata and image retrievals from <b-link href="https://thegraph.com/" target="_blank">The Graph</b-link>, <b-link href="https://api.reservoir.tools/#/1.%20Order%20Book/getOrdersAllV1" target="_blank">Reservoir API</b-link> and GitHub will be logged.
+                  Does not track your usage. However, data, metadata and image retrievals from <b-link href="https://thegraph.com/" target="_blank">The Graph</b-link>, <b-link href="https://api.reservoir.tools/#/1.%20Order%20Book/getOrdersAllV1" target="_blank">Reservoir API</b-link> and GitHub will be logged by these services.
                 </li>
                 <li>
                   Source code at <b-link href="https://github.com/bokkypoobah/aenus" target="_blank">github.com/bokkypoobah/aenus</b-link>. Feel free to fork and customise.
