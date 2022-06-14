@@ -66,8 +66,8 @@ const CryptoPunks = {
               </div>
 
               <div class="mt-2 pl-1">
-                <b-dropdown v-if="message == null" split size="sm" text="Sync" @click="search(false)" variant="primary" v-b-popover.hover.bottom="'Partial Sync'">
-                  <b-dropdown-item @click="search(true)">Full Sync</b-dropdown-item>
+                <b-dropdown v-if="message == null" split size="sm" text="Sync" @click="loadPunks(false)" variant="primary" v-b-popover.hover.bottom="'Partial Sync'">
+                  <b-dropdown-item @click="loadPunks(true)">Full Sync</b-dropdown-item>
                 </b-dropdown>
                 <b-button v-if="message != null" size="sm" @click="halt" variant="primary" v-b-popover.hover.bottom="'Halt'" >{{ message }}</b-button>
               </div>
@@ -148,6 +148,7 @@ const CryptoPunks = {
       </b-card>
     </div>
   `,
+  props: ['search', 'topic'],
   data: function () {
     return {
       count: 0,
@@ -727,7 +728,7 @@ const CryptoPunks = {
         }
       }
     },
-    async search(fullSync) {
+    async loadPunks(fullSync) {
       store.dispatch('cryptoPunks/loadPunks', fullSync);
     },
     async doit(action) {
@@ -753,7 +754,7 @@ const CryptoPunks = {
     logDebug("CryptoPunks", "beforeDestroy()");
   },
   mounted() {
-    logInfo("CryptoPunks", "mounted() $route: " + JSON.stringify(this.$route.params));
+    logInfo("CryptoPunks", "mounted() $route: " + JSON.stringify(this.$route.params) + ", props['search']: " + this.search + ", props['topic']: " + this.topic);
     store.dispatch('cryptoPunks/loadPunks', false);
     this.reschedule = true;
     logDebug("CryptoPunks", "Calling timeoutCallback()");

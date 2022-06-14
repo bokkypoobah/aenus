@@ -8,9 +8,10 @@ const routes = [{
     component: Sales,
     name: 'Sales',
   }, {
-    path: '/cryptopunks/:search?',
+    path: '/cryptopunks/:search?/:topic?',
     component: CryptoPunks,
     name: 'CryptoPunks',
+    props: true,
   }, {
     path: '/config',
     component: Config,
