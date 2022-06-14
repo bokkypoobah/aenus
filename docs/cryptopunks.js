@@ -251,8 +251,10 @@ const CryptoPunks = {
         for (s of searchTokenIds) {
           var range = s.match(/(\d+)-(\d+)/)
           if (range != null) {
-            for (let i = range[1]; i <= range[2]; i++) {
-              stage1Data.push(data[i]);
+            for (let i = parseInt(range[1]); i <= parseInt(range[2]); i++) {
+              if (i <= data.length && data.length > 0) {
+                stage1Data.push(data[i]);
+              }
             }
           }
           if (s >= 0 && s < 10000) {
@@ -755,6 +757,11 @@ const CryptoPunks = {
   },
   mounted() {
     logInfo("CryptoPunks", "mounted() $route: " + JSON.stringify(this.$route.params) + ", props['search']: " + this.search + ", props['topic']: " + this.topic);
+    if (this.search == "ids") {
+      this.settings.searchString = this.topic;
+    } else if (this.search == "owned") {
+      this.settings.searchAccount = this.topic;
+    }
     store.dispatch('cryptoPunks/loadPunks', false);
     this.reschedule = true;
     logDebug("CryptoPunks", "Calling timeoutCallback()");
