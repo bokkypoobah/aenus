@@ -1033,7 +1033,8 @@ const cryptoPunksModule = {
             bid: punk.bid,
             ask: punk.ask,
             last: punk.last,
-            attributes: punk.attributes,
+            // attributes: punk.attributes,
+            attributes: PUNKATTRIBUTES[punk.punkId],
           });
         }
         state.results = records;
@@ -1043,7 +1044,7 @@ const cryptoPunksModule = {
       // --- loadPunks() start ---
       logInfo("cryptoPunksModule", "mutations.loadPunks() start");
       state.message = "Syncing";
-      const debug = null; // [9863];
+      const debug = [3636]; // null; // [9863];
 
       if (fullSync) {
         logInfo("cryptoPunksModule", "mutations.loadPunks() fullSync - deleting db");

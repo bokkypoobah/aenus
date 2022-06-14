@@ -373,7 +373,7 @@ const CRYPTOPUNKSEVENTSBYTIMESTAMPQUERY = `
 `;
 
 const PUNKTRAITS = {
-  "body" : ["alien", "ape", "female", "male", "zombie"],
+  "body" : ["alien", "ape", "female", "female-1", "female-2", "female-3", "female-4", "male", "male-1", "male-2", "male-3", "male-4", "zombie"],
   "chinstrap" : ["chinstrap"],
   "clown-nose" : ["clown-nose"],
   "earring" : ["earring"],
