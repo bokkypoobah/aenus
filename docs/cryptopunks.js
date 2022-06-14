@@ -11,17 +11,6 @@ const CryptoPunks = {
 
         <b-card no-body class="p-0 mt-1">
           <b-card-body class="m-1 p-1">
-            <b-row>
-              <b-col sm="6" class="mt-2">
-                <font size="-2">
-                  {{ message }}
-                </font>
-                <b-button v-if="message == null" size="sm" @click="search(fullSync)" variant="primary" class="float-right mx-1">Sync</b-button>
-                <!-- <b-button v-if="message == null" size="sm" @click="searchLogs" :disabled="false && (!powerOn || network.chainId != 1)" v-b-popover.hover.bottom="'Connect to web3 to enable'" variant="primary" class="float-right mx-1">Search Logs</b-button> -->
-                <b-button v-if="message != null" size="sm" @click="halt" variant="primary" class="float-right">Halt</b-button>
-                <b-form-checkbox v-model="fullSync" :disabled="message != null" v-b-popover.hover.bottom="'Full or incremental sync'" class="float-right mr-2">Full sync</b-form-checkbox>
-              </b-col>
-            </b-row>
             <div>
               <b-sidebar id="sidebar-1" width="360px" title="Filter By Attributes" right shadow>
                 <div class="px-1 py-2">
@@ -65,6 +54,16 @@ const CryptoPunks = {
               </div>
               <div class="mt-2 pr-1 flex-grow-1">
               </div>
+
+              <div class="mt-2 pl-1">
+                <b-dropdown v-if="message == null" split size="sm" text="Sync" @click="search(false)" variant="primary" v-b-popover.hover.bottom="'Partial Sync'">
+                  <b-dropdown-item @click="search(true)">Full Sync</b-dropdown-item>
+                </b-dropdown>
+                <b-button v-if="message != null" size="sm" @click="halt" variant="primary" v-b-popover.hover.bottom="'Halt'" >{{ message }}</b-button>
+              </div>
+              <div class="mt-2 pr-1 flex-grow-1">
+              </div>
+
               <div class="mt-2 pl-1">
                 <font size="-2">{{ filteredResults.length }}</font>
               </div>
@@ -143,9 +142,6 @@ const CryptoPunks = {
     return {
       count: 0,
       reschedule: true,
-
-      fullSync: false,
-
       settings: {
         searchString: null,
         searchAccount: null,
@@ -1083,7 +1079,7 @@ const cryptoPunksModule = {
           let numberOfRecords = await fetchPunksByIds(batch);
           // console.log( [...batch] );
           totalRecords += numberOfRecords;
-          state.message = "Retrieved " + totalRecords;
+          state.message = "Sync: " + totalRecords;
         }
       } else {
         let from = 0;
@@ -1102,7 +1098,7 @@ const cryptoPunksModule = {
             totalRecords += numberOfRecords;
             count = 0;
             batch = [];
-            state.message = "Retrieved " + totalRecords;
+            state.message = "Sync: " + totalRecords;
           }
           result = generator.next();
         }
@@ -1110,7 +1106,7 @@ const cryptoPunksModule = {
           // console.log( [...batch] );
           let numberOfRecords = await fetchPunksByIds(batch);
           totalRecords += numberOfRecords;
-          state.message = "Retrieved " + totalRecords;
+          state.message = "Sync: " + totalRecords;
         }
       }
       logInfo("cryptoPunksModule", "mutations.loadPunks() refreshing from db");
