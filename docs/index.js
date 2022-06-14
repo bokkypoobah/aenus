@@ -40,7 +40,7 @@ const store = new Vuex.Store({
   mutations: {
     initialiseStore(state) {
       // Check if the store exists
-    	if (localStorage.getItem('store')) {
+    	if (localStorage.getItem('store') && false) {
     		let store = JSON.parse(localStorage.getItem('store'));
 
     		// Check the version stored against current. If different, don't
@@ -81,7 +81,7 @@ store.subscribe((mutation, state) => {
 		state: state,
 	};
   // logDebug("store.updated", JSON.stringify(store, null, 4));
-	localStorage.setItem('store', JSON.stringify(store));
+	// localStorage.setItem('store', JSON.stringify(store));
 });
 
 // sync store and router by using `vuex-router-sync`
