@@ -75,10 +75,10 @@ const CryptoPunks = {
               </div>
 
               <div class="mt-2 pl-1">
-                <font size="-2">{{ filteredResults.length }}</font>
+                <font size="-2">{{ filteredSortedResults.length }}</font>
               </div>
               <div class="mt-2 pl-1">
-                <b-pagination size="sm" v-model="settings.currentPage" :total-rows="filteredResults.length" :per-page="settings.pageSize"></b-pagination>
+                <b-pagination size="sm" v-model="settings.currentPage" :total-rows="filteredSortedResults.length" :per-page="settings.pageSize"></b-pagination>
               </div>
 
               <div class="mt-2 pr-1 flex-grow-1">
@@ -236,7 +236,7 @@ const CryptoPunks = {
       return store.getters['cryptoPunks/message'];
     },
     pagedFilteredResults() {
-      return this.filteredResults.slice((this.settings.currentPage - 1) * this.settings.pageSize, this.settings.currentPage * this.settings.pageSize);
+      return this.filteredSortedResults.slice((this.settings.currentPage - 1) * this.settings.pageSize, this.settings.currentPage * this.settings.pageSize);
     },
     filteredResults() {
       const priceFrom = this.settings.priceFrom && parseFloat(this.settings.priceFrom) >= 0 ? parseFloat(this.settings.priceFrom) : null;
@@ -341,7 +341,10 @@ const CryptoPunks = {
           results.push(d);
         }
       }
-
+      return results;
+    },
+    filteredSortedResults() {
+      let results = this.filteredResults.slice(0);
       if (this.settings.sortOption == 'idasc') {
         results.sort((a, b) => {
           return a.punkId - b.punkId;
