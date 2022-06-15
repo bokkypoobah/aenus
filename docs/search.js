@@ -1127,7 +1127,7 @@ const Search = {
 
     exportNames() {
       const rows = [
-          ["No", "Label Name", "Name", "Registration Date", "Expiry Date", "Cost (ETH)", "Registrant", "Controller", "Resolver", "Resolved Address"],
+          ["No", "Label Name", "Name", "Price", "Registration Date", "Expiry Date", "Cost (ETH)", "Registrant", "Controller", "Resolver", "Resolved Address"],
       ];
       const timestamp = new Date(parseInt((new Date).getTime()/1000)*1000).toISOString().replace('T', '-').replaceAll(':', '-').replace('.000Z', '');
       let i = 1;
@@ -1136,6 +1136,7 @@ const Search = {
           i,
           result.labelName,
           result.name,
+          this.prices[result.tokenId] ? this.prices[result.tokenId].floorAskPrice : null,
           new Date(parseInt(result.registrationDate) * 1000).toISOString().replace('T', ' ').replace('.000Z', ''),
           new Date(parseInt(result.expiryDate) * 1000).toISOString().replace('T', ' ').replace('.000Z', ''),
           (result.cost ? ethers.utils.formatEther(result.cost) : null),
