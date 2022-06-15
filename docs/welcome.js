@@ -51,7 +51,7 @@ const Welcome = {
                   Browse through the <router-link to="/cryptopunks/">CryptoPunks</router-link> collection, filtering by addresses, price ranges or attributes.
                 </li>
                 <li>
-                  Data source <b-link href="https://thegraph.com/hosted-service/subgraph/itsjerryokolo/cryptopunks" target="_blank">Cryptopunks Subgraph</b-link>.
+                  Data source <b-link href="https://thegraph.com/hosted-service/subgraph/itsjerryokolo/cryptopunks" target="_blank">Cryptopunks Subgraph</b-link>. Note that the full syncing takes about 5 minutes initially.
                 </li>
               </ul>
 

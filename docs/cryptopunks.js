@@ -68,7 +68,7 @@ const CryptoPunks = {
               <div class="mt-2 pl-1">
                 <b-dropdown v-if="message == null" split size="sm" text="Sync" @click="loadPunks(false)" variant="primary" v-b-popover.hover.bottom="'Partial Sync'">
                   <b-dropdown-item @click="loadPunks(true)">Full Sync</b-dropdown-item>
-                  <b-dropdown-item @click="searchLogs()">Search Event Logs (WIP)</b-dropdown-item>
+                  <!-- <b-dropdown-item @click="searchLogs()">Search Event Logs (WIP)</b-dropdown-item> -->
                 </b-dropdown>
                 <b-button v-if="message != null" size="sm" @click="halt" variant="primary" v-b-popover.hover.bottom="'Halt'" >{{ message }}</b-button>
               </div>
@@ -683,6 +683,7 @@ const CryptoPunks = {
           logInfo("CryptoPunks", "searchLogs() - latestEntry.blockNumber: " + (latestEntry == null ? null : latestEntry.blockNumber));
           logInfo("CryptoPunks", "searchLogs() - total: " + total);
 
+          // TODO: Work on this code if the subgraph is unavailable
           if (true) {
             let fromBlock = (latestEntry != null) ? parseInt(latestEntry.blockNumber) + 1 : CRYPTOPUNKSMARKETDEPLOYMENTBLOCK;
             let count = 0;
