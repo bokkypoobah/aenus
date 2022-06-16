@@ -752,7 +752,7 @@ const CryptoPunks = {
     slugToTitle(slug) {
       var words = slug.split("-");
       return words.map(function(word) {
-        if (word.length <= 2) {
+        if (word == "3d" || word == "vr") {
           return word.toUpperCase();
         } else {
           return word.charAt(0).toUpperCase() + word.substring(1).toLowerCase();
