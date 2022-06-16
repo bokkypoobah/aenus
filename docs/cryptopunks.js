@@ -116,7 +116,7 @@ const CryptoPunks = {
 
                 <b-card-group deck>
                   <div v-for="(event, eventIndex) in item.values" :key="eventIndex">
-                    <b-card body-class="p-1" header-class="p-1" footer-class="p-1" img-top class="m-1 p-0 border-0">
+                    <b-card body-class="p-1" header-class="p-1" img-top class="m-1 p-0 border-0">
                       <b-link :href="'https://cryptopunks.app/cryptopunks/details/' + event.punkId" v-b-popover.hover.bottom="'View in original website'" target="_blank">
                         <b-avatar rounded size="6rem" :src="'images/punks/punk' + event.punkId.toString().padStart(4, '0') + '.png'" style="background-color: #638596"></b-avatar>
                       </b-link>
@@ -136,7 +136,7 @@ const CryptoPunks = {
                           </div>
                           <div>
                             <font size="-1">
-                              <b-badge :variant="(item.type == 'Sales') ? 'success' : ((item.type == 'Asks') ? 'primary' : 'warning')">{{ formatETH(event.amount) }}</b-badge>
+                              <b-badge :variant="(item.type == 'Sales') ? 'success' : ((item.type == 'Asks') ? 'primary' : 'warning')" v-b-popover.hover.bottom="formatETH(event.amount)">{{ formatETHShort(event.amount) }}</b-badge>
                             </font>
                           </div>
                         </div>
@@ -786,15 +786,15 @@ const CryptoPunks = {
       console.log("filterChange: " + JSON.stringify(this.attributeFilter));
       // this.recalculate('filterChange');
     },
-    formatETH(e) {
+    formatETHShort(e) {
       if (e) {
         try {
-          const float = ethers.utils.formatEther(e);
-          if ((float != 0 && float < 0.001) || float > 10000000) {
-            return parseFloat(float);
-          } else {
-            return ethers.utils.commify(float);
+          let float = ethers.utils.formatEther(e);
+          if (float > 1000) {
+            float = parseFloat(float) / 1000;
+            return float.toFixed(1) + "k";
           }
+          return float.toString().replace(/.0$/, "");
         } catch (err) {
         }
       }
@@ -802,6 +802,13 @@ const CryptoPunks = {
       try {
         const float = ethers.utils.formatEther(e);
         return e ? ethers.utils.commify(float) : null;
+      } catch (err) {
+      }
+      return e.toFixed(9);
+    },
+    formatETH(e) {
+      try {
+        return e ? ethers.utils.commify(ethers.utils.formatEther(e)) : null;
       } catch (err) {
       }
       return e.toFixed(9);
