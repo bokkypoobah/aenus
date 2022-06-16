@@ -16,8 +16,10 @@ const CryptoPunks = {
             </b-tab>
             <b-tab title="Punks" @click="updateURL('punks');">
             </b-tab>
+            <!--
             <b-tab title="Chart" @click="updateURL('chart');">
             </b-tab>
+            -->
           </b-tabs>
 
           <b-card-body class="m-1 p-1">
@@ -377,32 +379,32 @@ const CryptoPunks = {
           {
             name: "Series 1",
             data: [
-              [1481114800000, 34, 20],
-              [1483771200000, 43, 10],
-              [1484857600000, 31, 15],
-              [1485944000000, 43, 5],
-              [1487030400000, 33, 2],
-              [1487116800000, 52, 20],
+              [1481114800000, 34, 4],
+              [1483771200000, 43, 4],
+              [1484857600000, 31, 4],
+              [1485944000000, 43, 4],
+              [1487030400000, 33, 4],
+              [1487116800000, 52, 4],
             ]
           },
           {
             name: "Series 2",
             data: [
-              [1481114800000, 14, 20],
-              [1486771200000, 13, 17],
-              [1486857600000, 11, 15],
-              [1486944000000, 13, 7],
-              [1487030400000, 13, 9],
-              [1487116800000, 12, 20],
+              [1481114800000, 14, 4],
+              [1486771200000, 13, 4],
+              [1486857600000, 11, 4],
+              [1486944000000, 13, 4],
+              [1487030400000, 13, 4],
+              [1487116800000, 12, 4],
             ]
           }
         ],
         xaxis: {
-          tickAmount: 12,
+          // tickAmount: 12,
           type: 'datetime',
-          labels: {
-            rotate: 0,
-          }
+          // labels: {
+          //   rotate: 0,
+          // }
         },
         yaxis: {
           max: 70
@@ -425,6 +427,9 @@ const CryptoPunks = {
     },
     results() {
       return store.getters['cryptoPunks/results'];
+    },
+    events() {
+      return store.getters['cryptoPunks/events'];
     },
     message() {
       return store.getters['cryptoPunks/message'];
@@ -468,7 +473,7 @@ const CryptoPunks = {
         // console.log("settings: " + JSON.stringify(this.settings));
         stage2Data = [];
         for (let d of stage1Data) {
-          const bid = d.bid.amount ? ethers.utils.formatEther(d.bid.amount) : null;
+            const bid = d.bid.amount ? ethers.utils.formatEther(d.bid.amount) : null;
           const ask = d.ask.amount ? ethers.utils.formatEther(d.ask.amount) : null;
           const last = d.last.amount ? ethers.utils.formatEther(d.last.amount) : null;
           // console.log(d.punkId + " " + bid + " " + ask + " " + last);
@@ -752,18 +757,101 @@ const CryptoPunks = {
       return results;
     },
     summary() {
+      const priceFrom = this.settings.priceFrom && parseFloat(this.settings.priceFrom) >= 0 ? parseFloat(this.settings.priceFrom) : null;
+      const priceTo = this.settings.priceTo && parseFloat(this.settings.priceTo) >= 0 ? parseFloat(this.settings.priceTo) : null;
+      let data = this.settings.randomise ? this.results.slice(0) : this.results.slice(0);
+      let stage1Data = data;
+      if (this.settings.searchString != null && this.settings.searchString.length > 0) {
+        const searchTokenIds = this.settings.searchString.split(/[, \t\n]+/).map(function(s) { return s.trim(); });
+        stage1Data = [];
+        for (s of searchTokenIds) {
+          var range = s.match(/(\d+)-(\d+)/)
+          if (range != null) {
+            for (let i = parseInt(range[1]); i <= parseInt(range[2]); i++) {
+              if (i <= data.length && data.length > 0) {
+                stage1Data.push(data[i]);
+              }
+            }
+          }
+          if (s >= 0 && s < 10000) {
+            if (s < data.length) {
+              stage1Data.push(data[s]);
+            }
+          }
+        }
+      }
+      // console.log("stage1Data: " + JSON.stringify(stage1Data.slice(0, 10)));
+      function getAttribute(data1, category) {
+        for (let attributeIndex in data1.attributes) {
+          const attribute = data1.attributes[attributeIndex];
+          if (attribute.trait_type == category) {
+            return attribute.value;
+          }
+        }
+        return null;
+      }
+      let stage2Data = [];
+      let idFilterMap = {};
+      for (let i in stage1Data) {
+        const d = stage1Data[i];
+        let include = true;
+        for (const [key, value] of Object.entries(this.attributeFilter)) {
+          const attributeValue = getAttribute(d, key);
+          if (!value[attributeValue]) {
+            include = false;
+            break;
+          }
+        }
+        if (include) {
+          stage2Data.push(d);
+          idFilterMap[d.punkId] = true;
+        }
+      }
+      // console.log("stage2Data: " + JSON.stringify(stage2Data.slice(0, 10)));
+      const idFilters = Object.keys(idFilterMap).map(function(id) { return parseInt(id); });
+      // console.log("idFilters: " + JSON.stringify(idFilters.slice(0, 10)));
+
       const results = [];
       const bids = [];
       const asks = [];
       const sales = [];
-      for (let punk of this.filteredResults) {
-        for (let event of punk.events) {
+
+      // console.log("events: " + JSON.stringify(this.events.slice(0, 10)));
+      const searchAccounts = this.settings.searchAccount != null && this.settings.searchAccount.length > 0 ? this.settings.searchAccount.split(/[, \t\n]+/).map(function(s) { return s.toLowerCase(); }) : null;
+      // console.log("searchAccounts: " + JSON.stringify(searchAccounts));
+      for (let event of this.events) {
+        let include = idFilters.includes(event.punkId);
+        if (include && searchAccounts) {
+          let found = false;
+          for (searchAccount of searchAccounts) {
+            if (event.from != null && event.from.includes(searchAccount)) {
+              found = true;
+              break;
+            } else if (event.to != null && event.to.includes(searchAccount)) {
+              found = true;
+              break;
+            }
+          }
+          if (!found) {
+            include = false;
+          }
+        }
+        if (include && (priceFrom != null || priceTo != null)) {
+          let amount = ethers.utils.formatEther(event.amount);
+          // console.log("priceFrom: " + priceFrom + ", amount: " + event.amount + " = " + amount);
+          if (priceFrom != null && amount < priceFrom) {
+            include = false;
+          } else if (priceTo != null && amount > priceTo) {
+            include = false;
+          }
+        }
+        if (include) {
           if (event.type == "BID_CREATED" /*|| event.type == "BID_REMOVED"*/) {
-            bids.push({ punkId: punk.punkId, ...event });
+            bids.push(event);
           } else if (event.type == "ASK_CREATED" /*|| event.type == "ASK_REMOVED"*/) {
-            asks.push({ punkId: punk.punkId, ...event });
+            asks.push(event);
           } else if (event.type == "SALE") {
-            sales.push({ punkId: punk.punkId, ...event });
+            sales.push(event);
           }
         }
       }
@@ -1097,6 +1185,7 @@ const cryptoPunksModule = {
     exchangeRates: {},
     tempPunks: [],
     results: [],
+    events: [],
     sales: [],
     message: null,
     halt: false,
@@ -1110,6 +1199,7 @@ const cryptoPunksModule = {
     punks: state => state.punks,
     exchangeRates: state => state.exchangeRates,
     results: state => state.results,
+    events: state => state.events,
     sales: state => state.sales,
     message: state => state.message,
     params: state => state.params,
@@ -1344,7 +1434,23 @@ const cryptoPunksModule = {
         // const punks = await db0.punks.orderBy("timestamp").reverse().limit(100).toArray();
         const punks = await db0.punks.orderBy("punkId").toArray();
         const records = [];
+        const events = [];
         for (const punk of punks) {
+          for (let event of punk.events) {
+            if (event.type == "BID_CREATED" || event.type == "ASK_CREATED" || event.type == "SALE") {
+              events.push({
+                punkId: punk.punkId,
+                type: event.type,
+                from: event.from,
+                to: event.to,
+                amount: event.amount,
+                blockNumber: event.blockNumber,
+                logNumber: event.logNumber,
+                timestamp: event.timestamp,
+                txHash: event.txHash,
+              });
+            }
+          }
           records.push({
             punkId: punk.punkId,
             owner: punk.owner,
@@ -1356,11 +1462,13 @@ const cryptoPunksModule = {
             ask: punk.ask,
             last: punk.last,
             attributes: PUNKATTRIBUTES[punk.punkId],
-            events: punk.events,
+            // events: punk.events,
           });
         }
         state.results = records;
+        state.events = events;
         // console.log(JSON.stringify(records, null, 2));
+        // console.log(JSON.stringify(events.slice(0, 100), null, 2));
       }
 
       // --- loadPunks() start ---
