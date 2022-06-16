@@ -116,9 +116,9 @@ const CryptoPunks = {
 
                 <b-card-group deck>
                   <div v-for="(event, eventIndex) in item.values" :key="eventIndex">
-                    <b-card body-class="p-1" header-class="p-1" img-top class="m-1 p-0 border-0">
+                    <b-card body-class="p-0" header-class="p-1" img-top class="m-1 p-0 border-0">
                       <b-link :href="'https://cryptopunks.app/cryptopunks/details/' + event.punkId" v-b-popover.hover.bottom="'View in original website'" target="_blank">
-                        <b-avatar rounded size="6rem" :src="'images/punks/punk' + event.punkId.toString().padStart(4, '0') + '.png'" style="background-color: #638596"></b-avatar>
+                        <b-avatar rounded size="7rem" :src="'images/punks/punk' + event.punkId.toString().padStart(4, '0') + '.png'" style="background-color: #638596"></b-avatar>
                       </b-link>
                       <b-card-text class="text-right">
                         <div class="d-flex flex-wrap m-0 p-0">
