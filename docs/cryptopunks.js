@@ -10,6 +10,14 @@ const CryptoPunks = {
       <b-card no-body header="CryptoPunks" class="border-0" header-class="p-0">
 
         <b-card no-body class="p-0 mt-1">
+
+          <b-tabs card align="left" no-body active-tab-class="m-0 p-0" v-model="settings.tabIndex">
+            <b-tab title="Summary">
+            </b-tab>
+            <b-tab title="Table">
+            </b-tab>
+          </b-tabs>
+
           <b-card-body class="m-1 p-1">
             <div>
               <b-sidebar id="sidebar-1" width="360px" title="Filter By Attributes" right shadow no-header-close header-class="m-0 p-0">
@@ -46,6 +54,7 @@ const CryptoPunks = {
                 </div>
               </b-sidebar>
             </div>
+
             <div class="d-flex flex-wrap m-0 p-0" style="min-height: 37px;">
               <div class="mt-2" style="max-width: 150px;">
                 <b-form-input type="text" size="sm" v-model.trim="settings.searchString" debounce="600" v-b-popover.hover.bottom="'Filter by list of punkIds'" placeholder="🔍 id1 id2-id3 ..."></b-form-input>
@@ -100,7 +109,64 @@ const CryptoPunks = {
               </div>
             </div>
 
-            <b-table small striped hover :fields="resultsFields" :items="pagedFilteredResults" table-class="w-100" class="mt-0">
+            <!-- Summary -->
+
+            <b-table v-if="settings.tabIndex == 0" small striped hover :fields="summaryFields" :items="summary" table-class="w-100" class="mt-0">
+              <template #cell(values)="data">
+                <b-card-group deck>
+                <div v-for="(event, eventIndex) in data.item.values" :key="eventIndex">
+
+                  <b-card body-class="p-1" header-class="p-1" footer-class="p-1" img-top class="m-1 p-0 border-0">
+                    <b-link :href="'https://cryptopunks.app/cryptopunks/details/' + event.punkId" v-b-popover.hover.bottom="'View in original website'" target="_blank">
+                      <b-avatar rounded size="6rem" :src="'images/punks/punk' + event.punkId.toString().padStart(4, '0') + '.png'" style="background-color: #638596"></b-avatar>
+                    </b-link>
+                    <b-card-text class="text-right">
+
+                      <div class="d-flex flex-wrap m-0 p-0">
+                        <div>
+                          <font size="-1">
+                            <b-badge variant="light">{{ event.punkId }}</b-badge>
+                          </font>
+                        </div>
+                        <div class="flex-grow-1">
+                        </div>
+                        <div>
+                          <font size="-1">
+                            <b-badge :variant="(data.item.type == 'Sales') ? 'success' : ((data.item.type == 'Asks') ? 'primary' : 'warning')">{{ formatETH(event.amount) }}</b-badge>
+                          </font>
+                        </div>
+                      </div>
+                    </b-card-text>
+                  </b-card>
+                    <!--
+
+                    <b-link :href="'https://cryptopunks.app/cryptopunks/details/' + event.punkId" v-b-popover.hover.bottom="'View in original website'" target="_blank">
+                      <b-img-lazy width="100%" :src="'images/punks/punk' + event.punkId.toString().padStart(4, '0') + '.png'" style="background-color: #638596"/>
+                      <b-avatar rounded :badge="formatETH(event.amount)" size="6rem" :src="'images/punks/punk' + event.punkId.toString().padStart(4, '0') + '.png'" style="background-color: #638596" class="m-1"></b-avatar>
+                    </b-link>
+
+                    <b-avatar src="https://placekitten.com/300/300" variant="info"></b-avatar>
+                    {{ event.punkId }}
+                    <b-card overlay :id="'popover-target-image-' + event.punkId" :img-src="'images/punks/punk' + event.punkId.toString().padStart(4, '0') + '.png'" img-height="48" class="m-2 p-0">
+                    <div v-if="prices[record.tokenId]">
+                      <b-col cols="10" class="m-0 p-1 text-right">
+                        <font shift-v="+3" size="-1"><b-badge v-b-popover.hover.bottom="'Floor ask price in ETH'" variant="success">{{ prices[record.tokenId].floorAskPrice }}</b-badge></font>
+                      </b-col>
+                    </div>
+
+                    <b-col cols="10" class="m-0 p-1 text-right">
+                      <font shift-v="+3" size="-1"><b-badge v-b-popover.hover.bottom="'Floor ask price in ETH'" variant="success">{{ formatETH(event.amount) }}</b-badge></font>
+                    </b-col>
+                    </b-card>
+                    -->
+
+                </div>
+                </b-card-group deck>
+              </template>
+            </b-table>
+
+            <!-- Table -->
+            <b-table v-if="settings.tabIndex == 1" small striped hover :fields="resultsFields" :items="pagedFilteredResults" table-class="w-100" class="mt-0">
               <template #cell(punkId)="data">
                 <b-link :href="'https://cryptopunks.app/cryptopunks/details/' + data.item.punkId" v-b-popover.hover.bottom="'View in original website'" target="_blank">
                   {{ data.item.punkId }}
@@ -155,6 +221,7 @@ const CryptoPunks = {
       count: 0,
       reschedule: true,
       settings: {
+        tabIndex: 0,
         searchString: null,
         searchAccount: null,
         priceFrom: null,
@@ -204,6 +271,11 @@ const CryptoPunks = {
         { key: 'select', label: '', thStyle: 'width: 10%;' },
         { key: 'attributeOption', label: 'Attribute' /*, sortable: true*/ },
         { key: 'attributeTotal', label: 'Count', /*sortable: true,*/ thStyle: 'width: 30%;', thClass: 'text-right', tdClass: 'text-right' },
+      ],
+
+      summaryFields: [
+        { key: 'type', label: 'Type', thStyle: 'width: 10%;' },
+        { key: 'values', label: 'Latest', thStyle: 'width: 90%;' },
       ],
 
       resultsFields: [
@@ -555,6 +627,113 @@ const CryptoPunks = {
           return Math.random() - 0.5;
         });
       }
+
+      return results;
+    },
+    summary() {
+      const results = [];
+      // let filteredResults = this.filteredResults.slice(0, 50); // .slice(0);
+      // console.log("filteredResults: " + JSON.stringify(filteredResults));
+
+      const resultsSize = 10;
+      const bids = [];
+      const asks = [];
+      const sales = [];
+
+      for (let punk of this.filteredResults) {
+        // console.log(JSON.stringify(punk));
+        for (let event of punk.events) {
+          // console.log("  " + JSON.stringify(event));
+          if (event.type == "BID_CREATED" /*|| event.type == "BID_REMOVED"*/) {
+            bids.push({ punkId: punk.punkId, ...event });
+          } else if (event.type == "ASK_CREATED" /*|| event.type == "ASK_REMOVED"*/) {
+            asks.push({ punkId: punk.punkId, ...event });
+          } else if (event.type == "SALE") {
+            sales.push({ punkId: punk.punkId, ...event });
+          }
+        }
+      }
+      bids.sort((a, b) => {
+        if (a.blockNumber == b.blockNumber) {
+          return b.logNumber - a.logNumber;
+        } else {
+          return b.blockNumber - a.blockNumber;
+        }
+      });
+      results.push({ type: "Bids", values: bids.slice(0, resultsSize) });
+      asks.sort((a, b) => {
+        if (a.blockNumber == b.blockNumber) {
+          return b.logNumber - a.logNumber;
+        } else {
+          return b.blockNumber - a.blockNumber;
+        }
+      });
+      results.push({ type: "Asks", values: asks.slice(0, resultsSize) });
+      sales.sort((a, b) => {
+        if (a.blockNumber == b.blockNumber) {
+          return b.logNumber - a.logNumber;
+        } else {
+          return b.blockNumber - a.blockNumber;
+        }
+      });
+      results.push({ type: "Sales", values: sales.slice(0, resultsSize) });
+
+      // console.log(JSON.stringify(bids));
+      // console.log(JSON.stringify(asks));
+      // console.log(JSON.stringify(sales));
+
+      //
+      // let data = this.filteredResults.map(function myFunction(item) {
+      //   const bidTimestamp = item.bid.timestamp ? item.bid.timestamp : null;
+      //   const askTimestamp = item.ask.timestamp ? item.ask.timestamp : null;
+      //   const lastTimestamp = item.last.timestamp ? item.last.timestamp : null;
+      //   return { punkId: item.punkId, bidTimestamp, askTimestamp, lastTimestamp };
+      // });
+      // // console.log("data: " + JSON.stringify(data));
+      //
+      // data.sort((a, b) => {
+      //   if (a.bidTimestamp == b.bidTimestamp) {
+      //     return a.punkId - b.punkId;
+      //   } else if (a.bidTimestamp != null && b.bidTimestamp == null) {
+      //     return -1;
+      //   } else if (a.bidTimestamp == null && b.bidTimestamp != null) {
+      //     return 1;
+      //   } else {
+      //     return b.bidTimestamp - a.bidTimestamp;
+      //   }
+      // });
+      // console.log("data: " + JSON.stringify(data));
+      // results["bid"] = data.slice(0, 20);
+
+      // data.sort((a, b) => {
+      //   if (a.askTimestamp == b.askTimestamp) {
+      //     return a.punkId - b.punkId;
+      //   } else if (a.askTimestamp != null && b.askTimestamp == null) {
+      //     return -1;
+      //   } else if (a.askTimestamp == null && b.askTimestamp != null) {
+      //     return 1;
+      //   } else {
+      //     return b.askTimestamp - a.askTimestamp;
+      //   }
+      // });
+      // // console.log("data: " + JSON.stringify(data));
+      // results["ask"] = data.slice(0, 20);
+      //
+      // data.sort((a, b) => {
+      //   if (a.lastTimestamp == b.lastTimestamp) {
+      //     return a.punkId - b.punkId;
+      //   } else if (a.lastTimestamp != null && b.lastTimestamp == null) {
+      //     return -1;
+      //   } else if (a.lastTimestamp == null && b.lastTimestamp != null) {
+      //     return 1;
+      //   } else {
+      //     return b.lastTimestamp - a.lastTimestamp;
+      //   }
+      // });
+      // // console.log("data: " + JSON.stringify(data));
+      // // console.log("filteredResults: " + JSON.stringify(filteredResults));
+      // results["last"] = data.slice(0, 20);
+
 
       return results;
     },
@@ -987,7 +1166,8 @@ const cryptoPunksModule = {
         const results = {};
         const latestRecord = await db0.punks.orderBy("timestamp").last();
         if (latestRecord != null) {
-          let latestTimestamp = parseInt(latestRecord.timestamp) - 2 * 60 * 60;
+          // let latestTimestamp = parseInt(latestRecord.timestamp) - 2 * 60 * 60;
+          let latestTimestamp = parseInt(latestRecord.timestamp);
           let data;
           do {
             logInfo("cryptoPunksModule", "mutations.loadPunks().fetchLatestEvents() latestTimestamp: " + new Date(latestTimestamp * 1000).toLocaleString() + " = " + latestTimestamp);
@@ -1049,15 +1229,15 @@ const cryptoPunksModule = {
           records.push({
             punkId: punk.punkId,
             owner: punk.owner,
-            // claimer: punk.claimer,
+            claimer: punk.claimer,
             timestamp: punk.timestamp,
             // traits: punk.traits,
-            // wrapped: punk.wrapped,
+            wrapped: punk.wrapped,
             bid: punk.bid,
             ask: punk.ask,
             last: punk.last,
-            // attributes: punk.attributes,
             attributes: PUNKATTRIBUTES[punk.punkId],
+            events: punk.events,
           });
         }
         state.results = records;
