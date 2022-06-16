@@ -12,9 +12,9 @@ const CryptoPunks = {
         <b-card no-body class="p-0 mt-1">
 
           <b-tabs card align="left" no-body active-tab-class="m-0 p-0" v-model="settings.tabIndex">
-            <b-tab title="Summary">
+            <b-tab title="Summary" @click="updateURL('summary');">
             </b-tab>
-            <b-tab title="Punks">
+            <b-tab title="Punks" @click="updateURL('punks');">
             </b-tab>
           </b-tabs>
 
@@ -753,6 +753,9 @@ const CryptoPunks = {
     },
   },
   methods: {
+    updateURL(where) {
+      this.$router.push('/cryptopunks/' + where);
+    },
     slugToTitle(slug) {
       var words = slug.split("-");
       return words.map(function(word) {
@@ -969,6 +972,29 @@ const CryptoPunks = {
     } else if (this.search == "owned") {
       this.settings.searchAccount = this.topic;
     }
+
+    if (this.search == "names") {
+      this.settings.searchTabIndex = 0;
+    } else if (this.search == "contains") {
+      this.settings.searchTabIndex = 1;
+    } else if (this.search == "startswith") {
+      this.settings.searchTabIndex = 2;
+    } else if (this.search == "endswith") {
+      this.settings.searchTabIndex = 3;
+    } else if (this.search == "owned") {
+      this.settings.searchTabIndex = 4;
+    } else if (this.search == "groups") {
+      this.settings.searchTabIndex = 5;
+    } else if (this.search == "sets") {
+      this.settings.searchTabIndex = 6;
+    }
+
+    if (this.search == "summary") {
+      this.settings.tabIndex = 0;
+    } else if (this.search == "punks") {
+      this.settings.tabIndex = 1;
+    }
+
     store.dispatch('cryptoPunks/loadPunks', false);
     this.reschedule = true;
     logDebug("CryptoPunks", "Calling timeoutCallback()");

@@ -1073,7 +1073,6 @@ const Search = {
   },
   methods: {
     updateURL(where) {
-      // console.log("goto: " + where);
       this.$router.push('/ens/' + where);
     },
     formatETH(e) {
