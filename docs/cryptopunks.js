@@ -111,7 +111,7 @@ const CryptoPunks = {
             </div>
 
             <!-- Summary -->
-            <div v-for="(item, summaryIndex) in summary" :key="summaryIndex">
+            <div v-if="settings.tabIndex == 0" v-for="(item, summaryIndex) in summary" :key="summaryIndex">
               <b-card body-class="p-1 px-3" header-class="p-1 px-3" class="mt-2">
                 <template #header>
                   <h6 class="mb-0">{{ item.title }}</h6>
@@ -699,22 +699,6 @@ const CryptoPunks = {
           }
         }
       }
-      sales.sort((a, b) => {
-        if (a.blockNumber == b.blockNumber) {
-          return b.logNumber - a.logNumber;
-        } else {
-          return b.blockNumber - a.blockNumber;
-        }
-      });
-      results.push({ type: "Sales", title: "Latest Sales", values: sales.slice(0) });
-      asks.sort((a, b) => {
-        if (a.blockNumber == b.blockNumber) {
-          return b.logNumber - a.logNumber;
-        } else {
-          return b.blockNumber - a.blockNumber;
-        }
-      });
-      results.push({ type: "Asks", title: "Latest Offers", values: asks.slice(0) });
       bids.sort((a, b) => {
         if (a.blockNumber == b.blockNumber) {
           return b.logNumber - a.logNumber;
@@ -723,6 +707,22 @@ const CryptoPunks = {
         }
       });
       results.push({ type: "Bids", title: "Latest Bids", values: bids.slice(0) });
+      asks.sort((a, b) => {
+        if (a.blockNumber == b.blockNumber) {
+          return b.logNumber - a.logNumber;
+        } else {
+          return b.blockNumber - a.blockNumber;
+        }
+      });
+      results.push({ type: "Asks", title: "Latest Offers", values: asks.slice(0) });
+      sales.sort((a, b) => {
+        if (a.blockNumber == b.blockNumber) {
+          return b.logNumber - a.logNumber;
+        } else {
+          return b.blockNumber - a.blockNumber;
+        }
+      });
+      results.push({ type: "Sales", title: "Latest Sales", values: sales.slice(0) });
       sales.sort((a, b) => {
         if (a.amount == b.amount) {
           return b.blockNumber - a.blockNumber;
