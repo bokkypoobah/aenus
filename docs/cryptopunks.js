@@ -83,25 +83,23 @@ const CryptoPunks = {
               </div>
               <div class="mt-2 pr-1 flex-grow-1">
               </div>
-
-              <div class="mt-2 pl-1">
+              <div v-if="settings.tabIndex == 1" class="mt-2 pl-1">
                 <font size="-2">{{ filteredSortedResults.length }}</font>
               </div>
-              <div class="mt-2 pl-1">
+              <div v-if="settings.tabIndex == 1" class="mt-2 pl-1">
                 <b-pagination size="sm" v-model="settings.currentPage" :total-rows="filteredSortedResults.length" :per-page="settings.pageSize"></b-pagination>
               </div>
-
               <div class="mt-2 pr-1 flex-grow-1">
               </div>
-              <div class="mt-2 pr-1">
+              <div v-if="settings.tabIndex == 1" class="mt-2 pr-1">
                 <b-form-select size="sm" v-model="settings.sortOption" :options="sortOptions" class="w-100"></b-form-select>
               </div>
-              <div class="mt-2 pr-1">
+              <div v-if="settings.tabIndex == 1" class="mt-2 pr-1">
                 <!-- <b-button size="sm" :pressed.sync="settings.randomise" @click="settings.sortOption = 'random'; " variant="link" v-b-popover.hover.bottom="'Randomise'"><b-icon-arrow-clockwise shift-v="-1" font-scale="1.4"></b-icon-arrow-clockwise></b-button> -->
                 <b-button size="sm" :pressed.sync="settings.randomise" @click="settings.sortOption = 'random'; " variant="link" v-b-popover.hover.bottom="'Randomise'"><b-icon-shuffle shift-v="-1" font-scale="1.2"></b-icon-shuffle></b-button>
               </div>
 
-              <div class="mt-2 pl-1">
+              <div v-if="settings.tabIndex == 1" class="mt-2 pl-1">
                 <b-form-select size="sm" v-model="settings.pageSize" :options="pageSizes" v-b-popover.hover.bottom="'Page size'"></b-form-select>
               </div>
               <div class="mt-2 pl-1">
@@ -111,57 +109,59 @@ const CryptoPunks = {
 
             <!-- Summary -->
 
-            <b-table v-if="settings.tabIndex == 0" small striped hover :fields="summaryFields" :items="summary" table-class="w-100" class="mt-0">
+            <b-table v-if="settings.tabIndex == 0" small striped hover :fields="summaryFields" :items="summary" table-class="w-100 mt-2" class="mt-0" thead-class="hidden_header">
               <template #cell(values)="data">
-                <b-card-group deck>
-                <div v-for="(event, eventIndex) in data.item.values" :key="eventIndex">
+                <b-card>
+                  <template #header>
+                    <h6 class="mb-0">Latest {{ data.item.type }}</h6>
+                  </template>
+                  <b-card-group deck>
+                    <div v-for="(event, eventIndex) in data.item.values" :key="eventIndex">
+                      <b-card body-class="p-1" header-class="p-1" footer-class="p-1" img-top class="m-1 p-0 border-0">
+                        <b-link :href="'https://cryptopunks.app/cryptopunks/details/' + event.punkId" v-b-popover.hover.bottom="'View in original website'" target="_blank">
+                          <b-avatar rounded size="6rem" :src="'images/punks/punk' + event.punkId.toString().padStart(4, '0') + '.png'" style="background-color: #638596"></b-avatar>
+                        </b-link>
+                        <b-card-text class="text-right">
+                          <div class="d-flex flex-wrap m-0 p-0">
+                            <div>
+                              <font size="-1">
+                                <b-badge variant="light">{{ event.punkId }}</b-badge>
+                              </font>
+                            </div>
+                            <div class="flex-grow-1">
+                            </div>
+                            <div>
+                              <font size="-1">
+                                <b-badge :variant="(data.item.type == 'Sales') ? 'success' : ((data.item.type == 'Asks') ? 'primary' : 'warning')">{{ formatETH(event.amount) }}</b-badge>
+                              </font>
+                            </div>
+                          </div>
+                        </b-card-text>
+                      </b-card>
+                        <!--
 
-                  <b-card body-class="p-1" header-class="p-1" footer-class="p-1" img-top class="m-1 p-0 border-0">
-                    <b-link :href="'https://cryptopunks.app/cryptopunks/details/' + event.punkId" v-b-popover.hover.bottom="'View in original website'" target="_blank">
-                      <b-avatar rounded size="6rem" :src="'images/punks/punk' + event.punkId.toString().padStart(4, '0') + '.png'" style="background-color: #638596"></b-avatar>
-                    </b-link>
-                    <b-card-text class="text-right">
+                        <b-link :href="'https://cryptopunks.app/cryptopunks/details/' + event.punkId" v-b-popover.hover.bottom="'View in original website'" target="_blank">
+                          <b-img-lazy width="100%" :src="'images/punks/punk' + event.punkId.toString().padStart(4, '0') + '.png'" style="background-color: #638596"/>
+                          <b-avatar rounded :badge="formatETH(event.amount)" size="6rem" :src="'images/punks/punk' + event.punkId.toString().padStart(4, '0') + '.png'" style="background-color: #638596" class="m-1"></b-avatar>
+                        </b-link>
 
-                      <div class="d-flex flex-wrap m-0 p-0">
-                        <div>
-                          <font size="-1">
-                            <b-badge variant="light">{{ event.punkId }}</b-badge>
-                          </font>
+                        <b-avatar src="https://placekitten.com/300/300" variant="info"></b-avatar>
+                        {{ event.punkId }}
+                        <b-card overlay :id="'popover-target-image-' + event.punkId" :img-src="'images/punks/punk' + event.punkId.toString().padStart(4, '0') + '.png'" img-height="48" class="m-2 p-0">
+                        <div v-if="prices[record.tokenId]">
+                          <b-col cols="10" class="m-0 p-1 text-right">
+                            <font shift-v="+3" size="-1"><b-badge v-b-popover.hover.bottom="'Floor ask price in ETH'" variant="success">{{ prices[record.tokenId].floorAskPrice }}</b-badge></font>
+                          </b-col>
                         </div>
-                        <div class="flex-grow-1">
-                        </div>
-                        <div>
-                          <font size="-1">
-                            <b-badge :variant="(data.item.type == 'Sales') ? 'success' : ((data.item.type == 'Asks') ? 'primary' : 'warning')">{{ formatETH(event.amount) }}</b-badge>
-                          </font>
-                        </div>
-                      </div>
-                    </b-card-text>
-                  </b-card>
-                    <!--
 
-                    <b-link :href="'https://cryptopunks.app/cryptopunks/details/' + event.punkId" v-b-popover.hover.bottom="'View in original website'" target="_blank">
-                      <b-img-lazy width="100%" :src="'images/punks/punk' + event.punkId.toString().padStart(4, '0') + '.png'" style="background-color: #638596"/>
-                      <b-avatar rounded :badge="formatETH(event.amount)" size="6rem" :src="'images/punks/punk' + event.punkId.toString().padStart(4, '0') + '.png'" style="background-color: #638596" class="m-1"></b-avatar>
-                    </b-link>
-
-                    <b-avatar src="https://placekitten.com/300/300" variant="info"></b-avatar>
-                    {{ event.punkId }}
-                    <b-card overlay :id="'popover-target-image-' + event.punkId" :img-src="'images/punks/punk' + event.punkId.toString().padStart(4, '0') + '.png'" img-height="48" class="m-2 p-0">
-                    <div v-if="prices[record.tokenId]">
-                      <b-col cols="10" class="m-0 p-1 text-right">
-                        <font shift-v="+3" size="-1"><b-badge v-b-popover.hover.bottom="'Floor ask price in ETH'" variant="success">{{ prices[record.tokenId].floorAskPrice }}</b-badge></font>
-                      </b-col>
+                        <b-col cols="10" class="m-0 p-1 text-right">
+                          <font shift-v="+3" size="-1"><b-badge v-b-popover.hover.bottom="'Floor ask price in ETH'" variant="success">{{ formatETH(event.amount) }}</b-badge></font>
+                        </b-col>
+                        </b-card>
+                        -->
                     </div>
-
-                    <b-col cols="10" class="m-0 p-1 text-right">
-                      <font shift-v="+3" size="-1"><b-badge v-b-popover.hover.bottom="'Floor ask price in ETH'" variant="success">{{ formatETH(event.amount) }}</b-badge></font>
-                    </b-col>
-                    </b-card>
-                    -->
-
-                </div>
-                </b-card-group deck>
+                  </b-card-group deck>
+                </b-card>
               </template>
             </b-table>
 
@@ -274,8 +274,8 @@ const CryptoPunks = {
       ],
 
       summaryFields: [
-        { key: 'type', label: 'Type', thStyle: 'width: 10%;' },
-        { key: 'values', label: 'Latest', thStyle: 'width: 90%;' },
+        // { key: 'type', label: 'Type', thStyle: 'width: 10%;' },
+        { key: 'values', label: 'Latest', thStyle: 'width: 100%;' },
       ],
 
       resultsFields: [
