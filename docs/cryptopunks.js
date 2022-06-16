@@ -126,7 +126,7 @@ const CryptoPunks = {
 
             <!-- Summary -->
             <div v-if="settings.tabIndex == 0" v-for="(item, summaryIndex) in summary" :key="summaryIndex">
-              <b-card body-class="p-1 px-3" header-class="p-1 px-3" class="mt-2">
+              <b-card v-if="item.values.length > 0" body-class="p-1 px-3" header-class="p-1 px-3" class="mt-2">
                 <template #header>
                   <h6 class="mb-0">{{ item.title }}</h6>
                 </template>
