@@ -16,6 +16,8 @@ const CryptoPunks = {
             </b-tab>
             <b-tab title="Punks" @click="updateURL('punks');">
             </b-tab>
+            <b-tab title="Chart" @click="updateURL('chart');">
+            </b-tab>
           </b-tabs>
 
           <b-card-body class="m-1 p-1">
@@ -108,6 +110,16 @@ const CryptoPunks = {
               <div class="mt-2 pl-1">
                 <b-button size="sm" v-b-toggle.sidebar-1 variant="link" v-b-popover.hover.bottom="'Filter by Attributes'"><b-icon-filter-right shift-v="-1" font-scale="1.4"></b-icon-filter-right></b-button>
               </div>
+            </div>
+
+            <div v-if="settings.tabIndex == 2">
+              <!-- <apexchart type="line" :options="chartOptions" :series="optino.chartSeries"></apexchart> -->
+              <b-card body-class="m-2 p-1 px-3" header-class="p-1 px-3" class="mt-2" style="max-width: 50rem;">
+                <template #header>
+                  <h6 class="mb-0">Blah</h6>
+                </template>
+                <apexchart :options="chartOptions" :series="chartOptions.series"></apexchart>
+              </b-card>
             </div>
 
             <!-- Summary -->
@@ -340,6 +352,62 @@ const CryptoPunks = {
         { key: 'last', label: 'Last', thStyle: 'width: 10%;', thClass: 'text-right', tdClass: 'text-right' },
         { key: 'timestamp', label: 'Latest Activity', thStyle: 'width: 20%;', thClass: 'text-right', tdClass: 'text-right' },
       ],
+
+      chartOptions: {
+        chart: {
+          height: 280,
+          width: 280,
+          type: "bubble",
+          animations: {
+            initialAnimation: {
+              enabled: false
+            }
+          }
+        },
+        dataLabels: {
+          enabled: false
+        },
+        fill: {
+          type: 'gradient',
+        },
+        title: {
+          text: '3D Bubble Chart'
+        },
+        series: [
+          {
+            name: "Series 1",
+            data: [
+              [1481114800000, 34, 20],
+              [1483771200000, 43, 10],
+              [1484857600000, 31, 15],
+              [1485944000000, 43, 5],
+              [1487030400000, 33, 2],
+              [1487116800000, 52, 20],
+            ]
+          },
+          {
+            name: "Series 2",
+            data: [
+              [1481114800000, 14, 20],
+              [1486771200000, 13, 17],
+              [1486857600000, 11, 15],
+              [1486944000000, 13, 7],
+              [1487030400000, 13, 9],
+              [1487116800000, 12, 20],
+            ]
+          }
+        ],
+        xaxis: {
+          tickAmount: 12,
+          type: 'datetime',
+          labels: {
+            rotate: 0,
+          }
+        },
+        yaxis: {
+          max: 70
+        },
+      },
     }
   },
   computed: {
@@ -967,32 +1035,34 @@ const CryptoPunks = {
   },
   mounted() {
     logInfo("CryptoPunks", "mounted() $route: " + JSON.stringify(this.$route.params) + ", props['search']: " + this.search + ", props['topic']: " + this.topic);
-    if (this.search == "ids") {
-      this.settings.searchString = this.topic;
-    } else if (this.search == "owned") {
-      this.settings.searchAccount = this.topic;
-    }
+    // if (this.search == "ids") {
+    //   this.settings.searchString = this.topic;
+    // } else if (this.search == "owned") {
+    //   this.settings.searchAccount = this.topic;
+    // }
 
-    if (this.search == "names") {
-      this.settings.searchTabIndex = 0;
-    } else if (this.search == "contains") {
-      this.settings.searchTabIndex = 1;
-    } else if (this.search == "startswith") {
-      this.settings.searchTabIndex = 2;
-    } else if (this.search == "endswith") {
-      this.settings.searchTabIndex = 3;
-    } else if (this.search == "owned") {
-      this.settings.searchTabIndex = 4;
-    } else if (this.search == "groups") {
-      this.settings.searchTabIndex = 5;
-    } else if (this.search == "sets") {
-      this.settings.searchTabIndex = 6;
-    }
+    // if (this.search == "names") {
+    //   this.settings.searchTabIndex = 0;
+    // } else if (this.search == "contains") {
+    //   this.settings.searchTabIndex = 1;
+    // } else if (this.search == "startswith") {
+    //   this.settings.searchTabIndex = 2;
+    // } else if (this.search == "endswith") {
+    //   this.settings.searchTabIndex = 3;
+    // } else if (this.search == "owned") {
+    //   this.settings.searchTabIndex = 4;
+    // } else if (this.search == "groups") {
+    //   this.settings.searchTabIndex = 5;
+    // } else if (this.search == "sets") {
+    //   this.settings.searchTabIndex = 6;
+    // }
 
     if (this.search == "summary") {
       this.settings.tabIndex = 0;
     } else if (this.search == "punks") {
       this.settings.tabIndex = 1;
+    } else if (this.search == "chart") {
+      this.settings.tabIndex = 2;
     }
 
     store.dispatch('cryptoPunks/loadPunks', false);
