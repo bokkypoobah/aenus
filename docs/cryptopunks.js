@@ -99,6 +99,9 @@ const CryptoPunks = {
                 <b-button size="sm" :pressed.sync="settings.randomise" @click="settings.sortOption = 'random'; " variant="link" v-b-popover.hover.bottom="'Randomise'"><b-icon-shuffle shift-v="-1" font-scale="1.2"></b-icon-shuffle></b-button>
               </div>
 
+              <div v-if="settings.tabIndex == 0" class="mt-2 pl-1">
+                <b-form-select size="sm" v-model="settings.summaryMaxItems" :options="summaryMaxItemsOptions" v-b-popover.hover.bottom="'Max items to display'"></b-form-select>
+              </div>
               <div v-if="settings.tabIndex == 1" class="mt-2 pl-1">
                 <b-form-select size="sm" v-model="settings.pageSize" :options="pageSizes" v-b-popover.hover.bottom="'Page size'"></b-form-select>
               </div>
@@ -115,7 +118,7 @@ const CryptoPunks = {
                 </template>
 
                 <b-card-group deck>
-                  <div v-for="(event, eventIndex) in item.values" :key="eventIndex">
+                  <div v-for="(event, eventIndex) in item.values.slice(0, settings.summaryMaxItems)" :key="eventIndex">
                     <b-card body-class="p-0" header-class="p-1" img-top class="m-1 p-0 border-0">
                       <b-link :href="'https://cryptopunks.app/cryptopunks/details/' + event.punkId" v-b-popover.hover.bottom="'View in original website'" target="_blank">
                         <b-avatar rounded size="7rem" :src="'images/punks/punk' + event.punkId.toString().padStart(4, '0') + '.png'" style="background-color: #638596"></b-avatar>
@@ -276,6 +279,7 @@ const CryptoPunks = {
         pageSize: 100,
         sortOption: 'latestsale',
         randomise: false,
+        summaryMaxItems: 10,
         // imageSize: '240',
       },
 
@@ -313,6 +317,13 @@ const CryptoPunks = {
         { key: 'select', label: '', thStyle: 'width: 10%;' },
         { key: 'attributeOption', label: 'Attribute' /*, sortable: true*/ },
         { key: 'attributeTotal', label: 'Count', /*sortable: true,*/ thStyle: 'width: 30%;', thClass: 'text-right', tdClass: 'text-right' },
+      ],
+
+      summaryMaxItemsOptions: [
+        { value: 10, text: '10' },
+        { value: 20, text: '20' },
+        { value: 50, text: '50' },
+        { value: 100, text: '100' },
       ],
 
       summaryFields: [
@@ -674,18 +685,11 @@ const CryptoPunks = {
     },
     summary() {
       const results = [];
-      // let filteredResults = this.filteredResults.slice(0, 50); // .slice(0);
-      // console.log("filteredResults: " + JSON.stringify(filteredResults));
-
-      const resultsSize = 10;
       const bids = [];
       const asks = [];
       const sales = [];
-
       for (let punk of this.filteredResults) {
-        // console.log(JSON.stringify(punk));
         for (let event of punk.events) {
-          // console.log("  " + JSON.stringify(event));
           if (event.type == "BID_CREATED" /*|| event.type == "BID_REMOVED"*/) {
             bids.push({ punkId: punk.punkId, ...event });
           } else if (event.type == "ASK_CREATED" /*|| event.type == "ASK_REMOVED"*/) {
@@ -702,7 +706,7 @@ const CryptoPunks = {
           return b.blockNumber - a.blockNumber;
         }
       });
-      results.push({ type: "Sales", title: "Latest Sales", values: sales.slice(0, resultsSize) });
+      results.push({ type: "Sales", title: "Latest Sales", values: sales.slice(0) });
       asks.sort((a, b) => {
         if (a.blockNumber == b.blockNumber) {
           return b.logNumber - a.logNumber;
@@ -710,7 +714,7 @@ const CryptoPunks = {
           return b.blockNumber - a.blockNumber;
         }
       });
-      results.push({ type: "Asks", title: "Latest Offers", values: asks.slice(0, resultsSize) });
+      results.push({ type: "Asks", title: "Latest Offers", values: asks.slice(0) });
       bids.sort((a, b) => {
         if (a.blockNumber == b.blockNumber) {
           return b.logNumber - a.logNumber;
@@ -718,7 +722,7 @@ const CryptoPunks = {
           return b.blockNumber - a.blockNumber;
         }
       });
-      results.push({ type: "Bids", title: "Latest Bids", values: bids.slice(0, resultsSize) });
+      results.push({ type: "Bids", title: "Latest Bids", values: bids.slice(0) });
       sales.sort((a, b) => {
         if (a.amount == b.amount) {
           return b.blockNumber - a.blockNumber;
@@ -726,7 +730,7 @@ const CryptoPunks = {
           return b.amount - a.amount;
         }
       });
-      results.push({ type: "Sales", title: "Highest Sales", values: sales.slice(0, resultsSize) });
+      results.push({ type: "Sales", title: "Highest Sales", values: sales.slice(0) });
       return results;
     },
     attributes() {
@@ -794,17 +798,11 @@ const CryptoPunks = {
             float = parseFloat(float) / 1000;
             return float.toFixed(1) + "k";
           }
-          return float.toString().replace(/.0$/, "");
+          return parseFloat(float).toFixed(2).replace(/\.0*$/, "");
         } catch (err) {
         }
       }
       return null;
-      try {
-        const float = ethers.utils.formatEther(e);
-        return e ? ethers.utils.commify(float) : null;
-      } catch (err) {
-      }
-      return e.toFixed(9);
     },
     formatETH(e) {
       try {
