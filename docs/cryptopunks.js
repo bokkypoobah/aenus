@@ -876,7 +876,6 @@ const CryptoPunks = {
       return results;
     },
     chartSeries() {
-      const sales = this.summary[2].values;
       const minAmount = 0.1;
       const maxAmount = 50000;
       const toTimestamp = new Date()/1000;
@@ -898,21 +897,53 @@ const CryptoPunks = {
 
       console.log("chartAttributeFilter: " + JSON.stringify(this.chartAttributeFilter, null, 2));
 
-      const data = [];
-      for (let sale of sales) {
+      const bidData = [];
+      for (let sale of this.summary[0].values) {
         if (sale.timestamp >= fromTimestamp && sale.timestamp <= toTimestamp) {
           const amount = ethers.utils.formatEther(sale.amount);
           // console.log(JSON.stringify(sale));
           if (amount > minAmount && amount < maxAmount) {
-            data.push([sale.timestamp * 1000, amount, 6, sale.punkId]);
+            bidData.push([sale.timestamp * 1000, amount, 6, sale.punkId]);
           }
         }
       }
-      console.log("data.length: " + data.length);
+      console.log("bidData.length: " + bidData.length);
+
+      const askData = [];
+      for (let sale of this.summary[1].values) {
+        if (sale.timestamp >= fromTimestamp && sale.timestamp <= toTimestamp) {
+          const amount = ethers.utils.formatEther(sale.amount);
+          // console.log(JSON.stringify(sale));
+          if (amount > minAmount && amount < maxAmount) {
+            askData.push([sale.timestamp * 1000, amount, 6, sale.punkId]);
+          }
+        }
+      }
+      console.log("askData.length: " + askData.length);
+
+      const salesData = [];
+      for (let sale of this.summary[2].values) {
+        if (sale.timestamp >= fromTimestamp && sale.timestamp <= toTimestamp) {
+          const amount = ethers.utils.formatEther(sale.amount);
+          // console.log(JSON.stringify(sale));
+          if (amount > minAmount && amount < maxAmount) {
+            salesData.push([sale.timestamp * 1000, amount, 6, sale.punkId]);
+          }
+        }
+      }
+      console.log("salesData.length: " + salesData.length);
       const series = [
         {
-          name: "All",
-          data: data,
+          name: "Bids",
+          data: bidData,
+        },
+        {
+          name: "Offers",
+          data: askData,
+        },
+        {
+          name: "Sales",
+          data: salesData,
         },
         // {
         //   name: "Series 2 aa",
