@@ -112,16 +112,6 @@ const CryptoPunks = {
               </div>
             </div>
 
-            <div v-if="settings.tabIndex == 2">
-              <!-- <apexchart type="line" :options="chartOptions" :series="optino.chartSeries"></apexchart> -->
-              <b-card body-class="m-2 p-1 px-3" header-class="p-1 px-3" class="mt-2" style="max-width: 50rem;">
-                <template #header>
-                  <h6 class="mb-0">CryptoPunk Sales</h6>
-                </template>
-                <apexchart :options="chartOptions" :series="chartSeries"></apexchart>
-              </b-card>
-            </div>
-
             <!-- Summary -->
             <div v-if="settings.tabIndex == 0" v-for="(item, summaryIndex) in summary" :key="summaryIndex">
               <b-card v-if="item.values.length > 0" body-class="p-1 px-3" header-class="p-1 px-3" class="mt-2">
@@ -207,6 +197,29 @@ const CryptoPunks = {
                 {{ formatTimestamp(data.item.timestamp) }}
               </template>
             </b-table>
+
+            <!-- Chart -->
+            <div v-if="settings.tabIndex == 2">
+              <b-row>
+                <b-col cols="7">
+                  <b-card body-class="m-2 p-1 px-3" header-class="p-1 px-3" class="mt-2 mr-1">
+                    <template #header>
+                      <h6 class="mb-0">CryptoPunk Sales</h6>
+                    </template>
+                    <apexchart :options="chartOptions" :series="chartSeries"></apexchart>
+                  </b-card>
+                </b-col>
+                <b-col cols="3">
+                  <b-card body-class="m-2 p-1 px-3" header-class="p-1 px-3" class="mt-2">
+                    <template #header>
+                      <h6 class="mb-0">Chart Options</h6>
+                    </template>
+                    <b-form-select size="sm" v-model="settings.chartPeriod" :options="chartPeriodOptions" v-b-popover.hover.bottom="'Charting period'"></b-form-select>
+
+                  </b-card>
+                </b-col>
+              </b-row>
+            </div>
           </b-card-body>
         </b-card>
       </b-card>
@@ -232,6 +245,7 @@ const CryptoPunks = {
         sortOption: 'latestsale',
         randomise: false,
         summaryMaxItems: 10,
+        chartPeriod: '1d',
         // imageSize: '240',
       },
 
@@ -293,6 +307,15 @@ const CryptoPunks = {
         { key: 'timestamp', label: 'Latest Activity', thStyle: 'width: 20%;', thClass: 'text-right', tdClass: 'text-right' },
       ],
 
+      chartPeriodOptions: [
+        { value: '1d', text: '1 Day' },
+        { value: '1w', text: '1 Week' },
+        { value: '1m', text: '1 Month' },
+        { value: '3m', text: '3 Months' },
+        { value: '1y', text: '1 Year' },
+        { value: 'all', text: 'All' },
+      ],
+
       chartOptions: {
         chart: {
           height: 280,
@@ -327,30 +350,6 @@ const CryptoPunks = {
               '</div>'
           }
         },
-        series: [
-          {
-            name: "Series 1",
-            data: [
-              [1481114800000, 34, 4],
-              [1483771200000, 43, 4],
-              [1484857600000, 31, 4],
-              [1485944000000, 43, 4],
-              [1487030400000, 33, 4],
-              [1487116800000, 52, 4],
-            ]
-          },
-          {
-            name: "Series 2",
-            data: [
-              [1481114800000, 14, 4],
-              [1486771200000, 13, 4],
-              [1486857600000, 11, 4],
-              [1486944000000, 13, 4],
-              [1487030400000, 13, 4],
-              [1487116800000, 12, 4],
-            ]
-          }
-        ],
         xaxis: {
           // tickAmount: 12,
           type: 'datetime',
@@ -842,25 +841,34 @@ const CryptoPunks = {
       return results;
     },
     chartSeries() {
-      const summary = this.summary;
-
-      const sales = summary[2].values;
-      // console.log("sales: " + JSON.stringify(sales.slice(0, 10)));
-
+      const sales = this.summary[2].values;
       const toTimestamp = new Date()/1000;
-      const fromTimestamp = toTimestamp - 30 * 24 * 60 * 60;
+      let days = 1;
+      if (this.settings.chartPeriod == '1d') {
+        days = 1;
+      } else if (this.settings.chartPeriod == '1w') {
+        days = 7;
+      } else if (this.settings.chartPeriod == '1m') {
+        days = 31;
+      } else if (this.settings.chartPeriod == '3m') {
+        days = 92;
+      } else if (this.settings.chartPeriod == '1y') {
+        days = 366;
+      } else if (this.settings.chartPeriod == 'all') {
+        days = 10000;
+      }
+      const fromTimestamp = toTimestamp - days * 24 * 60 * 60;
       const data = [];
       for (let sale of sales) {
         if (sale.timestamp >= fromTimestamp && sale.timestamp <= toTimestamp) {
           const amount = ethers.utils.formatEther(sale.amount);
           // console.log(JSON.stringify(sale));
           if (amount > 0.1 && amount < 50000) {
-            data.push([sale.timestamp * 1000, amount, 4, sale.punkId]);
+            data.push([sale.timestamp * 1000, amount, 6, sale.punkId]);
           }
         }
       }
       console.log("data.length: " + data.length);
-
       const series = [
         {
           name: "All",
