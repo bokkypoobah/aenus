@@ -16,10 +16,8 @@ const CryptoPunks = {
             </b-tab>
             <b-tab title="Punks" @click="updateURL('punks');">
             </b-tab>
-            <!--
             <b-tab title="Chart" @click="updateURL('chart');">
             </b-tab>
-            -->
           </b-tabs>
 
           <b-card-body class="m-1 p-1">
@@ -120,7 +118,7 @@ const CryptoPunks = {
                 <template #header>
                   <h6 class="mb-0">Blah</h6>
                 </template>
-                <apexchart :options="chartOptions" :series="chartOptions.series"></apexchart>
+                <apexchart :options="chartOptions" :series="chartSeries"></apexchart>
               </b-card>
             </div>
 
@@ -347,7 +345,7 @@ const CryptoPunks = {
           // }
         },
         yaxis: {
-          max: 70
+          // max: 70
         },
       },
     }
@@ -828,6 +826,50 @@ const CryptoPunks = {
       });
       results.push({ type: "Sales", title: "Highest Sales", values: sales.slice(0) });
       return results;
+    },
+    chartSeries() {
+      const summary = this.summary;
+
+      const sales = summary[2].values;
+      // console.log("sales: " + JSON.stringify(sales.slice(0, 10)));
+
+      const toTimestamp = new Date()/1000;
+      const fromTimestamp = toTimestamp - 30 * 24 * 60 * 60;
+      const data = [];
+      for (let sale of sales) {
+        if (sale.timestamp >= fromTimestamp && sale.timestamp <= toTimestamp) {
+          const amount = ethers.utils.formatEther(sale.amount);
+          // console.log(JSON.stringify(sale));
+          if (amount > 0.1 && amount < 50000) {
+            data.push([sale.timestamp * 1000, amount, 4]);
+          }
+        }
+      }
+      console.log("data.length: " + data.length);
+
+      const series = [
+        {
+          name: "Series 1 aa",
+          data: data,
+        },
+        // {
+        //   name: "Series 2 aa",
+        //   data: data,
+        // },
+        // {
+        //   name: "Series 2 bb",
+        //   data: [
+        //     [1481114800000, 14, 4],
+        //     [1486771200000, 13, 4],
+        //     [1486857600000, 11, 4],
+        //     [1486944000000, 13, 4],
+        //     [1487030400000, 13, 4],
+        //     [1487116800000, 12, 4],
+        //   ]
+        // }
+      ];
+
+      return series;
     },
     attributes() {
       const collator = {};
