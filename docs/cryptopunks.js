@@ -1248,7 +1248,7 @@ const CryptoPunks = {
               break;
             }
           }
-          attributeValues.push(value);
+          attributeValues.push(value == null ? null : slugToTitle(value));
         }
         rows.push([
           result.punkId,
