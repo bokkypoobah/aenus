@@ -1240,11 +1240,8 @@ const CryptoPunks = {
 
       const attributeKeys = Object.keys(this.attributes).sort();
       const attributeTitles = attributeKeys.map(e => slugToTitle(e));
-      console.log("attributeKeys: " + JSON.stringify(attributeKeys));
-      console.log("attributeTitles: " + JSON.stringify(attributeTitles));
-
       const rows = [
-          ["PunkId", "Owner", ...attributeTitles, "URL"],
+          ["PunkId", "Owner", "Bid", "Bid Timestamp", "Ask", "Ask Timestamp", "Last", "Last Timestamp", ...attributeTitles, "URL"],
       ];
       const timestamp = new Date(parseInt((new Date).getTime()/1000)*1000).toISOString().replace('T', '-').replaceAll(':', '-').replace('.000Z', '');
       for (const result of this.filteredResults) {
@@ -1262,6 +1259,12 @@ const CryptoPunks = {
         rows.push([
           result.punkId,
           result.owner,
+          result.bid.amount == null ? null : ethers.utils.formatEther(result.bid.amount),
+          result.bid.timestamp == null ? null : new Date(parseInt(result.bid.timestamp) * 1000).toISOString().replace('T', ' ').replace('.000Z', ''),
+          result.ask.amount == null ? null : ethers.utils.formatEther(result.ask.amount),
+          result.ask.timestamp == null ? null : new Date(parseInt(result.ask.timestamp) * 1000).toISOString().replace('T', ' ').replace('.000Z', ''),
+          result.last.amount == null ? null : ethers.utils.formatEther(result.last.amount),
+          result.last.timestamp == null ? null : new Date(parseInt(result.last.timestamp) * 1000).toISOString().replace('T', ' ').replace('.000Z', ''),
           ...attributeValues,
           "https://cryptopunks.app/cryptopunks/details/" + result.punkId,
         ]);
