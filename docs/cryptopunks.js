@@ -223,6 +223,13 @@ const CryptoPunks = {
                     <b-form-group label-cols="4" label-size="sm" label="Max amount" label-align="right" class="mb-2">
                       <b-form-input type="text" size="sm" v-model.trim="settings.chartMaxAmount" debounce="600" v-b-popover.hover.bottom="'ETH to'" placeholder="max" class="w-50"></b-form-input>
                     </b-form-group>
+                    <b-form-group label-cols="4" label-size="sm" label="Display" label-align="right" class="mb-2">
+                      <b-form-checkbox-group size="sm" v-model="settings.chartTypes">
+                        <b-form-checkbox value="bids">Bids</b-form-checkbox>
+                        <b-form-checkbox value="asks">Offers</b-form-checkbox>
+                        <b-form-checkbox value="sales">Sales</b-form-checkbox>
+                      </b-form-checkbox-group>
+                    </b-form-group>
 
                     <!--
                     <b-form-group label-cols="4" label-size="sm" label="Group by" label-align="right" class="mb-2">
@@ -276,8 +283,9 @@ const CryptoPunks = {
         chartPeriod: '1m',
         chartAttribute: "eyes", // null,
         chartDisplayRemainder: true, // null,
-        chartMinAmount: 0.5,
+        chartMinAmount: 1,
         chartMaxAmount: 10000,
+        chartTypes: ['bids', 'asks', 'sales'],
         // imageSize: '240',
       },
 
@@ -908,40 +916,46 @@ const CryptoPunks = {
 
       console.log("chartAttributeFilter: " + JSON.stringify(this.chartAttributeFilter, null, 2));
 
-      const bidData = [];
-      for (let event of this.summary[0].values) {
-        if (event.timestamp >= fromTimestamp && event.timestamp <= toTimestamp) {
-          const amount = ethers.utils.formatEther(event.amount);
-          if (amount > minAmount && amount < maxAmount) {
-            bidData.push([event.timestamp * 1000, amount, 6, event.punkId]);
+      if (this.settings.chartTypes.includes("bids")) {
+        const bidData = [];
+        for (let event of this.summary[0].values) {
+          if (event.timestamp >= fromTimestamp && event.timestamp <= toTimestamp) {
+            const amount = ethers.utils.formatEther(event.amount);
+            if (amount > minAmount && amount < maxAmount) {
+              bidData.push([event.timestamp * 1000, amount, 6, event.punkId]);
+            }
           }
         }
+        console.log("bidData.length: " + bidData.length);
+        series.push({ name: "Bids", data: bidData });
       }
-      console.log("bidData.length: " + bidData.length);
-      series.push({ name: "Bids", data: bidData });
 
-      const askData = [];
-      for (let event of this.summary[1].values) {
-        if (event.timestamp >= fromTimestamp && event.timestamp <= toTimestamp) {
-          const amount = ethers.utils.formatEther(event.amount);
-          if (amount > minAmount && amount < maxAmount) {
-            askData.push([event.timestamp * 1000, amount, 6, event.punkId]);
+      if (this.settings.chartTypes.includes("asks")) {
+        const askData = [];
+        for (let event of this.summary[1].values) {
+          if (event.timestamp >= fromTimestamp && event.timestamp <= toTimestamp) {
+            const amount = ethers.utils.formatEther(event.amount);
+            if (amount > minAmount && amount < maxAmount) {
+              askData.push([event.timestamp * 1000, amount, 6, event.punkId]);
+            }
           }
         }
+        console.log("askData.length: " + askData.length);
+        series.push({ name: "Offers", data: askData });
       }
-      console.log("askData.length: " + askData.length);
-      series.push({ name: "Offers", data: askData });
 
-      const salesData = [];
-      for (let event of this.summary[2].values) {
-        if (event.timestamp >= fromTimestamp && event.timestamp <= toTimestamp) {
-          const amount = ethers.utils.formatEther(event.amount);
-          if (amount > minAmount && amount < maxAmount) {
-            salesData.push([event.timestamp * 1000, amount, 6, event.punkId]);
+      if (this.settings.chartTypes.includes("sales")) {
+        const salesData = [];
+        for (let event of this.summary[2].values) {
+          if (event.timestamp >= fromTimestamp && event.timestamp <= toTimestamp) {
+            const amount = ethers.utils.formatEther(event.amount);
+            if (amount > minAmount && amount < maxAmount) {
+              salesData.push([event.timestamp * 1000, amount, 6, event.punkId]);
+            }
           }
         }
+        series.push({ name: "Sales", data: salesData });
       }
-      series.push({ name: "Sales", data: salesData });
 
       // console.log("salesData.length: " + salesData.length);
       // const series = [
