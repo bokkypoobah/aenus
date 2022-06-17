@@ -7,7 +7,7 @@ const CryptoPunks = {
         </b-card-text>
       </b-card>
 
-      <b-card no-body header="CryptoPunks" class="border-0" header-class="p-0">
+      <b-card no-body no-header class="border-0">
         <b-card no-body class="p-0 mt-1">
           <b-tabs card align="left" no-body active-tab-class="m-0 p-0" v-model="settings.tabIndex">
             <b-tab title="Summary" @click="updateURL('summary');">
@@ -92,6 +92,9 @@ const CryptoPunks = {
                 <b-pagination size="sm" v-model="settings.currentPage" :total-rows="filteredSortedResults.length" :per-page="settings.pageSize"></b-pagination>
               </div>
               <div class="mt-2 pr-1 flex-grow-1">
+              </div>
+              <div v-if="settings.tabIndex == 1" class="mt-2 pr-1">
+                <b-button size="sm" @click="exportPunks" :disabled="filteredSortedResults.length == 0" variant="link">Export</b-button>
               </div>
               <div v-if="settings.tabIndex == 1" class="mt-2 pr-1">
                 <b-form-select size="sm" v-model="settings.sortOption" :options="sortOptions" class="w-100"></b-form-select>
@@ -280,12 +283,12 @@ const CryptoPunks = {
         sortOption: 'latestsale',
         randomise: false,
         summaryMaxItems: 10,
-        chartPeriod: '1m',
+        chartPeriod: '3m',
         chartAttribute: "eyes", // null,
         chartDisplayRemainder: true, // null,
         chartMinAmount: 1,
         chartMaxAmount: 10000,
-        chartTypes: ['bids', 'asks', 'sales'],
+        chartTypes: ['sales'], // ['bids', 'asks', 'sales']
         // imageSize: '240',
       },
 
@@ -366,11 +369,11 @@ const CryptoPunks = {
           zoom: {
             type: 'xy',
           },
-          animations: {
-            initialAnimation: {
-              enabled: false,
-            }
-          },
+          // animations: {
+          //   initialAnimation: {
+          //     enabled: false,
+          //   }
+          // },
         },
         dataLabels: {
           enabled: false,
@@ -1012,10 +1015,7 @@ const CryptoPunks = {
       const results = [];
       results.push({ value: null, text: "None" });
       for (let attribute of Object.keys(this.attributes).sort()) {
-        var title = attribute.split("-").map(function(word) {
-          return word.charAt(0).toUpperCase() + word.substring(1).toLowerCase();
-        }).join(' ');
-        results.push({ value: attribute, text: title });
+        results.push({ value: attribute, text: slugToTitle(attribute) });
       }
       return results;
     },
@@ -1025,14 +1025,7 @@ const CryptoPunks = {
       this.$router.push('/cryptopunks/' + where);
     },
     slugToTitle(slug) {
-      var words = slug.split("-");
-      return words.map(function(word) {
-        if (word == "3d" || word == "vr") {
-          return word.toUpperCase();
-        } else {
-          return word.charAt(0).toUpperCase() + word.substring(1).toLowerCase();
-        }
-      }).join(' ');
+      return slugToTitle(slug);
     },
     getSortedValuesForAttribute(category) {
       const results = [];
@@ -1233,6 +1226,44 @@ const CryptoPunks = {
     },
     async halt() {
       store.dispatch('search/halt');
+    },
+    exportPunks() {
+
+      const attributeKeys = Object.keys(this.attributes).sort();
+      const attributeTitles = attributeKeys.map(e => slugToTitle(e));
+      console.log("attributeKeys: " + JSON.stringify(attributeKeys));
+      console.log("attributeTitles: " + JSON.stringify(attributeTitles));
+
+      const rows = [
+          ["PunkId", "Owner", ...attributeTitles, "URL"],
+      ];
+      const timestamp = new Date(parseInt((new Date).getTime()/1000)*1000).toISOString().replace('T', '-').replaceAll(':', '-').replace('.000Z', '');
+      for (const result of this.filteredResults) {
+        const attributeValues = [];
+        for (const attributeKey of attributeKeys) {
+          let value = null;
+          for (const attribute of result.attributes) {
+            if (attribute.trait_type == attributeKey) {
+              value = attribute.value;
+              break;
+            }
+          }
+          attributeValues.push(value);
+        }
+        rows.push([
+          result.punkId,
+          result.owner,
+          ...attributeValues,
+          "https://cryptopunks.app/cryptopunks/details/" + result.punkId,
+        ]);
+      }
+      let csvContent = "data:text/csv;charset=utf-8," + rows.map(e => e.join(",")).join("\n");
+      var encodedUri = encodeURI(csvContent);
+      var link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "aenus_punk_export-" + timestamp + ".csv");
+      document.body.appendChild(link); // Required for FF
+      link.click(); // This will download the data with the specified file name
     },
     async timeoutCallback() {
       logDebug("CryptoPunks", "timeoutCallback() count: " + this.count);

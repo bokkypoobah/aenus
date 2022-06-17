@@ -7,7 +7,7 @@ const Config = {
         </b-card-text>
       </b-card>
 
-      <b-card no-body header="Configuration" class="border-0" header-class="p-1">
+      <b-card no-body no-header class="border-0">
         <b-card-body class="p-0">
           <b-modal id="bv-modal-addgroup" size="lg" hide-footer>
             <template v-slot:modal-title>
@@ -79,7 +79,7 @@ const Config = {
               </b-card>
             </div>
           </b-card>
-        <b-card-body class="p-2">
+        </b-card-body>
       </b-card>
     </div>
   `,

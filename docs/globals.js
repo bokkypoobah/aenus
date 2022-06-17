@@ -592,5 +592,16 @@ function chunkArray(myArray, chunk_size) {
   return results;
 }
 
+function slugToTitle(slug) {
+  var words = slug.split("-");
+  return words.map(function(word) {
+    if (word == "3d" || word == "vr") {
+      return word.toUpperCase();
+    } else {
+      return word.charAt(0).toUpperCase() + word.substring(1).toLowerCase();
+    }
+  }).join(' ');
+}
+
 const generateRange = (start, stop, step) => Array.from({ length: (stop - start) / step + 1}, (_, i) => start + (i * step));
 const delay = ms => new Promise(res => setTimeout(res, ms));

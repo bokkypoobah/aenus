@@ -7,7 +7,7 @@ const Search = {
         </b-card-text>
       </b-card>
 
-      <b-card no-body header="Search Registered ENS Names" class="border-0" header-class="p-0">
+      <b-card no-body no-header class="border-0">
 
         <b-card no-body class="p-0 mt-1">
           <!-- Search type tabs -->
@@ -1147,7 +1147,7 @@ const Search = {
       var encodedUri = encodeURI(csvContent);
       var link = document.createElement("a");
       link.setAttribute("href", encodedUri);
-      link.setAttribute("download", "ensutil_export-" + timestamp + ".csv");
+      link.setAttribute("download", "aenus_ens_export-" + timestamp + ".csv");
       document.body.appendChild(link); // Required for FF
       link.click(); // This will download the data with the specified file name
     },
