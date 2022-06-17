@@ -209,13 +209,34 @@ const CryptoPunks = {
                     <apexchart :options="chartOptions" :series="chartSeries"></apexchart>
                   </b-card>
                 </b-col>
-                <b-col cols="3">
+                <b-col cols="5">
                   <b-card body-class="m-2 p-1 px-3" header-class="p-1 px-3" class="mt-2">
                     <template #header>
                       <h6 class="mb-0">Chart Options</h6>
                     </template>
-                    <b-form-select size="sm" v-model="settings.chartPeriod" :options="chartPeriodOptions" v-b-popover.hover.bottom="'Charting period'"></b-form-select>
-
+                    <b-form-group label-cols="4" label-size="sm" label="Period" label-align="right" class="mb-2">
+                      <b-form-select size="sm" v-model="settings.chartPeriod" :options="chartPeriodOptions" v-b-popover.hover.bottom="'Charting period'"></b-form-select>
+                    </b-form-group>
+                    <!--
+                    <b-form-group label-cols="4" label-size="sm" label="Group by" label-align="right" class="mb-2">
+                      <b-form-select size="sm" v-model="settings.chartAttribute" :options="chartAttributes"></b-form-select>
+                    </b-form-group>
+                    <b-form-group v-if="settings.chartAttribute != null" label-cols="4" label-size="sm" label="Select groups" label-align="right">
+                      <font size="-2">
+                        <b-table small fixed striped sticky-header="200px" :fields="attributeFields" :items="getSortedValuesForAttribute(settings.chartAttribute)" head-variant="light">
+                          <template #cell(select)="data">
+                            <b-form-checkbox v-model="chartAttributeFilter[data.item.attributeOption]" value="true"></b-form-checkbox>
+                          </template>
+                          <template #cell(attributeOption)="data">
+                            {{ slugToTitle(data.item.attributeOption) }}
+                          </template>
+                        </b-table>
+                      </font>
+                    </b-form-group>
+                    <b-form-group v-if="settings.chartAttribute != null" label-cols="4" label-size="sm" label="" label-align="right" class="mb-2">
+                      <b-form-checkbox size="sm" v-model="settings.chartDisplayRemainder" value="true">Display remainder</b-form-checkbox>
+                    </b-form-group>
+                    -->
                   </b-card>
                 </b-col>
               </b-row>
@@ -246,6 +267,8 @@ const CryptoPunks = {
         randomise: false,
         summaryMaxItems: 10,
         chartPeriod: '1d',
+        chartAttribute: "eyes", // null,
+        chartDisplayRemainder: true, // null,
         // imageSize: '240',
       },
 
@@ -315,20 +338,25 @@ const CryptoPunks = {
         { value: '1y', text: '1 Year' },
         { value: 'all', text: 'All' },
       ],
-
+      chartAttributeFilter: {
+        "3d-glasses": true,
+      },
       chartOptions: {
         chart: {
           height: 280,
           width: 280,
-          type: "bubble",
+          type: "scatter",
+          zoom: {
+            type: 'xy',
+          },
           animations: {
             initialAnimation: {
-              enabled: false
+              enabled: false,
             }
-          }
+          },
         },
         dataLabels: {
-          enabled: false
+          enabled: false,
         },
         fill: {
           type: 'gradient',
@@ -340,18 +368,9 @@ const CryptoPunks = {
           custom: function({series, seriesIndex, dataPointIndex, w}) {
             return '<div class="arrow_box">' +
               '<span>' +
-                '<img src="images/punks/punk' + w.config.series[seriesIndex].data[dataPointIndex][3].toString().padStart(4, '0') + '.png">' +
-                '</img>' +
-                // ' seriesIndex: ' + seriesIndex +
-                // ', dataPointIndex: ' + dataPointIndex +
-                // ' ' + JSON.stringify(series[seriesIndex]) +
-                series[seriesIndex][dataPointIndex] + 'e' +
-                ' #' +
+                '<img src="images/punks/punk' + w.config.series[seriesIndex].data[dataPointIndex][3].toString().padStart(4, '0') + '.png"></img>' +
+                series[seriesIndex][dataPointIndex] + 'e #' +
                 w.config.series[seriesIndex].data[dataPointIndex][3] +
-                // ' ' + Object.keys(w.globals) +
-
-                // <b-avatar rounded size="7rem" :src="'images/punks/punk' + event.punkId.toString().padStart(4, '0') + '.png'" style="background-color: #638596"></b-avatar>
-
                 '</span>' +
               '</div>'
           }
@@ -364,6 +383,10 @@ const CryptoPunks = {
           // }
         },
         yaxis: {
+          // forceNiceScale: true,
+          formatter: function (value) {
+            return parseInt(value) + " SFKF";
+          },
           // max: 70
         },
       },
@@ -773,6 +796,9 @@ const CryptoPunks = {
       const asks = [];
       const sales = [];
 
+      const minAmount = 0.1;
+      const maxAmount = 50000;
+
       // console.log("events: " + JSON.stringify(this.events.slice(0, 10)));
       const searchAccounts = this.settings.searchAccount != null && this.settings.searchAccount.length > 0 ? this.settings.searchAccount.split(/[, \t\n]+/).map(function(s) { return s.toLowerCase(); }) : null;
       // console.log("searchAccounts: " + JSON.stringify(searchAccounts));
@@ -808,7 +834,10 @@ const CryptoPunks = {
           } else if (event.type == "ASK_CREATED" /*|| event.type == "ASK_REMOVED"*/) {
             asks.push(event);
           } else if (event.type == "SALE") {
-            sales.push(event);
+            let amount = ethers.utils.formatEther(event.amount);
+            if (amount > minAmount && amount < maxAmount) {
+              sales.push(event);
+            }
           }
         }
       }
@@ -848,6 +877,8 @@ const CryptoPunks = {
     },
     chartSeries() {
       const sales = this.summary[2].values;
+      const minAmount = 0.1;
+      const maxAmount = 50000;
       const toTimestamp = new Date()/1000;
       let days = 1;
       if (this.settings.chartPeriod == '1d') {
@@ -864,12 +895,15 @@ const CryptoPunks = {
         days = 10000;
       }
       const fromTimestamp = toTimestamp - days * 24 * 60 * 60;
+
+      console.log("chartAttributeFilter: " + JSON.stringify(this.chartAttributeFilter, null, 2));
+
       const data = [];
       for (let sale of sales) {
         if (sale.timestamp >= fromTimestamp && sale.timestamp <= toTimestamp) {
           const amount = ethers.utils.formatEther(sale.amount);
           // console.log(JSON.stringify(sale));
-          if (amount > 0.1 && amount < 50000) {
+          if (amount > minAmount && amount < maxAmount) {
             data.push([sale.timestamp * 1000, amount, 6, sale.punkId]);
           }
         }
@@ -917,6 +951,17 @@ const CryptoPunks = {
       }
       return collator;
     },
+    chartAttributes() {
+      const results = [];
+      results.push({ value: null, text: "None" });
+      for (let attribute of Object.keys(this.attributes).sort()) {
+        var title = attribute.split("-").map(function(word) {
+          return word.charAt(0).toUpperCase() + word.substring(1).toLowerCase();
+        }).join(' ');
+        results.push({ value: attribute, text: title });
+      }
+      return results;
+    },
   },
   methods: {
     updateURL(where) {
@@ -957,6 +1002,22 @@ const CryptoPunks = {
       }
       // this.attributeFilter = this.attributeFilter;
       console.log("filterChange: " + JSON.stringify(this.attributeFilter));
+      // this.recalculate('filterChange');
+    },
+    chartFilterChange(attribute, option) {
+      if (!this.chartAttributeFilter[attribute]) {
+        Vue.set(this.chartAttributeFilter, attribute, {});
+      }
+      if (this.chartAttributeFilter[attribute][option]) {
+        Vue.delete(this.chartAttributeFilter[attribute], option);
+        if (Object.keys(this.chartAttributeFilter[attribute]) == 0) {
+          Vue.delete(this.chartAttributeFilter, attribute);
+        }
+      } else {
+        Vue.set(this.chartAttributeFilter[attribute], option, true);
+      }
+      // this.chartAttributeFilter = this.chartAttributeFilter;
+      console.log("chartFilterChange: " + JSON.stringify(this.chartAttributeFilter));
       // this.recalculate('filterChange');
     },
     formatETHShort(e) {
