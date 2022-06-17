@@ -340,12 +340,18 @@ const CryptoPunks = {
           custom: function({series, seriesIndex, dataPointIndex, w}) {
             return '<div class="arrow_box">' +
               '<span>' +
-                '#' + w.config.series[seriesIndex].data[dataPointIndex][3] +
+                '<img src="images/punks/punk' + w.config.series[seriesIndex].data[dataPointIndex][3].toString().padStart(4, '0') + '.png">' +
+                '</img>' +
                 // ' seriesIndex: ' + seriesIndex +
                 // ', dataPointIndex: ' + dataPointIndex +
                 // ' ' + JSON.stringify(series[seriesIndex]) +
-                ' ' + series[seriesIndex][dataPointIndex] + 'e' +
+                series[seriesIndex][dataPointIndex] + 'e' +
+                ' #' +
+                w.config.series[seriesIndex].data[dataPointIndex][3] +
                 // ' ' + Object.keys(w.globals) +
+
+                // <b-avatar rounded size="7rem" :src="'images/punks/punk' + event.punkId.toString().padStart(4, '0') + '.png'" style="background-color: #638596"></b-avatar>
+
                 '</span>' +
               '</div>'
           }
