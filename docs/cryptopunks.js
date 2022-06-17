@@ -215,8 +215,15 @@ const CryptoPunks = {
                       <h6 class="mb-0">Chart Options</h6>
                     </template>
                     <b-form-group label-cols="4" label-size="sm" label="Period" label-align="right" class="mb-2">
-                      <b-form-select size="sm" v-model="settings.chartPeriod" :options="chartPeriodOptions" v-b-popover.hover.bottom="'Charting period'"></b-form-select>
+                      <b-form-select size="sm" v-model="settings.chartPeriod" :options="chartPeriodOptions" v-b-popover.hover.bottom="'Charting period'" class="w-50"></b-form-select>
                     </b-form-group>
+                    <b-form-group label-cols="4" label-size="sm" label="Min amount" label-align="right" class="mb-2">
+                      <b-form-input type="text" size="sm" v-model.trim="settings.chartMinAmount" debounce="600" v-b-popover.hover.bottom="'ETH from'" placeholder="min" class="w-50"></b-form-input>
+                    </b-form-group>
+                    <b-form-group label-cols="4" label-size="sm" label="Max amount" label-align="right" class="mb-2">
+                      <b-form-input type="text" size="sm" v-model.trim="settings.chartMaxAmount" debounce="600" v-b-popover.hover.bottom="'ETH to'" placeholder="max" class="w-50"></b-form-input>
+                    </b-form-group>
+
                     <!--
                     <b-form-group label-cols="4" label-size="sm" label="Group by" label-align="right" class="mb-2">
                       <b-form-select size="sm" v-model="settings.chartAttribute" :options="chartAttributes"></b-form-select>
@@ -266,9 +273,11 @@ const CryptoPunks = {
         sortOption: 'latestsale',
         randomise: false,
         summaryMaxItems: 10,
-        chartPeriod: '1d',
+        chartPeriod: '1m',
         chartAttribute: "eyes", // null,
         chartDisplayRemainder: true, // null,
+        chartMinAmount: 0.5,
+        chartMaxAmount: 10000,
         // imageSize: '240',
       },
 
@@ -876,8 +885,9 @@ const CryptoPunks = {
       return results;
     },
     chartSeries() {
-      const minAmount = 0.1;
-      const maxAmount = 50000;
+      const minAmount = this.settings.chartMinAmount && parseFloat(this.settings.chartMinAmount) >= 0 ? parseFloat(this.settings.chartMinAmount) : 0;
+      const maxAmount = this.settings.chartMaxAmount && parseFloat(this.settings.chartMaxAmount) >= 0 ? parseFloat(this.settings.chartMaxAmount) : 1000000;
+
       const toTimestamp = new Date()/1000;
       let days = 1;
       if (this.settings.chartPeriod == '1d') {
@@ -894,73 +904,75 @@ const CryptoPunks = {
         days = 10000;
       }
       const fromTimestamp = toTimestamp - days * 24 * 60 * 60;
+      const series = [];
 
       console.log("chartAttributeFilter: " + JSON.stringify(this.chartAttributeFilter, null, 2));
 
       const bidData = [];
-      for (let sale of this.summary[0].values) {
-        if (sale.timestamp >= fromTimestamp && sale.timestamp <= toTimestamp) {
-          const amount = ethers.utils.formatEther(sale.amount);
-          // console.log(JSON.stringify(sale));
+      for (let event of this.summary[0].values) {
+        if (event.timestamp >= fromTimestamp && event.timestamp <= toTimestamp) {
+          const amount = ethers.utils.formatEther(event.amount);
           if (amount > minAmount && amount < maxAmount) {
-            bidData.push([sale.timestamp * 1000, amount, 6, sale.punkId]);
+            bidData.push([event.timestamp * 1000, amount, 6, event.punkId]);
           }
         }
       }
       console.log("bidData.length: " + bidData.length);
+      series.push({ name: "Bids", data: bidData });
 
       const askData = [];
-      for (let sale of this.summary[1].values) {
-        if (sale.timestamp >= fromTimestamp && sale.timestamp <= toTimestamp) {
-          const amount = ethers.utils.formatEther(sale.amount);
-          // console.log(JSON.stringify(sale));
+      for (let event of this.summary[1].values) {
+        if (event.timestamp >= fromTimestamp && event.timestamp <= toTimestamp) {
+          const amount = ethers.utils.formatEther(event.amount);
           if (amount > minAmount && amount < maxAmount) {
-            askData.push([sale.timestamp * 1000, amount, 6, sale.punkId]);
+            askData.push([event.timestamp * 1000, amount, 6, event.punkId]);
           }
         }
       }
       console.log("askData.length: " + askData.length);
+      series.push({ name: "Offers", data: askData });
 
       const salesData = [];
-      for (let sale of this.summary[2].values) {
-        if (sale.timestamp >= fromTimestamp && sale.timestamp <= toTimestamp) {
-          const amount = ethers.utils.formatEther(sale.amount);
-          // console.log(JSON.stringify(sale));
+      for (let event of this.summary[2].values) {
+        if (event.timestamp >= fromTimestamp && event.timestamp <= toTimestamp) {
+          const amount = ethers.utils.formatEther(event.amount);
           if (amount > minAmount && amount < maxAmount) {
-            salesData.push([sale.timestamp * 1000, amount, 6, sale.punkId]);
+            salesData.push([event.timestamp * 1000, amount, 6, event.punkId]);
           }
         }
       }
-      console.log("salesData.length: " + salesData.length);
-      const series = [
-        {
-          name: "Bids",
-          data: bidData,
-        },
-        {
-          name: "Offers",
-          data: askData,
-        },
-        {
-          name: "Sales",
-          data: salesData,
-        },
-        // {
-        //   name: "Series 2 aa",
-        //   data: data,
-        // },
-        // {
-        //   name: "Series 2 bb",
-        //   data: [
-        //     [1481114800000, 14, 4],
-        //     [1486771200000, 13, 4],
-        //     [1486857600000, 11, 4],
-        //     [1486944000000, 13, 4],
-        //     [1487030400000, 13, 4],
-        //     [1487116800000, 12, 4],
-        //   ]
-        // }
-      ];
+      series.push({ name: "Sales", data: salesData });
+
+      // console.log("salesData.length: " + salesData.length);
+      // const series = [
+      //   {
+      //     name: "Bids",
+      //     data: bidData,
+      //   },
+      //   {
+      //     name: "Offers",
+      //     data: askData,
+      //   },
+      //   {
+      //     name: "Sales",
+      //     data: salesData,
+      //   },
+      //   // {
+      //   //   name: "Series 2 aa",
+      //   //   data: data,
+      //   // },
+      //   // {
+      //   //   name: "Series 2 bb",
+      //   //   data: [
+      //   //     [1481114800000, 14, 4],
+      //   //     [1486771200000, 13, 4],
+      //   //     [1486857600000, 11, 4],
+      //   //     [1486944000000, 13, 4],
+      //   //     [1487030400000, 13, 4],
+      //   //     [1487116800000, 12, 4],
+      //   //   ]
+      //   // }
+      // ];
 
       return series;
     },
