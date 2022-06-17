@@ -113,6 +113,12 @@
                   <b-button size="sm" variant="link" class="ml-4" v-b-popover.hover.bottom="'Power up this app'" @click="setPowerOn();" v-if="!powerOn"><b-icon-power shift-v="-1" font-scale="1.5"></b-icon-power></b-button>
                   <b-button size="sm" variant="link" v-b-popover.hover.bottom="'Show status'" v-b-toggle.sidebar-status v-if="powerOn"><b-icon-layout-sidebar-reverse class="ml-4 mr-2" shift-v="-1" font-scale="1.3"></b-icon-layout-sidebar-reverse><b-spinner class="m-0" :variant="spinnerVariant" v-if="powerOn" style="animation: spinner-grow 3.75s linear infinite;" small type="grow" label="Spinning"></b-spinner></b-button>
                 </b-nav-form>
+                <!--
+                <b-nav-item size="sm" href="https://twitter.com/intent/tweet?text=This%20is%20an%20example%20of%20a%20pre-written%20tweet-%20don%27t%20forget%20that%20it%20needs%20to%20be%20less%20than%20280%20characters..." target="_blank" active-class="active" v-b-popover.hover.bottom="'CryptoPunks V2'">Send</b-nav-item>
+                <b-link :href="'https://twitter.com/intent/tweet?text=This%20is%20an%20example%20of%20a%20pre-written%20tweet-%20don%27t%20forget%20that%20it%20needs%20to%20be%20less%20than%20280%20characters...'" target="_blank">
+                  Test
+                </b-link>
+                -->
               </b-navbar-nav>
             </b-collapse>
           </b-navbar>

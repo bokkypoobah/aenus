@@ -8,9 +8,7 @@ const CryptoPunks = {
       </b-card>
 
       <b-card no-body header="CryptoPunks" class="border-0" header-class="p-0">
-
         <b-card no-body class="p-0 mt-1">
-
           <b-tabs card align="left" no-body active-tab-class="m-0 p-0" v-model="settings.tabIndex">
             <b-tab title="Summary" @click="updateURL('summary');">
             </b-tab>
@@ -20,6 +18,7 @@ const CryptoPunks = {
             </b-tab>
           </b-tabs>
 
+          <!-- Sidebar filter -->
           <b-card-body class="m-1 p-1">
             <div>
               <b-sidebar id="sidebar-1" width="360px" title="Filter By Attributes" right shadow no-header-close header-class="m-0 p-0">
@@ -57,6 +56,7 @@ const CryptoPunks = {
               </b-sidebar>
             </div>
 
+            <!-- Toolbar -->
             <div class="d-flex flex-wrap m-0 p-0" style="min-height: 37px;">
               <div class="mt-2" style="max-width: 150px;">
                 <b-form-input type="text" size="sm" v-model.trim="settings.searchString" debounce="600" v-b-popover.hover.bottom="'Filter by list of punkIds'" placeholder="🔍 id1 id2-id3 ..."></b-form-input>
@@ -206,7 +206,7 @@ const CryptoPunks = {
                     <template #header>
                       <h6 class="mb-0">CryptoPunk Sales</h6>
                     </template>
-                    <apexchart :options="chartOptions" :series="chartSeries"></apexchart>
+                    <apexchart :options="chartOptions" :yaxis="chartOptions.yaxis" :series="chartSeries"></apexchart>
                   </b-card>
                 </b-col>
                 <b-col cols="5">
@@ -358,15 +358,15 @@ const CryptoPunks = {
         dataLabels: {
           enabled: false,
         },
-        fill: {
-          type: 'gradient',
-        },
+        // fill: {
+        //   type: 'gradient',
+        // },
         // title: {
         //   text: '3D Bubble Chart'
         // },
         tooltip: {
           custom: function({series, seriesIndex, dataPointIndex, w}) {
-            return '<div class="arrow_box">' +
+            return '<div class="arrow_box" style="background-color: #638596">' +
               '<span>' +
                 '<img src="images/punks/punk' + w.config.series[seriesIndex].data[dataPointIndex][3].toString().padStart(4, '0') + '.png"></img>' +
                 series[seriesIndex][dataPointIndex] + 'e #' +
@@ -383,11 +383,11 @@ const CryptoPunks = {
           // }
         },
         yaxis: {
-          // forceNiceScale: true,
-          formatter: function (value) {
-            return parseInt(value) + " SFKF";
+          labels: {
+            formatter: function (value) {
+              return parseInt(value);
+            },
           },
-          // max: 70
         },
       },
     }
