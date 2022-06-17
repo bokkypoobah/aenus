@@ -116,7 +116,7 @@ const CryptoPunks = {
               <!-- <apexchart type="line" :options="chartOptions" :series="optino.chartSeries"></apexchart> -->
               <b-card body-class="m-2 p-1 px-3" header-class="p-1 px-3" class="mt-2" style="max-width: 50rem;">
                 <template #header>
-                  <h6 class="mb-0">Blah</h6>
+                  <h6 class="mb-0">CryptoPunk Sales</h6>
                 </template>
                 <apexchart :options="chartOptions" :series="chartSeries"></apexchart>
               </b-card>
@@ -310,8 +310,22 @@ const CryptoPunks = {
         fill: {
           type: 'gradient',
         },
-        title: {
-          text: '3D Bubble Chart'
+        // title: {
+        //   text: '3D Bubble Chart'
+        // },
+        tooltip: {
+          custom: function({series, seriesIndex, dataPointIndex, w}) {
+            return '<div class="arrow_box">' +
+              '<span>' +
+                '#' + w.config.series[seriesIndex].data[dataPointIndex][3] +
+                // ' seriesIndex: ' + seriesIndex +
+                // ', dataPointIndex: ' + dataPointIndex +
+                // ' ' + JSON.stringify(series[seriesIndex]) +
+                ' ' + series[seriesIndex][dataPointIndex] + 'e' +
+                // ' ' + Object.keys(w.globals) +
+                '</span>' +
+              '</div>'
+          }
         },
         series: [
           {
@@ -841,7 +855,7 @@ const CryptoPunks = {
           const amount = ethers.utils.formatEther(sale.amount);
           // console.log(JSON.stringify(sale));
           if (amount > 0.1 && amount < 50000) {
-            data.push([sale.timestamp * 1000, amount, 4]);
+            data.push([sale.timestamp * 1000, amount, 4, sale.punkId]);
           }
         }
       }
@@ -849,7 +863,7 @@ const CryptoPunks = {
 
       const series = [
         {
-          name: "Series 1 aa",
+          name: "All",
           data: data,
         },
         // {
