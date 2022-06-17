@@ -159,70 +159,10 @@ const CryptoPunks = {
                         </div>
                       </b-card-text>
                     </b-card>
-                      <!--
-
-                      <b-link :href="'https://cryptopunks.app/cryptopunks/details/' + event.punkId" v-b-popover.hover.bottom="'View in original website'" target="_blank">
-                        <b-img-lazy width="100%" :src="'images/punks/punk' + event.punkId.toString().padStart(4, '0') + '.png'" style="background-color: #638596"/>
-                        <b-avatar rounded :badge="formatETH(event.amount)" size="6rem" :src="'images/punks/punk' + event.punkId.toString().padStart(4, '0') + '.png'" style="background-color: #638596" class="m-1"></b-avatar>
-                      </b-link>
-
-                      <b-avatar src="https://placekitten.com/300/300" variant="info"></b-avatar>
-                      {{ event.punkId }}
-                      <b-card overlay :id="'popover-target-image-' + event.punkId" :img-src="'images/punks/punk' + event.punkId.toString().padStart(4, '0') + '.png'" img-height="48" class="m-2 p-0">
-                      <div v-if="prices[record.tokenId]">
-                        <b-col cols="10" class="m-0 p-1 text-right">
-                          <font shift-v="+3" size="-1"><b-badge v-b-popover.hover.bottom="'Floor ask price in ETH'" variant="success">{{ prices[record.tokenId].floorAskPrice }}</b-badge></font>
-                        </b-col>
-                      </div>
-
-                      <b-col cols="10" class="m-0 p-1 text-right">
-                        <font shift-v="+3" size="-1"><b-badge v-b-popover.hover.bottom="'Floor ask price in ETH'" variant="success">{{ formatETH(event.amount) }}</b-badge></font>
-                      </b-col>
-                      </b-card>
-                      -->
                   </div>
                 </b-card-group deck>
-
-
               </b-card>
             </div>
-
-            <!--
-            <b-table v-if="settings.tabIndex == 0" small striped hover :fields="summaryFields" :items="summary" table-class="w-100 mt-2" class="mt-0" thead-class="hidden_header">
-              <template #cell(values)="data">
-                <b-card>
-                  <template #header>
-                    <h6 class="mb-0">Latest {{ data.item.type }}</h6>
-                  </template>
-                  <b-card-group deck>
-                    <div v-for="(event, eventIndex) in data.item.values" :key="eventIndex">
-                      <b-card body-class="p-1" header-class="p-1" footer-class="p-1" img-top class="m-1 p-0 border-0">
-                        <b-link :href="'https://cryptopunks.app/cryptopunks/details/' + event.punkId" v-b-popover.hover.bottom="'View in original website'" target="_blank">
-                          <b-avatar rounded size="6rem" :src="'images/punks/punk' + event.punkId.toString().padStart(4, '0') + '.png'" style="background-color: #638596"></b-avatar>
-                        </b-link>
-                        <b-card-text class="text-right">
-                          <div class="d-flex flex-wrap m-0 p-0">
-                            <div>
-                              <font size="-1">
-                                <b-badge variant="light">{{ event.punkId }}</b-badge>
-                              </font>
-                            </div>
-                            <div class="flex-grow-1">
-                            </div>
-                            <div>
-                              <font size="-1">
-                                <b-badge :variant="(data.item.type == 'Sales') ? 'success' : ((data.item.type == 'Asks') ? 'primary' : 'warning')">{{ formatETH(event.amount) }}</b-badge>
-                              </font>
-                            </div>
-                          </div>
-                        </b-card-text>
-                      </b-card>
-                    </div>
-                  </b-card-group deck>
-                </b-card>
-              </template>
-            </b-table>
-            -->
 
             <!-- Table -->
             <b-table v-if="settings.tabIndex == 1" small striped hover :fields="resultsFields" :items="pagedFilteredResults" table-class="w-100" class="mt-0">
