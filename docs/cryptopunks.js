@@ -129,14 +129,20 @@ const CryptoPunks = {
                         <b-avatar rounded size="7rem" :src="'images/punks/punk' + event.punkId.toString().padStart(4, '0') + '.png'" style="background-color: #638596"></b-avatar>
                       </b-link>
                       <b-card-text class="text-right">
-                        <div class="d-flex flex-wrap m-0 p-0">
+                        <div class="d-flex justify-content-between m-0 p-0">
                           <div>
                             <font size="-1">
                               <b-badge variant="light">{{ event.punkId }}</b-badge>
                             </font>
                           </div>
                           <div class="flex-grow-1">
-                            <font size="-1">
+                            <font v-if="secondsOld(event.timestamp) < 3600" size="-1">
+                              <b-badge variant="dark" v-b-popover.hover.bottom="formatTimestamp(event.timestamp)">{{ formatTerm(event.timestamp) }}</b-badge>
+                            </font>
+                            <font v-else-if="secondsOld(event.timestamp) < 86400" size="-1">
+                              <b-badge variant="secondary" v-b-popover.hover.bottom="formatTimestamp(event.timestamp)">{{ formatTerm(event.timestamp) }}</b-badge>
+                            </font>
+                            <font v-else size="-1">
                               <b-badge variant="light" v-b-popover.hover.bottom="formatTimestamp(event.timestamp)">{{ formatTerm(event.timestamp) }}</b-badge>
                             </font>
                           </div>
@@ -207,7 +213,7 @@ const CryptoPunks = {
                 <b-col cols="7">
                   <b-card body-class="m-2 p-1 px-3" header-class="p-1 px-3" class="mt-2 mr-1">
                     <template #header>
-                      <h6 class="mb-0">CryptoPunk Sales</h6>
+                      <h6 class="mb-0">CryptoPunk Activity</h6>
                     </template>
                     <apexchart :options="chartOptions" :yaxis="chartOptions.yaxis" :series="chartSeries"></apexchart>
                   </b-card>
@@ -1090,6 +1096,9 @@ const CryptoPunks = {
       } catch (err) {
       }
       return e.toFixed(9);
+    },
+    secondsOld(ts) {
+      return parseInt((new Date() / 1000) - ts);
     },
     formatTimestamp(ts) {
       return new Date(ts * 1000).toLocaleString();
