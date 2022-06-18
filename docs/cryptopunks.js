@@ -213,7 +213,7 @@ const CryptoPunks = {
                 <b-col cols="7">
                   <b-card body-class="m-2 p-1 px-3" header-class="p-1 px-3" class="mt-2 mr-1">
                     <template #header>
-                      <h6 class="mb-0">CryptoPunk Activity</h6>
+                      <h6 class="mb-0">Activity</h6>
                     </template>
                     <apexchart :options="chartOptions" :yaxis="chartOptions.yaxis" :series="chartSeries"></apexchart>
                   </b-card>
@@ -294,6 +294,8 @@ const CryptoPunks = {
         chartDisplayRemainder: true, // null,
         chartMinAmount: 1,
         chartMaxAmount: 10000,
+        chartYaxisMin: 1,
+        chartYAsixMax: 1000,
         chartTypes: ['sales'], // ['bids', 'asks', 'sales']
         // imageSize: '240',
       },
@@ -409,6 +411,8 @@ const CryptoPunks = {
           // }
         },
         yaxis: {
+          min: this.chartYaxisMin,
+          max: this.chartYaxisMax,
           labels: {
             formatter: function (value) {
               return parseInt(value);
@@ -1229,10 +1233,6 @@ const CryptoPunks = {
     async loadPunks(fullSync) {
       store.dispatch('cryptoPunks/loadPunks', fullSync);
     },
-    async doit(action) {
-      console.log("doit: " + JSON.stringify(action));
-      store.dispatch('sales/doit', action);
-    },
     async halt() {
       store.dispatch('search/halt');
     },
@@ -1244,7 +1244,7 @@ const CryptoPunks = {
           ["PunkId", "Owner", "Bid", "Bid Timestamp", "Ask", "Ask Timestamp", "Last", "Last Timestamp", ...attributeTitles, "URL"],
       ];
       const timestamp = new Date(parseInt((new Date).getTime()/1000)*1000).toISOString().replace('T', '-').replaceAll(':', '-').replace('.000Z', '');
-      for (const result of this.filteredResults) {
+      for (const result of this.filteredSortedResults) {
         const attributeValues = [];
         for (const attributeKey of attributeKeys) {
           let value = null;
