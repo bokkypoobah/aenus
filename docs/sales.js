@@ -7,7 +7,7 @@ const Sales = {
         </b-card-text>
       </b-card>
 
-      <b-card no-body header="ENS Name Sales" class="border-0" header-class="p-0">
+      <b-card no-body no-header class="border-0">
 
         <b-card no-body class="p-0 mt-1">
 
@@ -17,9 +17,9 @@ const Sales = {
             <span v-if="searchMessage != null">
               <b-button size="sm" @click="halt" variant="primary">Halt</b-button>
             </span>
-            -->
             <b-button size="sm" @click="doit( { action: 'startService' } );" variant="primary">Start Service</b-button>
             <b-button size="sm" @click="doit( { action: 'stopService' } );" variant="primary">Stop Service</b-button>
+            -->
           </b-card-body>
           <b-card-body class="m-1 p-1">
             <div class="d-flex flex-wrap m-0 p-0" style="min-height: 37px;">
@@ -34,6 +34,14 @@ const Sales = {
               </div>
               <div class="mt-2 pr-2" style="max-width: 100px;">
               <b-form-input type="text" size="sm" :value="filter.priceTo" @change="updateFilter('priceTo', $event)" debounce="600" placeholder="ETH to"></b-form-input>
+              </div>
+              <div class="mt-2 pr-1 flex-grow-1">
+              </div>
+              <div class="mt-2 pr-1">
+                <b-dropdown v-if="message == null" split size="sm" text="Sync" @click="loadSales(false)" variant="primary" v-b-popover.hover.bottom="'Partial Sync'">
+                  <b-dropdown-item @click="loadSales(true)">Full Sync</b-dropdown-item>
+                </b-dropdown>
+                <b-button v-if="message != null" size="sm" @click="halt" variant="primary" v-b-popover.hover.bottom="'Halt'" >{{ message }}</b-button>
               </div>
               <div class="mt-2 pr-1 flex-grow-1">
               </div>
@@ -150,7 +158,7 @@ const Sales = {
       </b-card>
     </div>
   `,
-  data: function () {
+  data: function() {
     return {
       count: 0,
       reschedule: true,
@@ -198,6 +206,9 @@ const Sales = {
     sales() {
       return store.getters['sales/sales'];
     },
+    message() {
+      return store.getters['sales/message'];
+    },
   },
   methods: {
     formatETH(e) {
@@ -214,10 +225,14 @@ const Sales = {
       console.log("updateFilter: " + field + " => " + JSON.stringify(filter));
       store.dispatch('sales/updateFilter', { field, filter} );
     },
-    async doit(action) {
-      console.log("doit: " + JSON.stringify(action));
-      store.dispatch('sales/doit', action);
+    async loadSales(fullSync) {
+      // console.log("loadSales - fullSync: " + fullSync);
+      store.dispatch('sales/loadSales', fullSync);
     },
+    // async doit(action) {
+    //   console.log("doit: " + JSON.stringify(action));
+    //   store.dispatch('sales/doit', action);
+    // },
     async halt() {
       store.dispatch('search/halt');
     },
@@ -291,9 +306,9 @@ const salesModule = {
       }
       logInfo("salesModule", "mutations.addToExecutionQueue() - action: " + JSON.stringify(action) + ", queue: " + JSON.stringify(state.executionQueue));
     },
-    // --- doit() ---
-    async doit(state, options) {
-      // --- doit() functions start ---
+    // --- loadSales() ---
+    async loadSales(state, fullSync) {
+      // --- loadSales() functions start ---
       function processRegistrations(registrations) {
         const results = {};
         for (const registration of registrations) {
@@ -320,15 +335,15 @@ const salesModule = {
       }
       async function processSales(data) {
         const searchForNamesByTokenIds = data.sales
-          .map(function(sale) { return sale.token.tokenId; })
-          .map(function(tokenId) { return "0x" + new BigNumber(tokenId, 10).toString(16); });
+          .map(sale => sale.token.tokenId)
+          .map(tokenId => "0x" + new BigNumber(tokenId, 10).toString(16));
         const namesByTokenIds = await fetchNamesByTokenIds(searchForNamesByTokenIds);
         let count = 0;
         const saleRecords = [];
         const chainId = (store.getters['connection/network'] && store.getters['connection/network'].chainId) || 1;
         for (const sale of data.sales) {
           // if (count == 0) {
-          //   logInfo("salesModule", "mutations.doit().processSales() " + new Date(sale.timestamp * 1000).toLocaleString() + " " + (sale.token.name ? sale.token.name : "(null)") + ", price: " + sale.price + ", from: " + sale.from.substr(0, 10) + ", to: " + sale.to.substr(0, 10));
+          //   logInfo("salesModule", "mutations.loadSales().processSales() " + new Date(sale.timestamp * 1000).toLocaleString() + " " + (sale.token.name ? sale.token.name : "(null)") + ", price: " + sale.price + ", from: " + sale.from.substr(0, 10) + ", to: " + sale.to.substr(0, 10));
           // }
           const name = namesByTokenIds[sale.token.tokenId] ? namesByTokenIds[sale.token.tokenId] : sale.token.name;
           saleRecords.push({
@@ -353,7 +368,7 @@ const salesModule = {
         return saleRecords.length;
       }
       // async function fetchSales(startTimestamp, endTimestamp) {
-      //   logInfo("salesModule", "mutations.doit().fetchSales() - " + startTimestamp.toLocaleString() + " - " + endTimestamp.toLocaleString());
+      //   logInfo("salesModule", "mutations.loadSales().fetchSales() - " + startTimestamp.toLocaleString() + " - " + endTimestamp.toLocaleString());
       //   const url = "https://api.reservoir.tools/sales/v3?contract=0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85&limit=" + state.config.reservoirSalesV3BatchSize + "&startTimestamp=" + parseInt(startTimestamp / 1000) + "&endTimestamp="+ parseInt(endTimestamp / 1000);
       //   let continuation = null;
       //   do {
@@ -370,19 +385,19 @@ const salesModule = {
       //   } while (continuation != null);
       // }
       async function updateDBFromAPI() {
-        // logInfo("salesModule", "mutations.doit().updateDBFromAPI()");
+        logInfo("salesModule", "mutations.loadSales().updateDBFromAPI()");
         const now = new Date();
         const earliestEntry = await db0.sales.orderBy("timestamp").first();
         const earliestDate = earliestEntry ? new Date(earliestEntry.timestamp * 1000) : null;
         const latestEntry = await db0.sales.orderBy("timestamp").last();
         const latestDate = latestEntry ? new Date(latestEntry.timestamp * 1000) : null;
-        // logInfo("salesModule", "mutations.doit() - db: " + (earliestDate ? earliestDate.toLocaleString() : '(null)') + " to " + (latestDate ? latestDate.toLocaleString() : '') + " @ " + now.toLocaleString());
+        // logInfo("salesModule", "mutations.loadSales() - db: " + (earliestDate ? earliestDate.toLocaleString() : '(null)') + " to " + (latestDate ? latestDate.toLocaleString() : '') + " @ " + now.toLocaleString());
 
         const segmentStart = new Date();
         segmentStart.setHours(parseInt(segmentStart.getHours() / state.config.segmentsPerDay) * state.config.segmentsPerDay, 0, 0, 0);
         const retrieveLastDate = new Date(segmentStart.getTime() - state.config.retrieveLastDays * MILLISPERDAY);
         const deleteBeforeDate = new Date(segmentStart.getTime() - state.config.deleteBeforeDays * MILLISPERDAY);
-        // logInfo("salesModule", "mutations.doit() - segmentStart: " + segmentStart.toLocaleString() + ", retrieveLastDate: " + retrieveLastDate.toLocaleString() + ", deleteBeforeDate: " + deleteBeforeDate.toLocaleString());
+        // logInfo("salesModule", "mutations.loadSales() - segmentStart: " + segmentStart.toLocaleString() + ", retrieveLastDate: " + retrieveLastDate.toLocaleString() + ", deleteBeforeDate: " + deleteBeforeDate.toLocaleString());
 
         // Get from start of today
         let to = now;
@@ -413,8 +428,8 @@ const salesModule = {
                 "&startTimestamp=" + parseInt(processFrom.getTime() / 1000) +
                 "&endTimestamp="+ parseInt(processTo.getTime() / 1000) +
                 (continuation != null ? "&continuation=" + continuation : '');
-              // logInfo("salesModule", "mutations.doit() - url: " + url);
-              // logInfo("salesModule", "mutations.doit() - Retrieving records for " + new Date(processFrom).toLocaleString() + " to " + new Date(processTo).toLocaleString());
+              // logInfo("salesModule", "mutations.loadSales() - url: " + url);
+              // logInfo("salesModule", "mutations.loadSales() - Retrieving records for " + new Date(processFrom).toLocaleString() + " to " + new Date(processTo).toLocaleString());
               const data = await fetch(url)
                 .then(response => response.json());
               let numberOfRecords = await processSales(data);
@@ -425,9 +440,9 @@ const salesModule = {
               dates[from.toLocaleString()] = true;
             }
             if (totalRecords > 0) {
-              logInfo("salesModule", "mutations.doit() - Retrieved " +  totalRecords + " record(s) for " + new Date(processFrom).toLocaleString() + " to " + new Date(processTo).toLocaleString());
+              logInfo("salesModule", "mutations.loadSales() - Retrieved " +  totalRecords + " record(s) for " + new Date(processFrom).toLocaleString() + " to " + new Date(processTo).toLocaleString());
             } else {
-              logInfo("salesModule", "mutations.doit() - Nothing new");
+              logInfo("salesModule", "mutations.loadSales() - Nothing new");
             }
             count++;
           }
@@ -435,7 +450,7 @@ const salesModule = {
           from = new Date(from.getTime() - MILLISPERDAY/state.config.segmentsPerDay);
         }
         localStorage.dates = JSON.stringify(dates);
-        // logInfo("salesModule", "mutations.doit() - processed dates: " + JSON.stringify(Object.keys(dates)));
+        // logInfo("salesModule", "mutations.loadSales() - processed dates: " + JSON.stringify(Object.keys(dates)));
       }
       async function refreshResultsFromDB() {
         const salesFromDB = await db0.sales.orderBy("timestamp").reverse().limit(100).toArray();
@@ -455,11 +470,11 @@ const salesModule = {
         }
         state.sales = saleRecords;
       }
-      // --- doit() functions end ---
+      // --- loadSales() functions end ---
 
-      // --- doit() start ---
-      state.executionQueue.push(options);
-      // logInfo("salesModule", "mutations.doit() - ----- options: " + JSON.stringify(options) + ", queue: " + JSON.stringify(state.executionQueue) + " @ " + new Date().toLocaleString() + " -----");
+      // --- loadSales() start ---
+      // state.executionQueue.push(options);
+      logInfo("salesModule", "mutations.loadSales() - fullSync: " + fullSync);
 
       const db0 = new Dexie("aenusdb");
       db0.version(1).stores({
@@ -467,21 +482,21 @@ const salesModule = {
         sales: '[chainId+contract+tokenId],chainId,contract,tokenId,name,from,to,price,timestamp',
       });
 
-      let execute;
-      do {
-        execute = state.executionQueue.shift();
-        if (execute) {
-          // console.log("    execute: " + JSON.stringify(execute));
-          // Refresh results from API to DB
-          if (execute.action == "refresh") {
+      // let execute;
+      // do {
+      //   execute = state.executionQueue.shift();
+      //   if (execute) {
+      //     // console.log("    execute: " + JSON.stringify(execute));
+      //     // Refresh results from API to DB
+      //     if (execute.action == "refresh") {
             await updateDBFromAPI();
-          }
-          // Refresh results from DB to memory
-          if (execute.action == "refresh") {
+          // }
+          // // Refresh results from DB to memory
+          // if (execute.action == "refresh") {
             await refreshResultsFromDB();
-          }
-        }
-      } while (execute != null && !state.halt);
+      //     }
+      //   }
+      // } while (execute != null && !state.halt);
       state.message = null;
       state.halt = false;
 
@@ -501,9 +516,9 @@ const salesModule = {
       logInfo("salesModule", "actions.updateFilter() - action: " + JSON.stringify(action));
       // context.commit('addToExecutionQueue', action);
     },
-    doit(context, action) {
-      logInfo("salesModule", "actions.doit() - action: " + JSON.stringify(action));
-      context.commit('addToExecutionQueue', action);
+    loadSales(context, fullSync) {
+      logInfo("salesModule", "actions.loadSales() - fullSync: " + fullSync);
+      context.commit('loadSales', fullSync);
     },
     halt(context) {
       // logInfo("salesModule", "actions.halt()");

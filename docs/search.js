@@ -642,7 +642,7 @@ const Search = {
     </div>
   `,
   props: ['search', 'topic'],
-  data: function () {
+  data: function() {
     return {
       count: 0,
       reschedule: true,
@@ -893,7 +893,7 @@ const Search = {
     filteredResults() {
       const results = this.settings.randomise ? [] : [];
       const regex = this.settings.filter != null && this.settings.filter.length > 0 ? new RegExp(this.settings.filter, 'i') : null;
-      const searchAccounts = this.settings.filterAccount ? this.settings.filterAccount.split(/[, \t\n]+/).map(function(s) { return s.toLowerCase(); }) : [];
+      const searchAccounts = this.settings.filterAccount ? this.settings.filterAccount.split(/[, \t\n]+/).map(s => s.toLowerCase()) : [];
       const priceFrom = this.settings.priceFrom && parseFloat(this.settings.priceFrom) > 0 ? parseFloat(this.settings.priceFrom) : null;
       const priceTo = this.settings.priceTo && parseFloat(this.settings.priceTo) > 0 ? parseFloat(this.settings.priceTo) : null;
 
@@ -938,13 +938,9 @@ const Search = {
       }
 
       if (this.settings.sortOption == 'nameasc') {
-        results.sort(function (a, b) {
-            return ('' + a.labelName).localeCompare(b.labelName);
-        })
+        results.sort((a, b) => ('' + a.labelName).localeCompare(b.labelName))
       } else if (this.settings.sortOption == 'namedsc') {
-        results.sort(function (a, b) {
-            return ('' + b.labelName).localeCompare(a.labelName);
-        })
+        results.sort((a, b) => ('' + b.labelName).localeCompare(a.labelName))
       } else if (this.settings.sortOption == 'priceasc') {
         results.sort((a, b) => {
           const pricea = this.prices[a.tokenId] ? this.prices[a.tokenId].floorAskPrice : null;
@@ -1340,7 +1336,7 @@ const searchModule = {
             console.log("error: " + e);
           });
         state.message = "Retrieved " + Object.keys(state.tempResults).length;
-        const namesFound = Object.keys(state.tempResults).map(function(name) { return name.replace('.eth', ''); });
+        const namesFound = Object.keys(state.tempResults).map(name => name.replace('.eth', ''));
         const unregistered = batch.filter(name => !namesFound.includes(name));
         state.tempUnregistered.push(...unregistered);
       }
@@ -1421,9 +1417,9 @@ const searchModule = {
         }
       } else if (['names', 'owned', 'contains', 'startswith', 'endswith'].includes(options.searchType)) {
         const searchForNames = options.search == null ? [] : options.search.split(/[, \t\n]+/)
-          .map(function(name) { return name.toLowerCase().trim(); })
-          .filter(function (name) { return !(name.length == 42 && name.substring(0, 2) == '0x'); })
-          .map(function(name) { return name.replace('.eth', ''); });
+          .map(name => name.toLowerCase().trim())
+          .filter(name => !(name.length == 42 && name.substring(0, 2) == '0x'))
+          .map(name => name.replace('.eth', ''));
         generator = searchForNames[Symbol.iterator]();
       }
       // console.log( [...generator] );
@@ -1461,16 +1457,14 @@ const searchModule = {
             await fetchRegistrationsByNames(batch);
           }
         }
-        state.tempUnregistered.sort(function (a, b) {
-          return ('' + a).localeCompare(b);
-        })
+        state.tempUnregistered.sort((a, b) => ('' + a).localeCompare(b));
         state.unregistered = state.tempUnregistered;
       }
 
       if (options.searchType == 'owned') {
         let searchForAccounts = options.search == null ? [] : options.search.split(/[, \t\n]+/)
-          .map(function(name) { return name.toLowerCase().trim(); })
-          .filter(function (name) { return name.length == 42 && name.substring(0, 2) == '0x'; });
+          .map(name => name.toLowerCase().trim())
+          .filter(name => name.length == 42 && name.substring(0, 2) == '0x');
         searchForAccounts = [ ...searchForAccounts, ...Object.keys(state.tempRegistrants) ];
         await fetchRegistrationsByAccount(searchForAccounts);
       } else if (options.searchType == 'groups') {
@@ -1480,7 +1474,7 @@ const searchModule = {
             searchForAccounts = [ store.getters['connection/coinbase'] ];
           }
         } else {
-          searchForAccounts = store.getters['config/groups'][options.group].accounts.map(function(name) { return name.toLowerCase().trim(); });
+          searchForAccounts = store.getters['config/groups'][options.group].accounts.map(name => name.toLowerCase().trim());
         }
         await fetchRegistrationsByAccount(searchForAccounts);
       }

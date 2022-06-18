@@ -270,7 +270,7 @@ const CryptoPunks = {
     </div>
   `,
   props: ['search', 'topic'],
-  data: function () {
+  data: function() {
     return {
       count: 0,
       reschedule: true,
@@ -1206,7 +1206,7 @@ const CryptoPunks = {
           }
           logInfo("CryptoPunks", "searchLogs() - total: " + total);
 
-          // db0.events.orderBy('blockNumber').uniqueKeys(function (keysArray) {
+          // db0.events.orderBy('blockNumber').uniqueKeys(function(keysArray) {
           //   console.log(JSON.stringify(keysArray));
           // });
           const blockNumbers = await db0.events.orderBy('[blockNumber+logIndex]').toArray(); // .uniqueKeys();
@@ -1405,7 +1405,7 @@ const cryptoPunksModule = {
           }
           const events = [];
           let latestTimestamp = 0;
-          const sortedEvents = punk.events.sort(function (a, b) {
+          const sortedEvents = punk.events.sort(function(a, b) {
             if (a.blockNumber == b.blockNumber) {
               return a.logNumber - b.logNumber;
               // return ('' + a.type).localeCompare(b.type);
