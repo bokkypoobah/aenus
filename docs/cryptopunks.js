@@ -62,7 +62,7 @@ const CryptoPunks = {
                 <b-form-input type="text" size="sm" v-model.trim="settings.searchString" debounce="600" v-b-popover.hover.bottom="'Filter by list of punkIds'" placeholder="🔍 id1 id2-id3 ..."></b-form-input>
               </div>
               <div class="mt-2 pl-2" style="max-width: 150px;">
-                <b-form-input type="text" size="sm" v-model.trim="settings.searchAccount" debounce="600" v-b-popover.hover.bottom="'Filter by list of owner addresses'" placeholder="🔍 0x12... ..."></b-form-input>
+                <b-form-input type="text" size="sm" v-model.trim="settings.searchAccount" debounce="600" v-b-popover.hover.bottom="'Filter by list of owner addresses. Partial matching'" placeholder="🔍 0x12... ..."></b-form-input>
               </div>
               <div class="mt-2 pl-2" style="max-width: 80px;">
                 <b-form-input type="text" size="sm" v-model.trim="settings.priceFrom" debounce="600" v-b-popover.hover.bottom="'ETH from'" placeholder="min"></b-form-input>

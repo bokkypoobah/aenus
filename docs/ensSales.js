@@ -1,4 +1,4 @@
-const Sales = {
+const ENSSales = {
   template: `
     <div class="m-0 p-0">
       <b-card class="mt-5" header-class="warningheader" header="Web3 Connection And/Or Incorrect Network Detected" v-if="false && (!powerOn || network.chainId != 1)">
@@ -237,7 +237,7 @@ const Sales = {
       store.dispatch('search/halt');
     },
     async timeoutCallback() {
-      logDebug("Sales", "timeoutCallback() count: " + this.count);
+      logDebug("ENSSales", "timeoutCallback() count: " + this.count);
 
       this.count++;
       var t = this;
@@ -249,12 +249,12 @@ const Sales = {
     },
   },
   beforeDestroy() {
-    logDebug("Sales", "beforeDestroy()");
+    logDebug("ENSSales", "beforeDestroy()");
   },
   mounted() {
-    logInfo("Sales", "mounted() $route: " + JSON.stringify(this.$route.params));
+    logInfo("ENSSales", "mounted() $route: " + JSON.stringify(this.$route.params));
     this.reschedule = true;
-    logDebug("Sales", "Calling timeoutCallback()");
+    logDebug("ENSSales", "Calling timeoutCallback()");
     this.timeoutCallback();
     // this.loadNFTs();
   },
@@ -476,7 +476,7 @@ const salesModule = {
       // state.executionQueue.push(options);
       logInfo("salesModule", "mutations.loadSales() - fullSync: " + fullSync);
 
-      const db0 = new Dexie("aenusdb");
+      const db0 = new Dexie("aenusenssalesdb");
       db0.version(1).stores({
         // nftData: '&tokenId,asset,timestamp',
         sales: '[chainId+contract+tokenId],chainId,contract,tokenId,name,from,to,price,timestamp',
@@ -508,16 +508,16 @@ const salesModule = {
     },
   },
   actions: {
-    execWeb3( { state, commit, rootState }, { count } ) {
-      logInfo("salesModule", "actions.execWeb3() - count: " + count);
-      commit('doit', { action: "refresh" } );
-    },
+    // execWeb3( { state, commit, rootState }, { count } ) {
+    //   logInfo("salesModule", "actions.execWeb3() - count: " + count);
+    //   commit('doit', { action: "refresh" } );
+    // },
     updateFilter(context, action) {
       logInfo("salesModule", "actions.updateFilter() - action: " + JSON.stringify(action));
       // context.commit('addToExecutionQueue', action);
     },
     loadSales(context, fullSync) {
-      logInfo("salesModule", "actions.loadSales() - fullSync: " + fullSync);
+      // logInfo("salesModule", "actions.loadSales() - fullSync: " + fullSync);
       context.commit('loadSales', fullSync);
     },
     halt(context) {

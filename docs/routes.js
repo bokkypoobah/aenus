@@ -5,8 +5,8 @@ const routes = [{
     props: true,
   }, {
     path: '/enssales/',
-    component: Sales,
-    name: 'Sales',
+    component: ENSSales,
+    name: 'ENSSales',
   }, {
     path: '/cryptopunks/:search?/:topic?',
     component: CryptoPunks,
