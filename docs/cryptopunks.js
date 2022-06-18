@@ -393,7 +393,7 @@ const CryptoPunks = {
         //   text: '3D Bubble Chart'
         // },
         tooltip: {
-          custom: function({series, seriesIndex, dataPointIndex, w}) {
+          custom: ({series, seriesIndex, dataPointIndex, w}) => {
             return '<div class="arrow_box" style="background-color: #638596">' +
               '<span>' +
                 '<img src="images/punks/punk' + w.config.series[seriesIndex].data[dataPointIndex][3].toString().padStart(4, '0') + '.png"></img>' +
@@ -414,9 +414,7 @@ const CryptoPunks = {
           min: this.chartYaxisMin,
           max: this.chartYaxisMax,
           labels: {
-            formatter: function (value) {
-              return parseInt(value);
-            },
+            formatter: value => parseInt(value),
           },
         },
       },
@@ -455,7 +453,7 @@ const CryptoPunks = {
       let stage1Data = data;
 
       if (this.settings.searchString != null && this.settings.searchString.length > 0) {
-        const searchTokenIds = this.settings.searchString.split(/[, \t\n]+/).map(function(s) { return s.trim(); });
+        const searchTokenIds = this.settings.searchString.split(/[, \t\n]+/).map(s => s.trim());
         stage1Data = [];
         for (s of searchTokenIds) {
           var range = s.match(/(\d+)-(\d+)/)
@@ -508,7 +506,7 @@ const CryptoPunks = {
 
       let stage3Data = stage2Data;
       if (this.settings.searchAccount != null && this.settings.searchAccount.length > 0) {
-        const searchAccounts = this.settings.searchAccount.split(/[, \t\n]+/).map(function(s) { return s.toLowerCase(); });
+        const searchAccounts = this.settings.searchAccount.split(/[, \t\n]+/).map(s => s.toLowerCase());
         stage3Data = [];
         for (let d of stage2Data) {
           // const ensName = owner == null ? null : this.ensMap[owner];
@@ -772,7 +770,7 @@ const CryptoPunks = {
       let data = this.settings.randomise ? this.results.slice(0) : this.results.slice(0);
       let stage1Data = data;
       if (this.settings.searchString != null && this.settings.searchString.length > 0) {
-        const searchTokenIds = this.settings.searchString.split(/[, \t\n]+/).map(function(s) { return s.trim(); });
+        const searchTokenIds = this.settings.searchString.split(/[, \t\n]+/).map(s => s.trim());
         stage1Data = [];
         for (s of searchTokenIds) {
           var range = s.match(/(\d+)-(\d+)/)
@@ -818,7 +816,7 @@ const CryptoPunks = {
         }
       }
       // console.log("stage2Data: " + JSON.stringify(stage2Data.slice(0, 10)));
-      const idFilters = Object.keys(idFilterMap).map(function(id) { return parseInt(id); });
+      const idFilters = Object.keys(idFilterMap).map(id => parseInt(id));
       // console.log("idFilters: " + JSON.stringify(idFilters.slice(0, 10)));
 
       const results = [];
@@ -830,7 +828,7 @@ const CryptoPunks = {
       const maxAmount = 50000;
 
       // console.log("events: " + JSON.stringify(this.events.slice(0, 10)));
-      const searchAccounts = this.settings.searchAccount != null && this.settings.searchAccount.length > 0 ? this.settings.searchAccount.split(/[, \t\n]+/).map(function(s) { return s.toLowerCase(); }) : null;
+      const searchAccounts = this.settings.searchAccount != null && this.settings.searchAccount.length > 0 ? this.settings.searchAccount.split(/[, \t\n]+/).map(s => s.toLowerCase()) : null;
       // console.log("searchAccounts: " + JSON.stringify(searchAccounts));
       for (let event of this.events) {
         let include = idFilters.includes(event.punkId);
@@ -1043,9 +1041,7 @@ const CryptoPunks = {
         const c = this.attributes[category][attributeKey];
         results.push({ attributeOption: attributeKey, attributeTotal: c })
       }
-      results.sort(function(a, b) {
-        return b.attributeTotal - a.attributeTotal;
-      });
+      results.sort((a, b) => b.attributeTotal - a.attributeTotal);
       return results;
     },
     filterChange(attribute, option) {
@@ -1579,7 +1575,7 @@ const cryptoPunksModule = {
             }
             // console.log(JSON.stringify(data.data.events, null, 2));
           } while (data && data.data && data.data.events && data.data.events.length != 0);
-          return Object.keys(results).map(function(id) { return parseInt(id); });
+          return Object.keys(results).map(id => parseInt(id));
         }
         return null;
       }
