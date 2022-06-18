@@ -139,11 +139,11 @@ const CryptoPunks = {
                             <font v-if="secondsOld(event.timestamp) < 3600" size="-1">
                               <b-badge variant="dark" v-b-popover.hover.bottom="formatTimestamp(event.timestamp)">{{ formatTerm(event.timestamp) }}</b-badge>
                             </font>
-                            <font v-else-if="secondsOld(event.timestamp) < 86400" size="-1">
-                              <b-badge variant="secondary" v-b-popover.hover.bottom="formatTimestamp(event.timestamp)">{{ formatTerm(event.timestamp) }}</b-badge>
+                            <font v-else-if="secondsOld(event.timestamp) > 86400" size="-1">
+                              <b-badge variant="light" v-b-popover.hover.bottom="formatTimestamp(event.timestamp)">{{ formatTerm(event.timestamp) }}</b-badge>
                             </font>
                             <font v-else size="-1">
-                              <b-badge variant="light" v-b-popover.hover.bottom="formatTimestamp(event.timestamp)">{{ formatTerm(event.timestamp) }}</b-badge>
+                              <b-badge variant="secondary" v-b-popover.hover.bottom="formatTimestamp(event.timestamp)">{{ formatTerm(event.timestamp) }}</b-badge>
                             </font>
                           </div>
                           <div class="flex-grow-1">
