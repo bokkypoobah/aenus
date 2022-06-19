@@ -213,9 +213,10 @@ const CryptoPunks = {
                 <b-col cols="7">
                   <b-card body-class="m-2 p-1 px-3" header-class="p-1 px-3" class="mt-2 mr-1">
                     <template #header>
-                      <h6 class="mb-0">Activity</h6>
+                      <h6 class="mb-0">CryptoPunks Sales Activity</h6>
                     </template>
-                    <apexchart :options="chartOptions" :yaxis="chartOptions.yaxis" :series="chartSeries"></apexchart>
+                    <apexchart :options="dailyChartOptions" :series="dailyChartSeries"></apexchart>
+                    <!-- <apexchart :options="chartOptions" :yaxis="chartOptions.yaxis" :series="chartSeries"></apexchart> -->
                     <!--
                     <b-table small fixed striped sticky-header="200px" :fields="dailyDataFields" :items="dailyData" head-variant="light">
                       <template #cell(timestamp)="data">
@@ -239,6 +240,7 @@ const CryptoPunks = {
                     <b-form-group label-cols="4" label-size="sm" label="Period" label-align="right" class="mb-2">
                       <b-form-select size="sm" v-model="settings.chartPeriod" :options="chartPeriodOptions" v-b-popover.hover.bottom="'Charting period'" class="w-50"></b-form-select>
                     </b-form-group>
+                    <!--
                     <b-form-group label-cols="4" label-size="sm" label="Min amount" label-align="right" class="mb-2">
                       <b-form-input type="text" size="sm" v-model.trim="settings.chartMinAmount" debounce="600" v-b-popover.hover.bottom="'ETH from'" placeholder="min" class="w-50"></b-form-input>
                     </b-form-group>
@@ -252,6 +254,7 @@ const CryptoPunks = {
                         <b-form-checkbox value="sales">Sales</b-form-checkbox>
                       </b-form-checkbox-group>
                     </b-form-group>
+                    -->
 
                     <!--
                     <b-form-group label-cols="4" label-size="sm" label="Group by" label-align="right" class="mb-2">
@@ -376,6 +379,7 @@ const CryptoPunks = {
         { value: '1w', text: '1 Week' },
         { value: '1m', text: '1 Month' },
         { value: '3m', text: '3 Months' },
+        { value: '6m', text: '6 Months' },
         { value: '1y', text: '1 Year' },
         { value: 'all', text: 'All' },
       ],
@@ -389,6 +393,110 @@ const CryptoPunks = {
         { key: 'total', label: 'Total', thStyle: 'width: 25%;', thClass: 'text-right', tdClass: 'text-right' },
         { key: 'average', label: 'Average', thStyle: 'width: 25%;', thClass: 'text-right', tdClass: 'text-right' },
       ],
+
+      dailyChartOptions: {
+        chart: {
+          height: 280,
+          width: 280,
+          type: "line",
+          zoom: {
+            type: 'xy',
+          },
+          // animations: {
+          //   initialAnimation: {
+          //     enabled: false,
+          //   }
+          // },
+          events: {
+            dataPointSelection: function(event, chartContext, config) {
+              console.log(JSON.stringify(config.dataPointIndex) + " " + JSON.stringify(config.w.config.series[0].data[config.dataPointIndex]));
+            },
+          },
+        },
+        stroke: {
+          width: [0, 2, 5],
+          curve: 'smooth'
+        },
+        fill: {
+          opacity: [0.85, 0.25, 1],
+          gradient: {
+            inverseColors: false,
+            shade: 'light',
+            type: "vertical",
+            opacityFrom: 0.85,
+            opacityTo: 0.55,
+            stops: [0, 100, 100, 100]
+          }
+        },
+        markers: {
+          size: 0
+        },
+        dataLabels: {
+          enabled: false,
+        },
+        // fill: {
+        //   type: 'gradient',
+        // },
+        // title: {
+        //   text: '3D Bubble Chart'
+        // },
+        tooltip: {
+          // custom: ({series, seriesIndex, dataPointIndex, w}) => {
+          //   return '<div class="arrow_box" style="background-color: #638596">' +
+          //     '<span>' +
+          // //       '<img src="images/punks/punk' + w.config.series[seriesIndex].data[dataPointIndex][3].toString().padStart(4, '0') + '.png"></img>' +
+          //       series[seriesIndex][dataPointIndex] + 'e' +
+          // //       w.config.series[seriesIndex].data[dataPointIndex][3] +
+          //       '</span>' +
+          //     '</div>'
+          // }
+        },
+        xaxis: {
+          // tickAmount: 12,
+          type: 'datetime',
+          // labels: {
+          //   rotate: 0,
+          // }
+        },
+        yaxis: [
+          {
+            // seriesName: '# Sales',
+            title: {
+              text: "# Sales",
+              // style: {
+              //   color: '#00E396',
+              // }
+            },
+            min: this.chartYaxisMin,
+            max: this.chartYaxisMax,
+            labels: {
+              formatter: value => parseInt(value),
+            },
+          },
+          {
+            // seriesName: 'Average Sale',
+            title: {
+              text: "Average Sale",
+              // style: {
+              //   color: '#00E396',
+              // }
+            },
+            min: this.chartYaxisMin,
+            max: this.chartYaxisMax,
+            labels: {
+              formatter: value => parseInt(value),
+            },
+            opposite: true,
+            axisTicks: {
+              show: true,
+            },
+            axisBorder: {
+              show: true,
+              // color: '#FEB019'
+            },
+          }
+        ],
+      },
 
       chartOptions: {
         chart: {
@@ -439,6 +547,8 @@ const CryptoPunks = {
           },
         },
       },
+
+
     }
   },
   computed: {
@@ -962,6 +1072,8 @@ const CryptoPunks = {
         beginPeriod = moment.unix(now).utc().startOf('day').subtract(1, 'month').unix();
       } else if (this.settings.chartPeriod == '3m') {
         beginPeriod = moment.unix(now).utc().startOf('day').subtract(3, 'month').unix();
+      } else if (this.settings.chartPeriod == '6m') {
+        beginPeriod = moment.unix(now).utc().startOf('day').subtract(6, 'month').unix();
       } else if (this.settings.chartPeriod == '1y') {
         beginPeriod = moment.unix(now).utc().startOf('day').subtract(1, 'year').unix();
       } else if (this.settings.chartPeriod == 'all') {
@@ -979,10 +1091,11 @@ const CryptoPunks = {
           // console.log("bucket: " + bucket + " " + moment.unix(bucket).utc().format());
           if (amount >= minAmount && amount <= maxAmount) {
             if (!(bucket in collator)) {
-              collator[bucket] = { count: 1, total: ethers.BigNumber.from(event.amount) };
+              collator[bucket] = { count: 1, total: ethers.BigNumber.from(event.amount), items: [event] };
             } else {
               collator[bucket].count++;
               collator[bucket].total = collator[bucket].total.add(event.amount);
+              collator[bucket].items.push(event);
             }
           } else {
             console.log("Excluding: " + event.punkId + " " + amount);
@@ -994,7 +1107,7 @@ const CryptoPunks = {
       const results = [];
       for (const [bucket, value] of Object.entries(collator)) {
         const average = value.total.div(value.count);
-        results.push({ timestamp: bucket, count: value.count, total: ethers.utils.formatEther(value.total), average: ethers.utils.formatEther(average) });
+        results.push({ timestamp: bucket, count: value.count, total: ethers.utils.formatEther(value.total), average: ethers.utils.formatEther(average), items: value.items });
         // console.log("bucket: " + bucket + " " + moment.unix(bucket).utc().format() + " count: " + value.count + ", total: " + value.total);
       }
       results.sort((a, b) => {
@@ -1005,12 +1118,26 @@ const CryptoPunks = {
 
       return results;
     },
-    chartDailyData() {
-      const results = [];
-      for (const day of this.dailyData.slice(0, 10)) {
-        results.push(day);
+    dailyChartSeries() {
+      const counts = [];
+      const averages = [];
+      for (const day of this.dailyData) {
+        counts.push({ x: day.timestamp * 1000, y: day.count, items: day.items });
+        averages.push({ x: day.timestamp * 1000, y: day.average });
       }
-      return results;
+      // console.log(JSON.stringify(counts));
+      // console.log(JSON.stringify(averages));
+      return [
+        {
+          name: '# Sales',
+          type: 'column',
+          data: counts,
+        }, {
+          name: 'Average Sale',
+          type: 'area',
+          data: averages,
+        }
+      ];
     },
     chartSeries() {
       const minAmount = this.settings.chartMinAmount && parseFloat(this.settings.chartMinAmount) >= 0 ? parseFloat(this.settings.chartMinAmount) : 0;
