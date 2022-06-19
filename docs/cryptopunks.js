@@ -77,8 +77,8 @@ const CryptoPunks = {
               </div>
 
               <div class="mt-2 pl-1">
-                <b-dropdown v-if="message == null" split size="sm" text="Sync" @click="loadPunks(false)" variant="primary" v-b-popover.hover.bottom="'Partial Sync'">
-                  <b-dropdown-item @click="loadPunks(true)">Full Sync</b-dropdown-item>
+                <b-dropdown v-if="message == null" split size="sm" text="Sync" @click="loadPunks('partial')" variant="primary" v-b-popover.hover.bottom="'Partial Sync'">
+                  <b-dropdown-item @click="loadPunks('full')">Full Sync</b-dropdown-item>
                   <!-- <b-dropdown-item @click="searchLogs()">Search Event Logs (WIP)</b-dropdown-item> -->
                 </b-dropdown>
                 <b-button v-if="message != null" size="sm" @click="halt" variant="primary" v-b-popover.hover.bottom="'Halt'" >{{ message }}</b-button>
@@ -424,7 +424,7 @@ const CryptoPunks = {
     powerOn() {
       return store.getters['connection/powerOn'];
     },
-    explorer () {
+    explorer() {
       return store.getters['connection/explorer'];
     },
     coinbase() {
@@ -432,6 +432,9 @@ const CryptoPunks = {
     },
     network() {
       return store.getters['connection/network'];
+    },
+    db() {
+      return store.getters['cryptoPunks/db'];
     },
     results() {
       return store.getters['cryptoPunks/results'];
@@ -903,6 +906,22 @@ const CryptoPunks = {
       results.push({ type: "Sales", title: "Highest Sales", values: sales.slice(0) });
       return results;
     },
+    // chartData1() {
+    //   let punks = this.db.updated ? null : null;
+    //   console.log('before async');
+    //   (async() => {
+    //     console.log('before db');
+    //     const db0 = new Dexie(this.db.name);
+    //     db0.version(this.db.version).stores(this.db.schemaDefinition);
+    //     punks = await db0.punks.orderBy("punkId").toArray();
+    //     db0.close();
+    //     console.log("Punks.length: " + (punks && punks.length || 0) + ", updated: " + this.db.updated);
+    //     console.log('after db');
+    //   })();
+    //   console.log('after async');
+    //
+    //   return punks && punks.slice(0, 10) || [];
+    // },
     chartSeries() {
       const minAmount = this.settings.chartMinAmount && parseFloat(this.settings.chartMinAmount) >= 0 ? parseFloat(this.settings.chartMinAmount) : 0;
       const maxAmount = this.settings.chartMaxAmount && parseFloat(this.settings.chartMaxAmount) >= 0 ? parseFloat(this.settings.chartMaxAmount) : 1000000;
@@ -1226,8 +1245,8 @@ const CryptoPunks = {
         }
       }
     },
-    async loadPunks(fullSync) {
-      store.dispatch('cryptoPunks/loadPunks', fullSync);
+    async loadPunks(syncMode) {
+      store.dispatch('cryptoPunks/loadPunks', syncMode);
     },
     async halt() {
       store.dispatch('search/halt');
@@ -1274,8 +1293,7 @@ const CryptoPunks = {
       link.click(); // This will download the data with the specified file name
     },
     async timeoutCallback() {
-      logDebug("CryptoPunks", "timeoutCallback() count: " + this.count);
-
+      // logDebug("CryptoPunks", "timeoutCallback() count: " + this.count);
       this.count++;
       var t = this;
       if (this.reschedule) {
@@ -1290,28 +1308,6 @@ const CryptoPunks = {
   },
   mounted() {
     logInfo("CryptoPunks", "mounted() $route: " + JSON.stringify(this.$route.params) + ", props['search']: " + this.search + ", props['topic']: " + this.topic);
-    // if (this.search == "ids") {
-    //   this.settings.searchString = this.topic;
-    // } else if (this.search == "owned") {
-    //   this.settings.searchAccount = this.topic;
-    // }
-
-    // if (this.search == "names") {
-    //   this.settings.searchTabIndex = 0;
-    // } else if (this.search == "contains") {
-    //   this.settings.searchTabIndex = 1;
-    // } else if (this.search == "startswith") {
-    //   this.settings.searchTabIndex = 2;
-    // } else if (this.search == "endswith") {
-    //   this.settings.searchTabIndex = 3;
-    // } else if (this.search == "owned") {
-    //   this.settings.searchTabIndex = 4;
-    // } else if (this.search == "groups") {
-    //   this.settings.searchTabIndex = 5;
-    // } else if (this.search == "sets") {
-    //   this.settings.searchTabIndex = 6;
-    // }
-
     if (this.search == "summary") {
       this.settings.tabIndex = 0;
     } else if (this.search == "punks") {
@@ -1319,12 +1315,10 @@ const CryptoPunks = {
     } else if (this.search == "chart") {
       this.settings.tabIndex = 2;
     }
-
-    store.dispatch('cryptoPunks/loadPunks', false);
+    store.dispatch('cryptoPunks/loadPunks', 'initial');
     this.reschedule = true;
-    logDebug("CryptoPunks", "Calling timeoutCallback()");
+    // logDebug("CryptoPunks", "Calling timeoutCallback()");
     this.timeoutCallback();
-    // this.loadNFTs();
   },
   destroyed() {
     this.reschedule = false;
@@ -1343,6 +1337,14 @@ const cryptoPunksModule = {
       reservoirSalesV3BatchSize: 50,
       currency: 'USD',
     },
+    db: {
+      name: "aenuspunksdb",
+      version: 1,
+      schemaDefinition: {
+        punks: '&punkId,owner,claimer,timestamp,*traits',
+      },
+      updated: null,
+    },
     filter: {
       searchString: "^[0-9]*$",
       priceFrom: 0.01,
@@ -1358,10 +1360,10 @@ const cryptoPunksModule = {
     halt: false,
     params: null,
     executing: false,
-    executionQueue: [],
   },
   getters: {
     config: state => state.config,
+    db: state => state.db,
     filter: state => state.filter,
     punks: state => state.punks,
     exchangeRates: state => state.exchangeRates,
@@ -1370,11 +1372,9 @@ const cryptoPunksModule = {
     sales: state => state.sales,
     message: state => state.message,
     params: state => state.params,
-    executionQueue: state => state.executionQueue,
   },
   mutations: {
-    async loadPunks(state, fullSync) {
-      logInfo("cryptoPunksModule", "mutations.loadPunks() - fullSync: " + fullSync);
+    async loadPunks(state, syncMode) {
       function* getBatch(records, batchsize = CRYPTOPUNKSSUBGRAPHBATCHSIZE) {
         while (records.length) {
           yield records.splice(0, batchsize);
@@ -1639,20 +1639,17 @@ const cryptoPunksModule = {
       }
 
       // --- loadPunks() start ---
-      logInfo("cryptoPunksModule", "mutations.loadPunks() start");
+      logInfo("cryptoPunksModule", "mutations.loadPunks() - syncMode: " + syncMode);
       state.message = "Syncing";
       const debug = null; // [9863];
 
-      if (fullSync) {
-        logInfo("cryptoPunksModule", "mutations.loadPunks() fullSync - deleting db");
-        Dexie.delete("aenuspunksdb");
+      if (syncMode == 'full') {
+        logInfo("cryptoPunksModule", "mutations.loadPunks() - deleting db");
+        Dexie.delete(state.db.name);
       }
 
-      const db0 = new Dexie("aenuspunksdb");
-      db0.version(1).stores({
-        // nftData: '&tokenId,asset,timestamp',
-        punks: '&punkId,owner,claimer,timestamp,*traits',
-      });
+      const db0 = new Dexie(state.db.name);
+      db0.version(state.db.version).stores(state.db.schemaDefinition);
 
       const traitsLookup = {};
       for (const [attribute, traits] of Object.entries(PUNKTRAITS)) {
@@ -1665,9 +1662,13 @@ const cryptoPunksModule = {
 
       // state.exchangeRates = await fetchExchangeRates();
       // logInfo("cryptoPunksModule", "mutations.loadPunks() exchangeRates: " + JSON.stringify(state.exchangeRates).substring(0, 60) + " ...");
+      if (syncMode == 'initial') {
+        logInfo("cryptoPunksModule", "mutations.loadPunks() - initial refreshResultsFromDB()");
+        await refreshResultsFromDB();
+      }
 
       const latestEventPunkIds = debug ? debug : await fetchLatestEvents();
-      logInfo("cryptoPunksModule", "mutations.loadPunks() latestEventPunkIds: " + JSON.stringify(latestEventPunkIds));
+      logInfo("cryptoPunksModule", "mutations.loadPunks() - latestEventPunkIds: " + JSON.stringify(latestEventPunkIds));
 
       let totalRecords = 0;
       if (latestEventPunkIds != null) {
@@ -1707,12 +1708,13 @@ const cryptoPunksModule = {
           state.message = "Punks: " + totalRecords;
         }
       }
-      logInfo("cryptoPunksModule", "mutations.loadPunks() refreshing from db");
+      logInfo("cryptoPunksModule", "mutations.loadPunks() - refreshing from db");
       await refreshResultsFromDB();
+      state.db.updated = new Date();
       state.message = null;
       state.halt = false;
       db0.close();
-      logInfo("cryptoPunksModule", "mutations.loadPunks() end");
+      logInfo("cryptoPunksModule", "mutations.loadPunks() - end");
     },
 
     halt(state) {
@@ -1720,9 +1722,9 @@ const cryptoPunksModule = {
     },
   },
   actions: {
-    loadPunks(context, fullSync) {
-      // logInfo("cryptoPunksModule", "actions.loadPunks() - fullSync: " + fullSync);
-      context.commit('loadPunks', fullSync);
+    loadPunks(context, syncMode) {
+      // logInfo("cryptoPunksModule", "actions.loadPunks() - syncMode: " + syncMode);
+      context.commit('loadPunks', syncMode);
     },
     halt(context) {
       // logInfo("cryptoPunksModule", "actions.halt()");

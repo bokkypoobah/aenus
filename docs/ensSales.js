@@ -191,7 +191,7 @@ const ENSSales = {
     powerOn() {
       return store.getters['connection/powerOn'];
     },
-    explorer () {
+    explorer() {
       return store.getters['connection/explorer'];
     },
     coinbase() {
@@ -285,6 +285,14 @@ const salesModule = {
     params: null,
     executing: false,
     executionQueue: [],
+    db: {
+      name: "aenusenssalesdb",
+      version: 1,
+      definition: {
+        // nftData: '&tokenId,asset,timestamp',
+        sales: '[chainId+contract+tokenId],chainId,contract,tokenId,name,from,to,price,timestamp',
+      },
+    },
   },
   getters: {
     config: state => state.config,
