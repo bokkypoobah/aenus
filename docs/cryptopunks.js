@@ -530,7 +530,29 @@ const CryptoPunks = {
           {
             // seriesName: 'Average Sale',
             title: {
-              text: "Average Sale",
+              text: "Average ETH",
+              // style: {
+              //   color: '#00E396',
+              // }
+            },
+            min: this.chartYaxisMin,
+            max: this.chartYaxisMax,
+            labels: {
+              formatter: value => parseInt(value),
+            },
+            opposite: true,
+            axisTicks: {
+              show: true,
+            },
+            axisBorder: {
+              show: true,
+              // color: '#FEB019'
+            },
+          },
+          {
+            // seriesName: 'Average Sale',
+            title: {
+              text: "Average USD",
               // style: {
               //   color: '#00E396',
               // }
@@ -623,6 +645,9 @@ const CryptoPunks = {
     },
     results() {
       return store.getters['cryptoPunks/results'];
+    },
+    exchangeRates() {
+      return store.getters['cryptoPunks/exchangeRates'];
     },
     events() {
       return store.getters['cryptoPunks/events'];
@@ -1175,21 +1200,28 @@ const CryptoPunks = {
     dailyChartSeries() {
       const counts = [];
       const averages = [];
+      const averagesUSD = [];
       for (const day of this.dailyData) {
         counts.push({ x: day.timestamp * 1000, y: day.count, items: day.items });
         averages.push({ x: day.timestamp * 1000, y: day.average });
+        averagesUSD.push({ x: day.timestamp * 1000, y: day.average * this.exchangeRates[day.timestamp] });
       }
       // console.log(JSON.stringify(counts));
       // console.log(JSON.stringify(averages));
+      // console.log(JSON.stringify(averagesUSD));
       return [
         {
           name: '# Sales',
           type: 'column',
           data: counts,
         }, {
-          name: 'Average Sale',
+          name: 'Average ETH',
           type: 'area',
           data: averages,
+        }, {
+          name: 'Average USD',
+          type: 'area',
+          data: averagesUSD,
         }
       ];
     },
@@ -1934,8 +1966,9 @@ const cryptoPunksModule = {
         }
       }
 
-      // state.exchangeRates = await fetchExchangeRates();
-      // logInfo("cryptoPunksModule", "mutations.loadPunks() exchangeRates: " + JSON.stringify(state.exchangeRates).substring(0, 60) + " ...");
+      state.exchangeRates = await fetchExchangeRates();
+      logInfo("cryptoPunksModule", "mutations.loadPunks() exchangeRates: " + JSON.stringify(state.exchangeRates).substring(0, 60) + " ...");
+
       if (syncMode == 'initial') {
         logInfo("cryptoPunksModule", "mutations.loadPunks() - initial refreshResultsFromDB()");
         await refreshResultsFromDB();
