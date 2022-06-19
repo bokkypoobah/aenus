@@ -213,7 +213,7 @@ const CryptoPunks = {
             <!-- Chart -->
             <div v-if="settings.tabIndex == 2">
               <b-row>
-                <b-col cols="7">
+                <b-col cols="7" class="m-0 p-0">
                   <b-card body-class="m-2 p-1" header-class="p-1" class="mt-2 mr-1" style="height: 550px;">
                     <template #header>
                       <h6 class="mb-0">CryptoPunks Sales Activity</h6>
@@ -235,8 +235,8 @@ const CryptoPunks = {
                     -->
                   </b-card>
                 </b-col>
-                <b-col cols="5">
-                  <b-card body-class="m-2 p-1" header-class="p-1 px-3" class="mt-2" style="height: 550px;">
+                <b-col cols="5" class="m-0 p-0">
+                  <b-card body-class="m-0 p-0" header-class="p-1 px-3" class="mt-2" style="height: 550px;">
                     <template #header>
                       <h6 class="mb-0">Sales For Selected Day</h6>
                     </template>
