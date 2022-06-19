@@ -213,7 +213,7 @@ const CryptoPunks = {
             <!-- Chart -->
             <div v-if="settings.tabIndex == 2">
               <b-row>
-                <b-col cols="7" class="m-0 p-0">
+                <b-col cols="7">
                   <b-card body-class="m-2 p-1" header-class="p-1" class="mt-2 mr-1" style="height: 550px;">
                     <template #header>
                       <h6 class="mb-0">CryptoPunks Sales Activity</h6>
@@ -235,7 +235,7 @@ const CryptoPunks = {
                     -->
                   </b-card>
                 </b-col>
-                <b-col cols="5" class="m-0 p-0">
+                <b-col cols="5">
                   <b-card body-class="m-0 p-0" header-class="p-1 px-3" class="mt-2" style="height: 550px;">
                     <template #header>
                       <h6 class="mb-0">Sales For Selected Day</h6>
@@ -245,7 +245,7 @@ const CryptoPunks = {
                       <b-form-select size="sm" v-model="settings.chartPeriod" :options="chartPeriodOptions" v-b-popover.hover.bottom="'Charting period'" class="w-50"></b-form-select>
                     </b-form-group>
                     -->
-                    <p v-if="dailyChartSelectedItems.length == 0" class="mt-2">
+                    <p v-if="dailyChartSelectedItems.length == 0" class="mt-2 p-2">
                       Click on a daily column to view the sales for the day
                     </p>
                     <font size="-2">
