@@ -216,6 +216,19 @@ const CryptoPunks = {
                       <h6 class="mb-0">Activity</h6>
                     </template>
                     <apexchart :options="chartOptions" :yaxis="chartOptions.yaxis" :series="chartSeries"></apexchart>
+                    <!--
+                    <b-table small fixed striped sticky-header="200px" :fields="dailyDataFields" :items="dailyData" head-variant="light">
+                      <template #cell(timestamp)="data">
+                        {{ formatTimestampAsDate(data.item.timestamp) }}
+                      </template>
+                      <template #cell(total)="data">
+                        {{ parseFloat(data.item.total).toFixed(9) }}
+                      </template>
+                      <template #cell(average)="data">
+                        {{ parseFloat(data.item.average).toFixed(9) }}
+                      </template>
+                    </b-table>
+                    -->
                   </b-card>
                 </b-col>
                 <b-col cols="5">
@@ -369,6 +382,14 @@ const CryptoPunks = {
       chartAttributeFilter: {
         "3d-glasses": true,
       },
+
+      dailyDataFields: [
+        { key: 'timestamp', label: 'Date', thStyle: 'width: 25%;' },
+        { key: 'count', label: 'Sales', thStyle: 'width: 25%;', thClass: 'text-right', tdClass: 'text-right' },
+        { key: 'total', label: 'Total', thStyle: 'width: 25%;', thClass: 'text-right', tdClass: 'text-right' },
+        { key: 'average', label: 'Average', thStyle: 'width: 25%;', thClass: 'text-right', tdClass: 'text-right' },
+      ],
+
       chartOptions: {
         chart: {
           height: 280,
@@ -906,7 +927,7 @@ const CryptoPunks = {
       results.push({ type: "Sales", title: "Highest Sales", values: sales.slice(0) });
       return results;
     },
-    // chartData1() {
+    // chartData0() {
     //   let punks = this.db.updated ? null : null;
     //   console.log('before async');
     //   (async() => {
@@ -922,6 +943,75 @@ const CryptoPunks = {
     //
     //   return punks && punks.slice(0, 10) || [];
     // },
+    dailyData() {
+      const minAmount = this.settings.chartMinAmount && parseFloat(this.settings.chartMinAmount) >= 0 ? parseFloat(this.settings.chartMinAmount) : 0;
+      const maxAmount = this.settings.chartMaxAmount && parseFloat(this.settings.chartMaxAmount) >= 0 ? parseFloat(this.settings.chartMaxAmount) : 1000000;
+      console.log("chartData1 - minAmount: " + minAmount + ", maxAmount: " + maxAmount);
+      // var check = moment().utc().hours(DEFAULTEXPIRYUTCHOUR).minutes(0).seconds(0);
+      // var day0 = moment().utc().add(check.valueOf() < moment() ? 1 : 0, 'd').hours(DEFAULTEXPIRYUTCHOUR).minutes(0).seconds(0);
+
+      const now = moment().unix();
+      console.log("now: " + now + " " + moment.unix(now).utc().format());
+      // console.log("now: " + now + " " + moment().unix(now).format());
+      let beginPeriod;
+      if (this.settings.chartPeriod == '1d') {
+        beginPeriod = moment.unix(now).utc().startOf('day').subtract(1, 'd').unix();
+      } else if (this.settings.chartPeriod == '1w') {
+        beginPeriod = moment.unix(now).utc().startOf('day').subtract(7, 'd').unix();
+      } else if (this.settings.chartPeriod == '1m') {
+        beginPeriod = moment.unix(now).utc().startOf('day').subtract(1, 'month').unix();
+      } else if (this.settings.chartPeriod == '3m') {
+        beginPeriod = moment.unix(now).utc().startOf('day').subtract(3, 'month').unix();
+      } else if (this.settings.chartPeriod == '1y') {
+        beginPeriod = moment.unix(now).utc().startOf('day').subtract(1, 'year').unix();
+      } else if (this.settings.chartPeriod == 'all') {
+        beginPeriod = moment.unix(now).utc().startOf('day').subtract(10, 'year').unix();
+      }
+      console.log("beginPeriod: " + beginPeriod + " " + moment.unix(beginPeriod).utc().format());
+
+      const collator = {};
+      for (let event of this.summary[2].values) {
+        // console.log(JSON.stringify(event, null, 2));
+        if (beginPeriod <= event.timestamp && event.timestamp <= now) {
+          // console.log("event.timestamp: " + event.timestamp + " " + moment.unix(event.timestamp).format());
+          const bucket = moment.unix(event.timestamp).utc().startOf('day').unix();
+          const amount = ethers.utils.formatEther(event.amount);
+          // console.log("bucket: " + bucket + " " + moment.unix(bucket).utc().format());
+          if (amount >= minAmount && amount <= maxAmount) {
+            if (!(bucket in collator)) {
+              collator[bucket] = { count: 1, total: ethers.BigNumber.from(event.amount) };
+            } else {
+              collator[bucket].count++;
+              collator[bucket].total = collator[bucket].total.add(event.amount);
+            }
+          } else {
+            console.log("Excluding: " + event.punkId + " " + amount);
+          }
+          // console.log("bucket: " + bucket + " " + moment.unix(bucket).utc().format() + " count: " + collator[bucket].count + ", total: " + collator[bucket].total);
+        }
+      }
+      // series.push({ name: "Sales", data: salesData });
+      const results = [];
+      for (const [bucket, value] of Object.entries(collator)) {
+        const average = value.total.div(value.count);
+        results.push({ timestamp: bucket, count: value.count, total: ethers.utils.formatEther(value.total), average: ethers.utils.formatEther(average) });
+        // console.log("bucket: " + bucket + " " + moment.unix(bucket).utc().format() + " count: " + value.count + ", total: " + value.total);
+      }
+      results.sort((a, b) => {
+        return b.timestamp - a.timestamp;
+      });
+
+      // console.log(JSON.stringify(results));
+
+      return results;
+    },
+    chartDailyData() {
+      const results = [];
+      for (const day of this.dailyData.slice(0, 10)) {
+        results.push(day);
+      }
+      return results;
+    },
     chartSeries() {
       const minAmount = this.settings.chartMinAmount && parseFloat(this.settings.chartMinAmount) >= 0 ? parseFloat(this.settings.chartMinAmount) : 0;
       const maxAmount = this.settings.chartMaxAmount && parseFloat(this.settings.chartMaxAmount) >= 0 ? parseFloat(this.settings.chartMaxAmount) : 1000000;
@@ -1121,6 +1211,9 @@ const CryptoPunks = {
     },
     formatTimestamp(ts) {
       return new Date(ts * 1000).toLocaleString();
+    },
+    formatTimestampAsDate(ts) {
+      return new Date(ts * 1000).toLocaleDateString();
     },
     formatTerm(ts) {
       let secs = parseInt(new Date() / 1000 - ts);
