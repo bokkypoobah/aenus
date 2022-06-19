@@ -107,6 +107,9 @@ const CryptoPunks = {
               <div v-if="settings.tabIndex == 0" class="mt-2 pl-1">
                 <b-form-select size="sm" v-model="settings.summaryMaxItems" :options="summaryMaxItemsOptions" v-b-popover.hover.bottom="'Max items to display'"></b-form-select>
               </div>
+              <div v-if="settings.tabIndex == 2" class="mt-2 pl-1">
+                <b-form-select size="sm" v-model="settings.chartPeriod" :options="chartPeriodOptions" v-b-popover.hover.bottom="'Charting period'"></b-form-select>
+              </div>
               <div v-if="settings.tabIndex == 1" class="mt-2 pl-1">
                 <b-form-select size="sm" v-model="settings.pageSize" :options="pageSizes" v-b-popover.hover.bottom="'Page size'"></b-form-select>
               </div>
@@ -211,7 +214,7 @@ const CryptoPunks = {
             <div v-if="settings.tabIndex == 2">
               <b-row>
                 <b-col cols="7">
-                  <b-card body-class="m-2 p-1 px-3" header-class="p-1 px-3" class="mt-2 mr-1">
+                  <b-card body-class="m-2 p-1" header-class="p-1" class="mt-2 mr-1" style="height: 550px;">
                     <template #header>
                       <h6 class="mb-0">CryptoPunks Sales Activity</h6>
                     </template>
@@ -233,14 +236,51 @@ const CryptoPunks = {
                   </b-card>
                 </b-col>
                 <b-col cols="5">
-                  <b-card body-class="m-2 p-1 px-3" header-class="p-1 px-3" class="mt-2">
+                  <b-card body-class="m-2 p-1" header-class="p-1 px-3" class="mt-2" style="height: 550px;">
                     <template #header>
-                      <h6 class="mb-0">Chart Options</h6>
+                      <h6 class="mb-0">Sales For Selected Day</h6>
                     </template>
+                    <!--
                     <b-form-group label-cols="4" label-size="sm" label="Period" label-align="right" class="mb-2">
                       <b-form-select size="sm" v-model="settings.chartPeriod" :options="chartPeriodOptions" v-b-popover.hover.bottom="'Charting period'" class="w-50"></b-form-select>
                     </b-form-group>
+                    -->
+                    <p v-if="dailyChartSelectedItems.length == 0" class="mt-2">
+                      Click on a daily column to view the sales for the day
+                    </p>
+                    <font size="-2">
+                      <b-table v-if="dailyChartSelectedItems.length > 0" small fixed striped sticky-header="500px" :fields="dailyChartSelectedItemsFields" :items="dailyChartSelectedItems" head-variant="light">
+                        <template #cell(punkId)="data">
+                          <b-link :href="'https://cryptopunks.app/cryptopunks/details/' + data.item.punkId" v-b-popover.hover.bottom="'View in original website'" target="_blank">
+                            {{ data.item.punkId }}
+                          </b-link>
+                        </template>
+                        <template #cell(image)="data">
+                          <b-link :href="'https://cryptopunks.app/cryptopunks/details/' + data.item.punkId" v-b-popover.hover.bottom="'View in original website'" target="_blank">
+                            <b-img-lazy width="40%" :src="'images/punks/punk' + data.item.punkId.toString().padStart(4, '0') + '.png'" style="background-color: #638596"/>
+                          </b-link>
+                        </template>
+                        <template #cell(from)="data">
+                          <b-link :href="'https://cryptopunks.app/cryptopunks/accountInfo?account=' + data.item.from" v-b-popover.hover.bottom="'View in original website'" target="_blank">
+                            {{ data.item.from.substring(0, 10) }}
+                          </b-link>
+                        </template>
+                        <template #cell(to)="data">
+                          <b-link :href="'https://cryptopunks.app/cryptopunks/accountInfo?account=' + data.item.to" v-b-popover.hover.bottom="'View in original website'" target="_blank">
+                            {{ data.item.to.substring(0, 10) }}
+                          </b-link>
+                        </template>
+                        <template #cell(amount)="data">
+                          {{ formatETHShort(data.item.amount) }}
+                        </template>
+                        <template #cell(timestamp)="data">
+                          {{ formatTimestamp(data.item.timestamp) }}
+                        </template>
+                      </b-table>
+                    </font>
                     <!--
+                    {{ dailyChartSelectedItems }}
+
                     <b-form-group label-cols="4" label-size="sm" label="Min amount" label-align="right" class="mb-2">
                       <b-form-input type="text" size="sm" v-model.trim="settings.chartMinAmount" debounce="600" v-b-popover.hover.bottom="'ETH from'" placeholder="min" class="w-50"></b-form-input>
                     </b-form-group>
@@ -387,11 +427,22 @@ const CryptoPunks = {
         "3d-glasses": true,
       },
 
+      dailyChartSelectedItems: [],
+
       dailyDataFields: [
         { key: 'timestamp', label: 'Date', thStyle: 'width: 25%;' },
         { key: 'count', label: 'Sales', thStyle: 'width: 25%;', thClass: 'text-right', tdClass: 'text-right' },
         { key: 'total', label: 'Total', thStyle: 'width: 25%;', thClass: 'text-right', tdClass: 'text-right' },
         { key: 'average', label: 'Average', thStyle: 'width: 25%;', thClass: 'text-right', tdClass: 'text-right' },
+      ],
+
+      dailyChartSelectedItemsFields: [
+        { key: 'punkId', label: 'Id', thStyle: 'width: 10%;', sortable: true },
+        { key: 'image', label: '', thStyle: 'width: 10%;' },
+        { key: 'from', label: 'From', thStyle: 'width: 15%;', sortable: true },
+        { key: 'to', label: 'To', thStyle: 'width: 15%;', sortable: true },
+        { key: 'amount', label: 'Amount', thStyle: 'width: 20%;', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
+        { key: 'timestamp', label: 'Date', thStyle: 'width: 30%;', sortable: true },
       ],
 
       dailyChartOptions: {
@@ -408,8 +459,11 @@ const CryptoPunks = {
           //   }
           // },
           events: {
-            dataPointSelection: function(event, chartContext, config) {
-              console.log(JSON.stringify(config.dataPointIndex) + " " + JSON.stringify(config.w.config.series[0].data[config.dataPointIndex]));
+            dataPointSelection: (event, chartContext, config) => {
+              // console.log("dailyChartSelectedItems: " + JSON.stringify(this.dailyChartSelectedItems));
+              // console.log(JSON.stringify(config.dataPointIndex) + " " + JSON.stringify(config.w.config.series[0].data[config.dataPointIndex]));
+              this.dailyChartSelectedItems = config.w.config.series[0].data[config.dataPointIndex].items;
+              // console.log("dailyChartSelectedItems: " + JSON.stringify(this.dailyChartSelectedItems));
             },
           },
         },
