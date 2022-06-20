@@ -111,8 +111,10 @@ const CryptoPunks = {
                 <b-form-select size="sm" v-model="settings.ownersSortOption" :options="ownersSortOptions" class="w-100"></b-form-select>
               </div>
               <div v-if="settings.tabIndex == 1" class="mt-2 pr-1">
-                <!-- <b-button size="sm" :pressed.sync="settings.randomise" @click="settings.sortOption = 'random'; " variant="link" v-b-popover.hover.bottom="'Randomise'"><b-icon-arrow-clockwise shift-v="-1" font-scale="1.4"></b-icon-arrow-clockwise></b-button> -->
                 <b-button size="sm" :pressed.sync="settings.randomise" @click="settings.sortOption = 'random'; " variant="link" v-b-popover.hover.bottom="'Randomise'"><b-icon-shuffle shift-v="-1" font-scale="1.2"></b-icon-shuffle></b-button>
+              </div>
+              <div v-if="settings.tabIndex == 2" class="mt-2 pr-1">
+                <b-button size="sm" :pressed.sync="settings.randomise" @click="settings.ownersSortOption = 'random'; " variant="link" v-b-popover.hover.bottom="'Randomise'"><b-icon-shuffle shift-v="-1" font-scale="1.2"></b-icon-shuffle></b-button>
               </div>
 
               <div v-if="settings.tabIndex == 0" class="mt-2 pl-1">
@@ -272,35 +274,48 @@ const CryptoPunks = {
                           <b-avatar rounded size="7rem" :src="'images/punks/punk' + punk.punkId.toString().padStart(4, '0') + '.png'" style="background-color: #638596"></b-avatar>
                         </b-link>
                         <b-card-text class="text-right">
-                          <div class="d-flex justify-content-between m-0 p-0">
-                            <div>
-                              <font size="-1">
+                          <font size="-1">
+                            <div class="d-flex justify-content-between m-0 p-0">
+                              <div>
                                 <b-badge variant="light" v-b-popover.hover.bottom="hoverInfo(punk.punkId)">{{ punk.punkId }}</b-badge>
-                              </font>
+                              </div>
+                              <div class="flex-grow-1">
+                                <div v-if="punk.last.amount">
+                                  <span v-if="secondsOld(punk.last.timestamp) < 3600" size="-1">
+                                    <b-badge variant="dark" v-b-popover.hover.bottom="'Last ' + formatETH(punk.last.amount) + 'e @ ' + formatTimestamp(punk.last.timestamp)">{{ formatTerm(punk.last.timestamp) }}</b-badge>
+                                  </span>
+                                  <span v-else-if="secondsOld(punk.last.timestamp) > 86400" size="-1">
+                                    <b-badge variant="light" v-b-popover.hover.bottom="'Last ' + formatETH(punk.last.amount) + 'e @ ' + formatTimestamp(punk.last.timestamp)">{{ formatTerm(punk.last.timestamp) }}</b-badge>
+                                  </span>
+                                  <span v-else size="-1">
+                                    <b-badge variant="secondary" v-b-popover.hover.bottom="'Last ' + formatETH(punk.last.amount) + 'e @ ' + formatTimestamp(punk.last.timestamp)">{{ formatTerm(punk.last.timestamp) }}</b-badge>
+                                  </span>
+                                </div>
+                              </div>
+                              <div class="flex-grow-1">
+                              </div>
+                              <div>
+                                <div v-if="punk.last.amount">
+                                  <b-badge variant="success" v-b-popover.hover.bottom="'Last ' + formatETH(punk.last.amount) + 'e @ ' + formatTimestamp(punk.last.timestamp)">{{ formatETHShort(punk.last.amount) }}</b-badge>
+                                </div>
+                              </div>
                             </div>
-                            <div class="flex-grow-1">
-                              <!--
-                              <font v-if="secondsOld(event.timestamp) < 3600" size="-1">
-                                <b-badge variant="dark" v-b-popover.hover.bottom="formatTimestamp(event.timestamp)">{{ formatTerm(event.timestamp) }}</b-badge>
-                              </font>
-                              <font v-else-if="secondsOld(event.timestamp) > 86400" size="-1">
-                                <b-badge variant="light" v-b-popover.hover.bottom="formatTimestamp(event.timestamp)">{{ formatTerm(event.timestamp) }}</b-badge>
-                              </font>
-                              <font v-else size="-1">
-                                <b-badge variant="secondary" v-b-popover.hover.bottom="formatTimestamp(event.timestamp)">{{ formatTerm(event.timestamp) }}</b-badge>
-                              </font>
-                              -->
+                            <div class="d-flex justify-content-between m-0 p-0">
+                              <div v-if="punk.bid.amount">
+                                <b-badge variant="warning" v-b-popover.hover.bottom="'Bid ' + formatETH(punk.bid.amount) + 'e @ ' + formatTimestamp(punk.bid.timestamp)">{{ formatETHShort(punk.bid.amount) }}</b-badge>
+                              </div>
+                              <div class="flex-grow-1">
+                              </div>
+                              <div>
+                                <span v-if="punk.ask.amount">
+                                  <b-badge variant="primary" v-b-popover.hover.bottom="'Offer ' + formatETH(punk.ask.amount) + 'e @ ' + formatTimestamp(punk.ask.timestamp)">{{ formatETHShort(punk.ask.amount) }}</b-badge>
+                                </span>
+                                <span v-else>
+                                  &nbsp;
+                                </span>
+                              </div>
                             </div>
-                            <div class="flex-grow-1">
-                            </div>
-                            <div>
-                              <!--
-                              <font size="-1">
-                                <b-badge :variant="(activity.type == 'Sales') ? 'success' : ((activity.type == 'Asks') ? 'primary' : 'warning')" v-b-popover.hover.bottom="formatETH(event.amount)">{{ formatETHShort(event.amount) }}</b-badge>
-                              </font>
-                              -->
-                            </div>
-                          </div>
+                          </font>
                         </b-card-text>
                       </b-card>
                     </div>
@@ -1485,7 +1500,7 @@ const CryptoPunks = {
       return results;
     },
     filteredSortedOwners() {
-      let results = this.owners.slice(0);
+      let results = this.settings.randomise ? this.owners.slice(0) : this.owners.slice(0);
       if (this.settings.ownersSortOption == 'countasc') {
         results.sort((a, b) => {
           return a.count - b.count;
