@@ -14,6 +14,8 @@ const CryptoPunks = {
             </b-tab>
             <b-tab title="Punks" @click="updateURL('punks');">
             </b-tab>
+            <b-tab title="Owners" @click="updateURL('owners');">
+            </b-tab>
             <b-tab title="Chart" @click="updateURL('chart');">
             </b-tab>
           </b-tabs>
@@ -62,7 +64,7 @@ const CryptoPunks = {
                 <b-form-input type="text" size="sm" v-model.trim="settings.searchString" debounce="600" v-b-popover.hover.bottom="'Filter by list of punkIds'" placeholder="🔍 id1 id2-id3 ..."></b-form-input>
               </div>
               <div class="mt-2 pl-2" style="max-width: 150px;">
-                <b-form-input type="text" size="sm" v-model.trim="settings.searchAccount" debounce="600" v-b-popover.hover.bottom="'Filter by list of owner addresses. Partial matching'" placeholder="🔍 0x12... ..."></b-form-input>
+                <b-form-input type="text" size="sm" v-model.trim="settings.searchAccounts" debounce="600" v-b-popover.hover.bottom="'Filter by list of owner addresses. Partial matching'" placeholder="🔍 0x12... ..."></b-form-input>
               </div>
               <div class="mt-2 pl-2" style="max-width: 80px;">
                 <b-form-input type="text" size="sm" v-model.trim="settings.priceFrom" debounce="600" v-b-popover.hover.bottom="'ETH from'" placeholder="min"></b-form-input>
@@ -88,8 +90,14 @@ const CryptoPunks = {
               <div v-if="settings.tabIndex == 1" class="mt-2 pl-1">
                 <font size="-2">{{ filteredSortedResults.length }}</font>
               </div>
+              <div v-if="settings.tabIndex == 2" class="mt-2 pl-1">
+                <font size="-2">{{ filteredSortedOwners.length }}</font>
+              </div>
               <div v-if="settings.tabIndex == 1" class="mt-2 pl-1">
                 <b-pagination size="sm" v-model="settings.currentPage" :total-rows="filteredSortedResults.length" :per-page="settings.pageSize"></b-pagination>
+              </div>
+              <div v-if="settings.tabIndex == 2" class="mt-2 pl-1">
+                <b-pagination size="sm" v-model="settings.ownersCurrentPage" :total-rows="filteredSortedOwners.length" :per-page="settings.ownersPageSize"></b-pagination>
               </div>
               <div class="mt-2 pr-1 flex-grow-1">
               </div>
@@ -99,6 +107,9 @@ const CryptoPunks = {
               <div v-if="settings.tabIndex == 1" class="mt-2 pr-1">
                 <b-form-select size="sm" v-model="settings.sortOption" :options="sortOptions" class="w-100"></b-form-select>
               </div>
+              <div v-if="settings.tabIndex == 2" class="mt-2 pr-1">
+                <b-form-select size="sm" v-model="settings.ownersSortOption" :options="ownersSortOptions" class="w-100"></b-form-select>
+              </div>
               <div v-if="settings.tabIndex == 1" class="mt-2 pr-1">
                 <!-- <b-button size="sm" :pressed.sync="settings.randomise" @click="settings.sortOption = 'random'; " variant="link" v-b-popover.hover.bottom="'Randomise'"><b-icon-arrow-clockwise shift-v="-1" font-scale="1.4"></b-icon-arrow-clockwise></b-button> -->
                 <b-button size="sm" :pressed.sync="settings.randomise" @click="settings.sortOption = 'random'; " variant="link" v-b-popover.hover.bottom="'Randomise'"><b-icon-shuffle shift-v="-1" font-scale="1.2"></b-icon-shuffle></b-button>
@@ -107,11 +118,14 @@ const CryptoPunks = {
               <div v-if="settings.tabIndex == 0" class="mt-2 pl-1">
                 <b-form-select size="sm" v-model="settings.activityMaxItems" :options="activityMaxItemsOptions" v-b-popover.hover.bottom="'Max items to display'"></b-form-select>
               </div>
-              <div v-if="settings.tabIndex == 2" class="mt-2 pl-1">
+              <div v-if="settings.tabIndex == 3" class="mt-2 pl-1">
                 <b-form-select size="sm" v-model="settings.chartPeriod" :options="chartPeriodOptions" v-b-popover.hover.bottom="'Charting period'"></b-form-select>
               </div>
               <div v-if="settings.tabIndex == 1" class="mt-2 pl-1">
                 <b-form-select size="sm" v-model="settings.pageSize" :options="pageSizes" v-b-popover.hover.bottom="'Page size'"></b-form-select>
+              </div>
+              <div v-if="settings.tabIndex == 2" class="mt-2 pl-1">
+                <b-form-select size="sm" v-model="settings.ownersPageSize" :options="pageSizes" v-b-popover.hover.bottom="'Page size'"></b-form-select>
               </div>
               <div class="mt-2 pl-1">
                 <b-button size="sm" v-b-toggle.sidebar-1 variant="link" v-b-popover.hover.bottom="'Filter by Attributes'"><b-icon-filter-right shift-v="-1" font-scale="1.4"></b-icon-filter-right></b-button>
@@ -119,35 +133,153 @@ const CryptoPunks = {
             </div>
 
             <!-- Loading --->
-            <div v-if="!activities || activities.length == 0 || activities[0].values.length == 0">
+            <div v-if="this.message != null">
               <b-alert show variant="info" class="m-0 mt-4 p-2 mt-2">
                 Retrieving data from sources. Please wait.
               </b-alert>
             </div>
 
-            <!-- Loaded --->
-            <div v-else>
-              <!-- Activities -->
-              <div v-if="settings.tabIndex == 0" v-for="(activity, activityIndex) in activities" :key="activityIndex">
-                <b-card v-if="activity.values.length > 0" body-class="p-1 px-3" header-class="p-1 px-3" class="mt-2">
-                  <template #header>
-                    <h6 class="mb-0">{{ activity.title }}</h6>
-                  </template>
+            <!-- Activities -->
+            <div v-if="settings.tabIndex == 0" v-for="(activity, activityIndex) in activities" :key="activityIndex">
+              <b-card v-if="activity.values.length > 0" body-class="p-1 px-3" header-class="p-1 px-3" class="mt-2">
+                <template #header>
+                  <h6 class="mb-0">{{ activity.title }}</h6>
+                </template>
 
+                <b-card-group deck>
+                  <div v-for="(event, eventIndex) in activity.values.slice(0, settings.activityMaxItems)" :key="eventIndex">
+                    <b-card body-class="p-0" header-class="p-1" img-top class="m-1 p-0 border-0" style="max-width: 7rem;">
+                      <b-link :href="'https://cryptopunks.app/cryptopunks/details/' + event.punkId" v-b-popover.hover.bottom="'View in original website'" target="_blank">
+                        <b-avatar rounded size="7rem" :src="'images/punks/punk' + event.punkId.toString().padStart(4, '0') + '.png'" style="background-color: #638596"></b-avatar>
+                      </b-link>
+                      <b-card-text class="text-right">
+                        <div class="d-flex justify-content-between m-0 p-0">
+                          <div>
+                            <font size="-1">
+                              <b-badge variant="light" v-b-popover.hover.bottom="hoverInfo(event.punkId)">{{ event.punkId }}</b-badge>
+                            </font>
+                          </div>
+                          <div class="flex-grow-1">
+                            <font v-if="secondsOld(event.timestamp) < 3600" size="-1">
+                              <b-badge variant="dark" v-b-popover.hover.bottom="formatTimestamp(event.timestamp)">{{ formatTerm(event.timestamp) }}</b-badge>
+                            </font>
+                            <font v-else-if="secondsOld(event.timestamp) > 86400" size="-1">
+                              <b-badge variant="light" v-b-popover.hover.bottom="formatTimestamp(event.timestamp)">{{ formatTerm(event.timestamp) }}</b-badge>
+                            </font>
+                            <font v-else size="-1">
+                              <b-badge variant="secondary" v-b-popover.hover.bottom="formatTimestamp(event.timestamp)">{{ formatTerm(event.timestamp) }}</b-badge>
+                            </font>
+                          </div>
+                          <div class="flex-grow-1">
+                          </div>
+                          <div>
+                            <font size="-1">
+                              <b-badge :variant="(activity.type == 'Sales') ? 'success' : ((activity.type == 'Asks') ? 'primary' : 'warning')" v-b-popover.hover.bottom="formatETH(event.amount)">{{ formatETHShort(event.amount) }}</b-badge>
+                            </font>
+                          </div>
+                        </div>
+                      </b-card-text>
+                    </b-card>
+                  </div>
+                </b-card-group deck>
+              </b-card>
+            </div>
+
+            <!-- Table -->
+            <b-table v-if="settings.tabIndex == 1" small striped hover :fields="resultsFields" :items="pagedFilteredSortedResults" table-class="w-100" class="mt-0">
+              <template #cell(punkId)="data">
+                <b-link :href="'https://cryptopunks.app/cryptopunks/details/' + data.item.punkId" v-b-popover.hover.bottom="'View in original website'" target="_blank">
+                  {{ data.item.punkId }}
+                </b-link>
+              </template>
+              <template #cell(image)="data">
+                <b-link :href="'https://cryptopunks.app/cryptopunks/details/' + data.item.punkId" v-b-popover.hover.bottom="'View in original website'" target="_blank">
+                  <b-img-lazy width="100%" :src="'images/punks/punk' + data.item.punkId.toString().padStart(4, '0') + '.png'" style="background-color: #638596"/>
+                </b-link>
+              </template>
+              <template #cell(owner)="data">
+                <b-link :href="'https://cryptopunks.app/cryptopunks/accountInfo?account=' + data.item.owner" v-b-popover.hover.bottom="'View in original website'" target="_blank">
+                  {{ data.item.owner }}
+                </b-link>
+              </template>
+              <template #head(bid)="data">
+                <b-form-checkbox v-model="settings.filterBid" v-b-popover.hover.bottom="'Filter by bids'" >Bid</b-form-checkbox>
+              </template>
+              <template #cell(bid)="data">
+                <span v-if="data.item.bid.amount" v-b-popover.hover.bottom="formatTimestamp(data.item.bid.timestamp)">
+                  {{ formatETH(data.item.bid.amount) }}
+                </span>
+              </template>
+              <template #head(ask)="data">
+                <b-form-checkbox v-model="settings.filterAsk" v-b-popover.hover.bottom="'Filter by asks'" >Ask</b-form-checkbox>
+              </template>
+              <template #cell(ask)="data">
+                <span v-if="data.item.ask.amount" v-b-popover.hover.bottom="formatTimestamp(data.item.ask.timestamp)">
+                  {{ formatETH(data.item.ask.amount) }}
+                </span>
+              </template>
+              <template #head(last)="data">
+                <b-form-checkbox v-model="settings.filterLast" v-b-popover.hover.bottom="'Filter by last prices'" >Last</b-form-checkbox>
+              </template>
+              <template #cell(last)="data">
+                <span v-if="data.item.last.amount" v-b-popover.hover.bottom="formatTimestamp(data.item.last.timestamp)">
+                  {{ formatETH(data.item.last.amount) }}
+                </span>
+              </template>
+              <template #cell(timestamp)="data">
+                {{ formatTimestamp(data.item.timestamp) }}
+              </template>
+            </b-table>
+
+            <!-- Owners -->
+            <div v-if="settings.tabIndex == 2">
+              <b-table small striped hover :fields="ownersFields" :items="pagedFilteredSortedOwners" class="mt-3">
+                <template #cell(index)="data">
+                  {{ data.index+1 }}
+                </template>
+                <template #cell(owner)="data">
+                  <b-button :id="'popover-target-owner-' + data.item.owner + '-' + data.index" variant="link" class="m-0 p-0">
+                    {{ data.item.owner.substring(0, 16) }}
+                  </b-button>
+                  <b-popover :target="'popover-target-owner-' + data.item.owner + '-' + data.index" placement="right">
+                    <template #title>Owner: {{ data.item.owner.substring(0, 12) }}:</template>
+                    <b-link :href="'https://opensea.io/' + data.item.owner" v-b-popover.hover.bottom="'View in opensea.io'" target="_blank">
+                      OpenSea
+                    </b-link>
+                    <br />
+                    <b-link :href="'https://looksrare.org/accounts/' + data.item.owner" v-b-popover.hover.bottom="'View in looksrare.org'" target="_blank">
+                      LooksRare
+                    </b-link>
+                    <br />
+                    <b-link :href="'https://x2y2.io/user/' + data.item.owner + '/items'" v-b-popover.hover.bottom="'View in x2y2.io'" target="_blank">
+                      X2Y2
+                    </b-link>
+                    <br />
+                    <b-link :href="'https://etherscan.io/address/' + data.item.owner" v-b-popover.hover.bottom="'View in etherscan.io'" target="_blank">
+                      Etherscan
+                    </b-link>
+                    <br />
+                    <b-link :href="'https://chat.blockscan.com/index?a=' + data.item.owner" v-b-popover.hover.bottom="'Message in blockscan.io'" target="_blank">
+                      Blockscan
+                    </b-link>
+                  </b-popover>
+                </template>
+                <template #cell(punks)="data">
                   <b-card-group deck>
-                    <div v-for="(event, eventIndex) in activity.values.slice(0, settings.activityMaxItems)" :key="eventIndex">
+                    <div v-for="(punk, punkIndex) in data.item.punks" :key="punkIndex">
                       <b-card body-class="p-0" header-class="p-1" img-top class="m-1 p-0 border-0" style="max-width: 7rem;">
-                        <b-link :href="'https://cryptopunks.app/cryptopunks/details/' + event.punkId" v-b-popover.hover.bottom="'View in original website'" target="_blank">
-                          <b-avatar rounded size="7rem" :src="'images/punks/punk' + event.punkId.toString().padStart(4, '0') + '.png'" style="background-color: #638596"></b-avatar>
+                        <b-link :href="'https://cryptopunks.app/cryptopunks/details/' + punk.punkId" v-b-popover.hover.bottom="'View in original website'" target="_blank">
+                          <b-avatar rounded size="7rem" :src="'images/punks/punk' + punk.punkId.toString().padStart(4, '0') + '.png'" style="background-color: #638596"></b-avatar>
                         </b-link>
                         <b-card-text class="text-right">
                           <div class="d-flex justify-content-between m-0 p-0">
                             <div>
                               <font size="-1">
-                                <b-badge variant="light" v-b-popover.hover.bottom="hoverInfo(event.punkId)">{{ event.punkId }}</b-badge>
+                                <b-badge variant="light" v-b-popover.hover.bottom="hoverInfo(punk.punkId)">{{ punk.punkId }}</b-badge>
                               </font>
                             </div>
                             <div class="flex-grow-1">
+                              <!--
                               <font v-if="secondsOld(event.timestamp) < 3600" size="-1">
                                 <b-badge variant="dark" v-b-popover.hover.bottom="formatTimestamp(event.timestamp)">{{ formatTerm(event.timestamp) }}</b-badge>
                               </font>
@@ -157,180 +289,137 @@ const CryptoPunks = {
                               <font v-else size="-1">
                                 <b-badge variant="secondary" v-b-popover.hover.bottom="formatTimestamp(event.timestamp)">{{ formatTerm(event.timestamp) }}</b-badge>
                               </font>
+                              -->
                             </div>
                             <div class="flex-grow-1">
                             </div>
                             <div>
+                              <!--
                               <font size="-1">
                                 <b-badge :variant="(activity.type == 'Sales') ? 'success' : ((activity.type == 'Asks') ? 'primary' : 'warning')" v-b-popover.hover.bottom="formatETH(event.amount)">{{ formatETHShort(event.amount) }}</b-badge>
                               </font>
+                              -->
                             </div>
                           </div>
                         </b-card-text>
                       </b-card>
                     </div>
-                  </b-card-group deck>
-                </b-card>
-              </div>
-
-              <!-- Table -->
-              <b-table v-if="settings.tabIndex == 1" small striped hover :fields="resultsFields" :items="pagedFilteredResults" table-class="w-100" class="mt-0">
-                <template #cell(punkId)="data">
-                  <b-link :href="'https://cryptopunks.app/cryptopunks/details/' + data.item.punkId" v-b-popover.hover.bottom="'View in original website'" target="_blank">
-                    {{ data.item.punkId }}
-                  </b-link>
-                </template>
-                <template #cell(image)="data">
-                  <b-link :href="'https://cryptopunks.app/cryptopunks/details/' + data.item.punkId" v-b-popover.hover.bottom="'View in original website'" target="_blank">
-                    <b-img-lazy width="100%" :src="'images/punks/punk' + data.item.punkId.toString().padStart(4, '0') + '.png'" style="background-color: #638596"/>
-                  </b-link>
-                </template>
-                <template #cell(owner)="data">
-                  <b-link :href="'https://cryptopunks.app/cryptopunks/accountInfo?account=' + data.item.owner" v-b-popover.hover.bottom="'View in original website'" target="_blank">
-                    {{ data.item.owner }}
-                  </b-link>
-                </template>
-                <template #head(bid)="data">
-                  <b-form-checkbox v-model="settings.filterBid" v-b-popover.hover.bottom="'Filter by bids'" >Bid</b-form-checkbox>
-                </template>
-                <template #cell(bid)="data">
-                  <span v-if="data.item.bid.amount" v-b-popover.hover.bottom="formatTimestamp(data.item.bid.timestamp)">
-                    {{ formatETH(data.item.bid.amount) }}
-                  </span>
-                </template>
-                <template #head(ask)="data">
-                  <b-form-checkbox v-model="settings.filterAsk" v-b-popover.hover.bottom="'Filter by asks'" >Ask</b-form-checkbox>
-                </template>
-                <template #cell(ask)="data">
-                  <span v-if="data.item.ask.amount" v-b-popover.hover.bottom="formatTimestamp(data.item.ask.timestamp)">
-                    {{ formatETH(data.item.ask.amount) }}
-                  </span>
-                </template>
-                <template #head(last)="data">
-                  <b-form-checkbox v-model="settings.filterLast" v-b-popover.hover.bottom="'Filter by last prices'" >Last</b-form-checkbox>
-                </template>
-                <template #cell(last)="data">
-                  <span v-if="data.item.last.amount" v-b-popover.hover.bottom="formatTimestamp(data.item.last.timestamp)">
-                    {{ formatETH(data.item.last.amount) }}
-                  </span>
-                </template>
-                <template #cell(timestamp)="data">
-                  {{ formatTimestamp(data.item.timestamp) }}
+                  </b-card-group>
                 </template>
               </b-table>
+            </div>
 
-              <!-- Chart -->
-              <div v-if="settings.tabIndex == 2">
-                <b-row>
-                  <b-col cols="7">
-                    <b-card body-class="m-2 p-1" header-class="p-1" class="mt-2 mr-1" style="height: 550px;">
-                      <template #header>
-                        <h6 class="mb-0">CryptoPunks Sales Activity</h6>
+            <!-- Chart -->
+            <div v-if="settings.tabIndex == 3">
+              <b-row>
+                <b-col cols="7">
+                  <b-card body-class="m-2 p-1" header-class="p-1" class="mt-2 mr-1" style="height: 550px;">
+                    <template #header>
+                      <h6 class="mb-0">CryptoPunks Sales Activity</h6>
+                    </template>
+                    <apexchart :options="dailyChartOptions" :series="dailyChartSeries"></apexchart>
+                    <!-- <apexchart :options="chartOptions" :yaxis="chartOptions.yaxis" :series="chartSeries"></apexchart> -->
+                    <!--
+                    <b-table small fixed striped sticky-header="200px" :fields="dailyDataFields" :items="dailyData" head-variant="light">
+                      <template #cell(timestamp)="data">
+                        {{ formatTimestampAsDate(data.item.timestamp) }}
                       </template>
-                      <apexchart :options="dailyChartOptions" :series="dailyChartSeries"></apexchart>
-                      <!-- <apexchart :options="chartOptions" :yaxis="chartOptions.yaxis" :series="chartSeries"></apexchart> -->
-                      <!--
-                      <b-table small fixed striped sticky-header="200px" :fields="dailyDataFields" :items="dailyData" head-variant="light">
+                      <template #cell(total)="data">
+                        {{ parseFloat(data.item.total).toFixed(9) }}
+                      </template>
+                      <template #cell(average)="data">
+                        {{ parseFloat(data.item.average).toFixed(9) }}
+                      </template>
+                    </b-table>
+                    -->
+                  </b-card>
+                </b-col>
+                <b-col cols="5">
+                  <b-card body-class="m-0 p-0" header-class="p-1 px-3" class="mt-2" style="height: 550px;">
+                    <template #header>
+                      <h6 class="mb-0">Sales For Selected Day</h6>
+                    </template>
+                    <!--
+                    <b-form-group label-cols="4" label-size="sm" label="Period" label-align="right" class="mb-2">
+                      <b-form-select size="sm" v-model="settings.chartPeriod" :options="chartPeriodOptions" v-b-popover.hover.bottom="'Charting period'" class="w-50"></b-form-select>
+                    </b-form-group>
+                    -->
+                    <p v-if="dailyChartSelectedItems.length == 0" class="mt-2 p-2">
+                      Click on a daily column to view the sales for the day
+                    </p>
+                    <font size="-2">
+                      <b-table v-if="dailyChartSelectedItems.length > 0" small fixed striped sticky-header="500px" :fields="dailyChartSelectedItemsFields" :items="dailyChartSelectedItems" head-variant="light">
+                        <template #cell(punkId)="data">
+                          <b-link :href="'https://cryptopunks.app/cryptopunks/details/' + data.item.punkId" v-b-popover.hover.bottom="'View in original website'" target="_blank">
+                            {{ data.item.punkId }}
+                          </b-link>
+                        </template>
+                        <template #cell(image)="data">
+                          <b-link :href="'https://cryptopunks.app/cryptopunks/details/' + data.item.punkId" v-b-popover.hover.bottom="'View in original website'" target="_blank">
+                            <b-img-lazy width="40%" :src="'images/punks/punk' + data.item.punkId.toString().padStart(4, '0') + '.png'" style="background-color: #638596"/>
+                          </b-link>
+                        </template>
+                        <template #cell(from)="data">
+                          <b-link :href="'https://cryptopunks.app/cryptopunks/accountInfo?account=' + data.item.from" v-b-popover.hover.bottom="'View in original website'" target="_blank">
+                            {{ data.item.from.substring(0, 10) }}
+                          </b-link>
+                        </template>
+                        <template #cell(to)="data">
+                          <b-link :href="'https://cryptopunks.app/cryptopunks/accountInfo?account=' + data.item.to" v-b-popover.hover.bottom="'View in original website'" target="_blank">
+                            {{ data.item.to.substring(0, 10) }}
+                          </b-link>
+                        </template>
+                        <template #cell(amount)="data">
+                          {{ formatETHShort(data.item.amount) }}
+                        </template>
                         <template #cell(timestamp)="data">
-                          {{ formatTimestampAsDate(data.item.timestamp) }}
-                        </template>
-                        <template #cell(total)="data">
-                          {{ parseFloat(data.item.total).toFixed(9) }}
-                        </template>
-                        <template #cell(average)="data">
-                          {{ parseFloat(data.item.average).toFixed(9) }}
+                          {{ formatTimestamp(data.item.timestamp) }}
                         </template>
                       </b-table>
-                      -->
-                    </b-card>
-                  </b-col>
-                  <b-col cols="5">
-                    <b-card body-class="m-0 p-0" header-class="p-1 px-3" class="mt-2" style="height: 550px;">
-                      <template #header>
-                        <h6 class="mb-0">Sales For Selected Day</h6>
-                      </template>
-                      <!--
-                      <b-form-group label-cols="4" label-size="sm" label="Period" label-align="right" class="mb-2">
-                        <b-form-select size="sm" v-model="settings.chartPeriod" :options="chartPeriodOptions" v-b-popover.hover.bottom="'Charting period'" class="w-50"></b-form-select>
-                      </b-form-group>
-                      -->
-                      <p v-if="dailyChartSelectedItems.length == 0" class="mt-2 p-2">
-                        Click on a daily column to view the sales for the day
-                      </p>
+                    </font>
+                    <!--
+                    {{ dailyChartSelectedItems }}
+
+                    <b-form-group label-cols="4" label-size="sm" label="Min amount" label-align="right" class="mb-2">
+                      <b-form-input type="text" size="sm" v-model.trim="settings.chartMinAmount" debounce="600" v-b-popover.hover.bottom="'ETH from'" placeholder="min" class="w-50"></b-form-input>
+                    </b-form-group>
+                    <b-form-group label-cols="4" label-size="sm" label="Max amount" label-align="right" class="mb-2">
+                      <b-form-input type="text" size="sm" v-model.trim="settings.chartMaxAmount" debounce="600" v-b-popover.hover.bottom="'ETH to'" placeholder="max" class="w-50"></b-form-input>
+                    </b-form-group>
+                    <b-form-group label-cols="4" label-size="sm" label="Display" label-align="right" class="mb-2">
+                      <b-form-checkbox-group size="sm" v-model="settings.chartTypes">
+                        <b-form-checkbox value="bids">Bids</b-form-checkbox>
+                        <b-form-checkbox value="asks">Offers</b-form-checkbox>
+                        <b-form-checkbox value="sales">Sales</b-form-checkbox>
+                      </b-form-checkbox-group>
+                    </b-form-group>
+                    -->
+
+                    <!--
+                    <b-form-group label-cols="4" label-size="sm" label="Group by" label-align="right" class="mb-2">
+                      <b-form-select size="sm" v-model="settings.chartAttribute" :options="chartAttributes"></b-form-select>
+                    </b-form-group>
+                    <b-form-group v-if="settings.chartAttribute != null" label-cols="4" label-size="sm" label="Select groups" label-align="right">
                       <font size="-2">
-                        <b-table v-if="dailyChartSelectedItems.length > 0" small fixed striped sticky-header="500px" :fields="dailyChartSelectedItemsFields" :items="dailyChartSelectedItems" head-variant="light">
-                          <template #cell(punkId)="data">
-                            <b-link :href="'https://cryptopunks.app/cryptopunks/details/' + data.item.punkId" v-b-popover.hover.bottom="'View in original website'" target="_blank">
-                              {{ data.item.punkId }}
-                            </b-link>
+                        <b-table small fixed striped sticky-header="200px" :fields="attributeFields" :items="getSortedValuesForAttribute(settings.chartAttribute)" head-variant="light">
+                          <template #cell(select)="data">
+                            <b-form-checkbox v-model="chartAttributeFilter[data.item.attributeOption]" value="true"></b-form-checkbox>
                           </template>
-                          <template #cell(image)="data">
-                            <b-link :href="'https://cryptopunks.app/cryptopunks/details/' + data.item.punkId" v-b-popover.hover.bottom="'View in original website'" target="_blank">
-                              <b-img-lazy width="40%" :src="'images/punks/punk' + data.item.punkId.toString().padStart(4, '0') + '.png'" style="background-color: #638596"/>
-                            </b-link>
-                          </template>
-                          <template #cell(from)="data">
-                            <b-link :href="'https://cryptopunks.app/cryptopunks/accountInfo?account=' + data.item.from" v-b-popover.hover.bottom="'View in original website'" target="_blank">
-                              {{ data.item.from.substring(0, 10) }}
-                            </b-link>
-                          </template>
-                          <template #cell(to)="data">
-                            <b-link :href="'https://cryptopunks.app/cryptopunks/accountInfo?account=' + data.item.to" v-b-popover.hover.bottom="'View in original website'" target="_blank">
-                              {{ data.item.to.substring(0, 10) }}
-                            </b-link>
-                          </template>
-                          <template #cell(amount)="data">
-                            {{ formatETHShort(data.item.amount) }}
-                          </template>
-                          <template #cell(timestamp)="data">
-                            {{ formatTimestamp(data.item.timestamp) }}
+                          <template #cell(attributeOption)="data">
+                            {{ slugToTitle(data.item.attributeOption) }}
                           </template>
                         </b-table>
                       </font>
-                      <!--
-                      {{ dailyChartSelectedItems }}
-
-                      <b-form-group label-cols="4" label-size="sm" label="Min amount" label-align="right" class="mb-2">
-                        <b-form-input type="text" size="sm" v-model.trim="settings.chartMinAmount" debounce="600" v-b-popover.hover.bottom="'ETH from'" placeholder="min" class="w-50"></b-form-input>
-                      </b-form-group>
-                      <b-form-group label-cols="4" label-size="sm" label="Max amount" label-align="right" class="mb-2">
-                        <b-form-input type="text" size="sm" v-model.trim="settings.chartMaxAmount" debounce="600" v-b-popover.hover.bottom="'ETH to'" placeholder="max" class="w-50"></b-form-input>
-                      </b-form-group>
-                      <b-form-group label-cols="4" label-size="sm" label="Display" label-align="right" class="mb-2">
-                        <b-form-checkbox-group size="sm" v-model="settings.chartTypes">
-                          <b-form-checkbox value="bids">Bids</b-form-checkbox>
-                          <b-form-checkbox value="asks">Offers</b-form-checkbox>
-                          <b-form-checkbox value="sales">Sales</b-form-checkbox>
-                        </b-form-checkbox-group>
-                      </b-form-group>
-                      -->
-
-                      <!--
-                      <b-form-group label-cols="4" label-size="sm" label="Group by" label-align="right" class="mb-2">
-                        <b-form-select size="sm" v-model="settings.chartAttribute" :options="chartAttributes"></b-form-select>
-                      </b-form-group>
-                      <b-form-group v-if="settings.chartAttribute != null" label-cols="4" label-size="sm" label="Select groups" label-align="right">
-                        <font size="-2">
-                          <b-table small fixed striped sticky-header="200px" :fields="attributeFields" :items="getSortedValuesForAttribute(settings.chartAttribute)" head-variant="light">
-                            <template #cell(select)="data">
-                              <b-form-checkbox v-model="chartAttributeFilter[data.item.attributeOption]" value="true"></b-form-checkbox>
-                            </template>
-                            <template #cell(attributeOption)="data">
-                              {{ slugToTitle(data.item.attributeOption) }}
-                            </template>
-                          </b-table>
-                        </font>
-                      </b-form-group>
-                      <b-form-group v-if="settings.chartAttribute != null" label-cols="4" label-size="sm" label="" label-align="right" class="mb-2">
-                        <b-form-checkbox size="sm" v-model="settings.chartDisplayRemainder" value="true">Display remainder</b-form-checkbox>
-                      </b-form-group>
-                      -->
-                    </b-card>
-                  </b-col>
-                </b-row>
-              </div>
-
+                    </b-form-group>
+                    <b-form-group v-if="settings.chartAttribute != null" label-cols="4" label-size="sm" label="" label-align="right" class="mb-2">
+                      <b-form-checkbox size="sm" v-model="settings.chartDisplayRemainder" value="true">Display remainder</b-form-checkbox>
+                    </b-form-group>
+                    -->
+                  </b-card>
+                </b-col>
+              </b-row>
             </div>
+
           </b-card-body>
         </b-card>
       </b-card>
@@ -344,7 +433,7 @@ const CryptoPunks = {
       settings: {
         tabIndex: 0,
         searchString: null,
-        searchAccount: null,
+        searchAccounts: null,
         priceFrom: null,
         priceTo: null,
         filterPriceBy: false,
@@ -356,6 +445,11 @@ const CryptoPunks = {
         sortOption: 'latestsale',
         randomise: false,
         activityMaxItems: 10,
+
+        ownersCurrentPage: 1,
+        ownersPageSize: 100,
+        ownersSortOption: 'countdsc',
+
         chartPeriod: '3m',
         chartAttribute: "eyes", // null,
         chartDisplayRemainder: true, // null,
@@ -385,6 +479,23 @@ const CryptoPunks = {
         { value: 'latestactivity', text: 'Latest Activity' },
         { value: 'earliestactivity', text: 'Earliest Activity' },
         { value: 'random', text: 'Random' },
+      ],
+
+      ownersSortOptions: [
+        { value: 'countasc', text: 'Count Ascending' },
+        { value: 'countdsc', text: 'Count Descending' },
+        // { value: 'latestsale', text: 'Latest Sale' },
+        // { value: 'earliestsale', text: 'Earliest Sale' },
+        // { value: 'latestactivity', text: 'Latest Activity' },
+        // { value: 'earliestactivity', text: 'Earliest Activity' },
+        { value: 'random', text: 'Random' },
+      ],
+
+      ownersFields: [
+        { key: 'index', label: '#', thStyle: 'width: 5%;' },
+        { key: 'owner', label: 'Owner', thStyle: 'width: 15%;' },
+        { key: 'count', label: '# Punks', thStyle: 'width: 5%;' },
+        { key: 'punks', label: 'Punks', thStyle: 'width: 75%;' },
       ],
 
       pageSizes: [
@@ -661,7 +772,7 @@ const CryptoPunks = {
     message() {
       return store.getters['cryptoPunks/message'];
     },
-    pagedFilteredResults() {
+    pagedFilteredSortedResults() {
       return this.filteredSortedResults.slice((this.settings.currentPage - 1) * this.settings.pageSize, this.settings.currentPage * this.settings.pageSize);
     },
     filteredResults() {
@@ -724,8 +835,9 @@ const CryptoPunks = {
       }
 
       let stage3Data = stage2Data;
-      if (this.settings.searchAccount != null && this.settings.searchAccount.length > 0) {
-        const searchAccounts = this.settings.searchAccount.split(/[, \t\n]+/).map(s => s.toLowerCase());
+      if (this.settings.searchAccounts != null && this.settings.searchAccounts.length > 0) {
+        // console.log("filteredResults() - this.settings.searchAccounts: " + this.settings.searchAccounts);
+        const searchAccounts = this.settings.searchAccounts.split(/[, \t\n]+/).map(s => s.toLowerCase());
         stage3Data = [];
         for (let d of stage2Data) {
           // const ensName = owner == null ? null : this.ensMap[owner];
@@ -1047,8 +1159,8 @@ const CryptoPunks = {
       const maxAmount = 50000;
 
       // console.log("events: " + JSON.stringify(this.events.slice(0, 10)));
-      const searchAccounts = this.settings.searchAccount != null && this.settings.searchAccount.length > 0 ? this.settings.searchAccount.split(/[, \t\n]+/).map(s => s.toLowerCase()) : null;
-      // console.log("searchAccounts: " + JSON.stringify(searchAccounts));
+      const searchAccounts = this.settings.searchAccounts != null && this.settings.searchAccounts.length > 0 ? this.settings.searchAccounts.split(/[, \t\n]+/).map(s => s.toLowerCase()) : null;
+      // console.log("activities() - searchAccounts: " + JSON.stringify(searchAccounts));
       for (let event of this.events) {
         let include = idFilters.includes(event.punkId);
         if (include && searchAccounts) {
@@ -1355,6 +1467,43 @@ const CryptoPunks = {
       }
       return results;
     },
+    owners() {
+      const collator = {};
+      for (result of Object.values(this.filteredResults)) {
+        const owner = result.owner;
+        if (!collator[owner]) {
+          collator[owner] = [result];
+        } else {
+          collator[owner].push(result);
+        }
+      }
+      const results = [];
+      for (const key of Object.keys(collator)) {
+        const value = collator[key];
+        results.push( { owner: key, count: value.length, punks: value } );
+      }
+      return results;
+    },
+    filteredSortedOwners() {
+      let results = this.owners.slice(0);
+      if (this.settings.ownersSortOption == 'countasc') {
+        results.sort((a, b) => {
+          return a.count - b.count;
+        });
+      } else if (this.settings.ownersSortOption == 'countdsc') {
+        results.sort((a, b) => {
+          return b.count - a.count;
+        });
+      } else {
+        results.sort(() => {
+          return Math.random() - 0.5;
+        });
+      }
+      return results;
+    },
+    pagedFilteredSortedOwners() {
+      return this.filteredSortedOwners.slice((this.settings.ownersCurrentPage - 1) * this.settings.ownersPageSize, this.settings.ownersCurrentPage * this.settings.ownersPageSize);
+    },
   },
   methods: {
     updateURL(where) {
@@ -1637,8 +1786,10 @@ const CryptoPunks = {
       this.settings.tabIndex = 0;
     } else if (this.search == "punks") {
       this.settings.tabIndex = 1;
-    } else if (this.search == "chart") {
+    } else if (this.search == "owners") {
       this.settings.tabIndex = 2;
+    } else if (this.search == "chart") {
+      this.settings.tabIndex = 3;
     }
     store.dispatch('cryptoPunks/loadPunks', 'initial');
     this.reschedule = true;

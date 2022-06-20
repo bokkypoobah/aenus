@@ -476,7 +476,11 @@ const Search = {
                       X2Y2
                     </b-link>
                     <br />
-                    <b-link :href="'https://chat.blockscan.com/index?a=' + data.item.registrant" v-b-popover.hover.bottom="'View in etherscan.io'" target="_blank">
+                    <b-link :href="'https://etherscan.io/address/' + data.item.registrant" v-b-popover.hover.bottom="'View in etherscan.io'" target="_blank">
+                      Etherscan
+                    </b-link>
+                    <br />
+                    <b-link :href="'https://chat.blockscan.com/index?a=' + data.item.registrant" v-b-popover.hover.bottom="'Message in etherscan.io'" target="_blank">
                       Blockscan
                     </b-link>
                   </b-popover>
