@@ -1360,7 +1360,7 @@ const CryptoPunks = {
     hoverInfo(punkId) {
       const punk = this.results[punkId];
       return punkId +
-        '- Bid: ' + (punk.bid.amount && ethers.utils.formatEther(punk.bid.amount) || 'n/a') +
+        ' - Bid: ' + (punk.bid.amount && ethers.utils.formatEther(punk.bid.amount) || 'n/a') +
         '; Offer: ' + (punk.ask.amount && ethers.utils.formatEther(punk.ask.amount) || 'n/a') +
         '; Last: ' + (punk.last.amount && ethers.utils.formatEther(punk.last.amount) || 'n/a') +
         '; Traits: ' + PUNKATTRIBUTES[punkId].map(a => slugToTitle(a.value)).join(', ') +
