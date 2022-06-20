@@ -14,7 +14,7 @@ const CryptoPunks = {
             </b-tab>
             <b-tab title="Punks" @click="updateURL('punks');">
             </b-tab>
-            <b-tab title="Chart" @click="updateURL('chart');">
+            <b-tab title="Daily Chart" @click="updateURL('chart');">
             </b-tab>
           </b-tabs>
 
@@ -135,7 +135,7 @@ const CryptoPunks = {
                         <div class="d-flex justify-content-between m-0 p-0">
                           <div>
                             <font size="-1">
-                              <b-badge variant="light">{{ event.punkId }}</b-badge>
+                              <b-badge variant="light" v-b-popover.hover.bottom="hoverInfo(event.punkId)">{{ event.punkId }}</b-badge>
                             </font>
                           </div>
                           <div class="flex-grow-1">
@@ -1356,6 +1356,17 @@ const CryptoPunks = {
     },
     slugToTitle(slug) {
       return slugToTitle(slug);
+    },
+    hoverInfo(punkId) {
+      const punk = this.results[punkId];
+      return punkId +
+        '- Bid: ' + (punk.bid.amount && ethers.utils.formatEther(punk.bid.amount) || 'n/a') +
+        '; Offer: ' + (punk.ask.amount && ethers.utils.formatEther(punk.ask.amount) || 'n/a') +
+        '; Last: ' + (punk.last.amount && ethers.utils.formatEther(punk.last.amount) || 'n/a') +
+        '; Traits: ' + PUNKATTRIBUTES[punkId].map(a => slugToTitle(a.value)).join(', ') +
+        '; Owned: ' + punk.owner.substring(0, 10) +
+        '; Claimed: ' + punk.claimer.substring(0, 10) +
+        '; Wrapped: ' + (punk.wrapped ? 'y' : 'n');
     },
     getSortedValuesForAttribute(category) {
       const results = [];
