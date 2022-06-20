@@ -35,7 +35,7 @@ const CryptoPunks = {
                   </div>
                 </template>
                 <div class="px-1 py-2">
-                  <div v-for="(attributeKey, attributeIndex) in Object.keys(attributes).sort()" v-bind:key="attributeIndex">
+                  <div v-for="(attributeKey, attributeIndex) in Object.keys(attributesWithCounts).sort()" v-bind:key="attributeIndex">
                     <b-card body-class="p-0" header-class="m-0 p-0 pl-2" footer-class="p-1" class="m-3 p-0">
                       <template #header>
                         <span variant="secondary" class="small truncate">
@@ -43,7 +43,7 @@ const CryptoPunks = {
                         </span>
                       </template>
                       <font size="-2">
-                        <b-table small fixed striped sticky-header="200px" :fields="attributeFields" :items="getSortedValuesForAttribute(attributeKey)" head-variant="light">
+                        <b-table small fixed striped sticky-header="200px" :fields="attributeFields" :items="getSortedTraitsForAttribute(attributeKey)" head-variant="light">
                           <template #cell(select)="data">
                             <b-form-checkbox :checked="(attributeFilter[attributeKey] && attributeFilter[attributeKey].attributeOption) ? 1 : 0" value="1" @change="filterChange(attributeKey, data.item.attributeOption)"></b-form-checkbox>
                           </template>
@@ -268,7 +268,7 @@ const CryptoPunks = {
                 </template>
                 <template #cell(punks)="data">
                   <b-card-group deck>
-                    <div v-for="(punk, punkIndex) in getPunkData(data.item.punkIds)" :key="punkIndex">
+                    <div v-for="(punk, punkIndex) in getPunkDataForIds(data.item.punkIds)" :key="punkIndex">
                       <b-card body-class="p-0" header-class="p-1" img-top class="m-1 p-0 border-0" style="max-width: 7rem;">
                         <b-link :href="'https://cryptopunks.app/cryptopunks/details/' + punk.punkId" v-b-popover.hover.bottom="'View in original website'" target="_blank">
                           <b-avatar rounded size="7rem" :src="'images/punks/punk' + punk.punkId.toString().padStart(4, '0') + '.png'" style="background-color: #638596"></b-avatar>
@@ -416,7 +416,7 @@ const CryptoPunks = {
                     </b-form-group>
                     <b-form-group v-if="settings.chartAttribute != null" label-cols="4" label-size="sm" label="Select groups" label-align="right">
                       <font size="-2">
-                        <b-table small fixed striped sticky-header="200px" :fields="attributeFields" :items="getSortedValuesForAttribute(settings.chartAttribute)" head-variant="light">
+                        <b-table small fixed striped sticky-header="200px" :fields="attributeFields" :items="getSortedTraitsForAttribute(settings.chartAttribute)" head-variant="light">
                           <template #cell(select)="data">
                             <b-form-checkbox v-model="chartAttributeFilter[data.item.attributeOption]" value="true"></b-form-checkbox>
                           </template>
@@ -775,8 +775,8 @@ const CryptoPunks = {
     db() {
       return store.getters['cryptoPunks/db'];
     },
-    results() {
-      return store.getters['cryptoPunks/results'];
+    punks() {
+      return store.getters['cryptoPunks/punks'];
     },
     exchangeRates() {
       return store.getters['cryptoPunks/exchangeRates'];
@@ -794,7 +794,7 @@ const CryptoPunks = {
       const priceFrom = this.settings.priceFrom && parseFloat(this.settings.priceFrom) >= 0 ? parseFloat(this.settings.priceFrom) : null;
       const priceTo = this.settings.priceTo && parseFloat(this.settings.priceTo) >= 0 ? parseFloat(this.settings.priceTo) : null;
 
-      let data = this.settings.randomise ? this.results.slice(0) : this.results.slice(0);
+      let data = this.settings.randomise ? this.punks.slice(0) : this.punks.slice(0);
       let stage1Data = data;
 
       if (this.settings.searchString != null && this.settings.searchString.length > 0) {
@@ -1113,7 +1113,7 @@ const CryptoPunks = {
     activities() {
       const priceFrom = this.settings.priceFrom && parseFloat(this.settings.priceFrom) >= 0 ? parseFloat(this.settings.priceFrom) : null;
       const priceTo = this.settings.priceTo && parseFloat(this.settings.priceTo) >= 0 ? parseFloat(this.settings.priceTo) : null;
-      let data = this.settings.randomise ? this.results.slice(0) : this.results.slice(0);
+      let data = this.settings.randomise ? this.punks.slice(0) : this.punks.slice(0);
       let stage1Data = data;
       if (this.settings.searchString != null && this.settings.searchString.length > 0) {
         const searchTokenIds = this.settings.searchString.split(/[, \t\n]+/).map(s => s.trim());
@@ -1456,10 +1456,10 @@ const CryptoPunks = {
 
       return series;
     },
-    attributes() {
+    attributesWithCounts() {
       const collator = {};
-      for (const d of this.results) {
-        for (let attribute of d.attributes) {
+      for (const punk of this.punks) {
+        for (let attribute of punk.attributes) {
           const traitType = attribute.trait_type;
           const value = attribute.value;
           if (!collator[traitType]) {
@@ -1477,7 +1477,7 @@ const CryptoPunks = {
     chartAttributes() {
       const results = [];
       results.push({ value: null, text: "None" });
-      for (let attribute of Object.keys(this.attributes).sort()) {
+      for (let attribute of Object.keys(this.attributesWithCounts).sort()) {
         results.push({ value: attribute, text: slugToTitle(attribute) });
       }
       return results;
@@ -1528,7 +1528,7 @@ const CryptoPunks = {
       return slugToTitle(slug);
     },
     hoverInfo(punkId) {
-      const punk = this.results[punkId];
+      const punk = this.punks[punkId];
       return punkId +
         ' - Bid: ' + (punk.bid.amount && ethers.utils.formatEther(punk.bid.amount) || 'n/a') +
         '; Offer: ' + (punk.ask.amount && ethers.utils.formatEther(punk.ask.amount) || 'n/a') +
@@ -1538,17 +1538,17 @@ const CryptoPunks = {
         '; Claimed: ' + punk.claimer.substring(0, 10) +
         '; Wrapped: ' + (punk.wrapped ? 'y' : 'n');
     },
-    getPunkData(punkIds) {
+    getPunkDataForIds(punkIds) {
       const results = [];
       for (punkId of punkIds) {
-        results.push(this.results[punkId]);
+        results.push(this.punks[punkId]);
       }
       return results;
     },
-    getSortedValuesForAttribute(category) {
+    getSortedTraitsForAttribute(category) {
       const results = [];
-      for (let attributeKey in this.attributes[category]) {
-        const c = this.attributes[category][attributeKey];
+      for (let attributeKey in this.attributesWithCounts[category]) {
+        const c = this.attributesWithCounts[category][attributeKey];
         results.push({ attributeOption: attributeKey, attributeTotal: c })
       }
       results.sort((a, b) => b.attributeTotal - a.attributeTotal);
@@ -1851,7 +1851,7 @@ const cryptoPunksModule = {
     punks: [],
     exchangeRates: {},
     tempPunks: [],
-    results: [],
+    punks: [],
     events: [],
     sales: [],
     message: null,
@@ -1865,7 +1865,7 @@ const cryptoPunksModule = {
     filter: state => state.filter,
     punks: state => state.punks,
     exchangeRates: state => state.exchangeRates,
-    results: state => state.results,
+    punks: state => state.punks,
     events: state => state.events,
     sales: state => state.sales,
     message: state => state.message,
@@ -2097,10 +2097,10 @@ const cryptoPunksModule = {
 
       async function refreshResultsFromDB() {
         // const punks = await db0.punks.orderBy("timestamp").reverse().limit(100).toArray();
-        const punks = await db0.punks.orderBy("punkId").toArray();
-        const records = [];
+        const punksFromDB = await db0.punks.orderBy("punkId").toArray();
+        const punks = [];
         const events = [];
-        for (const punk of punks) {
+        for (const punk of punksFromDB) {
           for (let event of punk.events) {
             if (event.type == "BID_CREATED" || event.type == "ASK_CREATED" || event.type == "SALE") {
               events.push({
@@ -2116,7 +2116,7 @@ const cryptoPunksModule = {
               });
             }
           }
-          records.push({
+          punks.push({
             punkId: punk.punkId,
             owner: punk.owner,
             claimer: punk.claimer,
@@ -2130,7 +2130,7 @@ const cryptoPunksModule = {
             // events: punk.events,
           });
         }
-        state.results = records;
+        state.punks = punks;
         state.events = events;
         // console.log(JSON.stringify(records, null, 2));
         // console.log(JSON.stringify(events.slice(0, 100), null, 2));
