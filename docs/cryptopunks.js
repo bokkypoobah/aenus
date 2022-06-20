@@ -10,11 +10,11 @@ const CryptoPunks = {
       <b-card no-body no-header class="border-0">
         <b-card no-body class="p-0 mt-1">
           <b-tabs card align="left" no-body active-tab-class="m-0 p-0" v-model="settings.tabIndex">
-            <b-tab title="Summary" @click="updateURL('summary');">
+            <b-tab title="Activity" @click="updateURL('activity');">
             </b-tab>
             <b-tab title="Punks" @click="updateURL('punks');">
             </b-tab>
-            <b-tab title="Daily Chart" @click="updateURL('chart');">
+            <b-tab title="Chart" @click="updateURL('chart');">
             </b-tab>
           </b-tabs>
 
@@ -105,7 +105,7 @@ const CryptoPunks = {
               </div>
 
               <div v-if="settings.tabIndex == 0" class="mt-2 pl-1">
-                <b-form-select size="sm" v-model="settings.summaryMaxItems" :options="summaryMaxItemsOptions" v-b-popover.hover.bottom="'Max items to display'"></b-form-select>
+                <b-form-select size="sm" v-model="settings.activityMaxItems" :options="activityMaxItemsOptions" v-b-popover.hover.bottom="'Max items to display'"></b-form-select>
               </div>
               <div v-if="settings.tabIndex == 2" class="mt-2 pl-1">
                 <b-form-select size="sm" v-model="settings.chartPeriod" :options="chartPeriodOptions" v-b-popover.hover.bottom="'Charting period'"></b-form-select>
@@ -118,15 +118,19 @@ const CryptoPunks = {
               </div>
             </div>
 
-            <!-- Summary -->
-            <div v-if="settings.tabIndex == 0" v-for="(item, summaryIndex) in summary" :key="summaryIndex">
-              <b-card v-if="item.values.length > 0" body-class="p-1 px-3" header-class="p-1 px-3" class="mt-2">
+            <!-- Activities -->
+            <b-alert v-if="!activities || activities.length == 0 || activities[0].values.length == 0" show variant="info" class="m-1 mt-3 p-2 mt-2">
+              Please wait. This application runs in the privacy of your browser to retrieve data from various sources in full or incrementally, then performs further computations for presentation.
+            </b-alert>
+
+            <div v-if="settings.tabIndex == 0" v-for="(activity, activityIndex) in activities" :key="activityIndex">
+              <b-card v-if="activity.values.length > 0" body-class="p-1 px-3" header-class="p-1 px-3" class="mt-2">
                 <template #header>
-                  <h6 class="mb-0">{{ item.title }}</h6>
+                  <h6 class="mb-0">{{ activity.title }}</h6>
                 </template>
 
                 <b-card-group deck>
-                  <div v-for="(event, eventIndex) in item.values.slice(0, settings.summaryMaxItems)" :key="eventIndex">
+                  <div v-for="(event, eventIndex) in activity.values.slice(0, settings.activityMaxItems)" :key="eventIndex">
                     <b-card body-class="p-0" header-class="p-1" img-top class="m-1 p-0 border-0" style="max-width: 7rem;">
                       <b-link :href="'https://cryptopunks.app/cryptopunks/details/' + event.punkId" v-b-popover.hover.bottom="'View in original website'" target="_blank">
                         <b-avatar rounded size="7rem" :src="'images/punks/punk' + event.punkId.toString().padStart(4, '0') + '.png'" style="background-color: #638596"></b-avatar>
@@ -153,7 +157,7 @@ const CryptoPunks = {
                           </div>
                           <div>
                             <font size="-1">
-                              <b-badge :variant="(item.type == 'Sales') ? 'success' : ((item.type == 'Asks') ? 'primary' : 'warning')" v-b-popover.hover.bottom="formatETH(event.amount)">{{ formatETHShort(event.amount) }}</b-badge>
+                              <b-badge :variant="(activity.type == 'Sales') ? 'success' : ((activity.type == 'Asks') ? 'primary' : 'warning')" v-b-popover.hover.bottom="formatETH(event.amount)">{{ formatETHShort(event.amount) }}</b-badge>
                             </font>
                           </div>
                         </div>
@@ -344,7 +348,7 @@ const CryptoPunks = {
         pageSize: 100,
         sortOption: 'latestsale',
         randomise: false,
-        summaryMaxItems: 10,
+        activityMaxItems: 10,
         chartPeriod: '3m',
         chartAttribute: "eyes", // null,
         chartDisplayRemainder: true, // null,
@@ -392,16 +396,11 @@ const CryptoPunks = {
         { key: 'attributeTotal', label: 'Count', /*sortable: true,*/ thStyle: 'width: 30%;', thClass: 'text-right', tdClass: 'text-right' },
       ],
 
-      summaryMaxItemsOptions: [
+      activityMaxItemsOptions: [
         { value: 10, text: '10' },
         { value: 20, text: '20' },
         { value: 50, text: '50' },
         { value: 100, text: '100' },
-      ],
-
-      summaryFields: [
-        // { key: 'type', label: 'Type', thStyle: 'width: 10%;' },
-        { key: 'values', label: 'Latest', thStyle: 'width: 100%;' },
       ],
 
       resultsFields: [
@@ -977,7 +976,7 @@ const CryptoPunks = {
 
       return results;
     },
-    summary() {
+    activities() {
       const priceFrom = this.settings.priceFrom && parseFloat(this.settings.priceFrom) >= 0 ? parseFloat(this.settings.priceFrom) : null;
       const priceTo = this.settings.priceTo && parseFloat(this.settings.priceTo) >= 0 ? parseFloat(this.settings.priceTo) : null;
       let data = this.settings.randomise ? this.results.slice(0) : this.results.slice(0);
@@ -1161,7 +1160,7 @@ const CryptoPunks = {
       console.log("beginPeriod: " + beginPeriod + " " + moment.unix(beginPeriod).utc().format());
 
       const collator = {};
-      for (let event of this.summary[2].values) {
+      for (let event of this.activities[2].values) {
         // console.log(JSON.stringify(event, null, 2));
         if (beginPeriod <= event.timestamp && event.timestamp <= now) {
           // console.log("event.timestamp: " + event.timestamp + " " + moment.unix(event.timestamp).format());
@@ -1251,7 +1250,7 @@ const CryptoPunks = {
 
       if (this.settings.chartTypes.includes("bids")) {
         const bidData = [];
-        for (let event of this.summary[0].values) {
+        for (let event of this.activities[0].values) {
           if (event.timestamp >= fromTimestamp && event.timestamp <= toTimestamp) {
             const amount = ethers.utils.formatEther(event.amount);
             if (amount > minAmount && amount < maxAmount) {
@@ -1265,7 +1264,7 @@ const CryptoPunks = {
 
       if (this.settings.chartTypes.includes("asks")) {
         const askData = [];
-        for (let event of this.summary[1].values) {
+        for (let event of this.activities[1].values) {
           if (event.timestamp >= fromTimestamp && event.timestamp <= toTimestamp) {
             const amount = ethers.utils.formatEther(event.amount);
             if (amount > minAmount && amount < maxAmount) {
@@ -1279,7 +1278,7 @@ const CryptoPunks = {
 
       if (this.settings.chartTypes.includes("sales")) {
         const salesData = [];
-        for (let event of this.summary[2].values) {
+        for (let event of this.activities[2].values) {
           if (event.timestamp >= fromTimestamp && event.timestamp <= toTimestamp) {
             const amount = ethers.utils.formatEther(event.amount);
             if (amount > minAmount && amount < maxAmount) {
@@ -1461,6 +1460,8 @@ const CryptoPunks = {
       return years + "y" + days + "d";
       return s;
     },
+    // NOTE: Fallback if the ENS subgraph becomes unavailable. A bit of work to massage this data into
+    // the current db structure, and have to find a way to get timestamps for the events using the blockNumbers
     async searchLogs() {
       if (!this.powerOn || this.network.chainId != 1) {
         alert("Connect to web3 using the power button on the top right, in a web3 enabled browser");
@@ -1625,7 +1626,7 @@ const CryptoPunks = {
   },
   mounted() {
     logInfo("CryptoPunks", "mounted() $route: " + JSON.stringify(this.$route.params) + ", props['search']: " + this.search + ", props['topic']: " + this.topic);
-    if (this.search == "summary") {
+    if (this.search == "activity") {
       this.settings.tabIndex = 0;
     } else if (this.search == "punks") {
       this.settings.tabIndex = 1;
@@ -1980,10 +1981,10 @@ const cryptoPunksModule = {
       state.exchangeRates = await fetchExchangeRates();
       logInfo("cryptoPunksModule", "mutations.loadPunks() exchangeRates: " + JSON.stringify(state.exchangeRates).substring(0, 60) + " ...");
 
-      if (syncMode == 'initial') {
-        logInfo("cryptoPunksModule", "mutations.loadPunks() - initial refreshResultsFromDB()");
-        await refreshResultsFromDB();
-      }
+      // if (syncMode == 'initial') {
+      //   logInfo("cryptoPunksModule", "mutations.loadPunks() - initial refreshResultsFromDB()");
+      //   await refreshResultsFromDB();
+      // }
 
       const latestEventPunkIds = debug ? debug : await fetchLatestEvents();
       logInfo("cryptoPunksModule", "mutations.loadPunks() - latestEventPunkIds: " + JSON.stringify(latestEventPunkIds));
