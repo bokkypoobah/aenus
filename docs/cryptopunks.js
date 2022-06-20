@@ -268,7 +268,7 @@ const CryptoPunks = {
                 </template>
                 <template #cell(punks)="data">
                   <b-card-group deck>
-                    <div v-for="(punk, punkIndex) in data.item.punks" :key="punkIndex">
+                    <div v-for="(punk, punkIndex) in getPunkData(data.item.punkIds)" :key="punkIndex">
                       <b-card body-class="p-0" header-class="p-1" img-top class="m-1 p-0 border-0" style="max-width: 7rem;">
                         <b-link :href="'https://cryptopunks.app/cryptopunks/details/' + punk.punkId" v-b-popover.hover.bottom="'View in original website'" target="_blank">
                           <b-avatar rounded size="7rem" :src="'images/punks/punk' + punk.punkId.toString().padStart(4, '0') + '.png'" style="background-color: #638596"></b-avatar>
@@ -1487,15 +1487,15 @@ const CryptoPunks = {
       for (result of Object.values(this.filteredResults)) {
         const owner = result.owner;
         if (!collator[owner]) {
-          collator[owner] = [result];
+          collator[owner] = [result.punkId];
         } else {
-          collator[owner].push(result);
+          collator[owner].push(result.punkId);
         }
       }
       const results = [];
       for (const key of Object.keys(collator)) {
-        const value = collator[key];
-        results.push( { owner: key, count: value.length, punks: value } );
+        const punkIds = collator[key];
+        results.push( { owner: key, count: punkIds.length, punkIds: punkIds } );
       }
       return results;
     },
@@ -1537,6 +1537,13 @@ const CryptoPunks = {
         '; Owned: ' + punk.owner.substring(0, 10) +
         '; Claimed: ' + punk.claimer.substring(0, 10) +
         '; Wrapped: ' + (punk.wrapped ? 'y' : 'n');
+    },
+    getPunkData(punkIds) {
+      const results = [];
+      for (punkId of punkIds) {
+        results.push(this.results[punkId]);
+      }
+      return results;
     },
     getSortedValuesForAttribute(category) {
       const results = [];
