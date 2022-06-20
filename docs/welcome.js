@@ -99,10 +99,6 @@ $ anywhere -h localhost</pre>
               <b-link href="https://twitter.com/ethereum" target="_blank">Ethereum</b-link>
               and others. We are not affiliated.
             </b-card-text>
-
-            <b-card-text class="mt-5">
-              Enjoy. <i>aenus advanced ENS and NFT utilities</i> (c) Bok Consulting Pty Ltd 2022.
-            </b-card-text>
           </b-card-body>
         </b-card>
       </b-card>
