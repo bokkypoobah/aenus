@@ -2126,7 +2126,7 @@ const cryptoPunksModule = {
             bid: punk.bid,
             ask: punk.ask,
             last: punk.last,
-            attributes: PUNKATTRIBUTES[punk.punkId],
+            attributes: [...PUNKATTRIBUTES[punk.punkId], { trait_type: 'trait-count', value: PUNKATTRIBUTES[punk.punkId].length }],
             // events: punk.events,
           });
         }
