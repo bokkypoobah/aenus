@@ -67,7 +67,7 @@ const store = new Vuex.Store({
     // admin: adminModule,
     config: configModule,
     search: searchModule,
-    sales: salesModule,
+    ensSales: ensSalesModule,
     cryptoPunks: cryptoPunksModule,
     nfts: nftsModule,
     transactions: transactionsModule,

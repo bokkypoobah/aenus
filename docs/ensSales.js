@@ -8,19 +8,24 @@ const ENSSales = {
       </b-card>
 
       <b-card no-body no-header class="border-0">
-
         <b-card no-body class="p-0 mt-1">
+          <b-tabs card align="left" no-body active-tab-class="m-0 p-0" v-model="settings.tabIndex">
+            <b-tab title="Summary" @click="updateURL('summary');">
+            </b-tab>
+            <b-tab title="List" @click="updateURL('list');">
+            </b-tab>
+          </b-tabs>
 
+          <!--
           <b-card-body class="m-1 p-1">
-            <!--
             <b-button size="sm" @click="doit( { type: 'fullsync' } );" variant="primary">Retrieve Latest 50 Sales</b-button>
             <span v-if="searchMessage != null">
               <b-button size="sm" @click="halt" variant="primary">Halt</b-button>
             </span>
             <b-button size="sm" @click="doit( { action: 'startService' } );" variant="primary">Start Service</b-button>
             <b-button size="sm" @click="doit( { action: 'stopService' } );" variant="primary">Stop Service</b-button>
-            -->
           </b-card-body>
+          -->
           <b-card-body class="m-1 p-1">
             <div class="d-flex flex-wrap m-0 p-0" style="min-height: 37px;">
               <div class="mt-2 pr-4">
@@ -38,8 +43,8 @@ const ENSSales = {
               <div class="mt-2 pr-1 flex-grow-1">
               </div>
               <div class="mt-2 pr-1">
-                <b-dropdown v-if="message == null" split size="sm" text="Sync" @click="loadSales(false)" variant="primary" v-b-popover.hover.bottom="'Partial Sync'">
-                  <b-dropdown-item @click="loadSales(true)">Full Sync</b-dropdown-item>
+                <b-dropdown v-if="message == null" split size="sm" text="Sync" @click="loadSales('partial')" variant="primary" v-b-popover.hover.bottom="'Partial Sync'">
+                  <b-dropdown-item @click="loadSales('full')">Full Sync</b-dropdown-item>
                 </b-dropdown>
                 <b-button v-if="message != null" size="sm" @click="halt" variant="primary" v-b-popover.hover.bottom="'Halt'" >{{ message }}</b-button>
               </div>
@@ -158,12 +163,14 @@ const ENSSales = {
       </b-card>
     </div>
   `,
+  props: ['search', 'topic'],
   data: function() {
     return {
       count: 0,
       reschedule: true,
 
       settings: {
+        tabIndex: 0,
         // sortOption: 'nameasc',
         // randomise: false,
 
@@ -201,16 +208,19 @@ const ENSSales = {
       return store.getters['connection/network'];
     },
     filter() {
-      return store.getters['sales/filter'];
+      return store.getters['ensSales/filter'];
     },
     sales() {
-      return store.getters['sales/sales'];
+      return store.getters['ensSales/sales'];
     },
     message() {
-      return store.getters['sales/message'];
+      return store.getters['ensSales/message'];
     },
   },
   methods: {
+    updateURL(where) {
+      this.$router.push('/enssales/' + where);
+    },
     formatETH(e) {
       try {
         return e ? ethers.utils.commify(ethers.utils.formatEther(e)) : null;
@@ -225,9 +235,9 @@ const ENSSales = {
       console.log("updateFilter: " + field + " => " + JSON.stringify(filter));
       store.dispatch('sales/updateFilter', { field, filter} );
     },
-    async loadSales(fullSync) {
-      // console.log("loadSales - fullSync: " + fullSync);
-      store.dispatch('sales/loadSales', fullSync);
+    async loadSales(syncMode) {
+      // console.log("loadSales - syncMode: " + syncMode);
+      store.dispatch('ensSales/loadSales', syncMode);
     },
     // async doit(action) {
     //   console.log("doit: " + JSON.stringify(action));
@@ -252,7 +262,14 @@ const ENSSales = {
     logDebug("ENSSales", "beforeDestroy()");
   },
   mounted() {
-    logInfo("ENSSales", "mounted() $route: " + JSON.stringify(this.$route.params));
+    logInfo("ENSSales", "mounted() $route: " + JSON.stringify(this.$route.params) + ", props['search']: " + this.search + ", props['topic']: " + this.topic);
+    if (this.search == "summary") {
+      this.settings.tabIndex = 0;
+    } else if (this.search == "list") {
+      this.settings.tabIndex = 1;
+    }
+    store.dispatch('ensSales/loadSales', 'mounted');
+
     this.reschedule = true;
     logDebug("ENSSales", "Calling timeoutCallback()");
     this.timeoutCallback();
@@ -263,14 +280,14 @@ const ENSSales = {
   },
 };
 
-const salesModule = {
+const ensSalesModule = {
   namespaced: true,
   state: {
     config: {
       background: true,
-      segmentsPerDay: 6,
-      retrieveLastDays: 14,
-      deleteBeforeDays: 3,
+      segmentsPerDay: 1,
+      retrieveLastDays: 7,
+      deleteBeforeDays: 7, // merge into above?
       collections: [0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85],
       reservoirSalesV3BatchSize: 50,
     },
@@ -305,17 +322,17 @@ const salesModule = {
   mutations: {
     // --- addToExecutionQueue() ---
     async addToExecutionQueue(state, action) {
-      logInfo("salesModule", "mutations.addToExecutionQueue() - executionQueue: " + JSON.stringify(state.executionQueue));
+      logInfo("ensSalesModule", "mutations.addToExecutionQueue() - executionQueue: " + JSON.stringify(state.executionQueue));
       // TODO - Not working
       if (!state.executionQueue.includes(action)) {
         state.executionQueue.push(action);
       } else {
-        logInfo("salesModule", "mutations.addToExecutionQueue() - already existing action: " + JSON.stringify(action) + ", queue: " + JSON.stringify(state.executionQueue));
+        logInfo("ensSalesModule", "mutations.addToExecutionQueue() - already existing action: " + JSON.stringify(action) + ", queue: " + JSON.stringify(state.executionQueue));
       }
-      logInfo("salesModule", "mutations.addToExecutionQueue() - action: " + JSON.stringify(action) + ", queue: " + JSON.stringify(state.executionQueue));
+      logInfo("ensSalesModule", "mutations.addToExecutionQueue() - action: " + JSON.stringify(action) + ", queue: " + JSON.stringify(state.executionQueue));
     },
     // --- loadSales() ---
-    async loadSales(state, fullSync) {
+    async loadSales(state, syncMode) {
       // --- loadSales() functions start ---
       function processRegistrations(registrations) {
         const results = {};
@@ -351,7 +368,7 @@ const salesModule = {
         const chainId = (store.getters['connection/network'] && store.getters['connection/network'].chainId) || 1;
         for (const sale of data.sales) {
           // if (count == 0) {
-          //   logInfo("salesModule", "mutations.loadSales().processSales() " + new Date(sale.timestamp * 1000).toLocaleString() + " " + (sale.token.name ? sale.token.name : "(null)") + ", price: " + sale.price + ", from: " + sale.from.substr(0, 10) + ", to: " + sale.to.substr(0, 10));
+          //   logInfo("ensSalesModule", "mutations.loadSales().processSales() " + new Date(sale.timestamp * 1000).toLocaleString() + " " + (sale.token.name ? sale.token.name : "(null)") + ", price: " + sale.price + ", from: " + sale.from.substr(0, 10) + ", to: " + sale.to.substr(0, 10));
           // }
           const name = namesByTokenIds[sale.token.tokenId] ? namesByTokenIds[sale.token.tokenId] : sale.token.name;
           saleRecords.push({
@@ -376,7 +393,7 @@ const salesModule = {
         return saleRecords.length;
       }
       // async function fetchSales(startTimestamp, endTimestamp) {
-      //   logInfo("salesModule", "mutations.loadSales().fetchSales() - " + startTimestamp.toLocaleString() + " - " + endTimestamp.toLocaleString());
+      //   logInfo("ensSalesModule", "mutations.loadSales().fetchSales() - " + startTimestamp.toLocaleString() + " - " + endTimestamp.toLocaleString());
       //   const url = "https://api.reservoir.tools/sales/v3?contract=0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85&limit=" + state.config.reservoirSalesV3BatchSize + "&startTimestamp=" + parseInt(startTimestamp / 1000) + "&endTimestamp="+ parseInt(endTimestamp / 1000);
       //   let continuation = null;
       //   do {
@@ -393,51 +410,65 @@ const salesModule = {
       //   } while (continuation != null);
       // }
       async function updateDBFromAPI() {
-        logInfo("salesModule", "mutations.loadSales().updateDBFromAPI()");
-        const now = new Date();
+        logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI()");
+        const now = moment().unix();
         const earliestEntry = await db0.sales.orderBy("timestamp").first();
-        const earliestDate = earliestEntry ? new Date(earliestEntry.timestamp * 1000) : null;
+        const earliestDate = earliestEntry ? earliestEntry.timestamp : null;
         const latestEntry = await db0.sales.orderBy("timestamp").last();
-        const latestDate = latestEntry ? new Date(latestEntry.timestamp * 1000) : null;
-        // logInfo("salesModule", "mutations.loadSales() - db: " + (earliestDate ? earliestDate.toLocaleString() : '(null)') + " to " + (latestDate ? latestDate.toLocaleString() : '') + " @ " + now.toLocaleString());
+        const latestDate = latestEntry ? latestEntry.timestamp : null;
+        logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI() - now: " +
+          moment.unix(now).utc().format() + " (" + now + "), " +
+          "earliestDate: " + (earliestDate == null ? null : (moment.unix(now).utc().format() + " (" + earliestDate + ")")) +
+          ", latestDate: " + (latestDate == null ? null : (moment.unix(now).utc().format() + " (" + latestDate + ")"))
+        );
 
-        const segmentStart = new Date();
-        segmentStart.setHours(parseInt(segmentStart.getHours() / state.config.segmentsPerDay) * state.config.segmentsPerDay, 0, 0, 0);
-        const retrieveLastDate = new Date(segmentStart.getTime() - state.config.retrieveLastDays * MILLISPERDAY);
-        const deleteBeforeDate = new Date(segmentStart.getTime() - state.config.deleteBeforeDays * MILLISPERDAY);
-        // logInfo("salesModule", "mutations.loadSales() - segmentStart: " + segmentStart.toLocaleString() + ", retrieveLastDate: " + retrieveLastDate.toLocaleString() + ", deleteBeforeDate: " + deleteBeforeDate.toLocaleString());
+        const segmentStart = moment.unix(now).utc().startOf('day').unix();
+        logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI() - segmentStart: " + moment.unix(segmentStart).utc().format() + " (" + segmentStart + ")");
+
+        // const segmentStart = new Date();
+        // logInfo("ensSalesModule", "mutations.loadSales() - segmentStart: " + segmentStart.toLocaleString());
+        // segmentStart.setHours(parseInt(segmentStart.getHours() / state.config.segmentsPerDay) * state.config.segmentsPerDay, 0, 0, 0);
+        // const retrieveLastDate = new Date(segmentStart.getTime() - state.config.retrieveLastDays * MILLISPERDAY);
+        const retrieveLastDate = moment.unix(now).utc().startOf('day').subtract(state.config.retrieveLastDays, 'day').unix();
+        logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI() - retrieveLastDate: " + moment.unix(retrieveLastDate).utc().format() + " (" + retrieveLastDate + ")");
+        // const deleteBeforeDate = new Date(segmentStart.getTime() - state.config.deleteBeforeDays * MILLISPERDAY);
+        // logInfo("ensSalesModule", "mutations.loadSales() - segmentStart: " + segmentStart.toLocaleString() + ", retrieveLastDate: " + retrieveLastDate.toLocaleString() + ", deleteBeforeDate: " + deleteBeforeDate.toLocaleString());
+        // const deleteBeforeDate = moment.unix(now).utc().startOf('day').subtract(state.config.deleteBeforeDays, 'day').unix();
+        // logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI() - deleteBeforeDate: " + moment.unix(deleteBeforeDate).utc().format() + " (" + deleteBeforeDate + ")");
 
         // Get from start of today
         let to = now;
         let from = segmentStart;
         let dates;
         try {
-          dates = JSON.parse(localStorage.dates);
+          dates = JSON.parse(localStorage.ensSalesDates);
+          // console.log("dates: " + JSON.stringify(Object.keys(dates)));
         } catch (e) {
           dates = {};
         };
+        // DEV
         // dates = {};
         const sales = {};
         let count = 0;
-        while (to > retrieveLastDate && !state.halt && count < 2) {
+        while (to > retrieveLastDate && !state.halt && count < 7) {
           let totalRecords = 0;
-          if (!(from.toLocaleString() in dates)) {
+          if (!(from in dates)) {
             let processFrom = from;
             const processTo = to;
             if (processFrom == segmentStart) {
               if (processFrom < latestDate) {
-                processFrom = new Date(latestDate.getTime() + 1000);
+                processFrom = latestDate;
               }
             }
             let continuation = null;
             do {
               let url = "https://api.reservoir.tools/sales/v3?contract=0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85" +
                 "&limit=" + state.config.reservoirSalesV3BatchSize +
-                "&startTimestamp=" + parseInt(processFrom.getTime() / 1000) +
-                "&endTimestamp="+ parseInt(processTo.getTime() / 1000) +
+                "&startTimestamp=" + processFrom +
+                "&endTimestamp="+ processTo +
                 (continuation != null ? "&continuation=" + continuation : '');
-              // logInfo("salesModule", "mutations.loadSales() - url: " + url);
-              // logInfo("salesModule", "mutations.loadSales() - Retrieving records for " + new Date(processFrom).toLocaleString() + " to " + new Date(processTo).toLocaleString());
+              // logInfo("ensSalesModule", "mutations.loadSales() - url: " + url);
+              // logInfo("ensSalesModule", "mutations.loadSales() - Retrieving records for " + new Date(processFrom).toLocaleString() + " to " + new Date(processTo).toLocaleString());
               const data = await fetch(url)
                 .then(response => response.json());
               let numberOfRecords = await processSales(data);
@@ -445,20 +476,22 @@ const salesModule = {
               continuation = data.continuation;
             } while (continuation != null);
             if (from != segmentStart && !state.halt) {
-              dates[from.toLocaleString()] = true;
+              // console.log("dates.push(" + from + ")");
+              dates[from] = true;
             }
             if (totalRecords > 0) {
-              logInfo("salesModule", "mutations.loadSales() - Retrieved " +  totalRecords + " record(s) for " + new Date(processFrom).toLocaleString() + " to " + new Date(processTo).toLocaleString());
+              logInfo("ensSalesModule", "mutations.loadSales() - Retrieved " +  totalRecords + " record(s) for " + moment.unix(processFrom).utc().format() + " to " + moment.unix(processTo).utc().format());
             } else {
-              logInfo("salesModule", "mutations.loadSales() - Nothing new");
+              logInfo("ensSalesModule", "mutations.loadSales() - Nothing new");
             }
             count++;
           }
           to = from;
-          from = new Date(from.getTime() - MILLISPERDAY/state.config.segmentsPerDay);
+          // from = new Date(from.getTime() - MILLISPERDAY/state.config.segmentsPerDay);
+          from = moment.unix(from).utc().subtract(1, 'day').unix();
         }
-        localStorage.dates = JSON.stringify(dates);
-        // logInfo("salesModule", "mutations.loadSales() - processed dates: " + JSON.stringify(Object.keys(dates)));
+        localStorage.ensSalesDates = JSON.stringify(dates);
+        logInfo("ensSalesModule", "mutations.loadSales() - processed dates: " + JSON.stringify(Object.keys(dates)));
       }
       async function refreshResultsFromDB() {
         const salesFromDB = await db0.sales.orderBy("timestamp").reverse().limit(100).toArray();
@@ -482,7 +515,14 @@ const salesModule = {
 
       // --- loadSales() start ---
       // state.executionQueue.push(options);
-      logInfo("salesModule", "mutations.loadSales() - fullSync: " + fullSync);
+      logInfo("ensSalesModule", "mutations.loadSales() - syncMode: " + syncMode);
+
+
+      if (syncMode == 'full') {
+        logInfo("ensSalesModule", "mutations.loadSales() - deleting db");
+        Dexie.delete("aenusenssalesdb");
+        localStorage.ensSalesDates = undefined;
+      }
 
       const db0 = new Dexie("aenusenssalesdb");
       db0.version(1).stores({
@@ -490,6 +530,25 @@ const salesModule = {
         sales: '[chainId+contract+tokenId],chainId,contract,tokenId,name,from,to,price,timestamp',
       });
 
+      const deleteBeforeDate = moment.utc().startOf('day').subtract(state.config.deleteBeforeDays, 'day').unix();
+      logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI() - deleteBeforeDate: " + moment.unix(deleteBeforeDate).utc().format() + " (" + deleteBeforeDate + ")");
+      db0.transaction('rw', db0.sales, function* () {
+        var deleteCount = yield db0.sales.where("timestamp").below(deleteBeforeDate).delete();
+        logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI() - deleted " + deleteCount + " old records");
+        const ensSalesDates = JSON.parse(localStorage.ensSalesDates);
+        Object.keys(ensSalesDates).forEach(function (timestamp) {
+          if (timestamp < deleteBeforeDate) {
+            delete ensSalesDates[timestamp];
+          }
+        });
+        localStorage.ensSalesDates = JSON.stringify(ensSalesDates);
+      }).catch (e => {
+          console.error (e);
+      });
+
+      if (syncMode == 'mounted') {
+        await refreshResultsFromDB();
+      }
       // let execute;
       // do {
       //   execute = state.executionQueue.shift();
@@ -505,6 +564,7 @@ const salesModule = {
       //     }
       //   }
       // } while (execute != null && !state.halt);
+      // console.log("state.sales: " + JSON.stringify(state.sales.slice(0, 10)));
       state.message = null;
       state.halt = false;
 
@@ -517,19 +577,19 @@ const salesModule = {
   },
   actions: {
     // execWeb3( { state, commit, rootState }, { count } ) {
-    //   logInfo("salesModule", "actions.execWeb3() - count: " + count);
+    //   logInfo("ensSalesModule", "actions.execWeb3() - count: " + count);
     //   commit('doit', { action: "refresh" } );
     // },
     updateFilter(context, action) {
-      logInfo("salesModule", "actions.updateFilter() - action: " + JSON.stringify(action));
+      logInfo("ensSalesModule", "actions.updateFilter() - action: " + JSON.stringify(action));
       // context.commit('addToExecutionQueue', action);
     },
-    loadSales(context, fullSync) {
-      // logInfo("salesModule", "actions.loadSales() - fullSync: " + fullSync);
-      context.commit('loadSales', fullSync);
+    loadSales(context, syncMode) {
+      // logInfo("ensSalesModule", "actions.loadSales() - syncMode: " + syncMode);
+      context.commit('loadSales', syncMode);
     },
     halt(context) {
-      // logInfo("salesModule", "actions.halt()");
+      // logInfo("ensSalesModule", "actions.halt()");
       context.commit('halt');
     },
   },

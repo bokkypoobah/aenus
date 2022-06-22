@@ -4,7 +4,7 @@ const routes = [{
     name: 'Search',
     props: true,
   }, {
-    path: '/enssales/',
+    path: '/enssales/:search?/:topic?',
     component: ENSSales,
     name: 'ENSSales',
   }, {
