@@ -418,8 +418,8 @@ const ensSalesModule = {
         const latestDate = latestEntry ? latestEntry.timestamp : null;
         logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI() - now: " +
           moment.unix(now).utc().format() + " (" + now + "), " +
-          "earliestDate: " + (earliestDate == null ? null : (moment.unix(now).utc().format() + " (" + earliestDate + ")")) +
-          ", latestDate: " + (latestDate == null ? null : (moment.unix(now).utc().format() + " (" + latestDate + ")"))
+          "earliestDate: " + (earliestDate == null ? null : (moment.unix(earliestDate).utc().format() + " (" + earliestDate + ")")) +
+          ", latestDate: " + (latestDate == null ? null : (moment.unix(latestDate).utc().format() + " (" + latestDate + ")"))
         );
 
         const segmentStart = moment.unix(now).utc().startOf('day').unix();
