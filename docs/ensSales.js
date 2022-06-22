@@ -34,16 +34,16 @@ const ENSSales = {
                 <b-form-input type="text" size="sm" :value="filter.searchString" @change="updateFilter('searchString', $event)" debounce="600" placeholder="🔍 {regex}"></b-form-input>
               </div>
               <div class="mt-2 pr-4">
-                <b-form-input type="text" size="sm" :value="filter.searchAccount" @change="updateFilter('searchAccount', $event)" debounce="600" placeholder="🔍 {regex}"></b-form-input>
+                <b-form-input type="text" size="sm" :value="filter.searchAccounts" @change="updateFilter('searchAccounts', $event)" debounce="600" placeholder="🔍 {regex}"></b-form-input>
               </div>
-              <div class="mt-2 pr-1" style="max-width: 100px;">
-                <b-form-input type="text" size="sm" :value="filter.priceFrom" @change="updateFilter('priceFrom', $event)" debounce="600" placeholder="ETH from"></b-form-input>
+              <div class="mt-2 pr-1" style="max-width: 80px;">
+                <b-form-input type="text" size="sm" :value="filter.priceFrom" @change="updateFilter('priceFrom', $event)" debounce="600" placeholder="min"></b-form-input>
               </div>
               <div class="mt-2 pr-1">
                 -
               </div>
-              <div class="mt-2 pr-2" style="max-width: 100px;">
-              <b-form-input type="text" size="sm" :value="filter.priceTo" @change="updateFilter('priceTo', $event)" debounce="600" placeholder="ETH to"></b-form-input>
+              <div class="mt-2 pr-2" style="max-width: 80px;">
+              <b-form-input type="text" size="sm" :value="filter.priceTo" @change="updateFilter('priceTo', $event)" debounce="600" placeholder="max"></b-form-input>
               </div>
               <div class="mt-2 pr-1 flex-grow-1">
               </div>
@@ -358,10 +358,10 @@ const ensSalesModule = {
       reservoirSalesV3BatchSize: 50,
     },
     filter: {
-      searchString: "^[0-9]*$",
-      searchAccount: "0x000001",
-      priceFrom: 0.01,
-      priceTo: 12.34,
+      searchString: null,
+      searchAccounts: null,
+      priceFrom: null,
+      priceTo: null,
     },
     sales: [],
     message: null,
@@ -548,20 +548,53 @@ const ensSalesModule = {
         logInfo("ensSalesModule", "mutations.loadSales() - processed dates: " + JSON.stringify(Object.keys(dates)));
       }
       async function refreshResultsFromDB() {
+        const regex = state.filter.searchString != null && state.filter.searchString.length > 0 ? new RegExp(state.filter.searchString, 'i') : null;
+        const searchAccounts = state.filter.searchAccounts ? state.filter.searchAccounts.split(/[, \t\n]+/).map(s => s.trim().toLowerCase()) : null;
+        const priceFrom = state.filter.priceFrom && parseFloat(state.filter.priceFrom) > 0 ? parseFloat(state.filter.priceFrom) : null;
+        const priceTo = state.filter.priceTo && parseFloat(state.filter.priceTo) > 0 ? parseFloat(state.filter.priceTo) : null;
         const salesFromDB = await db0.sales.orderBy("timestamp").reverse().toArray();
         const saleRecords = [];
         let count = 0;
         for (const sale of salesFromDB) {
-          saleRecords.push({
-            name: sale.name,
-            from: sale.from,
-            to: sale.to,
-            price: sale.price,
-            timestamp: sale.timestamp,
-            tokenId: sale.tokenId,
-            txHash: sale.txHash,
-          });
-          count++;
+          let include = true;
+          const name = sale.name && sale.name.replace('.eth', '') || null;
+          if (regex && !regex.test(name)) {
+            include = false;
+          }
+          if (include && searchAccounts != null) {
+            let found = false;
+            for (searchAccount of searchAccounts) {
+              if (sale.from.includes(searchAccount) || sale.to.includes(searchAccount)) {
+                found = true;
+                break;
+              }
+            }
+            if (!found) {
+              include = false;
+            }
+          }
+          if (include && priceFrom != null) {
+            if (sale.price < priceFrom) {
+              include = false;
+            }
+          }
+          if (include && priceTo != null) {
+            if (sale.price > priceTo) {
+              include = false;
+            }
+          }
+          if (include) {
+            saleRecords.push({
+              name: sale.name,
+              from: sale.from,
+              to: sale.to,
+              price: sale.price,
+              timestamp: sale.timestamp,
+              tokenId: sale.tokenId,
+              txHash: sale.txHash,
+            });
+            count++;
+          }
         }
         state.sales = saleRecords;
       }
