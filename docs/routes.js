@@ -13,6 +13,10 @@ const routes = [{
     name: 'CryptoPunks',
     props: true,
   }, {
+    path: '/nfts/',
+    component: NFTs,
+    name: 'NFTs',
+  }, {
     path: '/config',
     component: Config,
     name: 'Config',
