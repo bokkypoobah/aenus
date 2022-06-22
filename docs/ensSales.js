@@ -34,7 +34,7 @@ const ENSSales = {
                 <b-form-input type="text" size="sm" :value="filter.searchString" @change="updateFilter('searchString', $event)" debounce="600" placeholder="🔍 {regex}"></b-form-input>
               </div>
               <div class="mt-2 pr-4">
-                <b-form-input type="text" size="sm" :value="filter.searchAccounts" @change="updateFilter('searchAccounts', $event)" debounce="600" placeholder="🔍 {regex}"></b-form-input>
+                <b-form-input type="text" size="sm" :value="filter.searchAccounts" @change="updateFilter('searchAccounts', $event)" debounce="600" placeholder="🔍 0x12... ..."></b-form-input>
               </div>
               <div class="mt-2 pr-1" style="max-width: 80px;">
                 <b-form-input type="text" size="sm" :value="filter.priceFrom" @change="updateFilter('priceFrom', $event)" debounce="600" placeholder="min"></b-form-input>
