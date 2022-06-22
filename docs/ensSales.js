@@ -55,13 +55,16 @@ const ENSSales = {
               </div>
               <div class="mt-2 pr-1 flex-grow-1">
               </div>
-              <div class="mt-2 pl-1">
+              <div class="mt-2 pr-1">
+                <b-form-select size="sm" v-model="settings.sortOption" :options="sortOptions"></b-form-select>
+              </div>
+              <div class="mt-2 pr-1">
                 <font size="-2" v-b-popover.hover.bottom="formatTimestamp(earliestEntry) + ' to ' + formatTimestamp(latestEntry)">{{ filteredSortedSales.length }}</font>
               </div>
-              <div class="mt-2 pl-1">
+              <div class="mt-2 pr-1">
                 <b-pagination size="sm" v-model="settings.currentPage" :total-rows="filteredSortedSales.length" :per-page="settings.pageSize"></b-pagination>
               </div>
-              <div class="mt-2 pl-1">
+              <div class="mt-2">
                 <b-form-select size="sm" v-model="settings.pageSize" :options="pageSizes" v-b-popover.hover.bottom="'Page size'"></b-form-select>
               </div>
             </div>
@@ -185,18 +188,21 @@ const ENSSales = {
 
       settings: {
         tabIndex: 0,
-        // sortOption: 'nameasc',
+        sortOption: 'latestsale',
         // randomise: false,
-
         pageSize: 100,
         currentPage: 1,
-
-        // imageSize: '240',
-
-        // resultsTabIndex: 0,
       },
 
-      results: [],
+      sortOptions: [
+        { value: 'nameasc', text: 'Name Ascending' },
+        { value: 'namedsc', text: 'Name Descending' },
+        { value: 'priceasc', text: 'Price Ascending' },
+        { value: 'pricedsc', text: 'Price Descending' },
+        { value: 'latestsale', text: 'Latest Sale' },
+        { value: 'earliestsale', text: 'Earliest Sale' },
+        // { value: 'random', text: 'Random' },
+      ],
 
       pageSizes: [
         { value: 10, text: '10' },
@@ -259,19 +265,43 @@ const ENSSales = {
     },
     filteredSortedSales() {
       let results = this.sales;
-      // if (this.settings.ownersSortOption == 'countasc') {
-      //   results.sort((a, b) => {
-      //     return a.count - b.count;
-      //   });
-      // } else if (this.settings.ownersSortOption == 'countdsc') {
-      //   results.sort((a, b) => {
-      //     return b.count - a.count;
-      //   });
-      // } else {
-      //   results.sort(() => {
-      //     return Math.random() - 0.5;
-      //   });
-      // }
+      if (this.settings.sortOption == 'nameasc') {
+        results.sort((a, b) => ('' + a.name).localeCompare(b.name));
+      } else if (this.settings.sortOption == 'namedsc') {
+        results.sort((a, b) => ('' + b.name).localeCompare(a.name));
+      } else if (this.settings.sortOption == 'priceasc') {
+        results.sort((a, b) => {
+          if (a.price == b.price) {
+            return ('' + a.name).localeCompare(b.name);
+          } else {
+            return a.price - b.price;
+          }
+        });
+      } else if (this.settings.sortOption == 'pricedsc') {
+        results.sort((a, b) => {
+          if (a.price == b.price) {
+            return ('' + a.name).localeCompare(b.name);
+          } else {
+            return b.price - a.price;
+          }
+        });
+      } else if (this.settings.sortOption == 'latestsale') {
+        results.sort((a, b) => {
+          if (a.timestamp == b.timestamp) {
+            return ('' + a.name).localeCompare(b.name);
+          } else {
+            return b.timestamp - a.timestamp;
+          }
+        });
+      } else if (this.settings.sortOption == 'earliestsale') {
+        results.sort((a, b) => {
+          if (a.timestamp == b.timestamp) {
+            return ('' + a.name).localeCompare(b.name);
+          } else {
+            return a.timestamp - b.timestamp;
+          }
+        });
+      }
       return results;
     },
     pagedFilteredSortedSales() {
@@ -305,10 +335,6 @@ const ENSSales = {
       // console.log("loadSales - syncMode: " + syncMode);
       store.dispatch('ensSales/loadSales', syncMode);
     },
-    // async doit(action) {
-    //   console.log("doit: " + JSON.stringify(action));
-    //   store.dispatch('sales/doit', action);
-    // },
     async halt() {
       store.dispatch('search/halt');
     },
@@ -620,7 +646,7 @@ const ensSalesModule = {
         // nftData: '&tokenId,asset,timestamp',
         sales: '[chainId+contract+tokenId],chainId,contract,tokenId,name,from,to,price,timestamp',
       });
-      if (syncMode != 'full') {
+      if (syncMode != 'full' && syncMode != 'filterUpdate') {
         const deleteBeforeDate = moment.utc().startOf('day').subtract(state.config.deleteBeforeDays, 'day').unix();
         logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI() - deleteBeforeDate: " + moment.unix(deleteBeforeDate).utc().format() + " (" + deleteBeforeDate + ")");
         db0.transaction('rw', db0.sales, function* () {
