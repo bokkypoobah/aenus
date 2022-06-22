@@ -30,13 +30,13 @@ const ENSSales = {
           -->
           <b-card-body class="m-1 p-1">
             <div class="d-flex flex-wrap m-0 p-0" style="min-height: 37px;">
-              <div class="mt-2 pr-4">
+              <div class="mt-2" style="max-width: 150px;">
                 <b-form-input type="text" size="sm" :value="filter.searchString" @change="updateFilter('searchString', $event)" debounce="600" placeholder="🔍 {regex}"></b-form-input>
               </div>
-              <div class="mt-2 pr-4">
+              <div class="mt-2 pl-2" style="max-width: 150px;">
                 <b-form-input type="text" size="sm" :value="filter.searchAccounts" @change="updateFilter('searchAccounts', $event)" debounce="600" placeholder="🔍 0x12... ..."></b-form-input>
               </div>
-              <div class="mt-2 pr-1" style="max-width: 80px;">
+              <div class="mt-2 pl-2" style="max-width: 80px;">
                 <b-form-input type="text" size="sm" :value="filter.priceFrom" @change="updateFilter('priceFrom', $event)" debounce="600" placeholder="min"></b-form-input>
               </div>
               <div class="mt-2 pr-1">
@@ -352,8 +352,8 @@ const ensSalesModule = {
     config: {
       background: true,
       segmentsPerDay: 1,
-      retrieveLastDays: 7,
-      deleteBeforeDays: 7, // merge into above?
+      retrieveLastDays: 31,
+      deleteBeforeDays: 31, // merge into above?
       collections: [0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85],
       reservoirSalesV3BatchSize: 50,
     },
@@ -615,29 +615,32 @@ const ensSalesModule = {
         Dexie.delete("aenusenssalesdb");
         localStorage.ensSalesDates = undefined;
       }
-
       const db0 = new Dexie("aenusenssalesdb");
       db0.version(1).stores({
         // nftData: '&tokenId,asset,timestamp',
         sales: '[chainId+contract+tokenId],chainId,contract,tokenId,name,from,to,price,timestamp',
       });
-
-      const deleteBeforeDate = moment.utc().startOf('day').subtract(state.config.deleteBeforeDays, 'day').unix();
-      logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI() - deleteBeforeDate: " + moment.unix(deleteBeforeDate).utc().format() + " (" + deleteBeforeDate + ")");
-      db0.transaction('rw', db0.sales, function* () {
-        var deleteCount = yield db0.sales.where("timestamp").below(deleteBeforeDate).delete();
-        logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI() - deleted " + deleteCount + " old records");
-        const ensSalesDates = JSON.parse(localStorage.ensSalesDates);
-        Object.keys(ensSalesDates).forEach(function (timestamp) {
-          if (timestamp < deleteBeforeDate) {
-            delete ensSalesDates[timestamp];
+      if (syncMode != 'full') {
+        const deleteBeforeDate = moment.utc().startOf('day').subtract(state.config.deleteBeforeDays, 'day').unix();
+        logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI() - deleteBeforeDate: " + moment.unix(deleteBeforeDate).utc().format() + " (" + deleteBeforeDate + ")");
+        db0.transaction('rw', db0.sales, function* () {
+          var deleteCount = yield db0.sales.where("timestamp").below(deleteBeforeDate).delete();
+          logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI() - deleted " + deleteCount + " old records");
+          try {
+            const ensSalesDates = JSON.parse(localStorage.ensSalesDates);
+            Object.keys(ensSalesDates).forEach(function (timestamp) {
+              if (timestamp < deleteBeforeDate) {
+                delete ensSalesDates[timestamp];
+              }
+            });
+            localStorage.ensSalesDates = JSON.stringify(ensSalesDates);
+          } catch (e) {
+            console.log("Error updating ensSalesDates")
           }
-        });
-        localStorage.ensSalesDates = JSON.stringify(ensSalesDates);
-      }).catch (e => {
+        }).catch (e => {
           console.error (e);
-      });
-
+        });
+      }
       if (syncMode == 'mounted') {
         await refreshResultsFromDB();
       }
