@@ -33,6 +33,9 @@ const ENSSales = {
               <div class="mt-2 pr-4">
                 <b-form-input type="text" size="sm" :value="filter.searchString" @change="updateFilter('searchString', $event)" debounce="600" placeholder="🔍 {regex}"></b-form-input>
               </div>
+              <div class="mt-2 pr-4">
+                <b-form-input type="text" size="sm" :value="filter.searchAccount" @change="updateFilter('searchAccount', $event)" debounce="600" placeholder="🔍 {regex}"></b-form-input>
+              </div>
               <div class="mt-2 pr-1" style="max-width: 100px;">
                 <b-form-input type="text" size="sm" :value="filter.priceFrom" @change="updateFilter('priceFrom', $event)" debounce="600" placeholder="ETH from"></b-form-input>
               </div>
@@ -294,7 +297,9 @@ const ENSSales = {
     },
     updateFilter(field, filter) {
       console.log("updateFilter: " + field + " => " + JSON.stringify(filter));
-      store.dispatch('sales/updateFilter', { field, filter} );
+      const filterUpdate = {};
+      filterUpdate[field] = filter;
+      store.dispatch('ensSales/updateFilter', filterUpdate);
     },
     async loadSales(syncMode) {
       // console.log("loadSales - syncMode: " + syncMode);
@@ -354,6 +359,7 @@ const ensSalesModule = {
     },
     filter: {
       searchString: "^[0-9]*$",
+      searchAccount: "0x000001",
       priceFrom: 0.01,
       priceTo: 12.34,
     },
@@ -362,7 +368,6 @@ const ensSalesModule = {
     halt: false,
     params: null,
     executing: false,
-    executionQueue: [],
     db: {
       name: "aenusenssalesdb",
       version: 1,
@@ -378,22 +383,10 @@ const ensSalesModule = {
     sales: state => state.sales,
     message: state => state.message,
     params: state => state.params,
-    executionQueue: state => state.executionQueue,
   },
   mutations: {
-    // --- addToExecutionQueue() ---
-    async addToExecutionQueue(state, action) {
-      logInfo("ensSalesModule", "mutations.addToExecutionQueue() - executionQueue: " + JSON.stringify(state.executionQueue));
-      // TODO - Not working
-      if (!state.executionQueue.includes(action)) {
-        state.executionQueue.push(action);
-      } else {
-        logInfo("ensSalesModule", "mutations.addToExecutionQueue() - already existing action: " + JSON.stringify(action) + ", queue: " + JSON.stringify(state.executionQueue));
-      }
-      logInfo("ensSalesModule", "mutations.addToExecutionQueue() - action: " + JSON.stringify(action) + ", queue: " + JSON.stringify(state.executionQueue));
-    },
     // --- loadSales() ---
-    async loadSales(state, syncMode) {
+    async loadSales(state, { syncMode, filterUpdate }) {
       // --- loadSales() functions start ---
       function processRegistrations(registrations) {
         const results = {};
@@ -575,9 +568,14 @@ const ensSalesModule = {
       // --- loadSales() functions end ---
 
       // --- loadSales() start ---
-      // state.executionQueue.push(options);
-      logInfo("ensSalesModule", "mutations.loadSales() - syncMode: " + syncMode);
+      logInfo("ensSalesModule", "mutations.loadSales() - syncMode: " + syncMode + ", filterUpdate: " + JSON.stringify(filterUpdate));
 
+      console.log("filter before: " + JSON.stringify(state.filter));
+      if (filterUpdate != null) {
+        console.log("updating filter with: " + JSON.stringify(filterUpdate));
+        state.filter = { ...state.filter, ...filterUpdate };
+        console.log("filter after: " + JSON.stringify(state.filter));
+      }
 
       if (syncMode == 'full') {
         logInfo("ensSalesModule", "mutations.loadSales() - deleting db");
@@ -610,22 +608,10 @@ const ensSalesModule = {
       if (syncMode == 'mounted') {
         await refreshResultsFromDB();
       }
-      // let execute;
-      // do {
-      //   execute = state.executionQueue.shift();
-      //   if (execute) {
-      //     // console.log("    execute: " + JSON.stringify(execute));
-      //     // Refresh results from API to DB
-      //     if (execute.action == "refresh") {
-            await updateDBFromAPI();
-          // }
-          // // Refresh results from DB to memory
-          // if (execute.action == "refresh") {
-            await refreshResultsFromDB();
-      //     }
-      //   }
-      // } while (execute != null && !state.halt);
-      // console.log("state.sales: " + JSON.stringify(state.sales.slice(0, 10)));
+      if (syncMode != 'updateFilter') {
+        await updateDBFromAPI();
+      }
+      await refreshResultsFromDB();
       state.message = null;
       state.halt = false;
 
@@ -637,17 +623,13 @@ const ensSalesModule = {
     },
   },
   actions: {
-    // execWeb3( { state, commit, rootState }, { count } ) {
-    //   logInfo("ensSalesModule", "actions.execWeb3() - count: " + count);
-    //   commit('doit', { action: "refresh" } );
-    // },
-    updateFilter(context, action) {
-      logInfo("ensSalesModule", "actions.updateFilter() - action: " + JSON.stringify(action));
-      // context.commit('addToExecutionQueue', action);
+    updateFilter(context, filterUpdate) {
+      logInfo("ensSalesModule", "filterUpdates.updateFilter() - filterUpdate: " + JSON.stringify(filterUpdate));
+      context.commit('loadSales', { syncMode: 'updateFilter', filterUpdate });
     },
     loadSales(context, syncMode) {
       // logInfo("ensSalesModule", "actions.loadSales() - syncMode: " + syncMode);
-      context.commit('loadSales', syncMode);
+      context.commit('loadSales', { syncMode: syncMode, filterUpdate: null } );
     },
     halt(context) {
       // logInfo("ensSalesModule", "actions.halt()");
