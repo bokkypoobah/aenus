@@ -9,12 +9,14 @@ const ENSSales = {
 
       <b-card no-body no-header class="border-0">
         <b-card no-body class="p-0 mt-1">
+          <!--
           <b-tabs card align="left" no-body active-tab-class="m-0 p-0" v-model="settings.tabIndex">
             <b-tab title="Summary" @click="updateURL('summary');">
             </b-tab>
             <b-tab title="List" @click="updateURL('list');">
             </b-tab>
           </b-tabs>
+          -->
 
           <!--
           <b-card-body class="m-1 p-1">
@@ -50,8 +52,17 @@ const ENSSales = {
               </div>
               <div class="mt-2 pr-1 flex-grow-1">
               </div>
+              <div class="mt-2 pl-1">
+                <font size="-2" v-b-popover.hover.bottom="formatTimestamp(earliestEntry) + ' to ' + formatTimestamp(latestEntry)">{{ filteredSortedSales.length }}</font>
+              </div>
+              <div class="mt-2 pl-1">
+                <b-pagination size="sm" v-model="settings.currentPage" :total-rows="filteredSortedSales.length" :per-page="settings.pageSize"></b-pagination>
+              </div>
+              <div class="mt-2 pl-1">
+                <b-form-select size="sm" v-model="settings.pageSize" :options="pageSizes" v-b-popover.hover.bottom="'Page size'"></b-form-select>
+              </div>
             </div>
-            <b-table small striped hover :fields="salesFields" :items="sales" table-class="w-auto" class="mt-1">
+            <b-table small striped hover :fields="salesFields" :items="pagedFilteredSortedSales" table-class="w-auto" class="mt-0">
               <template #cell(timestamp)="data">
                 {{ formatTimestamp(data.item.timestamp) }}
               </template>
@@ -174,8 +185,8 @@ const ENSSales = {
         // sortOption: 'nameasc',
         // randomise: false,
 
-        // resultsPageSize: 100,
-        // resultsCurrentPage: 1,
+        pageSize: 100,
+        currentPage: 1,
 
         // imageSize: '240',
 
@@ -183,6 +194,15 @@ const ENSSales = {
       },
 
       results: [],
+
+      pageSizes: [
+        { value: 10, text: '10' },
+        { value: 100, text: '100' },
+        { value: 500, text: '500' },
+        { value: 1000, text: '1,000' },
+        { value: 2500, text: '2,500' },
+        { value: 10000, text: '(all)' },
+      ],
 
       salesFields: [
         { key: 'timestamp', label: 'Timestamp', thStyle: 'width: 20%;' },
@@ -216,6 +236,44 @@ const ENSSales = {
     message() {
       return store.getters['ensSales/message'];
     },
+    earliestEntry() {
+      let timestamp = null;
+      for (const sale of this.sales) {
+        if (timestamp == null || timestamp > sale.timestamp) {
+          timestamp = sale.timestamp;
+        }
+      }
+      return timestamp;
+    },
+    latestEntry() {
+      let timestamp = null;
+      for (const sale of this.sales) {
+        if (timestamp == null || timestamp < sale.timestamp) {
+          timestamp = sale.timestamp;
+        }
+      }
+      return timestamp;
+    },
+    filteredSortedSales() {
+      let results = this.sales;
+      // if (this.settings.ownersSortOption == 'countasc') {
+      //   results.sort((a, b) => {
+      //     return a.count - b.count;
+      //   });
+      // } else if (this.settings.ownersSortOption == 'countdsc') {
+      //   results.sort((a, b) => {
+      //     return b.count - a.count;
+      //   });
+      // } else {
+      //   results.sort(() => {
+      //     return Math.random() - 0.5;
+      //   });
+      // }
+      return results;
+    },
+    pagedFilteredSortedSales() {
+      return this.filteredSortedSales.slice((this.settings.currentPage - 1) * this.settings.pageSize, this.settings.currentPage * this.settings.pageSize);
+    },
   },
   methods: {
     updateURL(where) {
@@ -229,7 +287,10 @@ const ENSSales = {
       return e.toFixed(9);
     },
     formatTimestamp(ts) {
-      return new Date(ts * 1000).toLocaleString();
+      if (ts != null) {
+        return new Date(ts * 1000).toLocaleString();
+      }
+      return null;
     },
     updateFilter(field, filter) {
       console.log("updateFilter: " + field + " => " + JSON.stringify(filter));
@@ -494,7 +555,7 @@ const ensSalesModule = {
         logInfo("ensSalesModule", "mutations.loadSales() - processed dates: " + JSON.stringify(Object.keys(dates)));
       }
       async function refreshResultsFromDB() {
-        const salesFromDB = await db0.sales.orderBy("timestamp").reverse().limit(100).toArray();
+        const salesFromDB = await db0.sales.orderBy("timestamp").reverse().toArray();
         const saleRecords = [];
         let count = 0;
         for (const sale of salesFromDB) {
