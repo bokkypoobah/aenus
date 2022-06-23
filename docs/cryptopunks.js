@@ -331,8 +331,8 @@ const CryptoPunks = {
                     <template #header>
                       <h6 class="mb-0">CryptoPunks Sales Activity</h6>
                     </template>
-                    <apexchart :options="dailyChartOptions" :series="dailyChartSeries"></apexchart>
-                    <!-- <apexchart :options="chartOptions" :yaxis="chartOptions.yaxis" :series="chartSeries"></apexchart> -->
+                    <apexchart :options="dailyChartOptions" :series="dailyChartData"></apexchart>
+                    <!-- <apexchart :options="chartOptions" :yaxis="chartOptions.yaxis" :series="chartData"></apexchart> -->
                     <!--
                     <b-table small fixed striped sticky-header="200px" :fields="dailyDataFields" :items="dailyData" head-variant="light">
                       <template #cell(timestamp)="data">
@@ -1248,116 +1248,7 @@ const CryptoPunks = {
       results.push({ type: "Sales", title: "Highest Sales", values: sales.slice(0) });
       return results;
     },
-    // chartData0() {
-    //   let punks = this.db.updated ? null : null;
-    //   console.log('before async');
-    //   (async() => {
-    //     console.log('before db');
-    //     const db0 = new Dexie(this.db.name);
-    //     db0.version(this.db.version).stores(this.db.schemaDefinition);
-    //     punks = await db0.punks.orderBy("punkId").toArray();
-    //     db0.close();
-    //     console.log("Punks.length: " + (punks && punks.length || 0) + ", updated: " + this.db.updated);
-    //     console.log('after db');
-    //   })();
-    //   console.log('after async');
-    //
-    //   return punks && punks.slice(0, 10) || [];
-    // },
-    dailyData() {
-      const minAmount = this.settings.chartMinAmount && parseFloat(this.settings.chartMinAmount) >= 0 ? parseFloat(this.settings.chartMinAmount) : 0;
-      const maxAmount = this.settings.chartMaxAmount && parseFloat(this.settings.chartMaxAmount) >= 0 ? parseFloat(this.settings.chartMaxAmount) : 1000000;
-      console.log("chartData1 - minAmount: " + minAmount + ", maxAmount: " + maxAmount);
-      // var check = moment().utc().hours(DEFAULTEXPIRYUTCHOUR).minutes(0).seconds(0);
-      // var day0 = moment().utc().add(check.valueOf() < moment() ? 1 : 0, 'd').hours(DEFAULTEXPIRYUTCHOUR).minutes(0).seconds(0);
-
-      const now = moment().unix();
-      console.log("now: " + now + " " + moment.unix(now).utc().format());
-      // console.log("now: " + now + " " + moment().unix(now).format());
-      let beginPeriod;
-      if (this.settings.chartPeriod == '1d') {
-        beginPeriod = moment.unix(now).utc().startOf('day').subtract(1, 'd').unix();
-      } else if (this.settings.chartPeriod == '1w') {
-        beginPeriod = moment.unix(now).utc().startOf('day').subtract(7, 'd').unix();
-      } else if (this.settings.chartPeriod == '1m') {
-        beginPeriod = moment.unix(now).utc().startOf('day').subtract(1, 'month').unix();
-      } else if (this.settings.chartPeriod == '3m') {
-        beginPeriod = moment.unix(now).utc().startOf('day').subtract(3, 'month').unix();
-      } else if (this.settings.chartPeriod == '6m') {
-        beginPeriod = moment.unix(now).utc().startOf('day').subtract(6, 'month').unix();
-      } else if (this.settings.chartPeriod == '1y') {
-        beginPeriod = moment.unix(now).utc().startOf('day').subtract(1, 'year').unix();
-      } else if (this.settings.chartPeriod == 'all') {
-        beginPeriod = moment.unix(now).utc().startOf('day').subtract(10, 'year').unix();
-      }
-      console.log("beginPeriod: " + beginPeriod + " " + moment.unix(beginPeriod).utc().format());
-
-      const collator = {};
-      for (let event of this.activities[2].values) {
-        // console.log(JSON.stringify(event, null, 2));
-        if (beginPeriod <= event.timestamp && event.timestamp <= now) {
-          // console.log("event.timestamp: " + event.timestamp + " " + moment.unix(event.timestamp).format());
-          const bucket = moment.unix(event.timestamp).utc().startOf('day').unix();
-          const amount = ethers.utils.formatEther(event.amount);
-          // console.log("bucket: " + bucket + " " + moment.unix(bucket).utc().format());
-          if (amount >= minAmount && amount <= maxAmount) {
-            if (!(bucket in collator)) {
-              collator[bucket] = { count: 1, total: ethers.BigNumber.from(event.amount), items: [event] };
-            } else {
-              collator[bucket].count++;
-              collator[bucket].total = collator[bucket].total.add(event.amount);
-              collator[bucket].items.push(event);
-            }
-          } else {
-            console.log("Excluding: " + event.punkId + " " + amount);
-          }
-          // console.log("bucket: " + bucket + " " + moment.unix(bucket).utc().format() + " count: " + collator[bucket].count + ", total: " + collator[bucket].total);
-        }
-      }
-      // series.push({ name: "Sales", data: salesData });
-      const results = [];
-      for (const [bucket, value] of Object.entries(collator)) {
-        const average = value.total.div(value.count);
-        results.push({ timestamp: bucket, count: value.count, total: ethers.utils.formatEther(value.total), average: ethers.utils.formatEther(average), items: value.items });
-        // console.log("bucket: " + bucket + " " + moment.unix(bucket).utc().format() + " count: " + value.count + ", total: " + value.total);
-      }
-      results.sort((a, b) => {
-        return b.timestamp - a.timestamp;
-      });
-
-      // console.log(JSON.stringify(results));
-
-      return results;
-    },
-    dailyChartSeries() {
-      const counts = [];
-      const averages = [];
-      const averagesUSD = [];
-      for (const day of this.dailyData) {
-        counts.push({ x: day.timestamp * 1000, y: day.count, items: day.items });
-        averages.push({ x: day.timestamp * 1000, y: day.average });
-        averagesUSD.push({ x: day.timestamp * 1000, y: day.average * this.exchangeRates[day.timestamp] });
-      }
-      // console.log(JSON.stringify(counts));
-      // console.log(JSON.stringify(averages));
-      // console.log(JSON.stringify(averagesUSD));
-      return [
-        {
-          name: '# Sales',
-          type: 'column',
-          data: counts,
-        }, {
-          name: 'Average ETH',
-          type: 'area',
-          data: averages,
-        }, {
-          name: 'Average USD',
-          type: 'area',
-          data: averagesUSD,
-        }
-      ];
-    },
-    chartSeries() {
+    chartData() {
       const minAmount = this.settings.chartMinAmount && parseFloat(this.settings.chartMinAmount) >= 0 ? parseFloat(this.settings.chartMinAmount) : 0;
       const maxAmount = this.settings.chartMaxAmount && parseFloat(this.settings.chartMaxAmount) >= 0 ? parseFloat(this.settings.chartMaxAmount) : 1000000;
 
@@ -1421,39 +1312,94 @@ const CryptoPunks = {
         }
         series.push({ name: "Sales", data: salesData });
       }
-
-      // console.log("salesData.length: " + salesData.length);
-      // const series = [
-      //   {
-      //     name: "Bids",
-      //     data: bidData,
-      //   },
-      //   {
-      //     name: "Offers",
-      //     data: askData,
-      //   },
-      //   {
-      //     name: "Sales",
-      //     data: salesData,
-      //   },
-      //   // {
-      //   //   name: "Series 2 aa",
-      //   //   data: data,
-      //   // },
-      //   // {
-      //   //   name: "Series 2 bb",
-      //   //   data: [
-      //   //     [1481114800000, 14, 4],
-      //   //     [1486771200000, 13, 4],
-      //   //     [1486857600000, 11, 4],
-      //   //     [1486944000000, 13, 4],
-      //   //     [1487030400000, 13, 4],
-      //   //     [1487116800000, 12, 4],
-      //   //   ]
-      //   // }
-      // ];
-
       return series;
+    },
+    dailyData() {
+      const minAmount = this.settings.chartMinAmount && parseFloat(this.settings.chartMinAmount) >= 0 ? parseFloat(this.settings.chartMinAmount) : 0;
+      const maxAmount = this.settings.chartMaxAmount && parseFloat(this.settings.chartMaxAmount) >= 0 ? parseFloat(this.settings.chartMaxAmount) : 1000000;
+      console.log("chartData1 - minAmount: " + minAmount + ", maxAmount: " + maxAmount);
+      // var check = moment().utc().hours(DEFAULTEXPIRYUTCHOUR).minutes(0).seconds(0);
+      // var day0 = moment().utc().add(check.valueOf() < moment() ? 1 : 0, 'd').hours(DEFAULTEXPIRYUTCHOUR).minutes(0).seconds(0);
+
+      const now = moment().unix();
+      console.log("now: " + now + " " + moment.unix(now).utc().format());
+      // console.log("now: " + now + " " + moment().unix(now).format());
+      let beginPeriod;
+      if (this.settings.chartPeriod == '1d') {
+        beginPeriod = moment.unix(now).utc().startOf('day').subtract(1, 'd').unix();
+      } else if (this.settings.chartPeriod == '1w') {
+        beginPeriod = moment.unix(now).utc().startOf('day').subtract(7, 'd').unix();
+      } else if (this.settings.chartPeriod == '1m') {
+        beginPeriod = moment.unix(now).utc().startOf('day').subtract(1, 'month').unix();
+      } else if (this.settings.chartPeriod == '3m') {
+        beginPeriod = moment.unix(now).utc().startOf('day').subtract(3, 'month').unix();
+      } else if (this.settings.chartPeriod == '6m') {
+        beginPeriod = moment.unix(now).utc().startOf('day').subtract(6, 'month').unix();
+      } else if (this.settings.chartPeriod == '1y') {
+        beginPeriod = moment.unix(now).utc().startOf('day').subtract(1, 'year').unix();
+      } else if (this.settings.chartPeriod == 'all') {
+        beginPeriod = moment.unix(now).utc().startOf('day').subtract(10, 'year').unix();
+      }
+      console.log("beginPeriod: " + beginPeriod + " " + moment.unix(beginPeriod).utc().format());
+
+      const collator = {};
+      for (let event of this.activities[2].values) {
+        // console.log(JSON.stringify(event, null, 2));
+        if (beginPeriod <= event.timestamp && event.timestamp <= now) {
+          // console.log("event.timestamp: " + event.timestamp + " " + moment.unix(event.timestamp).format());
+          const bucket = moment.unix(event.timestamp).utc().startOf('day').unix();
+          const amount = ethers.utils.formatEther(event.amount);
+          // console.log("bucket: " + bucket + " " + moment.unix(bucket).utc().format());
+          if (amount >= minAmount && amount <= maxAmount) {
+            if (!(bucket in collator)) {
+              collator[bucket] = { count: 1, total: ethers.BigNumber.from(event.amount), items: [event] };
+            } else {
+              collator[bucket].count++;
+              collator[bucket].total = collator[bucket].total.add(event.amount);
+              collator[bucket].items.push(event);
+            }
+          } else {
+            console.log("Excluding: " + event.punkId + " " + amount);
+          }
+          // console.log("bucket: " + bucket + " " + moment.unix(bucket).utc().format() + " count: " + collator[bucket].count + ", total: " + collator[bucket].total);
+        }
+      }
+      // series.push({ name: "Sales", data: salesData });
+      const results = [];
+      for (const [bucket, value] of Object.entries(collator)) {
+        const average = value.total.div(value.count);
+        results.push({ timestamp: bucket, count: value.count, total: ethers.utils.formatEther(value.total), average: ethers.utils.formatEther(average), items: value.items });
+        // console.log("bucket: " + bucket + " " + moment.unix(bucket).utc().format() + " count: " + value.count + ", total: " + value.total);
+      }
+      results.sort((a, b) => {
+        return b.timestamp - a.timestamp;
+      });
+      return results;
+    },
+    dailyChartData() {
+      const counts = [];
+      const averages = [];
+      const averagesUSD = [];
+      for (const day of this.dailyData) {
+        counts.push({ x: day.timestamp * 1000, y: day.count, items: day.items });
+        averages.push({ x: day.timestamp * 1000, y: day.average });
+        averagesUSD.push({ x: day.timestamp * 1000, y: day.average * this.exchangeRates[day.timestamp] });
+      }
+      return [
+        {
+          name: '# Sales',
+          type: 'column',
+          data: counts,
+        }, {
+          name: 'Average ETH',
+          type: 'area',
+          data: averages,
+        }, {
+          name: 'Average USD',
+          type: 'area',
+          data: averagesUSD,
+        }
+      ];
     },
     attributesWithCounts() {
       const collator = {};

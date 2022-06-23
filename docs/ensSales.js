@@ -56,6 +56,9 @@ const ENSSales = {
               <div v-if="settings.tabIndex == 0" class="mt-2 pr-1">
                 <b-form-select size="sm" v-model="settings.sortOption" :options="sortOptions"></b-form-select>
               </div>
+              <div v-if="settings.tabIndex == 1" class="mt-2 pr-1">
+                <b-form-checkbox v-model="settings.chartDaily" value="true">Daily</b-form-checkbox>
+              </div>
               <div v-if="settings.tabIndex == 0" class="mt-2 pr-1">
                 <font size="-2" v-b-popover.hover.bottom="formatTimestamp(earliestEntry) + ' to ' + formatTimestamp(latestEntry)">{{ filteredSortedSales.length }}</font>
               </div>
@@ -177,7 +180,22 @@ const ENSSales = {
             <div v-if="settings.tabIndex == 1">
               <b-row>
                 <b-col cols="7">
-                  <apexchart :options="chartOptions" :series="chartData"></apexchart>
+                  <div v-if="settings.chartDaily">
+                    <b-card body-class="m-2 p-1" header-class="p-1" class="mt-2 mr-1" style="height: 550px;">
+                      <template #header>
+                        <h6 class="mb-0">ENS Daily Activity</h6>
+                      </template>
+                      <apexchart id="124" :options="dailyChartOptions" :series="dailyChartData" class="w-100"></apexchart>
+                    </b-card>
+                  </div>
+                  <div v-else>
+                      <b-card body-class="m-2 p-1" header-class="p-1" class="mt-2 mr-1" style="height: 550px;">
+                        <template #header>
+                          <h6 class="mb-0">ENS Activity</h6>
+                        </template>
+                        <apexchart id="345" :options="chartOptions" :yaxis="chartOptions.yaxis" :series="chartData" class="w-100"></apexchart>
+                      </b-card>
+                  </div>
                 </b-col>
                 <b-col cols="5">
                 </b-col>
@@ -200,6 +218,8 @@ const ENSSales = {
         // randomise: false,
         pageSize: 100,
         currentPage: 1,
+
+        chartDaily: false,
       },
 
       sortOptions: [
@@ -232,8 +252,8 @@ const ENSSales = {
 
       chartOptions: {
         chart: {
-          height: 280,
-          width: 280,
+          // height: 280,
+          // width: 280,
           type: "scatter",
           zoom: {
             type: 'xy',
@@ -264,6 +284,135 @@ const ENSSales = {
             formatter: value => parseInt(value),
           },
         },
+      },
+
+      dailyChartOptions: {
+        chart: {
+          // height: 280,
+          // width: 280,
+          type: "line",
+          zoom: {
+            type: 'xy',
+          },
+          // animations: {
+          //   initialAnimation: {
+          //     enabled: false,
+          //   }
+          // },
+          events: {
+            dataPointSelection: (event, chartContext, config) => {
+              // console.log("dailyChartSelectedItems: " + JSON.stringify(this.dailyChartSelectedItems));
+              // console.log(JSON.stringify(config.dataPointIndex) + " " + JSON.stringify(config.w.config.series[0].data[config.dataPointIndex]));
+              this.dailyChartSelectedItems = config.w.config.series[0].data[config.dataPointIndex].items;
+              // console.log("dailyChartSelectedItems: " + JSON.stringify(this.dailyChartSelectedItems));
+            },
+          },
+        },
+        stroke: {
+          width: [0, 2, 5],
+          curve: 'smooth'
+        },
+        fill: {
+          opacity: [0.85, 0.25, 1],
+          gradient: {
+            inverseColors: false,
+            shade: 'light',
+            type: "vertical",
+            opacityFrom: 0.85,
+            opacityTo: 0.55,
+            stops: [0, 100, 100, 100]
+          }
+        },
+        markers: {
+          size: 0
+        },
+        dataLabels: {
+          enabled: false,
+        },
+        // fill: {
+        //   type: 'gradient',
+        // },
+        // title: {
+        //   text: '3D Bubble Chart'
+        // },
+        tooltip: {
+          custom: ({series, seriesIndex, dataPointIndex, w}) => {
+            return '<div class="arrow_box" style="background-color: #ffffff">' +
+              '<span>BLAH' +
+          // //       '<img src="images/punks/punk' + w.config.series[seriesIndex].data[dataPointIndex][3].toString().padStart(4, '0') + '.png"></img>' +
+          //       series[seriesIndex][dataPointIndex] + 'e' +
+          // //       w.config.series[seriesIndex].data[dataPointIndex][3] +
+                '</span>' +
+              '</div>'
+          }
+        },
+        xaxis: {
+          // tickAmount: 12,
+          type: 'datetime',
+          // labels: {
+          //   rotate: 0,
+          // }
+        },
+        yaxis: [
+          {
+            // seriesName: '# Sales',
+            title: {
+              text: "# Sales",
+              // style: {
+              //   color: '#00E396',
+              // }
+            },
+            min: this.chartYaxisMin,
+            max: this.chartYaxisMax,
+            labels: {
+              formatter: value => parseInt(value),
+            },
+          },
+          {
+            // seriesName: 'Average Sale',
+            title: {
+              text: "Average ETH",
+              // style: {
+              //   color: '#00E396',
+              // }
+            },
+            min: this.chartYaxisMin,
+            max: this.chartYaxisMax,
+            labels: {
+              formatter: value => parseInt(value),
+            },
+            opposite: true,
+            axisTicks: {
+              show: true,
+            },
+            axisBorder: {
+              show: true,
+              // color: '#FEB019'
+            },
+          },
+          {
+            // seriesName: 'Average Sale',
+            title: {
+              text: "Average USD",
+              // style: {
+              //   color: '#00E396',
+              // }
+            },
+            min: this.chartYaxisMin,
+            max: this.chartYaxisMax,
+            labels: {
+              formatter: value => parseInt(value),
+            },
+            opposite: true,
+            axisTicks: {
+              show: true,
+            },
+            axisBorder: {
+              show: true,
+              // color: '#FEB019'
+            },
+          }
+        ],
       },
 
     }
@@ -363,6 +512,54 @@ const ENSSales = {
       }
       results.push({ name: "Sales", data: data });
       return results;
+    },
+    dailyData() {
+      const collator = {};
+      for (const sale of this.sales) {
+        const bucket = moment.unix(sale.timestamp).utc().startOf('day').unix();
+        if (!(bucket in collator)) {
+          collator[bucket] = { count: 1, total: sale.price, items: [sale] };
+        } else {
+          collator[bucket].count++;
+          collator[bucket].total = parseFloat(collator[bucket].total) + sale.price;
+          collator[bucket].items.push(sale);
+        }
+      }
+      const results = [];
+      for (const [bucket, value] of Object.entries(collator)) {
+        const average = value.total / value.count;
+        results.push({ timestamp: bucket, count: value.count, total: value.total, average: average, items: value.items });
+        // console.log("bucket: " + bucket + " " + moment.unix(bucket).utc().format() + " count: " + value.count + ", total: " + value.total);
+      }
+      results.sort((a, b) => {
+        return b.timestamp - a.timestamp;
+      });
+      return results;
+    },
+    dailyChartData() {
+      const counts = [];
+      const averages = [];
+      const averagesUSD = [];
+      for (const day of this.dailyData) {
+        counts.push({ x: day.timestamp * 1000, y: day.count, items: day.items });
+        averages.push({ x: day.timestamp * 1000, y: day.average });
+        averagesUSD.push({ x: day.timestamp * 1000, y: day.average * this.exchangeRates[day.timestamp] });
+      }
+      return [
+        {
+          name: '# Sales',
+          type: 'column',
+          data: counts,
+        }, {
+          name: 'Average ETH',
+          type: 'area',
+          data: averages,
+        }, {
+          name: 'Average USD',
+          type: 'area',
+          data: averagesUSD,
+        }
+      ];
     },
   },
   methods: {
@@ -643,11 +840,10 @@ const ensSalesModule = {
           .catch(function(e) {
             console.log("error: " + e);
           });
-        console.log("data: " + JSON.stringify(data));
         const results = {};
-        // for (day of data.Data.Data) {
-        //   results[day.time] = day.close;
-        // }
+        for (day of data.Data.Data) {
+          results[day.time] = day.close;
+        }
         return results;
       }
       async function refreshResultsFromDB() {
