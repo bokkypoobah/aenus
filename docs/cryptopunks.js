@@ -1693,12 +1693,9 @@ const CryptoPunks = {
       store.dispatch('search/halt');
     },
     exportPunks() {
-
-      const attributeKeys = Object.keys(this.attributes).sort();
+      const attributeKeys = Object.keys(this.attributesWithCounts).sort();
       const attributeTitles = attributeKeys.map(e => slugToTitle(e));
-      const rows = [
-          ["PunkId", "Owner", "Bid", "Bid Timestamp", "Ask", "Ask Timestamp", "Last", "Last Timestamp", ...attributeTitles, "URL"],
-      ];
+      const rows = [["PunkId", "Owner", "Bid", "Bid Timestamp", "Ask", "Ask Timestamp", "Last", "Last Timestamp", ...attributeTitles, "URL"]];
       const timestamp = new Date(parseInt((new Date).getTime()/1000)*1000).toISOString().replace('T', '-').replaceAll(':', '-').replace('.000Z', '');
       for (const result of this.filteredSortedResults) {
         const attributeValues = [];

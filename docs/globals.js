@@ -593,7 +593,7 @@ function chunkArray(myArray, chunk_size) {
 }
 
 function slugToTitle(slug) {
-  var words = slug.split("-");
+  var words = slug.toString().split("-");
   return words.map(function(word) {
     if (word == "3d" || word == "vr") {
       return word.toUpperCase();
