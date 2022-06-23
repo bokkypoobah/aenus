@@ -310,7 +310,7 @@ const ENSSales = {
                 '<span>' +
                   w.config.series[seriesIndex].data[dataPointIndex][3] + ' ' +
         //         '<img src="images/punks/punk' + w.config.series[seriesIndex].data[dataPointIndex][3].toString().padStart(4, '0') + '.png"></img>' +
-                series[seriesIndex][dataPointIndex] + 'e #' +
+                series[seriesIndex][dataPointIndex] + 'e' +
         //         w.config.series[seriesIndex].data[dataPointIndex][3] +
                 '</span>' +
               '</div>'
