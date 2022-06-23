@@ -287,6 +287,9 @@ const ENSSales = {
     sales() {
       return store.getters['ensSales/sales'];
     },
+    exchangeRates() {
+      return store.getters['ensSales/exchangeRates'];
+    },
     message() {
       return store.getters['ensSales/message'];
     },
@@ -436,6 +439,7 @@ const ensSalesModule = {
       deleteBeforeDays: 31, // merge into above?
       collections: [0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85],
       reservoirSalesV3BatchSize: 50,
+      currency: 'USD',
     },
     filter: {
       searchString: null,
@@ -444,6 +448,7 @@ const ensSalesModule = {
       priceTo: null,
     },
     sales: [],
+    exchangeRates: {},
     message: null,
     halt: false,
     params: null,
@@ -461,6 +466,7 @@ const ensSalesModule = {
     config: state => state.config,
     filter: state => state.filter,
     sales: state => state.sales,
+    exchangeRates: state => state.exchangeRates,
     message: state => state.message,
     params: state => state.params,
   },
@@ -627,6 +633,23 @@ const ensSalesModule = {
         localStorage.ensSalesDates = JSON.stringify(dates);
         logInfo("ensSalesModule", "mutations.loadSales() - processed dates: " + JSON.stringify(Object.keys(dates)));
       }
+      async function fetchExchangeRates() {
+        // TODO: Use toTs={timestamp} when > 2000 days - https://min-api.cryptocompare.com/documentation?key=Historical&cat=dataHistoday
+        const days = parseInt((new Date() - new Date("2017-07-22")) / (24 * 60 * 60 * 1000));
+        const url = "https://min-api.cryptocompare.com/data/v2/histoday?fsym=ETH&tsym=" + state.config.currency + "&limit=" + days;
+        logInfo("cryptoPunksModule", "mutations.loadPunks().fetchLatestEvents() url: " + url);
+        const data = await fetch(url)
+          .then(response => response.json())
+          .catch(function(e) {
+            console.log("error: " + e);
+          });
+        console.log("data: " + JSON.stringify(data));
+        const results = {};
+        // for (day of data.Data.Data) {
+        //   results[day.time] = day.close;
+        // }
+        return results;
+      }
       async function refreshResultsFromDB() {
         const regex = state.filter.searchString != null && state.filter.searchString.length > 0 ? new RegExp(state.filter.searchString, 'i') : null;
         const searchAccounts = state.filter.searchAccounts ? state.filter.searchAccounts.split(/[, \t\n]+/).map(s => s.trim().toLowerCase()) : null;
@@ -688,6 +711,11 @@ const ensSalesModule = {
         console.log("updating filter with: " + JSON.stringify(filterUpdate));
         state.filter = { ...state.filter, ...filterUpdate };
         console.log("filter after: " + JSON.stringify(state.filter));
+      }
+
+      if (filterUpdate == null) {
+        state.exchangeRates = await fetchExchangeRates();
+        logInfo("ensSalesModule", "mutations.loadSales() exchangeRates: " + JSON.stringify(state.exchangeRates).substring(0, 60) + " ...");
       }
 
       if (syncMode == 'full') {
