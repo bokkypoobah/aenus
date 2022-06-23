@@ -288,10 +288,10 @@ const ENSSales = {
       salesFields: [
         { key: 'timestamp', label: 'Timestamp', thStyle: 'width: 20%;' },
         { key: 'name', label: 'Name', thStyle: 'width: 20%;' },
-        { key: 'from', label: 'From', thStyle: 'width: 20%;' },
-        { key: 'to', label: 'To', thStyle: 'width: 20%;' },
-        { key: 'price', label: 'ETH', thStyle: 'width: 20%;' },
-        { key: 'txHash', label: 'Tx', thStyle: 'width: 20%;' },
+        { key: 'from', label: 'From', thStyle: 'width: 15%;' },
+        { key: 'to', label: 'To', thStyle: 'width: 15%;' },
+        { key: 'price', label: 'ETH', thStyle: 'width: 15%;', thClass: 'text-right', tdClass: 'text-right' },
+        { key: 'txHash', label: 'Tx', thStyle: 'width: 15%;' },
       ],
 
       dailyChartSelectedItemsFields: [
