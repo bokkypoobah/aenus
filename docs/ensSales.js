@@ -195,6 +195,42 @@ const ENSSales = {
                   </div>
                 </b-col>
                 <b-col cols="5">
+                  <b-card body-class="m-0 p-0" header-class="p-1 px-3" class="mt-2" style="height: 550px;">
+                    <template #header>
+                      <h6 class="mb-0">Sales For Selected Day</h6>
+                    </template>
+                    <p v-if="dailyChartSelectedItems.length == 0" class="mt-2 p-2">
+                      Click on a daily column to view the sales for the day
+                    </p>
+                    <font size="-1">
+                    <!-- <b-table v-if="dailyChartSelectedItems.length > 0" small fixed striped sticky-header="500px" :items="dailyChartSelectedItems" head-variant="light"> -->
+                      <b-table v-if="dailyChartSelectedItems.length > 0" small fixed striped sticky-header="500px" :fields="dailyChartSelectedItemsFields" :items="dailyChartSelectedItems" head-variant="light">
+                        <template #cell(name)="data">
+                          <b-link :href="'https://opensea.io/assets/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + data.item.tokenId" v-b-popover.hover.bottom="'View in OS'" target="_blank">
+                            {{ (data.item.name && data.item.name.length > 20) ? (data.item.name.substr(0, 20) + '...') : data.item.name }}
+                          </b-link>
+                        </template>
+                        <template #cell(from)="data">
+                          <b-link :href="'https://opensea.io/' + data.item.from" v-b-popover.hover.bottom="'View in OS'" target="_blank">
+                            {{ data.item.from.substring(0, 6) }}
+                          </b-link>
+                        </template>
+                        <template #cell(to)="data">
+                          <b-link :href="'https://opensea.io/' + data.item.to" v-b-popover.hover.bottom="'View in OS'" target="_blank">
+                            {{ data.item.to.substring(0, 6) }}
+                          </b-link>
+                        </template>
+                        <template #cell(timestamp)="data">
+                          {{ formatTimestamp(data.item.timestamp) }}
+                        </template>
+                        <template #cell(txHash)="data">
+                          <b-link :href="'https://etherscan.io/tx/' + data.item.txHash" v-b-popover.hover.bottom="'View in Etherscan'" target="_blank">
+                            {{ data.item.txHash.substring(0, 8) }}
+                          </b-link>
+                        </template>
+                      </b-table>
+                    </font>
+                  </b-card>
                 </b-col>
               </b-row>
             </div>
@@ -216,6 +252,8 @@ const ENSSales = {
         pageSize: 100,
         currentPage: 1,
       },
+
+      dailyChartSelectedItems: [],
 
       sortOptions: [
         { value: 'nameasc', text: 'Name Ascending' },
@@ -243,6 +281,15 @@ const ENSSales = {
         { key: 'to', label: 'To', thStyle: 'width: 20%;' },
         { key: 'price', label: 'ETH', thStyle: 'width: 20%;' },
         { key: 'txHash', label: 'Tx', thStyle: 'width: 20%;' },
+      ],
+
+      dailyChartSelectedItemsFields: [
+        { key: 'name', label: 'Name', thStyle: 'width: 30%;', sortable: true },
+        { key: 'from', label: 'From', thStyle: 'width: 10%;', sortable: true },
+        { key: 'to', label: 'To', thStyle: 'width: 10%;', sortable: true },
+        { key: 'price', label: 'Price', thStyle: 'width: 10%;', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
+        { key: 'timestamp', label: 'Timestamp', thStyle: 'width: 25%;', sortable: true },
+        { key: 'txHash', label: 'Tx', thStyle: 'width: 15%;', sortable: true },
       ],
 
       chartOptions: {
