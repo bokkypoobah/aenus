@@ -56,6 +56,9 @@ const ENSSales = {
               <div class="mt-2 pr-1 flex-grow-1">
               </div>
               <div v-if="settings.tabIndex == 0" class="mt-2 pr-1">
+                <b-button size="sm" @click="exportSales" :disabled="filteredSortedSales.length == 0" variant="link">Export</b-button>
+              </div>
+              <div v-if="settings.tabIndex == 0" class="mt-2 pr-1">
                 <b-form-select size="sm" v-model="settings.sortOption" :options="sortOptions"></b-form-select>
               </div>
               <div v-if="settings.tabIndex == 0" class="mt-2 pr-1">
@@ -290,7 +293,7 @@ const ENSSales = {
         { key: 'name', label: 'Name', thStyle: 'width: 20%;' },
         { key: 'from', label: 'From', thStyle: 'width: 15%;' },
         { key: 'to', label: 'To', thStyle: 'width: 15%;' },
-        { key: 'price', label: 'ETH', thStyle: 'width: 15%;', thClass: 'text-right', tdClass: 'text-right' },
+        { key: 'price', label: 'Price', thStyle: 'width: 15%;', thClass: 'text-right', tdClass: 'text-right' },
         { key: 'txHash', label: 'Tx', thStyle: 'width: 15%;' },
       ],
 
@@ -644,6 +647,30 @@ const ENSSales = {
     },
     async halt() {
       store.dispatch('search/halt');
+    },
+    exportSales() {
+      const rows = [
+          ["Timestamp", "Name", "Length", "From", "To", "Price", "Tx"],
+      ];
+      const timestamp = new Date(parseInt((new Date).getTime()/1000)*1000).toISOString().replace('T', '-').replaceAll(':', '-').replace('.000Z', '');
+      for (const result of this.filteredSortedSales) {
+        rows.push([
+          new Date(parseInt(result.timestamp) * 1000).toISOString().replace('T', ' ').replace('.000Z', ''),
+          result.name,
+          result.name && result.name.replace(".eth", "").length || null,
+          result.from,
+          result.to,
+          result.price,
+          result.txHash,
+        ]);
+      }
+      let csvContent = "data:text/csv;charset=utf-8," + rows.map(e => e.join(",")).join("\n");
+      var encodedUri = encodeURI(csvContent);
+      var link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "aenus_enssales_export-" + timestamp + ".csv");
+      document.body.appendChild(link); // Required for FF
+      link.click(); // This will download the data with the specified file name
     },
     async timeoutCallback() {
       logDebug("ENSSales", "timeoutCallback() count: " + this.count);
