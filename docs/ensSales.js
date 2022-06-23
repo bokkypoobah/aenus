@@ -185,7 +185,7 @@ const ENSSales = {
                       <template #header>
                         <h6 class="mb-0">ENS Daily Activity</h6>
                       </template>
-                      <apexchart id="124" :options="dailyChartOptions" :series="dailyChartData" class="w-100"></apexchart>
+                      <apexchart :options="dailyChartOptions" :series="dailyChartData" class="w-100"></apexchart>
                     </b-card>
                   </div>
                   <div v-else>
@@ -193,7 +193,7 @@ const ENSSales = {
                         <template #header>
                           <h6 class="mb-0">ENS Activity</h6>
                         </template>
-                        <apexchart id="345" :options="chartOptions" :yaxis="chartOptions.yaxis" :series="chartData" class="w-100"></apexchart>
+                        <apexchart :options="chartOptions" :series="chartData" class="w-100"></apexchart>
                       </b-card>
                   </div>
                 </b-col>
@@ -251,6 +251,7 @@ const ENSSales = {
       ],
 
       chartOptions: {
+        // forceReactive: this.settings.chartDaily,
         chart: {
           // height: 280,
           // width: 280,
@@ -278,8 +279,8 @@ const ENSSales = {
           type: 'datetime',
         },
         yaxis: {
-          min: this.chartYaxisMin,
-          max: this.chartYaxisMax,
+          // min: this.chartYaxisMin,
+          // max: this.chartYaxisMax,
           labels: {
             formatter: value => parseInt(value),
           },
@@ -287,6 +288,7 @@ const ENSSales = {
       },
 
       dailyChartOptions: {
+        // forceReactive: this.settings.chartDaily,
         chart: {
           // height: 280,
           // width: 280,
@@ -362,8 +364,8 @@ const ENSSales = {
               //   color: '#00E396',
               // }
             },
-            min: this.chartYaxisMin,
-            max: this.chartYaxisMax,
+            // min: this.chartYaxisMin,
+            // max: this.chartYaxisMax,
             labels: {
               formatter: value => parseInt(value),
             },
@@ -376,8 +378,8 @@ const ENSSales = {
               //   color: '#00E396',
               // }
             },
-            min: this.chartYaxisMin,
-            max: this.chartYaxisMax,
+            // min: this.chartYaxisMin,
+            // max: this.chartYaxisMax,
             labels: {
               formatter: value => parseInt(value),
             },
@@ -398,8 +400,8 @@ const ENSSales = {
               //   color: '#00E396',
               // }
             },
-            min: this.chartYaxisMin,
-            max: this.chartYaxisMax,
+            // min: this.chartYaxisMin,
+            // max: this.chartYaxisMax,
             labels: {
               formatter: value => parseInt(value),
             },
