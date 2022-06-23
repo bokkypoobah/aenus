@@ -202,12 +202,12 @@ const ENSSales = {
                     <p v-if="dailyChartSelectedItems.length == 0" class="mt-2 p-2">
                       Click on a daily column to view the sales for the day
                     </p>
-                    <font size="-1">
+                    <font size="-2">
                     <!-- <b-table v-if="dailyChartSelectedItems.length > 0" small fixed striped sticky-header="500px" :items="dailyChartSelectedItems" head-variant="light"> -->
                       <b-table v-if="dailyChartSelectedItems.length > 0" small fixed striped sticky-header="500px" :fields="dailyChartSelectedItemsFields" :items="dailyChartSelectedItems" head-variant="light">
                         <template #cell(name)="data">
                           <b-link :href="'https://opensea.io/assets/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + data.item.tokenId" v-b-popover.hover.bottom="'View in OS'" target="_blank">
-                            {{ (data.item.name && data.item.name.length > 20) ? (data.item.name.substr(0, 20) + '...') : data.item.name }}
+                            {{ (data.item.name && data.item.name.length > 20) ? (data.item.name.substr(0, 17) + '...') : data.item.name }}
                           </b-link>
                         </template>
                         <template #cell(from)="data">
