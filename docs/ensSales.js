@@ -27,6 +27,8 @@ const ENSSales = {
           </b-card-body>
           -->
           <b-card-body class="m-1 p-1">
+
+            <!-- Toolbar -->
             <div class="d-flex flex-wrap m-0 p-0" style="min-height: 37px;">
               <div class="mt-2" style="max-width: 150px;">
                 <b-form-input type="text" size="sm" :value="filter.searchString" @change="updateFilter('searchString', $event)" debounce="600" placeholder="🔍 {regex}"></b-form-input>
@@ -66,6 +68,15 @@ const ENSSales = {
                 <b-form-select size="sm" v-model="settings.pageSize" :options="pageSizes" v-b-popover.hover.bottom="'Page size'"></b-form-select>
               </div>
             </div>
+
+            <!-- Loading --->
+            <div v-if="message != null && message.substring(0, 5) != 'Error'">
+              <b-alert show :variant="message.substring(0, 5) != 'Error' ? 'info' : 'danger'" class="mt-0 mb-2 p-2">
+                {{ message }}
+              </b-alert>
+            </div>
+
+            <!-- Listing -->
             <b-table v-if="settings.tabIndex == 0" small striped hover :fields="salesFields" :items="pagedFilteredSortedSales" table-class="w-auto" class="mt-0">
               <template #cell(timestamp)="data">
                 {{ formatTimestamp(data.item.timestamp) }}
@@ -323,7 +334,7 @@ const ENSSales = {
           // min: this.chartYaxisMin,
           // max: this.chartYaxisMax,
           labels: {
-            formatter: value => parseInt(value),
+            formatter: value => parseFloat(value),
           },
         },
       },
@@ -943,6 +954,7 @@ const ensSalesModule = {
 
       // --- loadSales() start ---
       logInfo("ensSalesModule", "mutations.loadSales() - syncMode: " + syncMode + ", filterUpdate: " + JSON.stringify(filterUpdate));
+      state.message = "Syncing";
 
       console.log("filter before: " + JSON.stringify(state.filter));
       if (filterUpdate != null) {
