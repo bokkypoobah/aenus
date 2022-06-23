@@ -77,7 +77,6 @@ const CryptoPunks = {
               </div>
               <div class="mt-2 pr-1 flex-grow-1">
               </div>
-
               <div class="mt-2 pl-1">
                 <b-dropdown v-if="message == null" split size="sm" text="Sync" @click="loadPunks('partial')" variant="primary" v-b-popover.hover.bottom="'Partial Sync'">
                   <b-dropdown-item @click="loadPunks('full')">Full Sync</b-dropdown-item>

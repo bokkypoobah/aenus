@@ -39,7 +39,7 @@ const ENSSales = {
               <div class="mt-2 pl-2" style="max-width: 80px;">
                 <b-form-input type="text" size="sm" :value="filter.priceFrom" @change="updateFilter('priceFrom', $event)" debounce="600" placeholder="min"></b-form-input>
               </div>
-              <div class="mt-2 pr-1">
+              <div class="mt-2">
                 -
               </div>
               <div class="mt-2 pr-2" style="max-width: 80px;">
