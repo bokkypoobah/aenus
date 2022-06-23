@@ -9,14 +9,12 @@ const ENSSales = {
 
       <b-card no-body no-header class="border-0">
         <b-card no-body class="p-0 mt-1">
-          <!--
           <b-tabs card align="left" no-body active-tab-class="m-0 p-0" v-model="settings.tabIndex">
-            <b-tab title="Summary" @click="updateURL('summary');">
-            </b-tab>
             <b-tab title="List" @click="updateURL('list');">
             </b-tab>
+            <b-tab title="Chart" @click="updateURL('chart');">
+            </b-tab>
           </b-tabs>
-          -->
 
           <!--
           <b-card-body class="m-1 p-1">
@@ -55,20 +53,20 @@ const ENSSales = {
               </div>
               <div class="mt-2 pr-1 flex-grow-1">
               </div>
-              <div class="mt-2 pr-1">
+              <div v-if="settings.tabIndex == 0" class="mt-2 pr-1">
                 <b-form-select size="sm" v-model="settings.sortOption" :options="sortOptions"></b-form-select>
               </div>
-              <div class="mt-2 pr-1">
+              <div v-if="settings.tabIndex == 0" class="mt-2 pr-1">
                 <font size="-2" v-b-popover.hover.bottom="formatTimestamp(earliestEntry) + ' to ' + formatTimestamp(latestEntry)">{{ filteredSortedSales.length }}</font>
               </div>
-              <div class="mt-2 pr-1">
+              <div v-if="settings.tabIndex == 0" class="mt-2 pr-1">
                 <b-pagination size="sm" v-model="settings.currentPage" :total-rows="filteredSortedSales.length" :per-page="settings.pageSize"></b-pagination>
               </div>
-              <div class="mt-2">
+              <div v-if="settings.tabIndex == 0" class="mt-2">
                 <b-form-select size="sm" v-model="settings.pageSize" :options="pageSizes" v-b-popover.hover.bottom="'Page size'"></b-form-select>
               </div>
             </div>
-            <b-table small striped hover :fields="salesFields" :items="pagedFilteredSortedSales" table-class="w-auto" class="mt-0">
+            <b-table v-if="settings.tabIndex == 0" small striped hover :fields="salesFields" :items="pagedFilteredSortedSales" table-class="w-auto" class="mt-0">
               <template #cell(timestamp)="data">
                 {{ formatTimestamp(data.item.timestamp) }}
               </template>
@@ -175,6 +173,16 @@ const ENSSales = {
                 </b-link>
               </template>
             </b-table>
+
+            <div v-if="settings.tabIndex == 1">
+              <b-row>
+                <b-col cols="7">
+                  <apexchart :options="chartOptions" :series="chartData"></apexchart>
+                </b-col>
+                <b-col cols="5">
+                </b-col>
+              </b-row>
+            </div>
           </b-card-body>
         </b-card>
       </b-card>
@@ -221,6 +229,43 @@ const ENSSales = {
         { key: 'price', label: 'ETH', thStyle: 'width: 20%;' },
         { key: 'txHash', label: 'Tx', thStyle: 'width: 20%;' },
       ],
+
+      chartOptions: {
+        chart: {
+          height: 280,
+          width: 280,
+          type: "scatter",
+          zoom: {
+            type: 'xy',
+          },
+        },
+        dataLabels: {
+          enabled: false,
+        },
+        tooltip: {
+          custom: ({series, seriesIndex, dataPointIndex, w}) => {
+            return '<div class="arrow_box" style="background-color: #ffffff">' +
+                '<span>' +
+                  w.config.series[seriesIndex].data[dataPointIndex][3] + ' ' +
+        //         '<img src="images/punks/punk' + w.config.series[seriesIndex].data[dataPointIndex][3].toString().padStart(4, '0') + '.png"></img>' +
+                series[seriesIndex][dataPointIndex] + 'e #' +
+        //         w.config.series[seriesIndex].data[dataPointIndex][3] +
+                '</span>' +
+              '</div>'
+          }
+        },
+        xaxis: {
+          type: 'datetime',
+        },
+        yaxis: {
+          min: this.chartYaxisMin,
+          max: this.chartYaxisMax,
+          labels: {
+            formatter: value => parseInt(value),
+          },
+        },
+      },
+
     }
   },
   computed: {
@@ -307,6 +352,15 @@ const ENSSales = {
     pagedFilteredSortedSales() {
       return this.filteredSortedSales.slice((this.settings.currentPage - 1) * this.settings.pageSize, this.settings.currentPage * this.settings.pageSize);
     },
+    chartData() {
+      const results = [];
+      const data = [];
+      for (const sale of this.sales) {
+        data.push([sale.timestamp * 1000, sale.price, 6, sale.name]);
+      }
+      results.push({ name: "Sales", data: data });
+      return results;
+    },
   },
   methods: {
     updateURL(where) {
@@ -355,9 +409,9 @@ const ENSSales = {
   },
   mounted() {
     logInfo("ENSSales", "mounted() $route: " + JSON.stringify(this.$route.params) + ", props['search']: " + this.search + ", props['topic']: " + this.topic);
-    if (this.search == "summary") {
+    if (this.search == "list") {
       this.settings.tabIndex = 0;
-    } else if (this.search == "list") {
+    } else if (this.search == "chart") {
       this.settings.tabIndex = 1;
     }
     store.dispatch('ensSales/loadSales', 'mounted');

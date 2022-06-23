@@ -7,6 +7,7 @@ const routes = [{
     path: '/enssales/:search?/:topic?',
     component: ENSSales,
     name: 'ENSSales',
+    props: true,
   }, {
     path: '/cryptopunks/:search?/:topic?',
     component: CryptoPunks,
