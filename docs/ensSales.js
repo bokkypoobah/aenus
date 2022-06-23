@@ -56,9 +56,6 @@ const ENSSales = {
               <div v-if="settings.tabIndex == 0" class="mt-2 pr-1">
                 <b-form-select size="sm" v-model="settings.sortOption" :options="sortOptions"></b-form-select>
               </div>
-              <div v-if="settings.tabIndex == 1" class="mt-2 pr-1">
-                <b-form-checkbox v-model="settings.chartDaily" value="true">Daily</b-form-checkbox>
-              </div>
               <div v-if="settings.tabIndex == 0" class="mt-2 pr-1">
                 <font size="-2" v-b-popover.hover.bottom="formatTimestamp(earliestEntry) + ' to ' + formatTimestamp(latestEntry)">{{ filteredSortedSales.length }}</font>
               </div>
@@ -180,7 +177,7 @@ const ENSSales = {
             <div v-if="settings.tabIndex == 1">
               <b-row>
                 <b-col cols="7">
-                  <div v-if="settings.chartDaily">
+                  <div v-if="true">
                     <b-card body-class="m-2 p-1" header-class="p-1" class="mt-2 mr-1" style="height: 550px;">
                       <template #header>
                         <h6 class="mb-0">ENS Daily Activity</h6>
@@ -188,7 +185,7 @@ const ENSSales = {
                       <apexchart :options="dailyChartOptions" :series="dailyChartData" class="w-100"></apexchart>
                     </b-card>
                   </div>
-                  <div v-else>
+                  <div v-if="true">
                       <b-card body-class="m-2 p-1" header-class="p-1" class="mt-2 mr-1" style="height: 550px;">
                         <template #header>
                           <h6 class="mb-0">ENS Activity</h6>
@@ -218,8 +215,6 @@ const ENSSales = {
         // randomise: false,
         pageSize: 100,
         currentPage: 1,
-
-        chartDaily: false,
       },
 
       sortOptions: [
@@ -251,7 +246,6 @@ const ENSSales = {
       ],
 
       chartOptions: {
-        // forceReactive: this.settings.chartDaily,
         chart: {
           // height: 280,
           // width: 280,
@@ -288,7 +282,6 @@ const ENSSales = {
       },
 
       dailyChartOptions: {
-        // forceReactive: this.settings.chartDaily,
         chart: {
           // height: 280,
           // width: 280,
@@ -337,17 +330,17 @@ const ENSSales = {
         // title: {
         //   text: '3D Bubble Chart'
         // },
-        tooltip: {
-          custom: ({series, seriesIndex, dataPointIndex, w}) => {
-            return '<div class="arrow_box" style="background-color: #ffffff">' +
-              '<span>BLAH' +
-          // //       '<img src="images/punks/punk' + w.config.series[seriesIndex].data[dataPointIndex][3].toString().padStart(4, '0') + '.png"></img>' +
-          //       series[seriesIndex][dataPointIndex] + 'e' +
-          // //       w.config.series[seriesIndex].data[dataPointIndex][3] +
-                '</span>' +
-              '</div>'
-          }
-        },
+        // tooltip: {
+        //   custom: ({series, seriesIndex, dataPointIndex, w}) => {
+        //     return '<div class="arrow_box" style="background-color: #ffffff">' +
+        //       '<span>BLAH' +
+        //   // //       '<img src="images/punks/punk' + w.config.series[seriesIndex].data[dataPointIndex][3].toString().padStart(4, '0') + '.png"></img>' +
+        //   //       series[seriesIndex][dataPointIndex] + 'e' +
+        //   // //       w.config.series[seriesIndex].data[dataPointIndex][3] +
+        //         '</span>' +
+        //       '</div>'
+        //   }
+        // },
         xaxis: {
           // tickAmount: 12,
           type: 'datetime',
@@ -367,7 +360,7 @@ const ENSSales = {
             // min: this.chartYaxisMin,
             // max: this.chartYaxisMax,
             labels: {
-              formatter: value => parseInt(value),
+              formatter: value => parseFloat(value),
             },
           },
           {
@@ -381,7 +374,7 @@ const ENSSales = {
             // min: this.chartYaxisMin,
             // max: this.chartYaxisMax,
             labels: {
-              formatter: value => parseInt(value),
+              formatter: value => parseFloat(value),
             },
             opposite: true,
             axisTicks: {
@@ -403,7 +396,7 @@ const ENSSales = {
             // min: this.chartYaxisMin,
             // max: this.chartYaxisMax,
             labels: {
-              formatter: value => parseInt(value),
+              formatter: value => parseFloat(value),
             },
             opposite: true,
             axisTicks: {
