@@ -65,7 +65,7 @@ const ENSSales = {
             </div>
 
             <!-- Sync Toolbar -->
-            <div v-if="settings.syncToolbar" class="d-flex flex-wrap m-0 p-0 pb-1 bg-light" style="width: 95%;">
+            <div v-if="settings.syncToolbar" class="d-flex flex-wrap m-0 p-0 pb-1">
               <div class="mt-1">
                 <b-form-select size="sm" :value="config.period" @change="updateConfig('period', $event)" :options="periods" v-b-popover.hover.bottom="'Sales history period'"></b-form-select>
               </div>
@@ -736,8 +736,8 @@ const ensSalesModule = {
   state: {
     config: {
       period: { term: 2, termType: "w" },
-      background: true,
-      segmentsPerDay: 1,
+      // background: true,
+      // segmentsPerDay: 1,
       retrieveLastDays: 31,
       deleteBeforeDays: 31, // merge into above?
       collections: [0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85],
@@ -960,7 +960,6 @@ const ensSalesModule = {
         const saleRecords = [];
         let count = 0;
         for (const sale of salesFromDB) {
-          console.log("sale: " + JSON.stringify(sale));
           let include = true;
           const name = sale.name && sale.name.replace('.eth', '') || null;
           if (regex && !regex.test(name)) {
