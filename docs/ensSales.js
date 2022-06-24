@@ -89,7 +89,7 @@ const ENSSales = {
                   {{ data.item.name }}
                 </b-link>
                 <b-popover :target="'popover-target-name-' + data.index" placement="right">
-                  <template #title>{{ data.item.name.substring(0, 64) }}:</template>
+                  <template #title>{{ encodeURIComponent(data.item.name.substring(0, 64)) }}:</template>
                   <b-link :href="'https://app.ens.domains/name/' + data.item.name" v-b-popover.hover="'View in app.ens.domains'" target="_blank">
                     ENS
                   </b-link>
