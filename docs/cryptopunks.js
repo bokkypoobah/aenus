@@ -9,7 +9,7 @@ const CryptoPunks = {
 
       <b-card no-body no-header class="border-0">
         <b-card no-body class="p-0 mt-1">
-          <b-tabs card align="left" no-body active-tab-class="m-0 p-0" v-model="settings.tabIndex">
+          <b-tabs card align="left" no-body v-model="settings.tabIndex" active-nav-item-class="m-0 mx-2 px-4 pb-1 pt-2" active-tab-class="m-0 mx-2 px-4 py-1" nav-wrapper-class="m-0 p-2">
             <b-tab title="Activity" @click="updateURL('activity');">
             </b-tab>
             <b-tab title="Punks" @click="updateURL('punks');">
