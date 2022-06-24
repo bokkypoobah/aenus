@@ -65,18 +65,14 @@ const ENSSales = {
             </div>
 
             <!-- Sync Toolbar -->
-            <div v-if="settings.syncToolbar" class="d-flex flex-wrap m-0 p-0">
+            <div v-if="settings.syncToolbar" class="d-flex flex-wrap m-0 p-0 pb-1 bg-light" style="width: 95%;">
+              <div class="mt-1">
+                <b-form-select size="sm" :value="config.period" @change="updateConfig('period', $event)" :options="periods" v-b-popover.hover.bottom="'Sales history period'"></b-form-select>
+              </div>
+              <div class="mt-1 flex-grow-1">
+              </div>
               <div class="mt-1 pr-1" style="max-width: 150px;">
                 <b-button size="sm" @click="loadSales('clearCache')" variant="primary" v-b-popover.hover.bottom="'Reset application data'">Clear Local Cache</b-button>
-                <!-- <b-form-input type="text" size="sm" :value="filter.searchString" @change="updateFilter('searchString', $event)" debounce="600" placeholder="🔍 {regex}"></b-form-input> -->
-              </div>
-              <div class="mt-1">
-                <b-form-select size="sm" v-model="settings.period" :options="periods" v-b-popover.hover.bottom="'Sales history period'"></b-form-select>
-              </div>
-              <div class="mt-1 pr-1 flex-grow-1">
-              </div>
-              <div v-if="settings.tabIndex == 0" class="mt-1">
-                <!-- <b-form-select size="sm" v-model="settings.pageSize" :options="pageSizes" v-b-popover.hover.bottom="'Page size'"></b-form-select> -->
               </div>
             </div>
 
@@ -269,12 +265,12 @@ const ENSSales = {
 
       settings: {
         tabIndex: 0,
-        syncToolbar: false,
+        syncToolbar: true,
         sortOption: 'latestsale',
         // randomise: false,
         pageSize: 100,
         currentPage: 1,
-        period: { term: 1, termType: "w" },
+        // period: { term: 1, termType: "w" },
       },
 
       dailyChartSelectedItems: [],
@@ -299,11 +295,12 @@ const ENSSales = {
       ],
 
       periods: [
-        { value: { term: 1, termType: "w" }, text: '1w' },
-        { value: { term: 1, termType: "m" }, text: '1mo' },
-        { value: { term: 2, termType: "m" }, text: '2mo' },
-        { value: { term: 3, termType: "m" }, text: '3mo' },
-        { value: { term: 1, termType: "y" }, text: '1y' },
+        { value: { term: 1, termType: "w" }, text: '1 Week' },
+        { value: { term: 2, termType: "w" }, text: '2 Weeks' },
+        { value: { term: 1, termType: "m" }, text: '1 Month' },
+        { value: { term: 2, termType: "m" }, text: '2 Months' },
+        { value: { term: 3, termType: "m" }, text: '3 Months' },
+        { value: { term: 1, termType: "y" }, text: '1 Year' },
       ],
 
       salesFields: [
@@ -311,7 +308,8 @@ const ENSSales = {
         { key: 'name', label: 'Name', thStyle: 'width: 20%;' },
         { key: 'from', label: 'From', thStyle: 'width: 15%;' },
         { key: 'to', label: 'To', thStyle: 'width: 15%;' },
-        { key: 'price', label: 'Price', thStyle: 'width: 15%;', thClass: 'text-right', tdClass: 'text-right' },
+        { key: 'price', label: 'Price', thStyle: 'width: 10%;', thClass: 'text-right', tdClass: 'text-right' },
+        { key: 'orderSide', label: 'OrderSide', thStyle: 'width: 5%;' },
         { key: 'txHash', label: 'Tx', thStyle: 'width: 15%;' },
       ],
 
@@ -504,6 +502,9 @@ const ENSSales = {
     network() {
       return store.getters['connection/network'];
     },
+    config() {
+      return store.getters['ensSales/config'];
+    },
     filter() {
       return store.getters['ensSales/filter'];
     },
@@ -653,6 +654,12 @@ const ENSSales = {
       }
       return null;
     },
+    updateConfig(field, config) {
+      console.log("updateConfig: " + field + " => " + JSON.stringify(config));
+      const configUpdate = {};
+      configUpdate[field] = config;
+      store.dispatch('ensSales/updateConfig', configUpdate);
+    },
     updateFilter(field, filter) {
       console.log("updateFilter: " + field + " => " + JSON.stringify(filter));
       const filterUpdate = {};
@@ -728,6 +735,7 @@ const ensSalesModule = {
   namespaced: true,
   state: {
     config: {
+      period: { term: 2, termType: "w" },
       background: true,
       segmentsPerDay: 1,
       retrieveLastDays: 31,
@@ -766,7 +774,7 @@ const ensSalesModule = {
   },
   mutations: {
     // --- loadSales() ---
-    async loadSales(state, { syncMode, filterUpdate }) {
+    async loadSales(state, { syncMode, configUpdate, filterUpdate }) {
       // --- loadSales() functions start ---
       function processRegistrations(registrations) {
         const results = {};
@@ -952,6 +960,7 @@ const ensSalesModule = {
         const saleRecords = [];
         let count = 0;
         for (const sale of salesFromDB) {
+          console.log("sale: " + JSON.stringify(sale));
           let include = true;
           const name = sale.name && sale.name.replace('.eth', '') || null;
           if (regex && !regex.test(name)) {
@@ -985,6 +994,7 @@ const ensSalesModule = {
               from: sale.from,
               to: sale.to,
               price: sale.price,
+              orderSide: sale.data.orderSide,
               timestamp: sale.timestamp,
               tokenId: sale.tokenId,
               txHash: sale.txHash,
@@ -997,13 +1007,20 @@ const ensSalesModule = {
       // --- loadSales() functions end ---
 
       // --- loadSales() start ---
-      logInfo("ensSalesModule", "mutations.loadSales() - syncMode: " + syncMode + ", filterUpdate: " + JSON.stringify(filterUpdate));
+      logInfo("ensSalesModule", "mutations.loadSales() - syncMode: " + syncMode + ", configUpdate: " + JSON.stringify(configUpdate) + ", filterUpdate: " + JSON.stringify(filterUpdate));
       if (syncMode != 'updateFilter') {
         state.message = "Syncing";
       }
 
-      console.log("filter before: " + JSON.stringify(state.filter));
+      if (configUpdate != null) {
+        console.log("config before: " + JSON.stringify(state.config));
+        console.log("updating config with: " + JSON.stringify(configUpdate));
+        state.config = { ...state.config, ...configUpdate };
+        console.log("config after: " + JSON.stringify(state.config));
+      }
+
       if (filterUpdate != null) {
+        console.log("filter before: " + JSON.stringify(state.filter));
         console.log("updating filter with: " + JSON.stringify(filterUpdate));
         state.filter = { ...state.filter, ...filterUpdate };
         console.log("filter after: " + JSON.stringify(state.filter));
@@ -1064,11 +1081,15 @@ const ensSalesModule = {
   actions: {
     updateFilter(context, filterUpdate) {
       logInfo("ensSalesModule", "filterUpdates.updateFilter() - filterUpdate: " + JSON.stringify(filterUpdate));
-      context.commit('loadSales', { syncMode: 'updateFilter', filterUpdate });
+      context.commit('loadSales', { syncMode: 'updateFilter', configUpdate: null, filterUpdate });
+    },
+    updateConfig(context, configUpdate) {
+      logInfo("ensSalesModule", "configUpdates.updateConfig() - configUpdate: " + JSON.stringify(configUpdate));
+      context.commit('loadSales', { syncMode: 'updateConfig', configUpdate, filterUpdate: null });
     },
     loadSales(context, syncMode) {
       // logInfo("ensSalesModule", "actions.loadSales() - syncMode: " + syncMode);
-      context.commit('loadSales', { syncMode: syncMode, filterUpdate: null } );
+      context.commit('loadSales', { syncMode: syncMode, configUpdate: null, filterUpdate: null } );
     },
     halt(context) {
       // logInfo("ensSalesModule", "actions.halt()");
