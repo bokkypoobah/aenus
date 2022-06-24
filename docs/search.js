@@ -11,7 +11,7 @@ const Search = {
 
         <b-card no-body class="p-0 mt-1">
           <!-- Search type tabs -->
-          <b-tabs card align="left" no-body v-model="settings.searchTabIndex" active-nav-item-class="m-0 mx-2 px-4 pb-1 pt-2" active-tab-class="m-0 mx-2 px-4 py-1" nav-wrapper-class="m-0 p-2">
+          <b-tabs card align="left" no-body v-model="settings.searchTabIndex" active-tab-class="m-0 p-0">
             <b-tab v-for="t in tabs" :key="'dyn-tabx-' + t.name" @click="updateURL(t.name);" :title="t.text" title-item-class="p-0" title-link-class="px-2">
             </b-tab>
           </b-tabs>
