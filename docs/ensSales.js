@@ -734,7 +734,6 @@ const ensSalesModule = {
       name: "aenusenssalesdb",
       version: 1,
       definition: {
-        // nftData: '&tokenId,asset,timestamp',
         sales: '[chainId+contract+tokenId],chainId,contract,tokenId,name,from,to,price,timestamp',
       },
     },
@@ -997,14 +996,12 @@ const ensSalesModule = {
 
       if (syncMode == 'full') {
         logInfo("ensSalesModule", "mutations.loadSales() - deleting db");
-        Dexie.delete("aenusenssalesdb");
+        Dexie.delete(state.db.name);
         localStorage.ensSalesDates = undefined;
       }
-      const db0 = new Dexie("aenusenssalesdb");
-      db0.version(1).stores({
-        // nftData: '&tokenId,asset,timestamp',
-        sales: '[chainId+contract+tokenId],chainId,contract,tokenId,name,from,to,price,timestamp',
-      });
+      const db0 = new Dexie(state.db.name);
+      db0.version(state.db.version).stores(state.db.definition);
+
       if (syncMode != 'full' && syncMode != 'filterUpdate') {
         const deleteBeforeDate = moment.utc().startOf('day').subtract(state.config.deleteBeforeDays, 'day').unix();
         logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI() - deleteBeforeDate: " + moment.unix(deleteBeforeDate).utc().format() + " (" + deleteBeforeDate + ")");
