@@ -16,92 +16,69 @@ const ENSSales = {
             </b-tab>
           </b-tabs>
 
-          <!--
-          <b-card-body class="m-1 p-1">
-            <b-button size="sm" @click="doit( { type: 'fullsync' } );" variant="primary">Retrieve Latest 50 Sales</b-button>
-            <span v-if="searchMessage != null">
-              <b-button size="sm" @click="halt" variant="primary">Halt</b-button>
-            </span>
-            <b-button size="sm" @click="doit( { action: 'startService' } );" variant="primary">Start Service</b-button>
-            <b-button size="sm" @click="doit( { action: 'stopService' } );" variant="primary">Stop Service</b-button>
-          </b-card-body>
-          -->
           <b-card-body class="m-0 p-1">
-
-            <!-- Toolbar -->
-            <!-- <div class="m-0 mx-1 mb-1 p-1"> -->
-              <!-- Main Toolbar -->
-              <div class="d-flex flex-wrap m-0 p-0">
-                <div class="mt-1" style="max-width: 150px;">
-                  <b-form-input type="text" size="sm" :value="filter.searchString" @change="updateFilter('searchString', $event)" debounce="600" placeholder="🔍 {regex}"></b-form-input>
-                </div>
-                <div class="mt-1 pl-2" style="max-width: 150px;">
-                  <b-form-input type="text" size="sm" :value="filter.searchAccounts" @change="updateFilter('searchAccounts', $event)" debounce="600" placeholder="🔍 0x12... ..."></b-form-input>
-                </div>
-                <div class="mt-1 pl-2" style="max-width: 80px;">
-                  <b-form-input type="text" size="sm" :value="filter.priceFrom" @change="updateFilter('priceFrom', $event)" debounce="600" placeholder="min"></b-form-input>
-                </div>
-                <div class="mt-1">
-                  -
-                </div>
-                <div class="mt-1 pr-2" style="max-width: 80px;">
-                <b-form-input type="text" size="sm" :value="filter.priceTo" @change="updateFilter('priceTo', $event)" debounce="600" placeholder="max"></b-form-input>
-                </div>
-                <div class="mt-1 pr-1 flex-grow-1">
-                </div>
-                <div class="mt-1 pr-1">
-                  <!--
-                  <b-dropdown v-if="message == null" split size="sm" text="Sync" @click="loadSales('partial')" variant="primary" v-b-popover.hover.bottom="'Partial Sync'">
-                    <b-dropdown-item @click="loadSales('full')">Full Sync</b-dropdown-item>
-                  </b-dropdown>
-                  <b-button v-if="message != null" size="sm" @click="halt" variant="primary" v-b-popover.hover.bottom="'Halt'" >{{ message }}</b-button>
-                  -->
-
-                  <b-input-group class="mb-2" style="height: 0;">
-                    <template #append>
-                      <b-button size="sm" :pressed.sync="settings.syncToolbar" variant="outline-primary" v-b-popover.hover.bottom="'Sync settings'"><span v-if="settings.syncToolbar"><b-icon-gear-fill shift-v="+1" font-scale="1.0"></b-icon-gear-fill></span><span v-else><b-icon-gear shift-v="+1" font-scale="1.0"></b-icon-gear></span></b-button>
-                    </template>
-                    <b-button v-if="message == null" size="sm" @click="loadSales('partial')" variant="primary" v-b-popover.hover.bottom="'Partial Sync'" style="min-width: 100px; ">Sync</b-button>
-                    <b-button v-if="message != null" size="sm" @click="halt" variant="primary" v-b-popover.hover.bottom="'Halt'" style="min-width: 100px; ">{{ message }}</b-button>
-                  </b-input-group>
-
-
-
-                </div>
-                <div class="mt-1 pr-1 flex-grow-1">
-                </div>
-                <div v-if="settings.tabIndex == 0" class="mt-1 pr-1">
-                  <b-button size="sm" @click="exportSales" :disabled="filteredSortedSales.length == 0" variant="link">Export</b-button>
-                </div>
-                <div v-if="settings.tabIndex == 0" class="mt-1 pr-1">
-                  <b-form-select size="sm" v-model="settings.sortOption" :options="sortOptions"></b-form-select>
-                </div>
-                <div v-if="settings.tabIndex == 0" class="mt-1 pr-1">
-                  <font size="-2" v-b-popover.hover.bottom="formatTimestamp(earliestEntry) + ' to ' + formatTimestamp(latestEntry)">{{ filteredSortedSales.length }}</font>
-                </div>
-                <div v-if="settings.tabIndex == 0" class="mt-1 pr-1">
-                  <b-pagination size="sm" v-model="settings.currentPage" :total-rows="filteredSortedSales.length" :per-page="settings.pageSize" style="height: 0;"></b-pagination>
-                </div>
-                <div v-if="settings.tabIndex == 0" class="mt-1">
-                  <b-form-select size="sm" v-model="settings.pageSize" :options="pageSizes" v-b-popover.hover.bottom="'Page size'"></b-form-select>
-                </div>
+            <!-- Main Toolbar -->
+            <div class="d-flex flex-wrap m-0 p-0">
+              <div class="mt-1" style="max-width: 150px;">
+                <b-form-input type="text" size="sm" :value="filter.searchString" @change="updateFilter('searchString', $event)" debounce="600" placeholder="🔍 {regex}"></b-form-input>
               </div>
-
-              <!-- Secondary Toolbar -->
-              <div v-if="settings.syncToolbar" class="d-flex flex-wrap m-0 p-0" style="min-height: 37px;">
-                <div class="mt-1" style="max-width: 150px;">
-                  <b-button size="sm" @click="loadSales('clearCache')" variant="primary" v-b-popover.hover.bottom="'Reset application data'">Clear Local Cache</b-button>
-                  <!-- <b-form-input type="text" size="sm" :value="filter.searchString" @change="updateFilter('searchString', $event)" debounce="600" placeholder="🔍 {regex}"></b-form-input> -->
-                </div>
-                <div class="mt-1 pr-1 flex-grow-1">
-                </div>
-                <div class="mt-1 pr-1 flex-grow-1">
-                </div>
-                <div v-if="settings.tabIndex == 0" class="mt-1">
-                  <!-- <b-form-select size="sm" v-model="settings.pageSize" :options="pageSizes" v-b-popover.hover.bottom="'Page size'"></b-form-select> -->
-                </div>
+              <div class="mt-1 pl-2" style="max-width: 150px;">
+                <b-form-input type="text" size="sm" :value="filter.searchAccounts" @change="updateFilter('searchAccounts', $event)" debounce="600" placeholder="🔍 0x12... ..."></b-form-input>
               </div>
-            <!-- </div> -->
+              <div class="mt-1 pl-2" style="max-width: 80px;">
+                <b-form-input type="text" size="sm" :value="filter.priceFrom" @change="updateFilter('priceFrom', $event)" debounce="600" placeholder="min"></b-form-input>
+              </div>
+              <div class="mt-1">
+                -
+              </div>
+              <div class="mt-1 pr-2" style="max-width: 80px;">
+              <b-form-input type="text" size="sm" :value="filter.priceTo" @change="updateFilter('priceTo', $event)" debounce="600" placeholder="max"></b-form-input>
+              </div>
+              <div class="mt-1 pr-1 flex-grow-1">
+              </div>
+              <div class="mt-1 pr-1">
+                <b-input-group class="mb-2" style="height: 0;">
+                  <template #append>
+                    <b-button size="sm" :pressed.sync="settings.syncToolbar" variant="outline-primary" v-b-popover.hover.bottom="'Sync settings'"><span v-if="settings.syncToolbar"><b-icon-gear-fill shift-v="+1" font-scale="1.0"></b-icon-gear-fill></span><span v-else><b-icon-gear shift-v="+1" font-scale="1.0"></b-icon-gear></span></b-button>
+                  </template>
+                  <b-button v-if="message == null" size="sm" @click="loadSales('partial')" variant="primary" v-b-popover.hover.bottom="'Partial Sync'" style="min-width: 100px; ">Sync</b-button>
+                  <b-button v-if="message != null" size="sm" @click="halt" variant="primary" v-b-popover.hover.bottom="'Halt'" style="min-width: 100px; ">{{ message }}</b-button>
+                </b-input-group>
+              </div>
+              <div class="mt-1 pr-1 flex-grow-1">
+              </div>
+              <div v-if="settings.tabIndex == 0" class="mt-1 pr-1">
+                <b-button size="sm" @click="exportSales" :disabled="filteredSortedSales.length == 0" variant="link">Export</b-button>
+              </div>
+              <div v-if="settings.tabIndex == 0" class="mt-1 pr-1">
+                <b-form-select size="sm" v-model="settings.sortOption" :options="sortOptions"></b-form-select>
+              </div>
+              <div v-if="settings.tabIndex == 0" class="mt-1 pr-1">
+                <font size="-2" v-b-popover.hover.bottom="formatTimestamp(earliestEntry) + ' to ' + formatTimestamp(latestEntry)">{{ filteredSortedSales.length }}</font>
+              </div>
+              <div v-if="settings.tabIndex == 0" class="mt-1 pr-1">
+                <b-pagination size="sm" v-model="settings.currentPage" :total-rows="filteredSortedSales.length" :per-page="settings.pageSize" style="height: 0;"></b-pagination>
+              </div>
+              <div v-if="settings.tabIndex == 0" class="mt-1">
+                <b-form-select size="sm" v-model="settings.pageSize" :options="pageSizes" v-b-popover.hover.bottom="'Page size'"></b-form-select>
+              </div>
+            </div>
+
+            <!-- Sync Toolbar -->
+            <div v-if="settings.syncToolbar" class="d-flex flex-wrap m-0 p-0">
+              <div class="mt-1 pr-1" style="max-width: 150px;">
+                <b-button size="sm" @click="loadSales('clearCache')" variant="primary" v-b-popover.hover.bottom="'Reset application data'">Clear Local Cache</b-button>
+                <!-- <b-form-input type="text" size="sm" :value="filter.searchString" @change="updateFilter('searchString', $event)" debounce="600" placeholder="🔍 {regex}"></b-form-input> -->
+              </div>
+              <div class="mt-1">
+                <b-form-select size="sm" v-model="settings.period" :options="periods" v-b-popover.hover.bottom="'Sales history period'"></b-form-select>
+              </div>
+              <div class="mt-1 pr-1 flex-grow-1">
+              </div>
+              <div v-if="settings.tabIndex == 0" class="mt-1">
+                <!-- <b-form-select size="sm" v-model="settings.pageSize" :options="pageSizes" v-b-popover.hover.bottom="'Page size'"></b-form-select> -->
+              </div>
+            </div>
 
             <!-- Loading --->
             <div v-if="message != null && message.substring(0, 5) != 'Error'">
@@ -297,6 +274,7 @@ const ENSSales = {
         // randomise: false,
         pageSize: 100,
         currentPage: 1,
+        period: { term: 1, termType: "w" },
       },
 
       dailyChartSelectedItems: [],
@@ -318,6 +296,14 @@ const ENSSales = {
         { value: 1000, text: '1k' },
         { value: 2500, text: '2.5k' },
         { value: 10000, text: '10k' },
+      ],
+
+      periods: [
+        { value: { term: 1, termType: "w" }, text: '1w' },
+        { value: { term: 1, termType: "m" }, text: '1mo' },
+        { value: { term: 2, termType: "m" }, text: '2mo' },
+        { value: { term: 3, termType: "m" }, text: '3mo' },
+        { value: { term: 1, termType: "y" }, text: '1y' },
       ],
 
       salesFields: [
