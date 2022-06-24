@@ -26,10 +26,10 @@ const ENSSales = {
             <b-button size="sm" @click="doit( { action: 'stopService' } );" variant="primary">Stop Service</b-button>
           </b-card-body>
           -->
-          <b-card-body class="m-0 p-0">
+          <b-card-body class="m-0 p-1">
 
             <!-- Toolbar -->
-            <div class="m-0 mx-1 mb-1 p-0">
+            <!-- <div class="m-0 mx-1 mb-1 p-1"> -->
               <!-- Main Toolbar -->
               <div class="d-flex flex-wrap m-0 p-0">
                 <div class="mt-1" style="max-width: 150px;">
@@ -59,10 +59,10 @@ const ENSSales = {
 
                   <b-input-group class="mb-2" style="height: 0;">
                     <template #append>
-                      <b-button size="sm" :pressed.sync="settings.syncToolbar" variant="outline-primary" v-b-popover.hover="'Sync settings'"><span v-if="settings.syncToolbar"><b-icon-gear-fill shift-v="+1" font-scale="1.0"></b-icon-gear-fill></span><span v-else><b-icon-gear shift-v="+1" font-scale="1.0"></b-icon-gear></span></b-button>
+                      <b-button size="sm" :pressed.sync="settings.syncToolbar" variant="outline-primary" v-b-popover.hover.bottom="'Sync settings'"><span v-if="settings.syncToolbar"><b-icon-gear-fill shift-v="+1" font-scale="1.0"></b-icon-gear-fill></span><span v-else><b-icon-gear shift-v="+1" font-scale="1.0"></b-icon-gear></span></b-button>
                     </template>
-                    <b-button v-if="message == null" size="sm" @click="loadSales('partial')" variant="primary" v-b-popover.hover.bottom="'Partial Sync'">Sync</b-button>
-                    <b-button v-if="message != null" size="sm" @click="halt" variant="primary" v-b-popover.hover.bottom="'Halt'" >{{ message }}</b-button>
+                    <b-button v-if="message == null" size="sm" @click="loadSales('partial')" variant="primary" v-b-popover.hover.bottom="'Partial Sync'" style="min-width: 100px; ">Sync</b-button>
+                    <b-button v-if="message != null" size="sm" @click="halt" variant="primary" v-b-popover.hover.bottom="'Halt'" style="min-width: 100px; ">{{ message }}</b-button>
                   </b-input-group>
 
 
@@ -90,7 +90,7 @@ const ENSSales = {
               <!-- Secondary Toolbar -->
               <div v-if="settings.syncToolbar" class="d-flex flex-wrap m-0 p-0" style="min-height: 37px;">
                 <div class="mt-1" style="max-width: 150px;">
-                  <b-button size="sm" @click="loadSales('partial')" variant="primary" v-b-popover.hover.bottom="'Reset application data'">Clear Local Cache</b-button>
+                  <b-button size="sm" @click="loadSales('clearCache')" variant="primary" v-b-popover.hover.bottom="'Reset application data'">Clear Local Cache</b-button>
                   <!-- <b-form-input type="text" size="sm" :value="filter.searchString" @change="updateFilter('searchString', $event)" debounce="600" placeholder="🔍 {regex}"></b-form-input> -->
                 </div>
                 <div class="mt-1 pr-1 flex-grow-1">
@@ -98,20 +98,20 @@ const ENSSales = {
                 <div class="mt-1 pr-1 flex-grow-1">
                 </div>
                 <div v-if="settings.tabIndex == 0" class="mt-1">
-                  <b-form-select size="sm" v-model="settings.pageSize" :options="pageSizes" v-b-popover.hover.bottom="'Page size'"></b-form-select>
+                  <!-- <b-form-select size="sm" v-model="settings.pageSize" :options="pageSizes" v-b-popover.hover.bottom="'Page size'"></b-form-select> -->
                 </div>
               </div>
-            </div>
+            <!-- </div> -->
 
             <!-- Loading --->
             <div v-if="message != null && message.substring(0, 5) != 'Error'">
-              <b-alert show :variant="message.substring(0, 5) != 'Error' ? 'info' : 'danger'" class="mt-0 mb-2 p-2">
+              <b-alert show :variant="message.substring(0, 5) != 'Error' ? 'info' : 'danger'" class="m-2 p-2">
                 {{ message }}
               </b-alert>
             </div>
 
             <!-- Listing -->
-            <b-table v-if="settings.tabIndex == 0" small striped hover :fields="salesFields" :items="pagedFilteredSortedSales" table-class="w-auto" class="mt-0">
+            <b-table v-if="settings.tabIndex == 0" small striped hover :fields="salesFields" :items="pagedFilteredSortedSales" table-class="w-auto" class="m-2 p-2">
               <template #cell(timestamp)="data">
                 {{ formatTimestamp(data.item.timestamp) }}
               </template>
@@ -315,9 +315,9 @@ const ENSSales = {
         { value: 10, text: '10' },
         { value: 100, text: '100' },
         { value: 500, text: '500' },
-        { value: 1000, text: '1,000' },
-        { value: 2500, text: '2,500' },
-        { value: 10000, text: '(all)' },
+        { value: 1000, text: '1k' },
+        { value: 2500, text: '2.5k' },
+        { value: 10000, text: '10k' },
       ],
 
       salesFields: [
@@ -1012,7 +1012,9 @@ const ensSalesModule = {
 
       // --- loadSales() start ---
       logInfo("ensSalesModule", "mutations.loadSales() - syncMode: " + syncMode + ", filterUpdate: " + JSON.stringify(filterUpdate));
-      state.message = "Syncing";
+      if (syncMode != 'updateFilter') {
+        state.message = "Syncing";
+      }
 
       console.log("filter before: " + JSON.stringify(state.filter));
       if (filterUpdate != null) {
@@ -1026,15 +1028,16 @@ const ensSalesModule = {
         logInfo("ensSalesModule", "mutations.loadSales() exchangeRates: " + JSON.stringify(state.exchangeRates).substring(0, 60) + " ...");
       }
 
-      if (syncMode == 'full') {
+      if (syncMode == 'clearCache') {
         logInfo("ensSalesModule", "mutations.loadSales() - deleting db");
         Dexie.delete(state.db.name);
         localStorage.ensSalesDates = undefined;
       }
+
       const db0 = new Dexie(state.db.name);
       db0.version(state.db.version).stores(state.db.definition);
 
-      if (syncMode != 'full' && syncMode != 'filterUpdate') {
+      if (syncMode != 'clearCache' && syncMode != 'updateFilter') {
         const deleteBeforeDate = moment.utc().startOf('day').subtract(state.config.deleteBeforeDays, 'day').unix();
         logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI() - deleteBeforeDate: " + moment.unix(deleteBeforeDate).utc().format() + " (" + deleteBeforeDate + ")");
         db0.transaction('rw', db0.sales, function* () {
@@ -1058,7 +1061,7 @@ const ensSalesModule = {
       if (syncMode == 'mounted') {
         await refreshResultsFromDB();
       }
-      if (syncMode != 'updateFilter') {
+      if (syncMode != 'clearCache' && syncMode != 'updateFilter') {
         await updateDBFromAPI();
       }
       await refreshResultsFromDB();

@@ -187,7 +187,7 @@ const CryptoPunks = {
             </div>
 
             <!-- Table -->
-            <b-table v-if="settings.tabIndex == 1" small striped hover :fields="resultsFields" :items="pagedFilteredSortedResults" table-class="w-100" class="mt-0">
+            <b-table v-if="settings.tabIndex == 1" small striped hover :fields="resultsFields" :items="pagedFilteredSortedResults" table-class="w-100" class="m-2">
               <template #cell(punkId)="data">
                 <b-link :href="'https://cryptopunks.app/cryptopunks/details/' + data.item.punkId" v-b-popover.hover.bottom="'View in original website'" target="_blank">
                   {{ data.item.punkId }}
@@ -516,9 +516,9 @@ const CryptoPunks = {
         { value: 10, text: '10' },
         { value: 100, text: '100' },
         { value: 500, text: '500' },
-        { value: 1000, text: '1,000' },
-        { value: 2500, text: '2,500' },
-        { value: 10000, text: '(all)' },
+        { value: 1000, text: '1k' },
+        { value: 2500, text: '2.5k' },
+        { value: 10000, text: '10k' },
       ],
 
       attributeFilter: {},
