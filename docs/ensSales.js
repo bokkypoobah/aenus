@@ -16,6 +16,11 @@ const ENSSales = {
             </b-tab>
           </b-tabs>
 
+          <!--
+          Later on - top sellers and buyers
+          {{ accounts }}
+          -->
+
           <b-card-body class="m-0 p-1">
             <!-- Main Toolbar -->
             <div class="d-flex flex-wrap m-0 p-0">
@@ -190,6 +195,12 @@ const ENSSales = {
                   {{ data.item.txHash.substring(0, 12) }}
                 </b-link>
               </template>
+              <template #cell(price)="data">
+                {{ data.item.price }}
+              </template>
+              <template #cell(priceUSD)="data">
+                {{ priceUSD(data.item.price, data.item.timestamp) }}
+              </template>
             </b-table>
 
             <div v-if="settings.tabIndex == 1">
@@ -307,7 +318,8 @@ const ENSSales = {
         { key: 'name', label: 'Name', thStyle: 'width: 20%;' },
         { key: 'from', label: 'From', thStyle: 'width: 15%;' },
         { key: 'to', label: 'To', thStyle: 'width: 15%;' },
-        { key: 'price', label: 'Price', thStyle: 'width: 10%;', thClass: 'text-right', tdClass: 'text-right' },
+        { key: 'price', label: 'ETH', thStyle: 'width: 10%;', thClass: 'text-right', tdClass: 'text-right' },
+        { key: 'priceUSD', label: 'USD', thStyle: 'width: 10%;', thClass: 'text-right', tdClass: 'text-right' },
         { key: 'orderSide', label: 'OrderSide', thStyle: 'width: 5%;' },
         { key: 'txHash', label: 'Tx', thStyle: 'width: 15%;' },
       ],
@@ -578,6 +590,46 @@ const ENSSales = {
     pagedFilteredSortedSales() {
       return this.filteredSortedSales.slice((this.settings.currentPage - 1) * this.settings.pageSize, this.settings.currentPage * this.settings.pageSize);
     },
+    accounts() {
+      const sellers = {};
+      const buyers = {};
+      for (const sale of this.sales.slice(0, 10)) {
+        console.log("sale: " + JSON.stringify(sale));
+        if (!(sale.from in sellers)) {
+          sellers[sale.from] = { count: 1, total: sale.price, items: [sale] };
+        } else {
+          sellers[sale.from].count++;
+          sellers[sale.from].total = parseFloat(sellers[sale.from].total) + sale.price;
+          sellers[sale.from].items.push(sale);
+        }
+        if (!(sale.to in buyers)) {
+          buyers[sale.to] = { count: 1, total: sale.price, items: [sale] };
+        } else {
+          buyers[sale.to].count++;
+          buyers[sale.to].total = parseFloat(buyers[sale.to].total) + sale.price;
+          buyers[sale.to].items.push(sale);
+        }
+      }
+      const sellersData = [];
+      for (const [account, value] of Object.entries(sellers)) {
+        const average = value.total / value.count;
+        sellersData.push({ account: account, count: value.count, total: value.total, average: average, items: value.items });
+        console.log("seller: " + account + " count: " + value.count + ", total: " + value.total);
+      }
+      sellersData.sort((a, b) => {
+        return b.total - a.total;
+      });
+      const buyersData = [];
+      for (const [account, value] of Object.entries(buyers)) {
+        const average = value.total / value.count;
+        buyersData.push({ account: account, count: value.count, total: value.total, average: average, items: value.items });
+        console.log("buyer: " + account + " count: " + value.count + ", total: " + value.total);
+      }
+      buyersData.sort((a, b) => {
+        return b.total - a.total;
+      });
+      return { sellers: sellersData, buyers: buyersData };
+    },
     chartData() {
       const results = [];
       const data = [];
@@ -658,6 +710,11 @@ const ENSSales = {
         return moment.unix(ts).utc().format("MMMDD");
       }
       return null;
+    },
+    priceUSD(price, timestamp) {
+      const bucket = moment.unix(timestamp).utc().startOf('day').unix();
+      const exchangeRate = this.exchangeRates[bucket];
+      return ethers.utils.commify(parseFloat(price * exchangeRate).toFixed(0));
     },
     updateConfig(field, config) {
       // logInfo("ENSSales", "updateConfig: " + field + " => " + JSON.stringify(config));
@@ -948,11 +1005,13 @@ const ensSalesModule = {
           .catch(function(error) {
              console.log("ERROR - fetchExchangeRates: " + error);
              state.sync.error = true;
-             return [];
+             return null;
           });
         const results = {};
-        for (day of data.Data.Data) {
-          results[day.time] = day.close;
+        if (data) {
+          for (day of data.Data.Data) {
+            results[day.time] = day.close;
+          }
         }
         return results;
       }
