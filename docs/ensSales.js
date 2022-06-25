@@ -41,8 +41,8 @@ const ENSSales = {
                   <template #append>
                     <b-button size="sm" :pressed.sync="settings.syncToolbar" variant="outline-primary" v-b-popover.hover.bottom="'Sync settings'"><span v-if="settings.syncToolbar"><b-icon-gear-fill shift-v="+1" font-scale="1.0"></b-icon-gear-fill></span><span v-else><b-icon-gear shift-v="+1" font-scale="1.0"></b-icon-gear></span></b-button>
                   </template>
-                  <b-button v-if="message == null" size="sm" @click="loadSales('partial')" variant="primary" v-b-popover.hover.bottom="'Partial Sync'" style="min-width: 100px; ">Sync</b-button>
-                  <b-button v-if="message != null" size="sm" @click="halt" variant="primary" v-b-popover.hover.bottom="'Halt'" style="min-width: 100px; ">{{ message }}</b-button>
+                  <b-button v-if="!sync.inProgress" size="sm" @click="loadSales('partial')" variant="primary" v-b-popover.hover.bottom="'Partial Sync'" style="min-width: 80px; ">Sync</b-button>
+                  <b-button v-if="sync.inProgress" size="sm" @click="halt" variant="primary" v-b-popover.hover.bottom="'Halt'" style="min-width: 80px; ">Syncing</b-button>
                 </b-input-group>
               </div>
               <div class="mt-1 pr-1 flex-grow-1">
@@ -67,12 +67,12 @@ const ENSSales = {
             <!-- Sync Toolbar -->
             <div v-if="settings.syncToolbar" class="d-flex flex-wrap m-0 p-0 pb-1">
               <div class="mt-1 pr-1">
-                <b-form-select size="sm" :value="config.period" @change="updateConfig('period', $event)" :options="periods" v-b-popover.hover.bottom="'Sales history period'"></b-form-select>
+                <b-form-select size="sm" :value="config.period" @change="updateConfig('period', $event)" :options="periods" :disabled="sync.inProgress" v-b-popover.hover.bottom="'Sales history period'"></b-form-select>
               </div>
               <div class="mt-2" style="width: 300px;">
-                <b-progress height="1.5rem" :max="sync.daysExpected" :label="'((sync.daysInCache/sync.daysExpected)*100).toFixed(2) + %'" show-progress :animated="sync.inProgress" :variant="sync.inProgress ? 'primary' : 'secondary'" v-b-popover.hover.bottom="formatTimestampAsDate(sync.from) + ' - ' + formatTimestampAsDate(sync.to) + '. Click on the Sync(ing) button to (un)pause'">
+                <b-progress height="1.5rem" :max="sync.daysExpected" :label="'((sync.daysInCache/sync.daysExpected)*100).toFixed(2) + %'" show-progress :animated="sync.inProgress" :variant="sync.inProgress ? 'success' : 'secondary'" v-b-popover.hover.bottom="formatTimestampAsDate(sync.from) + ' - ' + formatTimestampAsDate(sync.to) + '. Click on the Sync(ing) button to (un)pause'">
                   <b-progress-bar :value="sync.daysInCache">
-                    {{ (sync.processing ? (formatTimestampAsDate(sync.processing) + ': ') : '') + sync.daysInCache + '/' + sync.daysExpected + ' ' + ((sync.daysInCache / sync.daysExpected) * 100).toFixed(0) + '%' }}
+                    {{ (sync.processing ? (sync.processing + ' - ') : '') + sync.daysInCache + '/' + sync.daysExpected + ' ' + ((sync.daysInCache / sync.daysExpected) * 100).toFixed(0) + '%' }}
                   </b-progress-bar>
                 </b-progress>
               </div>
@@ -81,13 +81,6 @@ const ENSSales = {
               <div class="mt-1 pr-1" style="max-width: 150px;">
                 <b-button size="sm" @click="loadSales('clearCache')" variant="primary" v-b-popover.hover.bottom="'Reset application data'">Clear Local Cache</b-button>
               </div>
-            </div>
-
-            <!-- Loading --->
-            <div v-if="message != null && message.substring(0, 5) != 'Error'">
-              <b-alert show :variant="message.substring(0, 5) != 'Error' ? 'info' : 'danger'" class="m-2 p-2">
-                {{ message }}
-              </b-alert>
             </div>
 
             <!-- Listing -->
@@ -272,7 +265,7 @@ const ENSSales = {
 
       settings: {
         tabIndex: 0,
-        syncToolbar: true,
+        syncToolbar: false,
         sortOption: 'latestsale',
         // randomise: false,
         pageSize: 100,
@@ -523,9 +516,6 @@ const ENSSales = {
     exchangeRates() {
       return store.getters['ensSales/exchangeRates'];
     },
-    message() {
-      return store.getters['ensSales/message'];
-    },
     earliestEntry() {
       let timestamp = null;
       for (const sale of this.sales) {
@@ -749,15 +739,12 @@ const ENSSales = {
 const ensSalesModule = {
   namespaced: true,
   state: {
-    config: {
-      period: { term: 1, termType: "month" },
-      // background: true,
-      // segmentsPerDay: 1,
-      retrieveLastDays: 31,
-      deleteBeforeDays: 31, // merge into above?
-      collections: [0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85],
+    constants: {
       reservoirSalesV3BatchSize: 50,
       currency: 'USD',
+    },
+    config: {
+      period: { term: 1, termType: "month" },
     },
     filter: {
       searchString: null,
@@ -767,6 +754,7 @@ const ensSalesModule = {
     },
     sync: {
       inProgress: false,
+      now: null,
       from: null,
       to: null,
       daysExpected: null,
@@ -775,10 +763,8 @@ const ensSalesModule = {
     },
     sales: [],
     exchangeRates: {},
-    message: null,
     halt: false,
     params: null,
-    executing: false,
     db: {
       name: "aenusenssalesdb",
       version: 1,
@@ -793,7 +779,6 @@ const ensSalesModule = {
     sync: state => state.sync,
     sales: state => state.sales,
     exchangeRates: state => state.exchangeRates,
-    message: state => state.message,
     params: state => state.params,
   },
   mutations: {
@@ -877,30 +862,17 @@ const ensSalesModule = {
       // }
       async function updateDBFromAPI() {
         logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI()");
-        const now = moment().unix();
         const earliestEntry = await db0.sales.orderBy("timestamp").first();
         const earliestDate = earliestEntry ? earliestEntry.timestamp : null;
         const latestEntry = await db0.sales.orderBy("timestamp").last();
         const latestDate = latestEntry ? latestEntry.timestamp : null;
-        logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI() - now: " +
-          moment.unix(now).utc().format() + " (" + now + "), " +
-          "earliestDate: " + (earliestDate == null ? null : (moment.unix(earliestDate).utc().format() + " (" + earliestDate + ")")) +
-          ", latestDate: " + (latestDate == null ? null : (moment.unix(latestDate).utc().format() + " (" + latestDate + ")"))
+        logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI() - earliestDate: " +
+          (earliestDate == null ? null : (moment.unix(earliestDate).utc().format() + " (" + earliestDate + ")")) + ", latestDate: " +
+          (latestDate == null ? null : (moment.unix(latestDate).utc().format() + " (" + latestDate + ")"))
         );
 
-        const segmentStart = moment.unix(now).utc().startOf('day').unix();
-        logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI() - segmentStart: " + moment.unix(segmentStart).utc().format() + " (" + segmentStart + ")");
-
-
-        const beginPeriod = moment.unix(segmentStart).utc().subtract(state.config.period.term, state.config.period.termType).unix();
-        logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI() - beginPeriod: " + moment.unix(beginPeriod).utc().format() + " (" + beginPeriod + ")");
-
-        const days = moment.unix(segmentStart).utc().diff(moment.unix(beginPeriod).utc(), "days");
-        logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI() - days: " + days);
-
-        // Get from start of today
-        let to = now;
-        let from = segmentStart;
+        let to = state.sync.now;
+        let from = state.sync.to;
         let dates;
         try {
           dates = JSON.parse(localStorage.ensSalesDates);
@@ -913,17 +885,15 @@ const ensSalesModule = {
           if (!(from in dates)) {
             let processFrom = from;
             const processTo = to;
-            if (processFrom == segmentStart) {
+            if (processFrom == state.sync.to) {
               if (processFrom < latestDate) {
                 processFrom = latestDate;
               }
             }
-            state.sync.processing = processFrom;
-            state.sync.daysInCache = Object.keys(dates).length;
             let continuation = null;
             do {
               let url = "https://api.reservoir.tools/sales/v3?contract=0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85" +
-                "&limit=" + state.config.reservoirSalesV3BatchSize +
+                "&limit=" + state.constants.reservoirSalesV3BatchSize +
                 "&startTimestamp=" + processFrom +
                 "&endTimestamp="+ processTo +
                 (continuation != null ? "&continuation=" + continuation : '');
@@ -934,8 +904,9 @@ const ensSalesModule = {
               let numberOfRecords = await processSales(data);
               totalRecords += numberOfRecords;
               continuation = data.continuation;
+              state.sync.processing = moment.unix(processFrom).utc().format("DDMMM") + ': ' + totalRecords;
             } while (continuation != null && !state.halt);
-            if (from != segmentStart && !state.halt) {
+            if (from != state.sync.to && !state.halt) {
               dates[from] = true;
             }
             if (totalRecords > 0) {
@@ -947,13 +918,14 @@ const ensSalesModule = {
           to = from;
           from = moment.unix(from).utc().subtract(1, 'day').unix();
           localStorage.ensSalesDates = JSON.stringify(dates);
+          state.sync.daysInCache = Object.keys(dates).length;
         }
         logInfo("ensSalesModule", "mutations.loadSales() - processed dates: " + JSON.stringify(Object.keys(dates)));
       }
       async function fetchExchangeRates() {
         // TODO: Use toTs={timestamp} when > 2000 days - https://min-api.cryptocompare.com/documentation?key=Historical&cat=dataHistoday
         const days = parseInt((new Date() - new Date("2017-07-22")) / (24 * 60 * 60 * 1000));
-        const url = "https://min-api.cryptocompare.com/data/v2/histoday?fsym=ETH&tsym=" + state.config.currency + "&limit=" + days;
+        const url = "https://min-api.cryptocompare.com/data/v2/histoday?fsym=ETH&tsym=" + state.constants.currency + "&limit=" + days;
         logInfo("cryptoPunksModule", "mutations.loadPunks().fetchLatestEvents() url: " + url);
         const data = await fetch(url)
           .then(response => response.json())
@@ -1023,11 +995,24 @@ const ensSalesModule = {
       // --- loadSales() start ---
       logInfo("ensSalesModule", "mutations.loadSales() - syncMode: " + syncMode + ", configUpdate: " + JSON.stringify(configUpdate) + ", filterUpdate: " + JSON.stringify(filterUpdate));
 
+      if (syncMode == 'clearCache' || !('ensSalesConfig' in localStorage)) {
+        state.config = { period: { term: 1, termType: "month" } };
+      } else {
+        state.config = JSON.parse(localStorage.ensSalesConfig);
+      }
       if (configUpdate != null) {
         console.log("config before: " + JSON.stringify(state.config));
         console.log("updating config with: " + JSON.stringify(configUpdate));
         state.config = { ...state.config, ...configUpdate };
         console.log("config after: " + JSON.stringify(state.config));
+        localStorage.ensSalesConfig = JSON.stringify(state.config);
+      }
+
+      if (syncMode == 'clearCache') {
+        logInfo("ensSalesModule", "mutations.loadSales() - deleting db");
+        Dexie.delete(state.db.name);
+        delete localStorage['ensSalesDates'];
+        delete localStorage['ensSalesConfig'];
       }
 
       if (syncMode != 'updateFilter') {
@@ -1038,23 +1023,18 @@ const ensSalesModule = {
         logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI() - from: " + moment.unix(from).utc().format() + " (" + from + ")");
         const days = moment.unix(to).utc().diff(moment.unix(from).utc(), "days");
         logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI() - days: " + days);
-
-        logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI() - localStorage.ensSalesDates: " + localStorage.ensSalesDates);
-        const ensSalesDates = JSON.parse(localStorage.ensSalesDates);
-        logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI() - ensSalesDates: " + ensSalesDates);
-
-        const daysInCache = Object.keys(ensSalesDates).length;
+        const daysInCache = ('ensSalesDates' in localStorage) ? Object.keys(JSON.parse(localStorage.ensSalesDates)).length : 0;
         logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI() - daysInCache: " + daysInCache);
 
         state.sync = {
           inProgress: true,
+          now: now,
           from: from,
           to: to,
           daysExpected: days,
           daysInCache: daysInCache,
           processing: null,
         };
-        state.message = "Syncing";
       }
 
       if (filterUpdate != null) {
@@ -1069,45 +1049,36 @@ const ensSalesModule = {
         logInfo("ensSalesModule", "mutations.loadSales() exchangeRates: " + JSON.stringify(state.exchangeRates).substring(0, 60) + " ...");
       }
 
-      if (syncMode == 'clearCache') {
-        logInfo("ensSalesModule", "mutations.loadSales() - deleting db");
-        Dexie.delete(state.db.name);
-        localStorage.ensSalesDates = undefined;
-      }
-
       const db0 = new Dexie(state.db.name);
       db0.version(state.db.version).stores(state.db.definition);
 
-      if (syncMode != 'clearCache' && syncMode != 'updateFilter') {
-        const deleteBeforeDate = moment.utc().startOf('day').subtract(state.config.deleteBeforeDays, 'day').unix();
-        logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI() - deleteBeforeDate: " + moment.unix(deleteBeforeDate).utc().format() + " (" + deleteBeforeDate + ")");
+      if (syncMode != 'clearCache' && syncMode != 'updateFilter' && syncMode != 'mounted') {
+        // logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI() - from: " + moment.unix(state.sync.from).utc().format() + " (" + state.sync.from + ")");
         db0.transaction('rw', db0.sales, function* () {
-          var deleteCount = yield db0.sales.where("timestamp").below(deleteBeforeDate).delete();
-          logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI() - deleted " + deleteCount + " old records");
-          try {
-            const ensSalesDates = JSON.parse(localStorage.ensSalesDates);
-            Object.keys(ensSalesDates).forEach(function (timestamp) {
-              if (timestamp < deleteBeforeDate) {
-                delete ensSalesDates[timestamp];
-              }
-            });
-            localStorage.ensSalesDates = JSON.stringify(ensSalesDates);
-            state.sync.daysInCache = Object.keys(ensSalesDates).length;
-          } catch (e) {
-            console.log("Error updating ensSalesDates")
+          var deleteCount = yield db0.sales.where("timestamp").below(state.sync.from).delete();
+          logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI() - deleted " + deleteCount + " old records before " +  moment.unix(state.sync.from).utc().format("YYYY-MM-DD"));
+          if ('ensSalesDates' in localStorage) {
+            try {
+              const ensSalesDates = JSON.parse(localStorage.ensSalesDates);
+              Object.keys(ensSalesDates).forEach(function (timestamp) {
+                if (timestamp < state.sync.from) {
+                  delete ensSalesDates[timestamp];
+                }
+              });
+              localStorage.ensSalesDates = JSON.stringify(ensSalesDates);
+              state.sync.daysInCache = Object.keys(ensSalesDates).length;
+            } catch (e) {
+              console.log("Error updating ensSalesDates")
+            }
           }
         }).catch (e => {
           console.error (e);
         });
       }
-      if (syncMode == 'mounted') {
-        await refreshResultsFromDB();
-      }
-      if (syncMode != 'clearCache' && syncMode != 'updateFilter') {
+      if (syncMode != 'clearCache' && syncMode != 'updateFilter' && syncMode != 'mounted') {
         await updateDBFromAPI();
       }
       await refreshResultsFromDB();
-      state.message = null;
       state.sync.inProgress = false;
       state.sync.processing = null;
       state.halt = false;
