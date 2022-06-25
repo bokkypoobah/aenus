@@ -66,8 +66,15 @@ const ENSSales = {
 
             <!-- Sync Toolbar -->
             <div v-if="settings.syncToolbar" class="d-flex flex-wrap m-0 p-0 pb-1">
-              <div class="mt-1">
+              <div class="mt-1 pr-1">
                 <b-form-select size="sm" :value="config.period" @change="updateConfig('period', $event)" :options="periods" v-b-popover.hover.bottom="'Sales history period'"></b-form-select>
+              </div>
+              <div class="mt-1" style="width: 300px;">
+                <b-progress height="2rem" :max="sync.daysExpected" :label="'((sync.daysInCache/sync.daysExpected)*100).toFixed(2) + %'" show-progress :animated="sync.inProgress" :variant="sync.inProgress ? 'primary' : 'secondary'" v-b-popover.hover.bottom="sync.daysInCache + '/' + sync.daysExpected + ' (' + formatTimestamp(sync.from) + ' - ' + formatTimestamp(sync.to) + ')'">
+                  <b-progress-bar :value="sync.daysInCache" variant="primary">
+                    {{ (sync.processing ? (formatTimestampAsDate(sync.processing) + ': ') : '') + sync.daysInCache + '/' + sync.daysExpected + ' ' + ((sync.daysInCache / sync.daysExpected) * 100).toFixed(0) + '%' }}
+                  </b-progress-bar>
+                </b-progress>
               </div>
               <div class="mt-1 flex-grow-1">
               </div>
@@ -270,7 +277,6 @@ const ENSSales = {
         // randomise: false,
         pageSize: 100,
         currentPage: 1,
-        // period: { term: 1, termType: "w" },
       },
 
       dailyChartSelectedItems: [],
@@ -295,12 +301,12 @@ const ENSSales = {
       ],
 
       periods: [
-        { value: { term: 1, termType: "w" }, text: '1 Week' },
-        { value: { term: 2, termType: "w" }, text: '2 Weeks' },
-        { value: { term: 1, termType: "m" }, text: '1 Month' },
-        { value: { term: 2, termType: "m" }, text: '2 Months' },
-        { value: { term: 3, termType: "m" }, text: '3 Months' },
-        { value: { term: 1, termType: "y" }, text: '1 Year' },
+        { value: { term: 7, termType: "days" }, text: '1 Week' },
+        { value: { term: 14, termType: "days" }, text: '2 Weeks' },
+        { value: { term: 1, termType: "month" }, text: '1 Month' },
+        { value: { term: 2, termType: "month" }, text: '2 Months' },
+        { value: { term: 3, termType: "month" }, text: '3 Months' },
+        { value: { term: 1, termType: "year" }, text: '1 Year' },
       ],
 
       salesFields: [
@@ -508,6 +514,9 @@ const ENSSales = {
     filter() {
       return store.getters['ensSales/filter'];
     },
+    sync() {
+      return store.getters['ensSales/sync'];
+    },
     sales() {
       return store.getters['ensSales/sales'];
     },
@@ -654,6 +663,12 @@ const ENSSales = {
       }
       return null;
     },
+    formatTimestampAsDate(ts) {
+      if (ts != null) {
+        return moment.unix(ts).utc().format("MMMDD");
+      }
+      return null;
+    },
     updateConfig(field, config) {
       console.log("updateConfig: " + field + " => " + JSON.stringify(config));
       const configUpdate = {};
@@ -735,7 +750,7 @@ const ensSalesModule = {
   namespaced: true,
   state: {
     config: {
-      period: { term: 2, termType: "w" },
+      period: { term: 1, termType: "month" },
       // background: true,
       // segmentsPerDay: 1,
       retrieveLastDays: 31,
@@ -749,6 +764,14 @@ const ensSalesModule = {
       searchAccounts: null,
       priceFrom: null,
       priceTo: null,
+    },
+    sync: {
+      inProgress: false,
+      from: null,
+      to: null,
+      daysExpected: null,
+      daysInCache: null,
+      processing: null,
     },
     sales: [],
     exchangeRates: {},
@@ -767,6 +790,7 @@ const ensSalesModule = {
   getters: {
     config: state => state.config,
     filter: state => state.filter,
+    sync: state => state.sync,
     sales: state => state.sales,
     exchangeRates: state => state.exchangeRates,
     message: state => state.message,
@@ -867,12 +891,19 @@ const ensSalesModule = {
         const segmentStart = moment.unix(now).utc().startOf('day').unix();
         logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI() - segmentStart: " + moment.unix(segmentStart).utc().format() + " (" + segmentStart + ")");
 
+
+        const beginPeriod = moment.unix(segmentStart).utc().subtract(state.config.period.term, state.config.period.termType).unix();
+        logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI() - beginPeriod: " + moment.unix(beginPeriod).utc().format() + " (" + beginPeriod + ")");
+
+        const days = moment.unix(segmentStart).utc().diff(moment.unix(beginPeriod).utc(), "days");
+        logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI() - days: " + days);
+
         // const segmentStart = new Date();
         // logInfo("ensSalesModule", "mutations.loadSales() - segmentStart: " + segmentStart.toLocaleString());
         // segmentStart.setHours(parseInt(segmentStart.getHours() / state.config.segmentsPerDay) * state.config.segmentsPerDay, 0, 0, 0);
         // const retrieveLastDate = new Date(segmentStart.getTime() - state.config.retrieveLastDays * MILLISPERDAY);
-        const retrieveLastDate = moment.unix(now).utc().startOf('day').subtract(state.config.retrieveLastDays, 'day').unix();
-        logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI() - retrieveLastDate: " + moment.unix(retrieveLastDate).utc().format() + " (" + retrieveLastDate + ")");
+        // const retrieveLastDate = moment.unix(now).utc().startOf('day').subtract(state.config.retrieveLastDays, 'day').unix();
+        // logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI() - retrieveLastDate: " + moment.unix(retrieveLastDate).utc().format() + " (" + retrieveLastDate + ")");
         // const deleteBeforeDate = new Date(segmentStart.getTime() - state.config.deleteBeforeDays * MILLISPERDAY);
         // logInfo("ensSalesModule", "mutations.loadSales() - segmentStart: " + segmentStart.toLocaleString() + ", retrieveLastDate: " + retrieveLastDate.toLocaleString() + ", deleteBeforeDate: " + deleteBeforeDate.toLocaleString());
         // const deleteBeforeDate = moment.unix(now).utc().startOf('day').subtract(state.config.deleteBeforeDays, 'day').unix();
@@ -892,7 +923,7 @@ const ensSalesModule = {
         // dates = {};
         const sales = {};
         let count = 0;
-        while (to > retrieveLastDate && !state.halt && count < 7) {
+        while (to > state.sync.from && !state.halt && count < 7) {
           let totalRecords = 0;
           if (!(from in dates)) {
             let processFrom = from;
@@ -902,6 +933,7 @@ const ensSalesModule = {
                 processFrom = latestDate;
               }
             }
+            state.sync.processing = processFrom;
             let continuation = null;
             do {
               let url = "https://api.reservoir.tools/sales/v3?contract=0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85" +
@@ -931,8 +963,8 @@ const ensSalesModule = {
           to = from;
           // from = new Date(from.getTime() - MILLISPERDAY/state.config.segmentsPerDay);
           from = moment.unix(from).utc().subtract(1, 'day').unix();
+          localStorage.ensSalesDates = JSON.stringify(dates);
         }
-        localStorage.ensSalesDates = JSON.stringify(dates);
         logInfo("ensSalesModule", "mutations.loadSales() - processed dates: " + JSON.stringify(Object.keys(dates)));
       }
       async function fetchExchangeRates() {
@@ -1007,15 +1039,39 @@ const ensSalesModule = {
 
       // --- loadSales() start ---
       logInfo("ensSalesModule", "mutations.loadSales() - syncMode: " + syncMode + ", configUpdate: " + JSON.stringify(configUpdate) + ", filterUpdate: " + JSON.stringify(filterUpdate));
-      if (syncMode != 'updateFilter') {
-        state.message = "Syncing";
-      }
 
       if (configUpdate != null) {
         console.log("config before: " + JSON.stringify(state.config));
         console.log("updating config with: " + JSON.stringify(configUpdate));
         state.config = { ...state.config, ...configUpdate };
         console.log("config after: " + JSON.stringify(state.config));
+      }
+
+      if (syncMode != 'updateFilter') {
+        const now = moment().unix();
+        const to = moment.unix(now).utc().startOf('day').unix();
+        const from = moment.unix(to).utc().subtract(state.config.period.term, state.config.period.termType).unix();
+        logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI() - to: " + moment.unix(to).utc().format() + " (" + to + ")");
+        logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI() - from: " + moment.unix(from).utc().format() + " (" + from + ")");
+        const days = moment.unix(to).utc().diff(moment.unix(from).utc(), "days");
+        logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI() - days: " + days);
+
+        logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI() - localStorage.ensSalesDates: " + localStorage.ensSalesDates);
+        const ensSalesDates = JSON.parse(localStorage.ensSalesDates);
+        logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI() - ensSalesDates: " + ensSalesDates);
+
+        const daysInCache = Object.keys(ensSalesDates).length;
+        logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI() - daysInCache: " + daysInCache);
+
+        state.sync = {
+          inProgress: true,
+          from: from,
+          to: to,
+          daysExpected: days,
+          daysInCache: daysInCache,
+          processing: null,
+        };
+        state.message = "Syncing";
       }
 
       if (filterUpdate != null) {
@@ -1068,6 +1124,8 @@ const ensSalesModule = {
       }
       await refreshResultsFromDB();
       state.message = null;
+      state.sync.inProgress = false;
+      state.sync.processing = null;
       state.halt = false;
 
       db0.close();
