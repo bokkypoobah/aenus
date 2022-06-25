@@ -69,9 +69,9 @@ const ENSSales = {
               <div class="mt-1 pr-1">
                 <b-form-select size="sm" :value="config.period" @change="updateConfig('period', $event)" :options="periods" v-b-popover.hover.bottom="'Sales history period'"></b-form-select>
               </div>
-              <div class="mt-1" style="width: 300px;">
-                <b-progress height="2rem" :max="sync.daysExpected" :label="'((sync.daysInCache/sync.daysExpected)*100).toFixed(2) + %'" show-progress :animated="sync.inProgress" :variant="sync.inProgress ? 'primary' : 'secondary'" v-b-popover.hover.bottom="sync.daysInCache + '/' + sync.daysExpected + ' (' + formatTimestamp(sync.from) + ' - ' + formatTimestamp(sync.to) + ')'">
-                  <b-progress-bar :value="sync.daysInCache" variant="primary">
+              <div class="mt-2" style="width: 300px;">
+                <b-progress height="1.5rem" :max="sync.daysExpected" :label="'((sync.daysInCache/sync.daysExpected)*100).toFixed(2) + %'" show-progress :animated="sync.inProgress" :variant="sync.inProgress ? 'primary' : 'secondary'" v-b-popover.hover.bottom="formatTimestampAsDate(sync.from) + ' - ' + formatTimestampAsDate(sync.to) + '. Click on the Sync(ing) button to (un)pause'">
+                  <b-progress-bar :value="sync.daysInCache">
                     {{ (sync.processing ? (formatTimestampAsDate(sync.processing) + ': ') : '') + sync.daysInCache + '/' + sync.daysExpected + ' ' + ((sync.daysInCache / sync.daysExpected) * 100).toFixed(0) + '%' }}
                   </b-progress-bar>
                 </b-progress>
@@ -670,23 +670,23 @@ const ENSSales = {
       return null;
     },
     updateConfig(field, config) {
-      console.log("updateConfig: " + field + " => " + JSON.stringify(config));
+      // logInfo("ENSSales", "updateConfig: " + field + " => " + JSON.stringify(config));
       const configUpdate = {};
       configUpdate[field] = config;
       store.dispatch('ensSales/updateConfig', configUpdate);
     },
     updateFilter(field, filter) {
-      console.log("updateFilter: " + field + " => " + JSON.stringify(filter));
+      // logInfo("ENSSales", "updateFilter: " + field + " => " + JSON.stringify(filter));
       const filterUpdate = {};
       filterUpdate[field] = filter;
       store.dispatch('ensSales/updateFilter', filterUpdate);
     },
     async loadSales(syncMode) {
-      // console.log("loadSales - syncMode: " + syncMode);
+      // logInfo("ENSSales", "loadSales - syncMode: " + syncMode);
       store.dispatch('ensSales/loadSales', syncMode);
     },
     async halt() {
-      store.dispatch('search/halt');
+      store.dispatch('ensSales/halt');
     },
     exportSales() {
       const rows = [
@@ -898,32 +898,17 @@ const ensSalesModule = {
         const days = moment.unix(segmentStart).utc().diff(moment.unix(beginPeriod).utc(), "days");
         logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI() - days: " + days);
 
-        // const segmentStart = new Date();
-        // logInfo("ensSalesModule", "mutations.loadSales() - segmentStart: " + segmentStart.toLocaleString());
-        // segmentStart.setHours(parseInt(segmentStart.getHours() / state.config.segmentsPerDay) * state.config.segmentsPerDay, 0, 0, 0);
-        // const retrieveLastDate = new Date(segmentStart.getTime() - state.config.retrieveLastDays * MILLISPERDAY);
-        // const retrieveLastDate = moment.unix(now).utc().startOf('day').subtract(state.config.retrieveLastDays, 'day').unix();
-        // logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI() - retrieveLastDate: " + moment.unix(retrieveLastDate).utc().format() + " (" + retrieveLastDate + ")");
-        // const deleteBeforeDate = new Date(segmentStart.getTime() - state.config.deleteBeforeDays * MILLISPERDAY);
-        // logInfo("ensSalesModule", "mutations.loadSales() - segmentStart: " + segmentStart.toLocaleString() + ", retrieveLastDate: " + retrieveLastDate.toLocaleString() + ", deleteBeforeDate: " + deleteBeforeDate.toLocaleString());
-        // const deleteBeforeDate = moment.unix(now).utc().startOf('day').subtract(state.config.deleteBeforeDays, 'day').unix();
-        // logInfo("ensSalesModule", "mutations.loadSales().updateDBFromAPI() - deleteBeforeDate: " + moment.unix(deleteBeforeDate).utc().format() + " (" + deleteBeforeDate + ")");
-
         // Get from start of today
         let to = now;
         let from = segmentStart;
         let dates;
         try {
           dates = JSON.parse(localStorage.ensSalesDates);
-          // console.log("dates: " + JSON.stringify(Object.keys(dates)));
         } catch (e) {
           dates = {};
         };
-        // DEV
-        // dates = {};
         const sales = {};
-        let count = 0;
-        while (to > state.sync.from && !state.halt && count < 7) {
+        while (to > state.sync.from && !state.halt) {
           let totalRecords = 0;
           if (!(from in dates)) {
             let processFrom = from;
@@ -934,6 +919,7 @@ const ensSalesModule = {
               }
             }
             state.sync.processing = processFrom;
+            state.sync.daysInCache = Object.keys(dates).length;
             let continuation = null;
             do {
               let url = "https://api.reservoir.tools/sales/v3?contract=0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85" +
@@ -948,9 +934,8 @@ const ensSalesModule = {
               let numberOfRecords = await processSales(data);
               totalRecords += numberOfRecords;
               continuation = data.continuation;
-            } while (continuation != null);
+            } while (continuation != null && !state.halt);
             if (from != segmentStart && !state.halt) {
-              // console.log("dates.push(" + from + ")");
               dates[from] = true;
             }
             if (totalRecords > 0) {
@@ -958,10 +943,8 @@ const ensSalesModule = {
             } else {
               logInfo("ensSalesModule", "mutations.loadSales() - Nothing new");
             }
-            count++;
           }
           to = from;
-          // from = new Date(from.getTime() - MILLISPERDAY/state.config.segmentsPerDay);
           from = moment.unix(from).utc().subtract(1, 'day').unix();
           localStorage.ensSalesDates = JSON.stringify(dates);
         }
@@ -1109,6 +1092,7 @@ const ensSalesModule = {
               }
             });
             localStorage.ensSalesDates = JSON.stringify(ensSalesDates);
+            state.sync.daysInCache = Object.keys(ensSalesDates).length;
           } catch (e) {
             console.log("Error updating ensSalesDates")
           }
@@ -1137,11 +1121,11 @@ const ensSalesModule = {
   },
   actions: {
     updateFilter(context, filterUpdate) {
-      logInfo("ensSalesModule", "filterUpdates.updateFilter() - filterUpdate: " + JSON.stringify(filterUpdate));
+      // logInfo("ensSalesModule", "filterUpdates.updateFilter() - filterUpdate: " + JSON.stringify(filterUpdate));
       context.commit('loadSales', { syncMode: 'updateFilter', configUpdate: null, filterUpdate });
     },
     updateConfig(context, configUpdate) {
-      logInfo("ensSalesModule", "configUpdates.updateConfig() - configUpdate: " + JSON.stringify(configUpdate));
+      // logInfo("ensSalesModule", "configUpdates.updateConfig() - configUpdate: " + JSON.stringify(configUpdate));
       context.commit('loadSales', { syncMode: 'updateConfig', configUpdate, filterUpdate: null });
     },
     loadSales(context, syncMode) {
@@ -1149,15 +1133,7 @@ const ensSalesModule = {
       context.commit('loadSales', { syncMode: syncMode, configUpdate: null, filterUpdate: null } );
     },
     halt(context) {
-      // logInfo("ensSalesModule", "actions.halt()");
       context.commit('halt');
     },
   },
 };
-
-
-// history.pushState({}, null, `${this.$route.path}#${encodeURIComponent(params)}`);
-// history.pushState({}, null, `${this.$route.path}#blah`);
-
-// console.log("navigator.userAgent: " + navigator.userAgent);
-// console.log("isMobile: " + (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)));
