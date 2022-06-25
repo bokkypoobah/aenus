@@ -1,4 +1,4 @@
-const Search = {
+const ENSSearch = {
   template: `
     <div class="m-0 p-0">
       <b-card class="mt-5" header-class="warningheader" header="Web3 Connection And/Or Incorrect Network Detected" v-if="false && (!powerOn || network.chainId != 1)">
@@ -864,19 +864,19 @@ const Search = {
       return store.getters['connection/network'];
     },
     searchResults() {
-      return store.getters['search/results'];
+      return store.getters['ensSearch/results'];
     },
     unregistered() {
-      return store.getters['search/unregistered'];
+      return store.getters['ensSearch/unregistered'];
     },
     searchMessage() {
-      return store.getters['search/message'];
+      return store.getters['ensSearch/message'];
     },
     groups() {
       return store.getters['config/groups'];
     },
     prices() {
-      return store.getters['search/prices'];
+      return store.getters['ensSearch/prices'];
     },
 
     groupOptions() {
@@ -1113,11 +1113,11 @@ const Search = {
     },
 
     async scan(options) {
-      store.dispatch('search/scan', options);
+      store.dispatch('ensSearch/scan', options);
     },
 
     async halt() {
-      store.dispatch('search/halt');
+      store.dispatch('ensSearch/halt');
     },
 
     exportNames() {
@@ -1153,7 +1153,7 @@ const Search = {
     },
 
     async timeoutCallback() {
-      logDebug("Search", "timeoutCallback() count: " + this.count);
+      logDebug("ENSSearch", "timeoutCallback() count: " + this.count);
 
       this.count++;
       var t = this;
@@ -1165,10 +1165,10 @@ const Search = {
     },
   },
   beforeDestroy() {
-    logDebug("Search", "beforeDestroy()");
+    logDebug("ENSSearch", "beforeDestroy()");
   },
   mounted() {
-    logInfo("Search", "mounted() $route: " + JSON.stringify(this.$route.params) + ", props['search']: " + this.search + ", props['topic']: " + this.topic);
+    logInfo("ENSSearch", "mounted() $route: " + JSON.stringify(this.$route.params) + ", props['search']: " + this.search + ", props['topic']: " + this.topic);
 
     // const tabIndex = this.tabs.findIndex(tab => tab === this.$route.hash)
 
@@ -1191,11 +1191,11 @@ const Search = {
     if (this.topic) {
       this.settings.searchString = this.topic;
       // scan( { searchType: tabs[settings.searchTabIndex].name, search: settings.searchString, group: settings.selectedGroup, setAttributes: settings.setAttributes[settings.selectedSet] } );
-      store.dispatch('search/scan', { searchType: this.search, search: this.topic, group: this.topic });
+      store.dispatch('ensSearch/scan', { searchType: this.search, search: this.topic, group: this.topic });
     }
 
     this.reschedule = true;
-    logDebug("Search", "Calling timeoutCallback()");
+    logDebug("ENSSearch", "Calling timeoutCallback()");
     this.timeoutCallback();
     // this.loadNFTs();
   },
@@ -1204,7 +1204,7 @@ const Search = {
   },
 };
 
-const searchModule = {
+const ensSearchModule = {
   namespaced: true,
   state: {
     results: [],
@@ -1238,7 +1238,7 @@ const searchModule = {
         }
       }
       function* generateDigitSequence(setAttributes) {
-        // logInfo("searchModule", "mutations.scan().generateDigitSequence() - setAttributes: " + JSON.stringify(setAttributes));
+        // logInfo("ensSearchModule", "mutations.scan().generateDigitSequence() - setAttributes: " + JSON.stringify(setAttributes));
         const regex = setAttributes.regex ? new RegExp(setAttributes.regex, 'i') : null;
         for (let i = setAttributes.from; i <= setAttributes.to; i = parseInt(i) + parseInt(setAttributes.step)) {
           let include = true;
@@ -1409,14 +1409,14 @@ const searchModule = {
       }
 
       // --- Scan start ---
-      // logInfo("searchModule", "mutations.scan() - options: " + JSON.stringify(options));
+      // logInfo("ensSearchModule", "mutations.scan() - options: " + JSON.stringify(options));
       let generator = null;
       if (options.searchType == 'sets') {
         if (options.setAttributes.type == 'digits') {
-          // logInfo("searchModule", "mutations.scan() - digits");
+          // logInfo("ensSearchModule", "mutations.scan() - digits");
           generator = generateDigitSequence(options.setAttributes);
         } else if (options.setAttributes.type == 'hours') {
-          // logInfo("searchModule", "mutations.scan() - hours");
+          // logInfo("ensSearchModule", "mutations.scan() - hours");
           generator = generateHourSequence(options.setAttributes);
         }
       } else if (['names', 'owned', 'contains', 'startswith', 'endswith'].includes(options.searchType)) {
@@ -1526,11 +1526,11 @@ const searchModule = {
   },
   actions: {
     scan(context, options) {
-      logInfo("searchModule", "actions.scan() - options: " + JSON.stringify(options));
+      logInfo("ensSearchModule", "actions.scan() - options: " + JSON.stringify(options));
       context.commit('scan', options);
     },
     halt(context) {
-      // logInfo("searchModule", "actions.halt()");
+      // logInfo("ensSearchModule", "actions.halt()");
       context.commit('halt');
     },
   },

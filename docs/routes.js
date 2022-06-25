@@ -1,7 +1,7 @@
 const routes = [{
     path: '/ens/:search?/:topic?',
-    component: Search,
-    name: 'Search',
+    component: ENSSearch,
+    name: 'ENSSearch',
     props: true,
   }, {
     path: '/enssales/:search?/:topic?',
