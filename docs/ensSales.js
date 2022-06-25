@@ -20,19 +20,19 @@ const ENSSales = {
             <!-- Main Toolbar -->
             <div class="d-flex flex-wrap m-0 p-0">
               <div class="mt-1" style="max-width: 150px;">
-                <b-form-input type="text" size="sm" :value="filter.searchString" @change="updateFilter('searchString', $event)" debounce="600" placeholder="🔍 {regex}"></b-form-input>
+                <b-form-input type="text" size="sm" :value="filter.searchString" @change="updateFilter('searchString', $event)" debounce="600" v-b-popover.hover.bottom="'Poweruser regex, or simple search string'" placeholder="🔍 {regex}"></b-form-input>
               </div>
               <div class="mt-1 pl-1" style="max-width: 150px;">
-                <b-form-input type="text" size="sm" :value="filter.searchAccounts" @change="updateFilter('searchAccounts', $event)" debounce="600" placeholder="🔍 0x12... ..."></b-form-input>
+                <b-form-input type="text" size="sm" :value="filter.searchAccounts" @change="updateFilter('searchAccounts', $event)" debounce="600" v-b-popover.hover.bottom="'List of account search strings'" placeholder="🔍 0x12... ..."></b-form-input>
               </div>
               <div class="mt-1 pl-1" style="max-width: 80px;">
-                <b-form-input type="text" size="sm" :value="filter.priceFrom" @change="updateFilter('priceFrom', $event)" debounce="600" placeholder="min"></b-form-input>
+                <b-form-input type="text" size="sm" :value="filter.priceFrom" @change="updateFilter('priceFrom', $event)" debounce="600" v-b-popover.hover.bottom="'Price from, ETH'" placeholder="min"></b-form-input>
               </div>
               <div class="mt-1">
                 -
               </div>
               <div class="mt-1 pr-1" style="max-width: 80px;">
-                <b-form-input type="text" size="sm" :value="filter.priceTo" @change="updateFilter('priceTo', $event)" debounce="600" placeholder="max"></b-form-input>
+                <b-form-input type="text" size="sm" :value="filter.priceTo" @change="updateFilter('priceTo', $event)" debounce="600" v-b-popover.hover.bottom="'Price to, ETH'" placeholder="max"></b-form-input>
               </div>
               <div class="mt-1 pr-1 flex-grow-1">
               </div>
@@ -48,10 +48,10 @@ const ENSSales = {
               <div class="mt-1 pr-1 flex-grow-1">
               </div>
               <div v-if="settings.tabIndex == 0" class="mt-1 pr-1">
-                <b-button size="sm" @click="exportSales" :disabled="filteredSortedSales.length == 0" variant="link">Export</b-button>
+                <b-button size="sm" @click="exportSales" :disabled="filteredSortedSales.length == 0" variant="link" v-b-popover.hover.bottom="'Export to CSV for easy import into a spreadsheet'">Export</b-button>
               </div>
               <div v-if="settings.tabIndex == 0" class="mt-1 pr-1">
-                <b-form-select size="sm" v-model="settings.sortOption" :options="sortOptions"></b-form-select>
+                <b-form-select size="sm" v-model="settings.sortOption" :options="sortOptions" v-b-popover.hover.bottom="'Yeah. Sort'"></b-form-select>
               </div>
               <div v-if="settings.tabIndex == 0" class="mt-1 pr-1">
                 <font size="-2" v-b-popover.hover.bottom="formatTimestamp(earliestEntry) + ' to ' + formatTimestamp(latestEntry)">{{ filteredSortedSales.length }}</font>
@@ -754,6 +754,7 @@ const ensSalesModule = {
     },
     sync: {
       inProgress: false,
+      error: false,
       now: null,
       from: null,
       to: null,
@@ -804,8 +805,14 @@ const ensSalesModule = {
             query: ENSSUBGRAPHBBYTOKENIDSQUERY,
             variables: { tokenIds: tokenIds },
           })
-        }).then(response => response.json())
-          .then(data => processRegistrations(data.data.registrations));
+        }).then(handleErrors)
+          .then(response => response.json())
+          .then(data => processRegistrations(data.data.registrations))
+          .catch(function(error) {
+             console.log("ERROR fetchNamesByTokenIds: " + error);
+             state.sync.error = true;
+             data = [];
+          });
         // console.log(JSON.stringify(data, null, 2));
         return data;
       }
@@ -814,33 +821,35 @@ const ensSalesModule = {
           .map(sale => sale.token.tokenId)
           .map(tokenId => "0x" + new BigNumber(tokenId, 10).toString(16));
         const namesByTokenIds = await fetchNamesByTokenIds(searchForNamesByTokenIds);
-        let count = 0;
         const saleRecords = [];
-        const chainId = (store.getters['connection/network'] && store.getters['connection/network'].chainId) || 1;
-        for (const sale of data.sales) {
-          // if (count == 0) {
-          //   logInfo("ensSalesModule", "mutations.loadSales().processSales() " + new Date(sale.timestamp * 1000).toLocaleString() + " " + (sale.token.name ? sale.token.name : "(null)") + ", price: " + sale.price + ", from: " + sale.from.substr(0, 10) + ", to: " + sale.to.substr(0, 10));
-          // }
-          const name = namesByTokenIds[sale.token.tokenId] ? namesByTokenIds[sale.token.tokenId] : sale.token.name;
-          saleRecords.push({
-            chainId: chainId,
-            contract: ENSADDRESS,
-            tokenId: sale.token.tokenId,
-            name: name,
-            from: sale.from,
-            to: sale.to,
-            price: sale.price,
-            timestamp: sale.timestamp,
-            tokenId: sale.token.tokenId,
-            txHash: sale.txHash,
-            data: sale,
+        if (!state.sync.error) {
+          let count = 0;
+          const chainId = (store.getters['connection/network'] && store.getters['connection/network'].chainId) || 1;
+          for (const sale of data.sales) {
+            // if (count == 0) {
+            //   logInfo("ensSalesModule", "mutations.loadSales().processSales() " + new Date(sale.timestamp * 1000).toLocaleString() + " " + (sale.token.name ? sale.token.name : "(null)") + ", price: " + sale.price + ", from: " + sale.from.substr(0, 10) + ", to: " + sale.to.substr(0, 10));
+            // }
+            const name = namesByTokenIds[sale.token.tokenId] ? namesByTokenIds[sale.token.tokenId] : sale.token.name;
+            saleRecords.push({
+              chainId: chainId,
+              contract: ENSADDRESS,
+              tokenId: sale.token.tokenId,
+              name: name,
+              from: sale.from,
+              to: sale.to,
+              price: sale.price,
+              timestamp: sale.timestamp,
+              tokenId: sale.token.tokenId,
+              txHash: sale.txHash,
+              data: sale,
+            });
+            count++;
+          }
+          await db0.sales.bulkPut(saleRecords).then (function() {
+          }).catch(function(error) {
+            console.log("error: " + error);
           });
-          count++;
         }
-        await db0.sales.bulkPut(saleRecords).then (function() {
-        }).catch(function(error) {
-          console.log("error: " + error);
-        });
         return saleRecords.length;
       }
       // async function fetchSales(startTimestamp, endTimestamp) {
@@ -900,12 +909,18 @@ const ensSalesModule = {
               // logInfo("ensSalesModule", "mutations.loadSales() - url: " + url);
               // logInfo("ensSalesModule", "mutations.loadSales() - Retrieving records for " + new Date(processFrom).toLocaleString() + " to " + new Date(processTo).toLocaleString());
               const data = await fetch(url)
-                .then(response => response.json());
-              let numberOfRecords = await processSales(data);
+                .then(handleErrors)
+                .then(response => response.json())
+                .catch(function(error) {
+                   console.log("ERROR - updateDBFromAPI: " + error);
+                   state.sync.error = true;
+                   return [];
+                });
+              let numberOfRecords = state.sync.error ? 0 : await processSales(data);
               totalRecords += numberOfRecords;
               continuation = data.continuation;
               state.sync.processing = moment.unix(processFrom).utc().format("DDMMM") + ': ' + totalRecords;
-            } while (continuation != null && !state.halt);
+            } while (continuation != null && !state.halt && !state.sync.error);
             if (from != state.sync.to && !state.halt) {
               dates[from] = true;
             }
@@ -928,9 +943,12 @@ const ensSalesModule = {
         const url = "https://min-api.cryptocompare.com/data/v2/histoday?fsym=ETH&tsym=" + state.constants.currency + "&limit=" + days;
         logInfo("cryptoPunksModule", "mutations.loadPunks().fetchLatestEvents() url: " + url);
         const data = await fetch(url)
+          .then(handleErrors)
           .then(response => response.json())
-          .catch(function(e) {
-            console.log("error: " + e);
+          .catch(function(error) {
+             console.log("ERROR - fetchExchangeRates: " + error);
+             state.sync.error = true;
+             return [];
           });
         const results = {};
         for (day of data.Data.Data) {
@@ -1028,6 +1046,7 @@ const ensSalesModule = {
 
         state.sync = {
           inProgress: true,
+          error: false,
           now: now,
           from: from,
           to: to,
