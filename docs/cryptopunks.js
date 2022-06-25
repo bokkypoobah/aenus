@@ -1326,7 +1326,7 @@ const CryptoPunks = {
       // console.log("now: " + now + " " + moment().unix(now).format());
       let beginPeriod;
       if (this.settings.chartPeriod == '1d') {
-        beginPeriod = moment.unix(now).utc().startOf('day').subtract(1, 'd').unix();
+        
       } else if (this.settings.chartPeriod == '1w') {
         beginPeriod = moment.unix(now).utc().startOf('day').subtract(7, 'd').unix();
       } else if (this.settings.chartPeriod == '1m') {
