@@ -138,7 +138,7 @@ const NFTs = {
                     </span>
                   </b-button>
                   <b-popover :target="'popover-target-' + data.item.contract + '-' + transfer.tokenId" placement="right">
-                    <template #title>{{ data.item.contract }}</template>
+                    <template #title>{{ getContractOrCollection(data.item.contract) }}</template>
                     <b-link :href="'https://opensea.io/assets/' + data.item.contract + '/' + transfer.tokenId" v-b-popover.hover.bottom="'View in opensea.io'" target="_blank">
                       OpenSea
                     </b-link>
@@ -429,7 +429,7 @@ const NFTs = {
 
       collectionsFields: [
         { key: 'contract', label: 'Contract', thStyle: 'width: 30%;' },
-        { key: 'count', label: '#', thStyle: 'width: 5%;' },
+        { key: 'count', label: '#', thStyle: 'width: 5%;', sortable: true },
         { key: 'mints', label: 'Mints', thStyle: 'width: 65%;' },
       ],
 
