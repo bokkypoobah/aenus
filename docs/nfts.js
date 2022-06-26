@@ -47,7 +47,7 @@ const NFTs = {
                 <b-form-input type="text" size="sm" :value="filter.priceTo" @change="updateFilter('priceTo', $event)" debounce="600" v-b-popover.hover.bottom="'Price to, ETH'" placeholder="max"></b-form-input>
               </div>
               <div class="mt-1 pr-1">
-                <b-button size="sm" @click="checkLogs('partial')" variant="primary" v-b-popover.hover.bottom="'Check Logs'" style="min-width: 80px; ">Check Latest 30 Blocks</b-button>
+                <b-button size="sm" @click="checkLogs('partial')" :disabled="sync.inProgress" variant="primary" v-b-popover.hover.bottom="'Check Logs'" style="min-width: 80px; ">Check Latest 30 Blocks</b-button>
               </div>
               <div class="mt-1 pr-1 flex-grow-1">
               </div>
@@ -1304,6 +1304,7 @@ const nftsModule = {
       // --- loadSales() start ---
       logInfo("nftsModule", "mutations.checkLogs() - syncMode: " + syncMode + ", configUpdate: " + JSON.stringify(configUpdate) + ", filterUpdate: " + JSON.stringify(filterUpdate));
       if (window.ethereum) {
+        state.sync.inProgress = true;
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const block = await provider.getBlock("latest");
         const blockNumber = block.number;
@@ -1363,6 +1364,13 @@ const nftsModule = {
           const collections = {};
           tokenInfo = await erc721Helper.tokenInfo(contracts);
           for (let i = 0; i < contracts.length; i++) {
+            contractsCollator[contracts[i]].sort((a, b) => {
+              if (a.blockNumber == b.blockNumber) {
+                return b.logIndex - a.logIndex;
+              } else {
+                return b.blockNumber - a.blockNumber;
+              }
+            });
             collections[contracts[i]] = {
               status: ethers.BigNumber.from(tokenInfo[0][i]).toString(),
               symbol: tokenInfo[1][i],
@@ -1374,6 +1382,7 @@ const nftsModule = {
           collections['0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85'] = { status: 'todo', symbol: 'ENS', name: 'Ethereum Name Service', totalSupply: 'lots', transfers: contractsCollator['0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85'] };
           // console.log(JSON.stringify(collections, null, 2));
           state.collections = collections;
+          state.sync.inProgress = false;
         } catch (e) {
           console.log("ERROR - Not ERC-721");
         }
