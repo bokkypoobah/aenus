@@ -99,7 +99,7 @@ const NFTs = {
             </div>
 
             <!-- Mint Monitor -->
-            <b-table small striped hover :fields="fields" :items="transfers" table-class="w-auto" class="m-2 p-2">
+            <b-table small striped hover :fields="fields" :items="transfers" table-class="w-100" class="m-2 p-2">
               <template #cell(blockNumber)="data">
                 <b-link :href="'https://etherscan.io/block/' + data.item.blockNumber" v-b-popover.hover.bottom="'View in OS'" target="_blank">
                   {{ data.item.blockNumber }}
@@ -359,9 +359,9 @@ const NFTs = {
 
       fields: [
         { key: 'blockNumber', label: 'Block #', thStyle: 'width: 15%;' },
-        { key: 'contract', label: 'Contract', thStyle: 'width: 15%;' },
-        { key: 'from', label: 'From', thStyle: 'width: 20%;' },
-        { key: 'to', label: 'To', thStyle: 'width: 20%;' },
+        { key: 'contract', label: 'Contract', thStyle: 'width: 40%;' },
+        // { key: 'from', label: 'From', thStyle: 'width: 15%;' },
+        { key: 'to', label: 'Mintoor', thStyle: 'width: 20%;' },
         { key: 'tokenId', label: 'Token Id', thStyle: 'width: 15%;' },
         { key: 'txHash', label: 'Tx', thStyle: 'width: 15%;' },
       ],
