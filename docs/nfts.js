@@ -111,7 +111,13 @@ const NFTs = {
               <template #cell(mints)="data">
                 <span v-for="(transfer, transferIndex) in data.item.transfers">
                   <b-button :id="'popover-target-' + data.item.contract + '-' + transfer.tokenId" variant="link" class="m-0 p-0">
-                    {{ getTokenIdString(transfer.tokenId) }}
+                    <span v-if="transfer.contract == '0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85'">
+                      <b-img :width="'100%'" :src="'https://metadata.ens.domains/mainnet/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + transfer.tokenId + '/image'">
+                      </b-img>
+                    </span>
+                    <span v-else>
+                      {{ getTokenIdString(transfer.tokenId) }}
+                    </span>
                   </b-button>
                   <b-popover :target="'popover-target-' + data.item.contract + '-' + transfer.tokenId" placement="right">
                     <template #title>{{ data.item.contract }} links</template>
