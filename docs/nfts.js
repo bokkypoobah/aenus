@@ -30,9 +30,11 @@ const NFTs = {
               <div v-if="settings.tabIndex == 10" class="mt-1 pr-1" style="max-width: 80px;">
                 <b-form-input type="text" size="sm" :value="filter.priceTo" @change="updateFilter('priceTo', $event)" debounce="600" v-b-popover.hover.bottom="'Price to, ETH'" placeholder="max"></b-form-input>
               </div>
+
               <div v-if="settings.tabIndex == 0" class="mt-1 pr-1">
                 <b-button size="sm" @click="checkLogs('partial')" :disabled="sync.inProgress || !powerOn || network.chainId != 1" variant="primary" style="min-width: 80px; ">Scan Latest 100 Blocks</b-button>
               </div>
+
               <div v-if="settings.tabIndex == 1" class="mt-1 pr-1">
                 <b-button size="sm" @click="checkLogs('partial')" :disabled="sync.inProgress || !powerOn || network.chainId != 1" variant="primary" style="min-width: 80px; ">Scan</b-button>
               </div>
@@ -63,6 +65,9 @@ const NFTs = {
               </div>
               <div v-if="settings.tabIndex == 10" class="mt-1">
                 <b-form-select size="sm" v-model="settings.pageSize" :options="pageSizes" v-b-popover.hover.bottom="'Page size'"></b-form-select>
+              </div>
+              <div v-if="settings.tabIndex == 0" class="mt-1">
+                <b-form-select size="sm" v-model="settings.activityMaxItems" :options="activityMaxItemsOptions" v-b-popover.hover.bottom="'Max items to display'"></b-form-select>
               </div>
             </div>
 
@@ -126,7 +131,7 @@ const NFTs = {
                   {{ data.item.mints }}
                 </template>
                 <template #cell(tokens)="data">
-                  <span v-for="(transfer, transferIndex) in data.item.transfers">
+                  <span v-for="(transfer, transferIndex) in data.item.transfers.slice(0, settings.activityMaxItems)">
                     <b-button :id="'popover-target-' + data.item.contract + '-' + transfer.tokenId" variant="link" class="m-0 p-0">
                       <span v-if="transfer.contract == '0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85'">
                         <b-img :width="'100%'" :src="'https://metadata.ens.domains/mainnet/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + transfer.tokenId + '/image'">
@@ -395,6 +400,7 @@ const NFTs = {
         // randomise: false,
         pageSize: 100,
         currentPage: 1,
+        activityMaxItems: 50,
       },
 
       dailyChartSelectedItems: [],
@@ -432,6 +438,15 @@ const NFTs = {
         { key: 'contract', label: 'Contract', thStyle: 'width: 25%;', thClass: 'text-left', tdClass: 'text-left' },
         { key: 'mints', label: 'Mints', thStyle: 'width: 5%;', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
         { key: 'tokens', label: 'Tokens', thStyle: 'width: 65%;' },
+      ],
+
+      activityMaxItemsOptions: [
+        { value: 10, text: '10' },
+        { value: 50, text: '50' },
+        { value: 100, text: '100' },
+        { value: 500, text: '500' },
+        { value: 1000, text: '1k' },
+        { value: 10000, text: '10k' },
       ],
 
       fields: [
