@@ -1247,13 +1247,20 @@ const nftsModule = {
         };
         const events = await provider.getLogs(filter);
         // console.log("checkLogs - events: " + JSON.stringify(events));
+
         const results = [];
+        const contractsCollator = {};
         for (const event of events) {
           if (!event.removed && event.topics.length == 4) {
+            const contract = event.address.toLowerCase();
             const tokenId = event.topics[3] || event.data || null;
             const bnTokenId = tokenId == null ? null : ethers.BigNumber.from(tokenId);
+
+            if (!(contract in contractsCollator)) {
+              contractsCollator[contract] = true;
+            }
             results.push({
-              contract: event.address.toLowerCase(),
+              contract: contract,
               from: ADDRESS0,
               to: '0x' + event.topics[2].substring(26, 66),
               tokenId: bnTokenId,
@@ -1263,8 +1270,46 @@ const nftsModule = {
             });
           }
         }
+        state.results = results;
 
-        state.results = results;;
+        const erc721Helper = new ethers.Contract(ERC721HELPERADDRESS, ERC721HELPERABI, provider);
+        const contracts = Object.keys(contractsCollator);
+        console.log("contracts: " + JSON.stringify(contracts));
+        let tokenInfo = null;
+        try {
+          tokenInfo = await erc721Helper.tokenInfo(contracts);
+          for (let i = 0; i < contracts.length; i++) {
+            console.log(contracts[i] + ' ' + tokenInfo[0][i] + ' ' + tokenInfo[1][i] + ' ' + tokenInfo[2][i] + ' ' + tokenInfo[3][i]);
+          }
+        } catch (e) {
+          console.log("ERROR - Not ERC-721");
+        }
+
+
+        // const collator = {};
+        // for (const sale of this.sales) {
+        //   const bucket = moment.unix(sale.timestamp).utc().startOf('day').unix();
+        //   if (!(bucket in collator)) {
+        //     collator[bucket] = { count: 1, total: sale.price, items: [sale] };
+        //   } else {
+        //     collator[bucket].count++;
+        //     collator[bucket].total = parseFloat(collator[bucket].total) + sale.price;
+        //     collator[bucket].items.push(sale);
+        //   }
+        // }
+        // const results = [];
+        // for (const [bucket, value] of Object.entries(collator)) {
+        //   const average = value.total / value.count;
+        //   results.push({ timestamp: bucket, count: value.count, total: value.total, average: average, items: value.items });
+        //   // console.log("bucket: " + bucket + " " + moment.unix(bucket).utc().format() + " count: " + value.count + ", total: " + value.total);
+        // }
+        // results.sort((a, b) => {
+        //   return b.timestamp - a.timestamp;
+        // });
+        // return results;
+
+
+
       }
     },
 
