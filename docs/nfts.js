@@ -47,7 +47,7 @@ const NFTs = {
                 <b-form-input type="text" size="sm" :value="filter.priceTo" @change="updateFilter('priceTo', $event)" debounce="600" v-b-popover.hover.bottom="'Price to, ETH'" placeholder="max"></b-form-input>
               </div>
               <div class="mt-1 pr-1">
-                <b-button size="sm" @click="checkLogs('partial')" variant="primary" v-b-popover.hover.bottom="'Check Logs'" style="min-width: 80px; ">Check Logs</b-button>
+                <b-button size="sm" @click="checkLogs('partial')" variant="primary" v-b-popover.hover.bottom="'Check Logs'" style="min-width: 80px; ">Check Latest 30 Blocks</b-button>
               </div>
               <div class="mt-1 pr-1 flex-grow-1">
               </div>
@@ -99,6 +99,43 @@ const NFTs = {
             </div>
 
             <!-- Mint Monitor -->
+            <b-table small striped hover :fields="collectionsFields" :items="collectionsData" table-class="w-100" class="m-2 p-2">
+              <template #cell(contract)="data">
+                <b-link :href="'https://etherscan.io/address/' + data.item.contract + '#code'" v-b-popover.hover.bottom="'View in OS'" target="_blank">
+                  {{ getContractOrCollection(data.item.contract) }}
+                </b-link>
+              </template>
+              <template #cell(count)="data">
+                {{ data.item.count }}
+              </template>
+              <template #cell(mints)="data">
+                <span v-for="(transfer, transferIndex) in data.item.transfers">
+                  <b-button :id="'popover-target-' + data.item.contract + '-' + transfer.tokenId" variant="link" class="m-0 p-0">
+                    {{ getTokenIdString(transfer.tokenId) }}
+                  </b-button>
+                  <b-popover :target="'popover-target-' + data.item.contract + '-' + transfer.tokenId" placement="right">
+                    <template #title>{{ data.item.contract }} links</template>
+                    <b-link :href="'https://opensea.io/assets/' + data.item.contract + '/' + transfer.tokenId" v-b-popover.hover.bottom="'View in opensea.io'" target="_blank">
+                      OpenSea
+                    </b-link>
+                    <br />
+                    <b-link :href="'https://looksrare.org/collections/' + data.item.contract + '/' + transfer.tokenId" v-b-popover.hover.bottom="'View in looksrare.org'" target="_blank">
+                      LooksRare
+                    </b-link>
+                    <br />
+                    <b-link :href="'https://x2y2.io/eth/' + data.item.contract + '/' + transfer.tokenId" v-b-popover.hover.bottom="'View in x2y2.io'" target="_blank">
+                      X2Y2
+                    </b-link>
+                    <br />
+                    <b-link :href="'https://etherscan.io/tx/' + transfer.txHash" v-b-popover.hover.bottom="'View in Etherscan.io'" target="_blank">
+                      Etherscan
+                    </b-link>
+                  </b-popover>
+                </span>
+              </template>
+            </b-table>
+
+            <!--
             <b-table small striped hover :fields="fields" :items="transfers" table-class="w-100" class="m-2 p-2">
               <template #cell(blockNumber)="data">
                 <b-link :href="'https://etherscan.io/block/' + data.item.blockNumber" v-b-popover.hover.bottom="'View in OS'" target="_blank">
@@ -131,6 +168,7 @@ const NFTs = {
                 </b-link>
               </template>
             </b-table>
+            -->
 
             <!-- Listing -->
             <b-table v-if="settings.tabIndex == 1" small striped hover :fields="salesFields" :items="pagedFilteredSortedSales" table-class="w-auto" class="m-2 p-2">
@@ -355,6 +393,12 @@ const NFTs = {
         { value: { term: 2, termType: "month" }, text: '2 Months' },
         { value: { term: 3, termType: "month" }, text: '3 Months' },
         { value: { term: 1, termType: "year" }, text: '1 Year' },
+      ],
+
+      collectionsFields: [
+        { key: 'contract', label: 'Contract', thStyle: 'width: 30%;' },
+        { key: 'count', label: '#', thStyle: 'width: 5%;' },
+        { key: 'mints', label: 'Mints', thStyle: 'width: 65%;' },
       ],
 
       fields: [
@@ -746,6 +790,16 @@ const NFTs = {
         }
       ];
     },
+    collectionsData() {
+      const results = [];
+      for (const [contract, collection] of Object.entries(this.collections)) {
+        results.push({ contract, collection, count: collection.transfers.length, transfers: collection.transfers });
+      }
+      results.sort((a, b) => {
+        return b.count - a.count;
+      });
+      return results;
+    }
   },
   methods: {
     getContractOrCollection(address) {
@@ -1278,9 +1332,9 @@ const nftsModule = {
             const bnTokenId = tokenId == null ? null : ethers.BigNumber.from(tokenId);
 
             if (!(contract in contractsCollator)) {
-              contractsCollator[contract] = true;
+              contractsCollator[contract] = [];
             }
-            transfers.push({
+            const transfer = {
               contract: contract,
               from: ADDRESS0,
               to: '0x' + event.topics[2].substring(26, 66),
@@ -1288,7 +1342,9 @@ const nftsModule = {
               blockNumber: event.blockNumber,
               logIndex: event.logIndex,
               txHash: event.transactionHash,
-            });
+            };
+            transfers.push(transfer);
+            contractsCollator[contract].push(transfer);
           }
         }
         transfers.sort((a, b) => {
@@ -1307,9 +1363,16 @@ const nftsModule = {
           const collections = {};
           tokenInfo = await erc721Helper.tokenInfo(contracts);
           for (let i = 0; i < contracts.length; i++) {
-            collections[contracts[i]] = { status: ethers.BigNumber.from(tokenInfo[0][i]).toString(), symbol: tokenInfo[1][i], name: tokenInfo[2][i], totalSupply: ethers.BigNumber.from(tokenInfo[3][i]).toString() };
+            collections[contracts[i]] = {
+              status: ethers.BigNumber.from(tokenInfo[0][i]).toString(),
+              symbol: tokenInfo[1][i],
+              name: tokenInfo[2][i],
+              totalSupply: ethers.BigNumber.from(tokenInfo[3][i]).toString(),
+              transfers: contractsCollator[contracts[i]],
+            };
           }
-          collections['0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85'] = { status: 'todo', symbol: 'ENS', name: 'Ethereum Name Service', totalSupply: 'lots' };
+          collections['0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85'] = { status: 'todo', symbol: 'ENS', name: 'Ethereum Name Service', totalSupply: 'lots', transfers: contractsCollator['0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85'] };
+          // console.log(JSON.stringify(collections, null, 2));
           state.collections = collections;
         } catch (e) {
           console.log("ERROR - Not ERC-721");
