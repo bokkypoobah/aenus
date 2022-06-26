@@ -47,7 +47,7 @@ const NFTs = {
                 <b-form-input type="text" size="sm" :value="filter.priceTo" @change="updateFilter('priceTo', $event)" debounce="600" v-b-popover.hover.bottom="'Price to, ETH'" placeholder="max"></b-form-input>
               </div>
               <div class="mt-1 pr-1">
-                <b-button size="sm" @click="checkLogs('partial')" :disabled="sync.inProgress" variant="primary" v-b-popover.hover.bottom="'Check Logs'" style="min-width: 80px; ">Check Latest 30 Blocks</b-button>
+                <b-button size="sm" @click="checkLogs('partial')" :disabled="sync.inProgress" variant="primary" v-b-popover.hover.bottom="'Check Logs'" style="min-width: 80px; ">Scan Latest 30 Blocks</b-button>
               </div>
               <div class="mt-1 pr-1 flex-grow-1">
               </div>
@@ -134,15 +134,15 @@ const NFTs = {
                     </b-link>
                     <br />
                     <b-link :href="'https://etherscan.io/tx/' + transfer.txHash" v-b-popover.hover.bottom="'View in Etherscan.io'" target="_blank">
-                      Etherscan
+                      Etherscan - Tx
                     </b-link>
                     <br />
                     <b-link :href="'https://opensea.io/' + transfer.to" v-b-popover.hover.bottom="'View mintoor in OS'" target="_blank">
-                      Mintoor OpenSea
+                      OpenSea - Mintoor Account
                     </b-link>
                     <br />
                     <b-link :href="'https://etherscan.io/address/' + transfer.to" v-b-popover.hover.bottom="'View mintoor in Etherscan.io'" target="_blank">
-                      Mintoor Etherscan
+                      Etherscan - Mintoor Account
                     </b-link>
                   </b-popover>
                 </span>
@@ -810,7 +810,13 @@ const NFTs = {
         results.push({ contract, collection, count: collection.transfers.length, transfers: collection.transfers });
       }
       results.sort((a, b) => {
-        return b.count - a.count;
+        if (a.count == b.count) {
+          const namea = this.collections && this.collections[a.contract].name || '';
+          const nameb = this.collections && this.collections[b.contract].name || '';
+          return ('' + namea).localeCompare(nameb);
+        } else {
+          return b.count - a.count;
+        }
       });
       return results;
     }
@@ -819,7 +825,7 @@ const NFTs = {
     getContractOrCollection(address) {
       if (this.collections && (address in this.collections)) {
         const collection = this.collections[address];
-        return collection.symbol + ' - ' + collection.name;
+        return collection.symbol + ' - ' + collection.name + ' (' + collection.totalSupply + ')';
       }
       return address.substring(0, 12);
     },
