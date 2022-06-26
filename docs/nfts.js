@@ -136,6 +136,14 @@ const NFTs = {
                     <b-link :href="'https://etherscan.io/tx/' + transfer.txHash" v-b-popover.hover.bottom="'View in Etherscan.io'" target="_blank">
                       Etherscan
                     </b-link>
+                    <br />
+                    <b-link :href="'https://opensea.io/' + transfer.to" v-b-popover.hover.bottom="'View mintoor in OS'" target="_blank">
+                      Mintoor OpenSea
+                    </b-link>
+                    <br />
+                    <b-link :href="'https://etherscan.io/address/' + transfer.to" v-b-popover.hover.bottom="'View mintoor in Etherscan.io'" target="_blank">
+                      Mintoor Etherscan
+                    </b-link>
                   </b-popover>
                 </span>
               </template>
