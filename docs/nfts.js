@@ -1,7 +1,7 @@
 const NFTs = {
   template: `
     <div class="m-0 p-0">
-      <b-card class="mt-5" header-class="warningheader" header="Web3 Connection And/Or Incorrect Network Detected" v-if="false && (!powerOn || network.chainId != 1)">
+      <b-card class="mt-5" header-class="warningheader" header="Web3 Connection And/Or Incorrect Network Detected" v-if="!powerOn || network.chainId != 1">
         <b-card-text>
           Please install the MetaMask extension, connect to the Ethereum mainnet and refresh this page. Then click the [Power] button on the top right.
         </b-card-text>
@@ -23,7 +23,7 @@ const NFTs = {
             <!--
             <b-tab title="Collections" @click="updateURL('collections');">
             </b-tab>
-            <b-table small striped hover :fields="fields" :items="results" table-class="w-auto" class="m-2 p-2">
+            <b-table small striped hover :fields="fields" :items="transfers" table-class="w-auto" class="m-2 p-2">
             </b-table>
             -->
           </b-tabs>
@@ -99,13 +99,13 @@ const NFTs = {
             </div>
 
             <!-- Mint Monitor -->
-            <b-table small striped hover :fields="fields" :items="results" table-class="w-auto" class="m-2 p-2">
+            <b-table small striped hover :fields="fields" :items="transfers" table-class="w-auto" class="m-2 p-2">
               <template #cell(blockNumber)="data">
                 {{ data.item.blockNumber }}
               </template>
               <template #cell(contract)="data">
                 <b-link :href="'https://etherscan.io/address/' + data.item.contract + '#code'" v-b-popover.hover.bottom="'View in OS'" target="_blank">
-                  {{ data.item.contract.substring(0, 12) }}
+                  {{ getContractOrCollection(data.item.contract) }}
                 </b-link>
               </template>
               <template #cell(from)="data">
@@ -573,8 +573,11 @@ const NFTs = {
     sync() {
       return store.getters['nfts/sync'];
     },
-    results() {
-      return store.getters['nfts/results'];
+    transfers() {
+      return store.getters['nfts/transfers'];
+    },
+    collections() {
+      return store.getters['nfts/collections'];
     },
     sales() {
       return store.getters['nfts/sales'];
@@ -743,6 +746,13 @@ const NFTs = {
     },
   },
   methods: {
+    getContractOrCollection(address) {
+      if (this.collections && (address in this.collections)) {
+        const collection = this.collections[address];
+        return collection.symbol + ' ' + collection.name;
+      }
+      return address.substring(0, 12);
+    },
     updateURL(where) {
       this.$router.push('/enssales/' + where);
     },
@@ -877,7 +887,8 @@ const nftsModule = {
       daysInCache: null,
       processing: null,
     },
-    results: [],
+    transfers: [],
+    collections: {},
     sales: [],
     exchangeRates: {},
     halt: false,
@@ -894,7 +905,8 @@ const nftsModule = {
     config: state => state.config,
     filter: state => state.filter,
     sync: state => state.sync,
-    results: state => state.results,
+    transfers: state => state.transfers,
+    collections: state => state.collections,
     sales: state => state.sales,
     exchangeRates: state => state.exchangeRates,
     params: state => state.params,
@@ -1248,7 +1260,7 @@ const nftsModule = {
         const events = await provider.getLogs(filter);
         // console.log("checkLogs - events: " + JSON.stringify(events));
 
-        const results = [];
+        const transfers = [];
         const contractsCollator = {};
         for (const event of events) {
           if (!event.removed && event.topics.length == 4) {
@@ -1259,7 +1271,7 @@ const nftsModule = {
             if (!(contract in contractsCollator)) {
               contractsCollator[contract] = true;
             }
-            results.push({
+            transfers.push({
               contract: contract,
               from: ADDRESS0,
               to: '0x' + event.topics[2].substring(26, 66),
@@ -1270,46 +1282,24 @@ const nftsModule = {
             });
           }
         }
-        state.results = results;
+        state.transfers = transfers;
 
         const erc721Helper = new ethers.Contract(ERC721HELPERADDRESS, ERC721HELPERABI, provider);
         const contracts = Object.keys(contractsCollator);
-        console.log("contracts: " + JSON.stringify(contracts));
+        // console.log("contracts: " + JSON.stringify(contracts));
         let tokenInfo = null;
         try {
+          const collections = {};
           tokenInfo = await erc721Helper.tokenInfo(contracts);
           for (let i = 0; i < contracts.length; i++) {
-            console.log(contracts[i] + ' ' + tokenInfo[0][i] + ' ' + tokenInfo[1][i] + ' ' + tokenInfo[2][i] + ' ' + tokenInfo[3][i]);
+            // console.log(contracts[i] + ' ' + tokenInfo[0][i] + ' ' + tokenInfo[1][i] + ' ' + tokenInfo[2][i] + ' ' + tokenInfo[3][i]);
+            collections[contracts[i]] = { status: ethers.BigNumber.from(tokenInfo[0][i]).toString(), symbol: tokenInfo[1][i], name: tokenInfo[2][i], totalSupply: ethers.BigNumber.from(tokenInfo[3][i]).toString() };
           }
+          state.collections = collections;
+          // console.log(JSON.stringify(collections, null, 2));
         } catch (e) {
           console.log("ERROR - Not ERC-721");
         }
-
-
-        // const collator = {};
-        // for (const sale of this.sales) {
-        //   const bucket = moment.unix(sale.timestamp).utc().startOf('day').unix();
-        //   if (!(bucket in collator)) {
-        //     collator[bucket] = { count: 1, total: sale.price, items: [sale] };
-        //   } else {
-        //     collator[bucket].count++;
-        //     collator[bucket].total = parseFloat(collator[bucket].total) + sale.price;
-        //     collator[bucket].items.push(sale);
-        //   }
-        // }
-        // const results = [];
-        // for (const [bucket, value] of Object.entries(collator)) {
-        //   const average = value.total / value.count;
-        //   results.push({ timestamp: bucket, count: value.count, total: value.total, average: average, items: value.items });
-        //   // console.log("bucket: " + bucket + " " + moment.unix(bucket).utc().format() + " count: " + value.count + ", total: " + value.total);
-        // }
-        // results.sort((a, b) => {
-        //   return b.timestamp - a.timestamp;
-        // });
-        // return results;
-
-
-
       }
     },
 
