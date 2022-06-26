@@ -28,37 +28,6 @@ const NFTs = {
             -->
           </b-tabs>
 
-          <b-table small striped hover :fields="fields" :items="results" table-class="w-auto" class="m-2 p-2">
-            <template #cell(blockNumber)="data">
-              {{ data.item.blockNumber }}
-            </template>
-            <template #cell(contract)="data">
-              <b-link :href="'https://etherscan.io/address/' + data.item.contract + '#code'" v-b-popover.hover.bottom="'View in OS'" target="_blank">
-                {{ data.item.contract.substring(0, 12) }}
-              </b-link>
-            </template>
-            <template #cell(from)="data">
-              <b-link :href="'https://opensea.io/' + data.item.from" v-b-popover.hover.bottom="'View in OS'" target="_blank">
-                {{ data.item.from.substring(0, 12) }}
-              </b-link>
-            </template>
-            <template #cell(to)="data">
-              <b-link :href="'https://opensea.io/' + data.item.to" v-b-popover.hover.bottom="'View in OS'" target="_blank">
-                {{ data.item.to.substring(0, 12) }}
-              </b-link>
-            </template>
-            <template #cell(tokenId)="data">
-              <b-link :href="'https://opensea.io/assets/' + data.item.contract + '/' + data.item.tokenId" v-b-popover.hover.bottom="'View in OS'" target="_blank">
-                {{ data.item.tokenId }}
-              </b-link>
-            </template>
-            <template #cell(txHash)="data">
-              <b-link :href="'https://etherscan.io/tx/' + data.item.txHash" v-b-popover.hover.bottom="'View in Etherscan'" target="_blank">
-                {{ data.item.txHash.substring(0, 12) }}
-              </b-link>
-            </template>
-          </b-table>
-
           <b-card-body class="m-0 p-1">
             <!-- Main Toolbar -->
             <div class="d-flex flex-wrap m-0 p-0">
@@ -128,6 +97,38 @@ const NFTs = {
                 <b-button size="sm" @click="loadSales('clearCache')" variant="primary" v-b-popover.hover.bottom="'Reset application data'">Clear Local Cache</b-button>
               </div>
             </div>
+
+            <!-- Mint Monitor -->
+            <b-table small striped hover :fields="fields" :items="results" table-class="w-auto" class="m-2 p-2">
+              <template #cell(blockNumber)="data">
+                {{ data.item.blockNumber }}
+              </template>
+              <template #cell(contract)="data">
+                <b-link :href="'https://etherscan.io/address/' + data.item.contract + '#code'" v-b-popover.hover.bottom="'View in OS'" target="_blank">
+                  {{ data.item.contract.substring(0, 12) }}
+                </b-link>
+              </template>
+              <template #cell(from)="data">
+                <b-link :href="'https://opensea.io/' + data.item.from" v-b-popover.hover.bottom="'View in OS'" target="_blank">
+                  {{ data.item.from.substring(0, 12) }}
+                </b-link>
+              </template>
+              <template #cell(to)="data">
+                <b-link :href="'https://opensea.io/' + data.item.to" v-b-popover.hover.bottom="'View in OS'" target="_blank">
+                  {{ data.item.to.substring(0, 12) }}
+                </b-link>
+              </template>
+              <template #cell(tokenId)="data">
+                <b-link :href="'https://opensea.io/assets/' + data.item.contract + '/' + data.item.tokenId" v-b-popover.hover.bottom="'View in OS'" target="_blank">
+                  {{ data.item.tokenId }}
+                </b-link>
+              </template>
+              <template #cell(txHash)="data">
+                <b-link :href="'https://etherscan.io/tx/' + data.item.txHash" v-b-popover.hover.bottom="'View in Etherscan'" target="_blank">
+                  {{ data.item.txHash.substring(0, 12) }}
+                </b-link>
+              </template>
+            </b-table>
 
             <!-- Listing -->
             <b-table v-if="settings.tabIndex == 1" small striped hover :fields="salesFields" :items="pagedFilteredSortedSales" table-class="w-auto" class="m-2 p-2">
