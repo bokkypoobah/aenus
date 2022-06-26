@@ -10,38 +10,79 @@ const NFTs = {
       <b-card no-body no-header class="border-0">
         <b-card no-body class="p-0 mt-1">
           <b-tabs card align="left" no-body v-model="settings.tabIndex" active-tab-class="m-0 p-0">
+            <b-tab title="Mint Monitor" @click="updateURL('mintmonitor');">
+            </b-tab>
+            <!--
+            <b-tab title="Account" @click="updateURL('account');">
+            </b-tab>
             <b-tab title="List" @click="updateURL('list');">
             </b-tab>
             <b-tab title="Chart" @click="updateURL('chart');">
             </b-tab>
+            -->
+            <!--
+            <b-tab title="Collections" @click="updateURL('collections');">
+            </b-tab>
+            <b-table small striped hover :fields="fields" :items="results" table-class="w-auto" class="m-2 p-2">
+            </b-table>
+            -->
           </b-tabs>
 
-          <!--
-          Later on - top sellers and buyers
-          {{ accounts }}
-          -->
+          <b-table small striped hover :fields="fields" :items="results" table-class="w-auto" class="m-2 p-2">
+            <template #cell(blockNumber)="data">
+              {{ data.item.blockNumber }}
+            </template>
+            <template #cell(contract)="data">
+              <b-link :href="'https://etherscan.io/address/' + data.item.contract + '#code'" v-b-popover.hover.bottom="'View in OS'" target="_blank">
+                {{ data.item.contract.substring(0, 12) }}
+              </b-link>
+            </template>
+            <template #cell(from)="data">
+              <b-link :href="'https://opensea.io/' + data.item.from" v-b-popover.hover.bottom="'View in OS'" target="_blank">
+                {{ data.item.from.substring(0, 12) }}
+              </b-link>
+            </template>
+            <template #cell(to)="data">
+              <b-link :href="'https://opensea.io/' + data.item.to" v-b-popover.hover.bottom="'View in OS'" target="_blank">
+                {{ data.item.to.substring(0, 12) }}
+              </b-link>
+            </template>
+            <template #cell(tokenId)="data">
+              <b-link :href="'https://opensea.io/assets/' + data.item.contract + '/' + data.item.tokenId" v-b-popover.hover.bottom="'View in OS'" target="_blank">
+                {{ data.item.tokenId }}
+              </b-link>
+            </template>
+            <template #cell(txHash)="data">
+              <b-link :href="'https://etherscan.io/tx/' + data.item.txHash" v-b-popover.hover.bottom="'View in Etherscan'" target="_blank">
+                {{ data.item.txHash.substring(0, 12) }}
+              </b-link>
+            </template>
+          </b-table>
 
           <b-card-body class="m-0 p-1">
             <!-- Main Toolbar -->
             <div class="d-flex flex-wrap m-0 p-0">
-              <div class="mt-1" style="max-width: 150px;">
+              <div v-if="settings.tabIndex == 1" class="mt-1" style="max-width: 150px;">
                 <b-form-input type="text" size="sm" :value="filter.searchString" @change="updateFilter('searchString', $event)" debounce="600" v-b-popover.hover.bottom="'Poweruser regex, or simple search string'" placeholder="🔍 {regex}"></b-form-input>
               </div>
-              <div class="mt-1 pl-1" style="max-width: 150px;">
+              <div v-if="settings.tabIndex == 1" class="mt-1 pr-1" style="max-width: 150px;">
                 <b-form-input type="text" size="sm" :value="filter.searchAccounts" @change="updateFilter('searchAccounts', $event)" debounce="600" v-b-popover.hover.bottom="'List of account search strings'" placeholder="🔍 0x12... ..."></b-form-input>
               </div>
-              <div class="mt-1 pl-1" style="max-width: 80px;">
+              <div v-if="settings.tabIndex == 1" class="mt-1 pr-1" style="max-width: 80px;">
                 <b-form-input type="text" size="sm" :value="filter.priceFrom" @change="updateFilter('priceFrom', $event)" debounce="600" v-b-popover.hover.bottom="'Price from, ETH'" placeholder="min"></b-form-input>
               </div>
-              <div class="mt-1">
+              <div v-if="settings.tabIndex == 1" class="mt-1">
                 -
               </div>
-              <div class="mt-1 pr-1" style="max-width: 80px;">
+              <div v-if="settings.tabIndex == 1" class="mt-1 pr-1" style="max-width: 80px;">
                 <b-form-input type="text" size="sm" :value="filter.priceTo" @change="updateFilter('priceTo', $event)" debounce="600" v-b-popover.hover.bottom="'Price to, ETH'" placeholder="max"></b-form-input>
+              </div>
+              <div class="mt-1 pr-1">
+                <b-button size="sm" @click="checkLogs('partial')" variant="primary" v-b-popover.hover.bottom="'Check Logs'" style="min-width: 80px; ">Check Logs</b-button>
               </div>
               <div class="mt-1 pr-1 flex-grow-1">
               </div>
-              <div class="mt-1 pr-1">
+              <div v-if="settings.tabIndex == 1" class="mt-1 pr-1">
                 <b-input-group class="mb-2" style="height: 0;">
                   <template #append>
                     <b-button size="sm" :pressed.sync="settings.syncToolbar" variant="outline-primary" v-b-popover.hover.bottom="'Sync settings'"><span v-if="settings.syncToolbar"><b-icon-gear-fill shift-v="+1" font-scale="1.0"></b-icon-gear-fill></span><span v-else><b-icon-gear shift-v="+1" font-scale="1.0"></b-icon-gear></span></b-button>
@@ -52,19 +93,19 @@ const NFTs = {
               </div>
               <div class="mt-1 pr-1 flex-grow-1">
               </div>
-              <div v-if="settings.tabIndex == 0" class="mt-1 pr-1">
+              <div v-if="settings.tabIndex == 1" class="mt-1 pr-1">
                 <b-button size="sm" @click="exportSales" :disabled="filteredSortedSales.length == 0" variant="link" v-b-popover.hover.bottom="'Export to CSV for easy import into a spreadsheet'">Export</b-button>
               </div>
-              <div v-if="settings.tabIndex == 0" class="mt-1 pr-1">
+              <div v-if="settings.tabIndex == 1" class="mt-1 pr-1">
                 <b-form-select size="sm" v-model="settings.sortOption" :options="sortOptions" v-b-popover.hover.bottom="'Yeah. Sort'"></b-form-select>
               </div>
-              <div v-if="settings.tabIndex == 0" class="mt-1 pr-1">
+              <div v-if="settings.tabIndex == 1" class="mt-1 pr-1">
                 <font size="-2" v-b-popover.hover.bottom="formatTimestamp(earliestEntry) + ' to ' + formatTimestamp(latestEntry)">{{ filteredSortedSales.length }}</font>
               </div>
-              <div v-if="settings.tabIndex == 0" class="mt-1 pr-1">
+              <div v-if="settings.tabIndex == 1" class="mt-1 pr-1">
                 <b-pagination size="sm" v-model="settings.currentPage" :total-rows="filteredSortedSales.length" :per-page="settings.pageSize" style="height: 0;"></b-pagination>
               </div>
-              <div v-if="settings.tabIndex == 0" class="mt-1">
+              <div v-if="settings.tabIndex == 1" class="mt-1">
                 <b-form-select size="sm" v-model="settings.pageSize" :options="pageSizes" v-b-popover.hover.bottom="'Page size'"></b-form-select>
               </div>
             </div>
@@ -89,7 +130,7 @@ const NFTs = {
             </div>
 
             <!-- Listing -->
-            <b-table v-if="settings.tabIndex == 0" small striped hover :fields="salesFields" :items="pagedFilteredSortedSales" table-class="w-auto" class="m-2 p-2">
+            <b-table v-if="settings.tabIndex == 1" small striped hover :fields="salesFields" :items="pagedFilteredSortedSales" table-class="w-auto" class="m-2 p-2">
               <template #cell(timestamp)="data">
                 {{ formatTimestamp(data.item.timestamp) }}
               </template>
@@ -203,7 +244,7 @@ const NFTs = {
               </template>
             </b-table>
 
-            <div v-if="settings.tabIndex == 1">
+            <div v-if="settings.tabIndex == 2">
               <b-row>
                 <b-col cols="7">
                   <div v-if="true">
@@ -311,6 +352,15 @@ const NFTs = {
         { value: { term: 2, termType: "month" }, text: '2 Months' },
         { value: { term: 3, termType: "month" }, text: '3 Months' },
         { value: { term: 1, termType: "year" }, text: '1 Year' },
+      ],
+
+      fields: [
+        { key: 'blockNumber', label: 'Block #', thStyle: 'width: 15%;' },
+        { key: 'contract', label: 'Contract', thStyle: 'width: 15%;' },
+        { key: 'from', label: 'From', thStyle: 'width: 20%;' },
+        { key: 'to', label: 'To', thStyle: 'width: 20%;' },
+        { key: 'tokenId', label: 'Token Id', thStyle: 'width: 15%;' },
+        { key: 'txHash', label: 'Tx', thStyle: 'width: 15%;' },
       ],
 
       salesFields: [
@@ -514,19 +564,22 @@ const NFTs = {
       return store.getters['connection/network'];
     },
     config() {
-      return store.getters['ensSales/config'];
+      return store.getters['nfts/config'];
     },
     filter() {
-      return store.getters['ensSales/filter'];
+      return store.getters['nfts/filter'];
     },
     sync() {
-      return store.getters['ensSales/sync'];
+      return store.getters['nfts/sync'];
+    },
+    results() {
+      return store.getters['nfts/results'];
     },
     sales() {
-      return store.getters['ensSales/sales'];
+      return store.getters['nfts/sales'];
     },
     exchangeRates() {
-      return store.getters['ensSales/exchangeRates'];
+      return store.getters['nfts/exchangeRates'];
     },
     earliestEntry() {
       let timestamp = null;
@@ -728,6 +781,10 @@ const NFTs = {
       filterUpdate[field] = filter;
       store.dispatch('ensSales/updateFilter', filterUpdate);
     },
+    async checkLogs(syncMode) {
+      // logInfo("NFTs", "loadSales - syncMode: " + syncMode);
+      store.dispatch('nfts/checkLogs', syncMode);
+    },
     async loadSales(syncMode) {
       // logInfo("NFTs", "loadSales - syncMode: " + syncMode);
       store.dispatch('ensSales/loadSales', syncMode);
@@ -819,6 +876,7 @@ const nftsModule = {
       daysInCache: null,
       processing: null,
     },
+    results: [],
     sales: [],
     exchangeRates: {},
     halt: false,
@@ -835,6 +893,7 @@ const nftsModule = {
     config: state => state.config,
     filter: state => state.filter,
     sync: state => state.sync,
+    results: state => state.results,
     sales: state => state.sales,
     exchangeRates: state => state.exchangeRates,
     params: state => state.params,
@@ -1164,6 +1223,50 @@ const nftsModule = {
       db0.close();
     },
 
+    // --- checkLogs() ---
+    async checkLogs(state, { syncMode, configUpdate, filterUpdate }) {
+      // --- loadSales() start ---
+      logInfo("nftsModule", "mutations.checkLogs() - syncMode: " + syncMode + ", configUpdate: " + JSON.stringify(configUpdate) + ", filterUpdate: " + JSON.stringify(filterUpdate));
+      if (window.ethereum) {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const block = await provider.getBlock("latest");
+        const blockNumber = block.number;
+        console.log("blockNumber: " + blockNumber);
+
+        const lookback = 50;
+        const filter = {
+          // address: CRYPTOPUNKSMARKETADDRESS, // [NIXADDRESS, weth.address],
+          fromBlock: blockNumber - lookback,
+          toBlock: blockNumber,
+          topics: [
+            '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef', // Transfer (index_topic_1 address from, index_topic_2 address to, index_topic_3 uint256 tokenId)
+            '0x0000000000000000000000000000000000000000000000000000000000000000', // Null address
+            null
+          ],
+        };
+        const events = await provider.getLogs(filter);
+        // console.log("checkLogs - events: " + JSON.stringify(events));
+        const results = [];
+        for (const event of events) {
+          if (!event.removed && event.topics.length == 4) {
+            const tokenId = event.topics[3] || event.data || null;
+            const bnTokenId = tokenId == null ? null : ethers.BigNumber.from(tokenId);
+            results.push({
+              contract: event.address.toLowerCase(),
+              from: ADDRESS0,
+              to: '0x' + event.topics[2].substring(26, 66),
+              tokenId: bnTokenId,
+              blockNumber: event.blockNumber,
+              logIndex: event.logIndex,
+              txHash: event.transactionHash,
+            });
+          }
+        }
+
+        state.results = results;;
+      }
+    },
+
     halt(state) {
       state.halt = true;
     },
@@ -1176,6 +1279,10 @@ const nftsModule = {
     updateConfig(context, configUpdate) {
       // logInfo("nftsModule", "configUpdates.updateConfig() - configUpdate: " + JSON.stringify(configUpdate));
       context.commit('loadSales', { syncMode: 'updateConfig', configUpdate, filterUpdate: null });
+    },
+    checkLogs(context, syncMode) {
+      // logInfo("nftsModule", "actions.checkLogs() - syncMode: " + syncMode);
+      context.commit('checkLogs', { syncMode: syncMode, configUpdate: null, filterUpdate: null } );
     },
     loadSales(context, syncMode) {
       // logInfo("nftsModule", "actions.loadSales() - syncMode: " + syncMode);
