@@ -1,12 +1,6 @@
 const NFTs = {
   template: `
     <div class="m-0 p-0">
-      <b-card class="mt-5" header-class="warningheader" header="Web3 Connection And/Or Incorrect Network Detected" v-if="!powerOn || network.chainId != 1">
-        <b-card-text>
-          Please install the MetaMask extension, connect to the Ethereum mainnet and refresh this page. Then click the [Power] button on the top right.
-        </b-card-text>
-      </b-card>
-
       <b-card no-body no-header class="border-0">
         <b-card no-body class="p-0 mt-1">
           <b-tabs card align="left" no-body v-model="settings.tabIndex" active-tab-class="m-0 p-0">
@@ -47,7 +41,7 @@ const NFTs = {
                 <b-form-input type="text" size="sm" :value="filter.priceTo" @change="updateFilter('priceTo', $event)" debounce="600" v-b-popover.hover.bottom="'Price to, ETH'" placeholder="max"></b-form-input>
               </div>
               <div class="mt-1 pr-1">
-                <b-button size="sm" @click="checkLogs('partial')" :disabled="sync.inProgress" variant="primary" v-b-popover.hover.bottom="'Check Logs'" style="min-width: 80px; ">Scan Latest 30 Blocks</b-button>
+                <b-button size="sm" @click="checkLogs('partial')" :disabled="sync.inProgress || !powerOn || network.chainId != 1" variant="primary" style="min-width: 80px; ">Scan Latest 30 Blocks</b-button>
               </div>
               <div class="mt-1 pr-1 flex-grow-1">
               </div>
@@ -98,7 +92,10 @@ const NFTs = {
               </div>
             </div>
 
-            <b-alert size="sm" show dismissible variant="danger" class="m-0 mt-1">
+            <b-alert size="sm" :show="!powerOn || network.chainId != 1" variant="primary" class="m-0 mt-1">
+              Please connect to the Ethereum mainnet with a web3-enabled browser. Click the [Power] button on the top right.
+            </b-alert>
+            <b-alert size="sm" :show="powerOn && network.chainId == 1" dismissible variant="danger" class="m-0 mt-1">
               Be careful executing unverified contracts and signing messages
             </b-alert>
 
@@ -836,12 +833,12 @@ const NFTs = {
         results.push({ contract, collection, mints: collection.transfers.length, transfers: collection.transfers });
       }
       results.sort((a, b) => {
-        if (a.count == b.count) {
+        if (a.mints == b.mints) {
           const namea = this.collections && this.collections[a.contract].name || '';
           const nameb = this.collections && this.collections[b.contract].name || '';
           return ('' + namea).localeCompare(nameb);
         } else {
-          return b.count - a.count;
+          return b.mints - a.mints;
         }
       });
       return results;
