@@ -101,7 +101,9 @@ const NFTs = {
             <!-- Mint Monitor -->
             <b-table small striped hover :fields="fields" :items="transfers" table-class="w-auto" class="m-2 p-2">
               <template #cell(blockNumber)="data">
-                {{ data.item.blockNumber }}
+                <b-link :href="'https://etherscan.io/block/' + data.item.blockNumber" v-b-popover.hover.bottom="'View in OS'" target="_blank">
+                  {{ data.item.blockNumber }}
+                </b-link>
               </template>
               <template #cell(contract)="data">
                 <b-link :href="'https://etherscan.io/address/' + data.item.contract + '#code'" v-b-popover.hover.bottom="'View in OS'" target="_blank">
@@ -120,7 +122,7 @@ const NFTs = {
               </template>
               <template #cell(tokenId)="data">
                 <b-link :href="'https://opensea.io/assets/' + data.item.contract + '/' + data.item.tokenId" v-b-popover.hover.bottom="'View in OS'" target="_blank">
-                  {{ data.item.tokenId }}
+                  {{ getTokenIdString(data.item.tokenId) }}
                 </b-link>
               </template>
               <template #cell(txHash)="data">
@@ -749,9 +751,16 @@ const NFTs = {
     getContractOrCollection(address) {
       if (this.collections && (address in this.collections)) {
         const collection = this.collections[address];
-        return collection.symbol + ' ' + collection.name;
+        return collection.symbol + ' - ' + collection.name;
       }
       return address.substring(0, 12);
+    },
+    getTokenIdString(tokenId) {
+      const str = tokenId.toString();
+      if (str.length > 13) {
+        return str.substring(0, 10) + '...';
+      }
+      return str;
     },
     updateURL(where) {
       this.$router.push('/enssales/' + where);
@@ -1246,7 +1255,7 @@ const nftsModule = {
         const blockNumber = block.number;
         console.log("blockNumber: " + blockNumber);
 
-        const lookback = 50;
+        const lookback = 30;
         const filter = {
           // address: CRYPTOPUNKSMARKETADDRESS, // [NIXADDRESS, weth.address],
           fromBlock: blockNumber - lookback,
@@ -1282,21 +1291,26 @@ const nftsModule = {
             });
           }
         }
+        transfers.sort((a, b) => {
+          if (a.blockNumber == b.blockNumber) {
+            return b.logIndex - a.logIndex;
+          } else {
+            return b.blockNumber - a.blockNumber;
+          }
+        });
         state.transfers = transfers;
 
         const erc721Helper = new ethers.Contract(ERC721HELPERADDRESS, ERC721HELPERABI, provider);
         const contracts = Object.keys(contractsCollator);
-        // console.log("contracts: " + JSON.stringify(contracts));
         let tokenInfo = null;
         try {
           const collections = {};
           tokenInfo = await erc721Helper.tokenInfo(contracts);
           for (let i = 0; i < contracts.length; i++) {
-            // console.log(contracts[i] + ' ' + tokenInfo[0][i] + ' ' + tokenInfo[1][i] + ' ' + tokenInfo[2][i] + ' ' + tokenInfo[3][i]);
             collections[contracts[i]] = { status: ethers.BigNumber.from(tokenInfo[0][i]).toString(), symbol: tokenInfo[1][i], name: tokenInfo[2][i], totalSupply: ethers.BigNumber.from(tokenInfo[3][i]).toString() };
           }
+          collections['0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85'] = { status: 'todo', symbol: 'ENS', name: 'Ethereum Name Service', totalSupply: 'lots' };
           state.collections = collections;
-          // console.log(JSON.stringify(collections, null, 2));
         } catch (e) {
           console.log("ERROR - Not ERC-721");
         }
