@@ -41,7 +41,7 @@ const NFTs = {
                 <b-form-input type="text" size="sm" :value="filter.priceTo" @change="updateFilter('priceTo', $event)" debounce="600" v-b-popover.hover.bottom="'Price to, ETH'" placeholder="max"></b-form-input>
               </div>
               <div class="mt-1 pr-1">
-                <b-button size="sm" @click="checkLogs('partial')" :disabled="sync.inProgress || !powerOn || network.chainId != 1" variant="primary" style="min-width: 80px; ">Scan Latest 30 Blocks</b-button>
+                <b-button size="sm" @click="checkLogs('partial')" :disabled="sync.inProgress || !powerOn || network.chainId != 1" variant="primary" style="min-width: 80px; ">Scan Latest 100 Blocks</b-button>
               </div>
               <div class="mt-1 pr-1 flex-grow-1">
               </div>
@@ -1353,7 +1353,7 @@ const nftsModule = {
         const blockNumber = block.number;
         console.log("blockNumber: " + blockNumber);
 
-        const lookback = 30;
+        const lookback = 100;
         const filter = {
           // address: CRYPTOPUNKSMARKETADDRESS, // [NIXADDRESS, weth.address],
           fromBlock: blockNumber - lookback,
