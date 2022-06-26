@@ -843,7 +843,7 @@ const NFTs = {
     getContractOrCollection(address) {
       if (this.collections && (address in this.collections)) {
         const collection = this.collections[address];
-        return collection.symbol + ' - ' + collection.name + ' (' + collection.totalSupply + ')';
+        return collection.symbol + ' - ' + collection.name + (collection.totalSupply > 0 ? (' (' + collection.totalSupply + ')') : '');
       }
       return address.substring(0, 12);
     },
