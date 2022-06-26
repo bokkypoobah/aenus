@@ -101,9 +101,27 @@ const NFTs = {
             <!-- Mint Monitor -->
             <b-table small striped hover :fields="collectionsFields" :items="collectionsData" table-class="w-100" class="m-2 p-2">
               <template #cell(contract)="data">
-                <b-link :href="'https://etherscan.io/address/' + data.item.contract + '#code'" v-b-popover.hover.bottom="'View in OS'" target="_blank">
+                <b-button :id="'popover-target-' + data.item.contract" variant="link" class="m-0 p-0">
                   {{ getContractOrCollection(data.item.contract) }}
-                </b-link>
+                </b-button>
+                <b-popover :target="'popover-target-' + data.item.contract" placement="right">
+                  <template #title>{{ getContractOrCollection(data.item.contract) }}</template>
+                  <b-link :href="'https://etherscan.io/address/' + data.item.contract + '#code'" v-b-popover.hover.bottom="'View in Etherscan.io'" target="_blank">
+                    Etherscan - Contract Code
+                  </b-link>
+                  <br />
+                  <b-link :href="'https://etherscan.io/token/' + data.item.contract" v-b-popover.hover.bottom="'View in Etherscan.io'" target="_blank">
+                    Etherscan - Transfers
+                  </b-link>
+                  <br />
+                  <b-link :href="'https://etherscan.io/token/' + data.item.contract + '#balances'" v-b-popover.hover.bottom="'View in Etherscan.io'" target="_blank">
+                    Etherscan - Holders
+                  </b-link>
+                  <br />
+                  <b-link :href="'https://etherscan.io/token/tokenholderchart/' + data.item.contract" v-b-popover.hover.bottom="'View in Etherscan.io'" target="_blank">
+                    Etherscan - Holders Chart
+                  </b-link>
+                </b-popover>
               </template>
               <template #cell(count)="data">
                 {{ data.item.count }}
@@ -120,7 +138,7 @@ const NFTs = {
                     </span>
                   </b-button>
                   <b-popover :target="'popover-target-' + data.item.contract + '-' + transfer.tokenId" placement="right">
-                    <template #title>{{ data.item.contract }} links</template>
+                    <template #title>{{ data.item.contract }}</template>
                     <b-link :href="'https://opensea.io/assets/' + data.item.contract + '/' + transfer.tokenId" v-b-popover.hover.bottom="'View in opensea.io'" target="_blank">
                       OpenSea
                     </b-link>
