@@ -7,45 +7,38 @@ const NFTs = {
             <b-tab title="Mint Monitor" @click="updateURL('mintmonitor');">
             </b-tab>
             <!--
-            <b-tab title="Account" @click="updateURL('account');">
+            <b-tab title="Approvals" @click="updateURL('approvals');">
             </b-tab>
-            <b-tab title="List" @click="updateURL('list');">
-            </b-tab>
-            <b-tab title="Chart" @click="updateURL('chart');">
-            </b-tab>
-            -->
-            <!--
-            <b-tab title="Collections" @click="updateURL('collections');">
-            </b-tab>
-            <b-table small striped hover :fields="fields" :items="transfers" table-class="w-auto" class="m-2 p-2">
-            </b-table>
             -->
           </b-tabs>
 
           <b-card-body class="m-0 p-1">
             <!-- Main Toolbar -->
             <div class="d-flex flex-wrap m-0 p-0">
-              <div v-if="settings.tabIndex == 1" class="mt-1" style="max-width: 150px;">
+              <div v-if="settings.tabIndex == 10" class="mt-1" style="max-width: 150px;">
                 <b-form-input type="text" size="sm" :value="filter.searchString" @change="updateFilter('searchString', $event)" debounce="600" v-b-popover.hover.bottom="'Poweruser regex, or simple search string'" placeholder="🔍 {regex}"></b-form-input>
               </div>
-              <div v-if="settings.tabIndex == 1" class="mt-1 pr-1" style="max-width: 150px;">
+              <div v-if="settings.tabIndex == 10" class="mt-1 pr-1" style="max-width: 150px;">
                 <b-form-input type="text" size="sm" :value="filter.searchAccounts" @change="updateFilter('searchAccounts', $event)" debounce="600" v-b-popover.hover.bottom="'List of account search strings'" placeholder="🔍 0x12... ..."></b-form-input>
               </div>
-              <div v-if="settings.tabIndex == 1" class="mt-1 pr-1" style="max-width: 80px;">
+              <div v-if="settings.tabIndex == 10" class="mt-1 pr-1" style="max-width: 80px;">
                 <b-form-input type="text" size="sm" :value="filter.priceFrom" @change="updateFilter('priceFrom', $event)" debounce="600" v-b-popover.hover.bottom="'Price from, ETH'" placeholder="min"></b-form-input>
               </div>
-              <div v-if="settings.tabIndex == 1" class="mt-1">
+              <div v-if="settings.tabIndex == 10" class="mt-1">
                 -
               </div>
-              <div v-if="settings.tabIndex == 1" class="mt-1 pr-1" style="max-width: 80px;">
+              <div v-if="settings.tabIndex == 10" class="mt-1 pr-1" style="max-width: 80px;">
                 <b-form-input type="text" size="sm" :value="filter.priceTo" @change="updateFilter('priceTo', $event)" debounce="600" v-b-popover.hover.bottom="'Price to, ETH'" placeholder="max"></b-form-input>
               </div>
-              <div class="mt-1 pr-1">
+              <div v-if="settings.tabIndex == 0" class="mt-1 pr-1">
                 <b-button size="sm" @click="checkLogs('partial')" :disabled="sync.inProgress || !powerOn || network.chainId != 1" variant="primary" style="min-width: 80px; ">Scan Latest 100 Blocks</b-button>
+              </div>
+              <div v-if="settings.tabIndex == 1" class="mt-1 pr-1">
+                <b-button size="sm" @click="checkLogs('partial')" :disabled="sync.inProgress || !powerOn || network.chainId != 1" variant="primary" style="min-width: 80px; ">Scan</b-button>
               </div>
               <div class="mt-1 pr-1 flex-grow-1">
               </div>
-              <div v-if="settings.tabIndex == 1" class="mt-1 pr-1">
+              <div v-if="settings.tabIndex == 10" class="mt-1 pr-1">
                 <b-input-group class="mb-2" style="height: 0;">
                   <template #append>
                     <b-button size="sm" :pressed.sync="settings.syncToolbar" variant="outline-primary" v-b-popover.hover.bottom="'Sync settings'"><span v-if="settings.syncToolbar"><b-icon-gear-fill shift-v="+1" font-scale="1.0"></b-icon-gear-fill></span><span v-else><b-icon-gear shift-v="+1" font-scale="1.0"></b-icon-gear></span></b-button>
@@ -56,19 +49,19 @@ const NFTs = {
               </div>
               <div class="mt-1 pr-1 flex-grow-1">
               </div>
-              <div v-if="settings.tabIndex == 1" class="mt-1 pr-1">
+              <div v-if="settings.tabIndex == 10" class="mt-1 pr-1">
                 <b-button size="sm" @click="exportSales" :disabled="filteredSortedSales.length == 0" variant="link" v-b-popover.hover.bottom="'Export to CSV for easy import into a spreadsheet'">Export</b-button>
               </div>
-              <div v-if="settings.tabIndex == 1" class="mt-1 pr-1">
+              <div v-if="settings.tabIndex == 10" class="mt-1 pr-1">
                 <b-form-select size="sm" v-model="settings.sortOption" :options="sortOptions" v-b-popover.hover.bottom="'Yeah. Sort'"></b-form-select>
               </div>
-              <div v-if="settings.tabIndex == 1" class="mt-1 pr-1">
+              <div v-if="settings.tabIndex == 10" class="mt-1 pr-1">
                 <font size="-2" v-b-popover.hover.bottom="formatTimestamp(earliestEntry) + ' to ' + formatTimestamp(latestEntry)">{{ filteredSortedSales.length }}</font>
               </div>
-              <div v-if="settings.tabIndex == 1" class="mt-1 pr-1">
+              <div v-if="settings.tabIndex == 10" class="mt-1 pr-1">
                 <b-pagination size="sm" v-model="settings.currentPage" :total-rows="filteredSortedSales.length" :per-page="settings.pageSize" style="height: 0;"></b-pagination>
               </div>
-              <div v-if="settings.tabIndex == 1" class="mt-1">
+              <div v-if="settings.tabIndex == 10" class="mt-1">
                 <b-form-select size="sm" v-model="settings.pageSize" :options="pageSizes" v-b-popover.hover.bottom="'Page size'"></b-form-select>
               </div>
             </div>
@@ -95,81 +88,84 @@ const NFTs = {
             <b-alert size="sm" :show="!powerOn || network.chainId != 1" variant="primary" class="m-0 mt-1">
               Please connect to the Ethereum mainnet with a web3-enabled browser. Click the [Power] button on the top right.
             </b-alert>
-            <b-alert size="sm" :show="powerOn && network.chainId == 1" dismissible variant="danger" class="m-0 mt-1">
-              Be careful executing unverified contracts and signing messages
-            </b-alert>
 
             <!-- Mint Monitor -->
-            <b-table small striped hover :fields="collectionsFields" :items="collectionsData" table-class="w-100" class="m-1 p-1">
-              <template #cell(index)="data">
-                {{ data.index + 1 }}
-              </template>
-              <template #cell(contract)="data">
-                <b-button :id="'popover-target-' + data.item.contract" variant="link" class="m-0 p-0">
-                  {{ getContractOrCollection(data.item.contract) }}
-                </b-button>
-                <b-popover :target="'popover-target-' + data.item.contract" placement="right">
-                  <template #title>{{ getContractOrCollection(data.item.contract) }}</template>
-                  <b-link :href="'https://etherscan.io/address/' + data.item.contract + '#code'" v-b-popover.hover.bottom="'View in Etherscan.io'" target="_blank">
-                    Etherscan - Contract Code
-                  </b-link>
-                  <br />
-                  <b-link :href="'https://etherscan.io/token/' + data.item.contract" v-b-popover.hover.bottom="'View in Etherscan.io'" target="_blank">
-                    Etherscan - Transfers
-                  </b-link>
-                  <br />
-                  <b-link :href="'https://etherscan.io/token/' + data.item.contract + '#balances'" v-b-popover.hover.bottom="'View in Etherscan.io'" target="_blank">
-                    Etherscan - Holders
-                  </b-link>
-                  <br />
-                  <b-link :href="'https://etherscan.io/token/tokenholderchart/' + data.item.contract" v-b-popover.hover.bottom="'View in Etherscan.io'" target="_blank">
-                    Etherscan - Holders Chart
-                  </b-link>
-                </b-popover>
-              </template>
-              <template #cell(mints)="data">
-                {{ data.item.mints }}
-              </template>
-              <template #cell(tokens)="data">
-                <span v-for="(transfer, transferIndex) in data.item.transfers">
-                  <b-button :id="'popover-target-' + data.item.contract + '-' + transfer.tokenId" variant="link" class="m-0 p-0">
-                    <span v-if="transfer.contract == '0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85'">
-                      <b-img :width="'100%'" :src="'https://metadata.ens.domains/mainnet/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + transfer.tokenId + '/image'">
-                      </b-img>
-                    </span>
-                    <span v-else>
-                      {{ getTokenIdString(transfer.tokenId) }}
-                    </span>
+            <div v-if="settings.tabIndex == 0">
+              <b-alert size="sm" :show="powerOn && network.chainId == 1" dismissible variant="danger" class="m-0 mt-1">
+                Be careful executing unverified contracts and signing messages
+              </b-alert>
+
+              <b-table small striped hover :fields="collectionsFields" :items="collectionsData" table-class="w-100" class="m-1 p-1">
+                <template #cell(index)="data">
+                  {{ data.index + 1 }}
+                </template>
+                <template #cell(contract)="data">
+                  <b-button :id="'popover-target-' + data.item.contract" variant="link" class="m-0 p-0">
+                    {{ getContractOrCollection(data.item.contract) }}
                   </b-button>
-                  <b-popover :target="'popover-target-' + data.item.contract + '-' + transfer.tokenId" placement="right">
+                  <b-popover :target="'popover-target-' + data.item.contract" placement="right">
                     <template #title>{{ getContractOrCollection(data.item.contract) }}</template>
-                    <b-link :href="'https://opensea.io/assets/' + data.item.contract + '/' + transfer.tokenId" v-b-popover.hover.bottom="'View in opensea.io'" target="_blank">
-                      OpenSea
+                    <b-link :href="'https://etherscan.io/address/' + data.item.contract + '#code'" v-b-popover.hover.bottom="'View in Etherscan.io'" target="_blank">
+                      Etherscan - Contract Code
                     </b-link>
                     <br />
-                    <b-link :href="'https://looksrare.org/collections/' + data.item.contract + '/' + transfer.tokenId" v-b-popover.hover.bottom="'View in looksrare.org'" target="_blank">
-                      LooksRare
+                    <b-link :href="'https://etherscan.io/token/' + data.item.contract" v-b-popover.hover.bottom="'View in Etherscan.io'" target="_blank">
+                      Etherscan - Transfers
                     </b-link>
                     <br />
-                    <b-link :href="'https://x2y2.io/eth/' + data.item.contract + '/' + transfer.tokenId" v-b-popover.hover.bottom="'View in x2y2.io'" target="_blank">
-                      X2Y2
+                    <b-link :href="'https://etherscan.io/token/' + data.item.contract + '#balances'" v-b-popover.hover.bottom="'View in Etherscan.io'" target="_blank">
+                      Etherscan - Holders
                     </b-link>
                     <br />
-                    <b-link :href="'https://etherscan.io/tx/' + transfer.txHash" v-b-popover.hover.bottom="'View in Etherscan.io'" target="_blank">
-                      Etherscan - Tx
-                    </b-link>
-                    <br />
-                    <b-link :href="'https://opensea.io/' + transfer.to" v-b-popover.hover.bottom="'View mintoor in OS'" target="_blank">
-                      OpenSea - Mintoor Account
-                    </b-link>
-                    <br />
-                    <b-link :href="'https://etherscan.io/address/' + transfer.to" v-b-popover.hover.bottom="'View mintoor in Etherscan.io'" target="_blank">
-                      Etherscan - Mintoor Account
+                    <b-link :href="'https://etherscan.io/token/tokenholderchart/' + data.item.contract" v-b-popover.hover.bottom="'View in Etherscan.io'" target="_blank">
+                      Etherscan - Holders Chart
                     </b-link>
                   </b-popover>
-                </span>
-              </template>
-            </b-table>
+                </template>
+                <template #cell(mints)="data">
+                  {{ data.item.mints }}
+                </template>
+                <template #cell(tokens)="data">
+                  <span v-for="(transfer, transferIndex) in data.item.transfers">
+                    <b-button :id="'popover-target-' + data.item.contract + '-' + transfer.tokenId" variant="link" class="m-0 p-0">
+                      <span v-if="transfer.contract == '0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85'">
+                        <b-img :width="'100%'" :src="'https://metadata.ens.domains/mainnet/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + transfer.tokenId + '/image'">
+                        </b-img>
+                      </span>
+                      <span v-else>
+                        {{ getTokenIdString(transfer.tokenId) }}
+                      </span>
+                    </b-button>
+                    <b-popover :target="'popover-target-' + data.item.contract + '-' + transfer.tokenId" placement="right">
+                      <template #title>{{ getContractOrCollection(data.item.contract) }}</template>
+                      <b-link :href="'https://opensea.io/assets/' + data.item.contract + '/' + transfer.tokenId" v-b-popover.hover.bottom="'View in opensea.io'" target="_blank">
+                        OpenSea
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://looksrare.org/collections/' + data.item.contract + '/' + transfer.tokenId" v-b-popover.hover.bottom="'View in looksrare.org'" target="_blank">
+                        LooksRare
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://x2y2.io/eth/' + data.item.contract + '/' + transfer.tokenId" v-b-popover.hover.bottom="'View in x2y2.io'" target="_blank">
+                        X2Y2
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://etherscan.io/tx/' + transfer.txHash" v-b-popover.hover.bottom="'View in Etherscan.io'" target="_blank">
+                        Etherscan - Tx
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://opensea.io/' + transfer.to" v-b-popover.hover.bottom="'View mintoor in OS'" target="_blank">
+                        OpenSea - Mintoor Account
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://etherscan.io/address/' + transfer.to" v-b-popover.hover.bottom="'View mintoor in Etherscan.io'" target="_blank">
+                        Etherscan - Mintoor Account
+                      </b-link>
+                    </b-popover>
+                  </span>
+                </template>
+              </b-table>
+            </div>
 
             <!--
             <b-table small striped hover :fields="fields" :items="transfers" table-class="w-100" class="m-2 p-2">
@@ -207,7 +203,7 @@ const NFTs = {
             -->
 
             <!-- Listing -->
-            <b-table v-if="settings.tabIndex == 1" small striped hover :fields="salesFields" :items="pagedFilteredSortedSales" table-class="w-auto" class="m-2 p-2">
+            <b-table v-if="settings.tabIndex == 10" small striped hover :fields="salesFields" :items="pagedFilteredSortedSales" table-class="w-auto" class="m-2 p-2">
               <template #cell(timestamp)="data">
                 {{ formatTimestamp(data.item.timestamp) }}
               </template>
@@ -321,7 +317,7 @@ const NFTs = {
               </template>
             </b-table>
 
-            <div v-if="settings.tabIndex == 2">
+            <div v-if="settings.tabIndex == 20">
               <b-row>
                 <b-col cols="7">
                   <div v-if="true">
@@ -860,7 +856,7 @@ const NFTs = {
       return str;
     },
     updateURL(where) {
-      this.$router.push('/enssales/' + where);
+      this.$router.push('/nfts/' + where);
     },
     formatETH(e) {
       try {
@@ -950,9 +946,9 @@ const NFTs = {
   },
   mounted() {
     logInfo("NFTs", "mounted() $route: " + JSON.stringify(this.$route.params) + ", props['search']: " + this.search + ", props['topic']: " + this.topic);
-    if (this.search == "list") {
+    if (this.search == "mintmonitor") {
       this.settings.tabIndex = 0;
-    } else if (this.search == "chart") {
+    } else if (this.search == "approvals") {
       this.settings.tabIndex = 1;
     }
     store.dispatch('ensSales/loadSales', 'mounted');
