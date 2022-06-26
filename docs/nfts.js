@@ -428,9 +428,9 @@ const NFTs = {
       ],
 
       collectionsFields: [
-        { key: 'index', label: '#', thStyle: 'width: 5%;' },
-        { key: 'contract', label: 'Contract', thStyle: 'width: 25%;' },
-        { key: 'mints', label: 'Mints', thStyle: 'width: 5%;', sortable: true },
+        { key: 'index', label: '#', thStyle: 'width: 5%;', thClass: 'text-right', tdClass: 'text-right' },
+        { key: 'contract', label: 'Contract', thStyle: 'width: 25%;', thClass: 'text-left', tdClass: 'text-left' },
+        { key: 'mints', label: 'Mints', thStyle: 'width: 5%;', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
         { key: 'tokens', label: 'Tokens', thStyle: 'width: 65%;' },
       ],
 
@@ -1349,44 +1349,60 @@ const nftsModule = {
         const blockNumber = block.number;
         console.log("blockNumber: " + blockNumber);
 
-        const lookback = 100;
-        const filter = {
-          // address: CRYPTOPUNKSMARKETADDRESS, // [NIXADDRESS, weth.address],
-          fromBlock: blockNumber - lookback,
-          toBlock: blockNumber,
-          topics: [
-            '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef', // Transfer (index_topic_1 address from, index_topic_2 address to, index_topic_3 uint256 tokenId)
-            '0x0000000000000000000000000000000000000000000000000000000000000000', // Null address
-            null
-          ],
-        };
-        const events = await provider.getLogs(filter);
-        // console.log("checkLogs - events: " + JSON.stringify(events));
-
         const transfers = [];
         const contractsCollator = {};
-        for (const event of events) {
-          if (!event.removed && event.topics.length == 4) {
-            const contract = event.address.toLowerCase();
-            const tokenId = event.topics[3] || event.data || null;
-            const bnTokenId = tokenId == null ? null : ethers.BigNumber.from(tokenId);
+        const lookback = 100;
 
-            if (!(contract in contractsCollator)) {
-              contractsCollator[contract] = [];
-            }
-            const transfer = {
-              contract: contract,
-              from: ADDRESS0,
-              to: '0x' + event.topics[2].substring(26, 66),
-              tokenId: bnTokenId,
-              blockNumber: event.blockNumber,
-              logIndex: event.logIndex,
-              txHash: event.transactionHash,
-            };
-            transfers.push(transfer);
-            contractsCollator[contract].push(transfer);
+        const startBlock = blockNumber - lookback;
+        const endBlock = blockNumber;
+        console.log("startBlock: " + startBlock + ", endBlock: " + endBlock);
+        const batchSize = 25;
+
+        let toBlock = endBlock;
+        do {
+          let fromBlock = toBlock - batchSize;
+          if (fromBlock < startBlock) {
+            fromBlock = startBlock;
           }
-        }
+          // console.log("fromBlock: " + fromBlock + ", toBlock: " + toBlock);
+          const filter = {
+            // address: CRYPTOPUNKSMARKETADDRESS, // [NIXADDRESS, weth.address],
+            fromBlock: fromBlock,
+            toBlock: toBlock,
+            topics: [
+              '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef', // Transfer (index_topic_1 address from, index_topic_2 address to, index_topic_3 uint256 tokenId)
+              '0x0000000000000000000000000000000000000000000000000000000000000000', // Null address
+              null
+            ],
+          };
+          const events = await provider.getLogs(filter);
+          // console.log("checkLogs - events: " + JSON.stringify(events.slice(0, 1)));
+
+          for (const event of events) {
+            if (!event.removed && event.topics.length == 4) {
+              const contract = event.address.toLowerCase();
+              const tokenId = event.topics[3] || event.data || null;
+              const bnTokenId = tokenId == null ? null : ethers.BigNumber.from(tokenId);
+
+              if (!(contract in contractsCollator)) {
+                contractsCollator[contract] = [];
+              }
+              const transfer = {
+                contract: contract,
+                from: ADDRESS0,
+                to: '0x' + event.topics[2].substring(26, 66),
+                tokenId: bnTokenId,
+                blockNumber: event.blockNumber,
+                logIndex: event.logIndex,
+                txHash: event.transactionHash,
+              };
+              transfers.push(transfer);
+              contractsCollator[contract].push(transfer);
+            }
+          }
+          toBlock -= batchSize;
+        } while (toBlock > startBlock);
+
         transfers.sort((a, b) => {
           if (a.blockNumber == b.blockNumber) {
             return b.logIndex - a.logIndex;
