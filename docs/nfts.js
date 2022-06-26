@@ -98,8 +98,15 @@ const NFTs = {
               </div>
             </div>
 
+            <b-alert size="sm" show dismissible variant="danger" class="m-0 mt-1">
+              Be careful executing unverified contracts and signing messages
+            </b-alert>
+
             <!-- Mint Monitor -->
-            <b-table small striped hover :fields="collectionsFields" :items="collectionsData" table-class="w-100" class="m-2 p-2">
+            <b-table small striped hover :fields="collectionsFields" :items="collectionsData" table-class="w-100" class="m-1 p-1">
+              <template #cell(index)="data">
+                {{ data.index + 1 }}
+              </template>
               <template #cell(contract)="data">
                 <b-button :id="'popover-target-' + data.item.contract" variant="link" class="m-0 p-0">
                   {{ getContractOrCollection(data.item.contract) }}
@@ -123,10 +130,10 @@ const NFTs = {
                   </b-link>
                 </b-popover>
               </template>
-              <template #cell(count)="data">
-                {{ data.item.count }}
-              </template>
               <template #cell(mints)="data">
+                {{ data.item.mints }}
+              </template>
+              <template #cell(tokens)="data">
                 <span v-for="(transfer, transferIndex) in data.item.transfers">
                   <b-button :id="'popover-target-' + data.item.contract + '-' + transfer.tokenId" variant="link" class="m-0 p-0">
                     <span v-if="transfer.contract == '0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85'">
@@ -428,9 +435,10 @@ const NFTs = {
       ],
 
       collectionsFields: [
-        { key: 'contract', label: 'Contract', thStyle: 'width: 30%;' },
-        { key: 'count', label: '#', thStyle: 'width: 5%;', sortable: true },
-        { key: 'mints', label: 'Mints', thStyle: 'width: 65%;' },
+        { key: 'index', label: '#', thStyle: 'width: 5%;' },
+        { key: 'contract', label: 'Contract', thStyle: 'width: 25%;' },
+        { key: 'mints', label: 'Mints', thStyle: 'width: 5%;', sortable: true },
+        { key: 'tokens', label: 'Tokens', thStyle: 'width: 65%;' },
       ],
 
       fields: [
@@ -825,7 +833,7 @@ const NFTs = {
     collectionsData() {
       const results = [];
       for (const [contract, collection] of Object.entries(this.collections)) {
-        results.push({ contract, collection, count: collection.transfers.length, transfers: collection.transfers });
+        results.push({ contract, collection, mints: collection.transfers.length, transfers: collection.transfers });
       }
       results.sort((a, b) => {
         if (a.count == b.count) {
