@@ -15,8 +15,8 @@ const NFTs = {
           <b-card-body class="m-0 p-1">
             <!-- Main Toolbar -->
             <div class="d-flex flex-wrap m-0 p-0">
-              <div v-if="settings.tabIndex == 30" class="mt-1 pr-1" style="max-width: 150px;">
-                <b-form-input type="text" size="sm" :value="filter.mintMonitorSearchString" @change="updateMintMonitorFilter('mintMonitorSearchString', $event)" debounce="600" v-b-popover.hover.bottom="'Poweruser regex, or simple search string'" placeholder="🔍 {regex|addy}"></b-form-input>
+              <div v-if="settings.tabIndex == 0" class="mt-1 pr-1" style="max-width: 150px;">
+                <b-form-input type="text" size="sm" :value="filter.searchString" @change="updateMintMonitorFilter('searchString', $event)" debounce="600" v-b-popover.hover.bottom="'Poweruser regex, or simple search string'" placeholder="🔍 {regex|addy}"></b-form-input>
               </div>
               <div v-if="settings.tabIndex == 10" class="mt-1" style="max-width: 150px;">
                 <b-form-input type="text" size="sm" :value="filter.searchString" @change="updateFilter('searchString', $event)" debounce="600" v-b-popover.hover.bottom="'Poweruser regex, or simple search string'" placeholder="🔍 {regex}"></b-form-input>
@@ -34,17 +34,20 @@ const NFTs = {
                 <b-form-input type="text" size="sm" :value="filter.priceTo" @change="updateFilter('priceTo', $event)" debounce="600" v-b-popover.hover.bottom="'Price to, ETH'" placeholder="max"></b-form-input>
               </div>
 
-              <div class="mt-1 pr-1 flex-grow-1">
+              <div class="mt-1 flex-grow-1">
               </div>
 
-              <div v-if="settings.tabIndex == 30" class="mt-1 pr-1" style="max-width: 120px;">
-                <b-form-input type="text" size="sm" :value="filter.priceFrom" @change="updateFilter('priceFrom', $event)" debounce="600" v-b-popover.hover.bottom="'Price from, ETH'" placeholder="min"></b-form-input>
+              <div v-if="settings.tabIndex == 0" class="mt-1 pl-1" style="max-width: 100px;">
+                <b-form-input type="text" size="sm" :value="filter.startBlockNumber" @change="updateMintMonitorFilter('startBlockNumber', $event)" debounce="600" v-b-popover.hover.bottom="'Block number from'" placeholder="from"></b-form-input>
               </div>
-              <div v-if="settings.tabIndex == 30" class="mt-1">
+              <div v-if="settings.tabIndex == 0" class="mt-1">
                 -
               </div>
-              <div v-if="settings.tabIndex == 30" class="mt-1 pr-1" style="max-width: 120px;">
-                <b-form-input type="text" size="sm" :value="filter.priceTo" @change="updateFilter('priceTo', $event)" debounce="600" v-b-popover.hover.bottom="'Price to, ETH'" placeholder="max"></b-form-input>
+              <div v-if="settings.tabIndex == 0" class="mt-1" style="max-width: 100px;">
+                <b-form-input type="text" size="sm" :value="filter.endBlockNumber" @change="updateMintMonitorFilter('endBlockNumber', $event)" debounce="600" v-b-popover.hover.bottom="'Block number to'" placeholder="to"></b-form-input>
+              </div>
+              <div v-if="settings.tabIndex == 0" class="mt-1 pl-1">
+                <b-button size="sm" @click="monitorMints('scan')" :disabled="sync.inProgress || !powerOn || network.chainId != 1" variant="primary" style="min-width: 80px; ">Scan</b-button>
               </div>
 
 
@@ -52,7 +55,7 @@ const NFTs = {
               </div>
 
               <div v-if="settings.tabIndex == 0" class="mt-1 pr-1">
-                <b-button size="sm" @click="monitorMints('partial')" :disabled="sync.inProgress || !powerOn || network.chainId != 1" variant="primary" style="min-width: 80px; ">Scan Latest 100 Blocks</b-button>
+                <b-button size="sm" @click="monitorMints('scanLatest')" :disabled="sync.inProgress || !powerOn || network.chainId != 1" variant="primary" style="min-width: 80px; ">Scan Latest 100 Blocks</b-button>
               </div>
 
               <div v-if="settings.tabIndex == 1" class="mt-1 pr-1">
@@ -859,9 +862,10 @@ const NFTs = {
       ];
     },
     collectionsData() {
+      console.log("collectionsData - filter.searchString: " + this.filter.searchString);
       const results = [];
       for (const [contract, collection] of Object.entries(this.collections)) {
-        results.push({ contract, collection, mints: collection.transfers.length, transfers: collection.transfers });
+        results.push({ contract, collection, mints: collection.transfers && collection.transfers.length || null, transfers: collection.transfers });
       }
       results.sort((a, b) => {
         if (a.mints == b.mints) {
@@ -1013,10 +1017,12 @@ const nftsModule = {
     },
     config: {
       period: { term: 1, termType: "month" },
+      lookback: 100,
     },
     filter: {
-      mintMonitorSearchString: "testing",
-      searchString: null,
+      searchString: "testing",
+      startBlockNumber: null,
+      endBlockNumber: null,
       searchAccounts: null,
       priceFrom: null,
       priceTo: null,
@@ -1385,104 +1391,125 @@ const nftsModule = {
       // --- monitorMints() start ---
       logInfo("nftsModule", "mutations.monitorMints() - syncMode: " + syncMode + ", configUpdate: " + JSON.stringify(configUpdate) + ", filterUpdate: " + JSON.stringify(filterUpdate));
       if (window.ethereum) {
-        state.sync.inProgress = true;
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const block = await provider.getBlock("latest");
         const blockNumber = block.number;
-        console.log("blockNumber: " + blockNumber);
 
         const transfers = [];
         const contractsCollator = {};
-        const lookback = 100;
 
-        const startBlock = blockNumber - lookback;
-        const endBlock = blockNumber;
-        console.log("startBlock: " + startBlock + ", endBlock: " + endBlock);
-        const batchSize = 25;
-
-        let toBlock = endBlock;
-        do {
-          let fromBlock = toBlock - batchSize;
-          if (fromBlock < startBlock) {
-            fromBlock = startBlock;
-          }
-          // console.log("fromBlock: " + fromBlock + ", toBlock: " + toBlock);
-          const filter = {
-            // address: CRYPTOPUNKSMARKETADDRESS, // [NIXADDRESS, weth.address],
-            fromBlock: fromBlock,
-            toBlock: toBlock,
-            topics: [
-              '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef', // Transfer (index_topic_1 address from, index_topic_2 address to, index_topic_3 uint256 tokenId)
-              '0x0000000000000000000000000000000000000000000000000000000000000000', // Null address
-              null
-            ],
-          };
-          const events = await provider.getLogs(filter);
-          // console.log("monitorMints - events: " + JSON.stringify(events.slice(0, 1)));
-
-          for (const event of events) {
-            if (!event.removed && event.topics.length == 4) {
-              const contract = event.address.toLowerCase();
-              const tokenId = event.topics[3] || event.data || null;
-              const bnTokenId = tokenId == null ? null : ethers.BigNumber.from(tokenId);
-
-              if (!(contract in contractsCollator)) {
-                contractsCollator[contract] = [];
-              }
-              const transfer = {
-                contract: contract,
-                from: ADDRESS0,
-                to: '0x' + event.topics[2].substring(26, 66),
-                tokenId: bnTokenId,
-                blockNumber: event.blockNumber,
-                logIndex: event.logIndex,
-                txHash: event.transactionHash,
-              };
-              transfers.push(transfer);
-              contractsCollator[contract].push(transfer);
-            }
-          }
-          toBlock -= batchSize;
-        } while (toBlock > startBlock);
-
-        transfers.sort((a, b) => {
-          if (a.blockNumber == b.blockNumber) {
-            return b.logIndex - a.logIndex;
-          } else {
-            return b.blockNumber - a.blockNumber;
-          }
-        });
-        state.transfers = transfers;
-
-        const erc721Helper = new ethers.Contract(ERC721HELPERADDRESS, ERC721HELPERABI, provider);
-        const contracts = Object.keys(contractsCollator);
-        let tokenInfo = null;
-        try {
-          const collections = {};
-          tokenInfo = await erc721Helper.tokenInfo(contracts);
-          for (let i = 0; i < contracts.length; i++) {
-            contractsCollator[contracts[i]].sort((a, b) => {
-              // if (a.blockNumber == b.blockNumber) {
-                return b.logIndex - a.logIndex;
-              // } else {
-              //   return b.blockNumber - a.blockNumber;
-              // }
-            });
-            collections[contracts[i]] = {
-              status: ethers.BigNumber.from(tokenInfo[0][i]).toString(),
-              symbol: tokenInfo[1][i],
-              name: tokenInfo[2][i],
-              totalSupply: ethers.BigNumber.from(tokenInfo[3][i]).toString(),
-              transfers: contractsCollator[contracts[i]],
-            };
-          }
-          collections['0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85'] = { status: 'todo', symbol: 'ENS', name: 'Ethereum Name Service', totalSupply: 'lots', transfers: contractsCollator['0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85'] };
-          // console.log(JSON.stringify(collections, null, 2));
-          state.collections = collections;
-          state.sync.inProgress = false;
-        } catch (e) {
-          console.log("ERROR - Not ERC-721");
+        if (filterUpdate != null) {
+          console.log("filter before: " + JSON.stringify(state.filter));
+          console.log("updating filter with: " + JSON.stringify(filterUpdate));
+          state.filter = { ...state.filter, ...filterUpdate };
+          console.log("filter after: " + JSON.stringify(state.filter));
         }
+
+        let startBlockNumber = null;
+        let endBlockNumber = null;
+        if (syncMode == 'scan') {
+          startBlockNumber = parseInt(state.filter.startBlockNumber.replace(/,/g, ''));
+          endBlockNumber = parseInt(state.filter.endBlockNumber.replace(/,/g, ''));
+
+        } else if (syncMode == 'scanLatest') {
+          startBlockNumber = blockNumber - state.config.lookback;
+          endBlockNumber = blockNumber;
+          state.filter.startBlockNumber = ethers.utils.commify(startBlockNumber);
+          state.filter.endBlockNumber = ethers.utils.commify(endBlockNumber);
+        }
+
+        console.log("startBlockNumber: " + startBlockNumber + ", endBlockNumber: " + endBlockNumber);
+        if (startBlockNumber != null && startBlockNumber <= endBlockNumber) {
+          state.sync.inProgress = true;
+
+          const batchSize = 25;
+
+          let toBlock = endBlockNumber;
+          do {
+            let fromBlock = toBlock - batchSize;
+            if (fromBlock < startBlockNumber) {
+              fromBlock = startBlockNumber;
+            }
+            // console.log("fromBlock: " + fromBlock + ", toBlock: " + toBlock);
+            const filter = {
+              // address: CRYPTOPUNKSMARKETADDRESS, // [NIXADDRESS, weth.address],
+              fromBlock: fromBlock,
+              toBlock: toBlock,
+              topics: [
+                '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef', // Transfer (index_topic_1 address from, index_topic_2 address to, index_topic_3 uint256 tokenId)
+                '0x0000000000000000000000000000000000000000000000000000000000000000', // Null address
+                null
+              ],
+            };
+            const events = await provider.getLogs(filter);
+            // console.log("monitorMints - events: " + JSON.stringify(events.slice(0, 1)));
+
+            for (const event of events) {
+              if (!event.removed && event.topics.length == 4) {
+                const contract = event.address.toLowerCase();
+                const tokenId = event.topics[3] || event.data || null;
+                const bnTokenId = tokenId == null ? null : ethers.BigNumber.from(tokenId);
+
+                if (!(contract in contractsCollator)) {
+                  contractsCollator[contract] = [];
+                }
+                const transfer = {
+                  contract: contract,
+                  from: ADDRESS0,
+                  to: '0x' + event.topics[2].substring(26, 66),
+                  tokenId: bnTokenId,
+                  blockNumber: event.blockNumber,
+                  logIndex: event.logIndex,
+                  txHash: event.transactionHash,
+                };
+                transfers.push(transfer);
+                contractsCollator[contract].push(transfer);
+              }
+            }
+            toBlock -= batchSize;
+          } while (toBlock > startBlockNumber);
+
+          transfers.sort((a, b) => {
+            if (a.blockNumber == b.blockNumber) {
+              return b.logIndex - a.logIndex;
+            } else {
+              return b.blockNumber - a.blockNumber;
+            }
+          });
+          state.transfers = transfers;
+
+          const erc721Helper = new ethers.Contract(ERC721HELPERADDRESS, ERC721HELPERABI, provider);
+          const contracts = Object.keys(contractsCollator);
+          let tokenInfo = null;
+          const collections = {};
+          try {
+            tokenInfo = await erc721Helper.tokenInfo(contracts);
+            for (let i = 0; i < contracts.length; i++) {
+              contractsCollator[contracts[i]].sort((a, b) => {
+                if (a.blockNumber == b.blockNumber) {
+                  return b.logIndex - a.logIndex;
+                } else {
+                  return b.blockNumber - a.blockNumber;
+                }
+              });
+              collections[contracts[i]] = {
+                status: ethers.BigNumber.from(tokenInfo[0][i]).toString(),
+                symbol: tokenInfo[1][i],
+                name: tokenInfo[2][i],
+                totalSupply: ethers.BigNumber.from(tokenInfo[3][i]).toString(),
+                transfers: contractsCollator[contracts[i]],
+              };
+            }
+            if (Object.keys(collections) > 0) {
+              collections['0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85'] = { status: 'todo', symbol: 'ENS', name: 'Ethereum Name Service', totalSupply: 'lots', transfers: contractsCollator['0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85'] || [] };
+            }
+            // console.log(JSON.stringify(collections, null, 2));
+          } catch (e) {
+            console.log("ERROR - Not ERC-721");
+          }
+          state.collections = collections;
+        }
+        state.sync.inProgress = false;
       }
     },
 
@@ -1493,7 +1520,7 @@ const nftsModule = {
   actions: {
     updateMintMonitorFilter(context, filterUpdate) {
       logInfo("nftsModule", "filterUpdates.updateMintMonitorFilter() - filterUpdate: " + JSON.stringify(filterUpdate));
-      context.commit('monitorMints', { syncMode: 'updateMintMonitorFilter', configUpdate: null, filterUpdate });
+      context.commit('monitorMints', { syncMode: 'updateFilter', configUpdate: null, filterUpdate });
     },
     updateFilter(context, filterUpdate) {
       // logInfo("nftsModule", "filterUpdates.updateFilter() - filterUpdate: " + JSON.stringify(filterUpdate));
