@@ -37,6 +37,13 @@ const NFTs = {
               <div class="mt-1 flex-grow-1">
               </div>
 
+              <div v-if="settings.tabIndex == 0" class="mt-1 pr-1">
+                <b-button size="sm" @click="monitorMints('scanLatest')" :disabled="sync.inProgress || !powerOn || network.chainId != 1" variant="primary" style="min-width: 80px; ">Scan Latest 100 Blocks</b-button>
+              </div>
+
+              <div class="mt-1 flex-grow-1">
+              </div>
+
               <div v-if="settings.tabIndex == 0" class="mt-1 pl-1" style="max-width: 100px;">
                 <b-form-input type="text" size="sm" :value="filter.startBlockNumber" @change="updateMintMonitorFilter('startBlockNumber', $event)" debounce="600" v-b-popover.hover.bottom="'Block number from'" placeholder="from"></b-form-input>
               </div>
@@ -47,16 +54,9 @@ const NFTs = {
                 <b-form-input type="text" size="sm" :value="filter.endBlockNumber" @change="updateMintMonitorFilter('endBlockNumber', $event)" debounce="600" v-b-popover.hover.bottom="'Block number to'" placeholder="to"></b-form-input>
               </div>
               <div v-if="settings.tabIndex == 0" class="mt-1 pl-1">
-                <b-button size="sm" @click="monitorMints('scan')" :disabled="sync.inProgress || !powerOn || network.chainId != 1" variant="primary" style="min-width: 80px; ">Scan</b-button>
+                <b-button size="sm" @click="monitorMints('scan')" :disabled="sync.inProgress || !powerOn || network.chainId != 1 || filter.startBlockNumber == null || filter.endBlockNumber == null" variant="primary" style="min-width: 80px; ">Scan</b-button>
               </div>
 
-
-              <div class="mt-1 pr-1 flex-grow-1">
-              </div>
-
-              <div v-if="settings.tabIndex == 0" class="mt-1 pr-1">
-                <b-button size="sm" @click="monitorMints('scanLatest')" :disabled="sync.inProgress || !powerOn || network.chainId != 1" variant="primary" style="min-width: 80px; ">Scan Latest 100 Blocks</b-button>
-              </div>
 
               <div v-if="settings.tabIndex == 1" class="mt-1 pr-1">
                 <b-button size="sm" @click="monitorMints('partial')" :disabled="sync.inProgress || !powerOn || network.chainId != 1" variant="primary" style="min-width: 80px; ">Scan</b-button>
@@ -862,10 +862,27 @@ const NFTs = {
       ];
     },
     collectionsData() {
-      console.log("collectionsData - filter.searchString: " + this.filter.searchString);
+      const searchStrings = this.filter.searchString && this.filter.searchString.length > 0 && this.filter.searchString.split(/[, \t\n]+/).map(s => s.toLowerCase().trim()) || null;
       const results = [];
       for (const [contract, collection] of Object.entries(this.collections)) {
-        results.push({ contract, collection, mints: collection.transfers && collection.transfers.length || null, transfers: collection.transfers });
+        let include = true;
+        const symbol = collection.symbol.toLowerCase();
+        const name = collection.name.toLowerCase();
+        if (searchStrings != null) {
+          let found = false;
+          for (searchString of searchStrings) {
+            if (contract.includes(searchString) || symbol.includes(searchString) || name.includes(searchString)) {
+              found = true;
+              break;
+            }
+          }
+          if (!found) {
+            include = false;
+          }
+        }
+        if (include) {
+          results.push({ contract, collection, mints: collection.transfers && collection.transfers.length || null, transfers: collection.transfers });
+        }
       }
       results.sort((a, b) => {
         if (a.mints == b.mints) {
@@ -1020,7 +1037,7 @@ const nftsModule = {
       lookback: 100,
     },
     filter: {
-      searchString: "testing",
+      searchString: null,
       startBlockNumber: null,
       endBlockNumber: null,
       searchAccounts: null,
@@ -1500,10 +1517,9 @@ const nftsModule = {
                 transfers: contractsCollator[contracts[i]],
               };
             }
-            if (Object.keys(collections) > 0) {
+            if ('0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85' in contractsCollator) {
               collections['0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85'] = { status: 'todo', symbol: 'ENS', name: 'Ethereum Name Service', totalSupply: 'lots', transfers: contractsCollator['0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85'] || [] };
             }
-            // console.log(JSON.stringify(collections, null, 2));
           } catch (e) {
             console.log("ERROR - Not ERC-721");
           }
