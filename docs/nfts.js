@@ -48,6 +48,17 @@ const NFTs = {
               <div class="mt-1 flex-grow-1">
               </div>
 
+              <div class="mt-2" style="width: 200px;">
+                <b-progress v-if="sync.inProgress" height="1.5rem" :max="sync.total" :label="'((sync.completed/sync.total)*100).toFixed(2) + %'" show-progress :animated="sync.inProgress" :variant="sync.inProgress ? 'success' : 'secondary'" v-b-popover.hover.bottom="'Click on the Sync(ing) button to (un)pause'">
+                  <b-progress-bar :value="sync.completed">
+                    {{ sync.completed + '/' + sync.total + ' ' + ((sync.completed / sync.total) * 100).toFixed(0) + '%' }}
+                  </b-progress-bar>
+                </b-progress>
+              </div>
+
+              <div class="mt-1 flex-grow-1">
+              </div>
+
               <div v-if="settings.tabIndex == 0" class="mt-1 pl-1" style="max-width: 100px;">
                 <b-form-input type="text" size="sm" :value="filter.startBlockNumber" @change="updateMintMonitorFilter('startBlockNumber', $event)" debounce="600" v-b-popover.hover.bottom="'Search from block number'" placeholder="from"></b-form-input>
               </div>
@@ -1053,8 +1064,8 @@ const NFTs = {
           endBlockNumber = this.blocks.replace(/^.*\-\s*/, '');
         }
         const filterUpdate = {};
-        filterUpdate['startBlockNumber'] = parseInt(startBlockNumber);
-        filterUpdate['endBlockNumber'] = parseInt(endBlockNumber);
+        filterUpdate['startBlockNumber'] = ethers.utils.commify(parseInt(startBlockNumber));
+        filterUpdate['endBlockNumber'] = ethers.utils.commify(parseInt(endBlockNumber));
         filterUpdate['searchString'] = this.search;
         setTimeout(function() {
           store.dispatch('nfts/monitorMints', { syncMode: 'scan', configUpdate: null, filterUpdate: filterUpdate });
@@ -1096,13 +1107,22 @@ const nftsModule = {
     sync: {
       inProgress: false,
       error: false,
+      total: null,
+      completed: null,
       now: null,
       from: null,
       to: null,
-      daysExpected: null,
-      daysInCache: null,
-      processing: null,
+      daysExpected: 100,
+      daysInCache: 20,
+      processing: "yaah",
     },
+
+    // <b-progress height="1.5rem" :max="sync.daysExpected" :label="'((sync.daysInCache/sync.daysExpected)*100).toFixed(2) + %'" show-progress :animated="sync.inProgress" :variant="sync.inProgress ? 'success' : 'secondary'" v-b-popover.hover.bottom="formatTimestampAsDate(sync.from) + ' - ' + formatTimestampAsDate(sync.to) + '. Click on the Sync(ing) button to (un)pause'">
+    //   <b-progress-bar :value="sync.daysInCache">
+    //     {{ (sync.processing ? (sync.processing + ' - ') : '') + sync.daysInCache + '/' + sync.daysExpected + ' ' + ((sync.daysInCache / sync.daysExpected) * 100).toFixed(0) + '%' }}
+    //   </b-progress-bar>
+    // </b-progress>
+
     transfers: [],
     collections: {},
     sales: [],
@@ -1484,6 +1504,7 @@ const nftsModule = {
         }
         console.log("startBlockNumber: " + startBlockNumber + ", endBlockNumber: " + endBlockNumber);
         if (startBlockNumber != null && startBlockNumber <= endBlockNumber) {
+          state.sync.total = endBlockNumber - startBlockNumber;
           state.sync.inProgress = true;
           const batchSize = 25;
           let toBlock = endBlockNumber;
@@ -1527,6 +1548,7 @@ const nftsModule = {
               }
             }
             toBlock -= batchSize;
+            state.sync.completed = endBlockNumber - toBlock;
           } while (toBlock > startBlockNumber);
           transfers.sort((a, b) => {
             if (a.blockNumber == b.blockNumber) {
