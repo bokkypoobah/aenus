@@ -38,7 +38,11 @@ const NFTs = {
               </div>
 
               <div v-if="settings.tabIndex == 0" class="mt-1 pr-1">
-                <b-button size="sm" @click="monitorMints('scanLatest')" :disabled="sync.inProgress || !powerOn || network.chainId != 1" variant="primary" style="min-width: 80px; ">Scan Latest 100 Blocks</b-button>
+                <b-form-select size="sm" :value="filter.scanBlocks" :options="scanBlocksOptions" @change="updateMintMonitorFilter('scanBlocks', $event)" v-b-popover.hover.bottom="'Number of blocks to scan'"></b-form-select>
+              </div>
+
+              <div v-if="settings.tabIndex == 0" class="mt-1 pr-1">
+                <b-button size="sm" @click="monitorMints('scanLatest')" :disabled="sync.inProgress || !powerOn || network.chainId != 1" variant="primary" style="min-width: 80px; ">{{ 'Scan Latest ' + filter.scanBlocks + ' Blocks' }}</b-button>
               </div>
 
               <div class="mt-1 flex-grow-1">
@@ -426,9 +430,17 @@ const NFTs = {
         pageSize: 100,
         currentPage: 1,
         activityMaxItems: 50,
+        scanBlocks: 100,
       },
 
       dailyChartSelectedItems: [],
+
+      scanBlocksOptions: [
+        { value: 10, text: '10' },
+        { value: 100, text: '100' },
+        { value: 500, text: '500' },
+        { value: 1000, text: '1k' },
+      ],
 
       sortOptions: [
         { value: 'nameasc', text: 'Name Ascending' },
@@ -1071,10 +1083,10 @@ const nftsModule = {
     },
     config: {
       period: { term: 1, termType: "month" },
-      lookback: 100,
     },
     filter: {
       searchString: null,
+      scanBlocks: 100,
       startBlockNumber: null,
       endBlockNumber: null,
       searchAccounts: null,
@@ -1465,11 +1477,12 @@ const nftsModule = {
           startBlockNumber = parseInt(state.filter.startBlockNumber.toString().replace(/,/g, ''));
           endBlockNumber = parseInt(state.filter.endBlockNumber.toString().replace(/,/g, ''));
         } else if (syncMode == 'scanLatest') {
-          startBlockNumber = blockNumber - state.config.lookback;
+          startBlockNumber = blockNumber - state.filter.scanBlocks;
           endBlockNumber = blockNumber;
           state.filter.startBlockNumber = ethers.utils.commify(startBlockNumber);
           state.filter.endBlockNumber = ethers.utils.commify(endBlockNumber);
         }
+        console.log("startBlockNumber: " + startBlockNumber + ", endBlockNumber: " + endBlockNumber);
         if (startBlockNumber != null && startBlockNumber <= endBlockNumber) {
           state.sync.inProgress = true;
           const batchSize = 25;
