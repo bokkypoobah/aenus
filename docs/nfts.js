@@ -1046,7 +1046,7 @@ const NFTs = {
         filterUpdate['searchString'] = this.search;
         setTimeout(function() {
           store.dispatch('nfts/monitorMints', { syncMode: 'scan', configUpdate: null, filterUpdate: filterUpdate });
-        }, 5000);
+        }, 1000);
       }
     } else if (this.tab == "approvals") {
       this.settings.tabIndex = 1;
