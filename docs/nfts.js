@@ -15,8 +15,8 @@ const NFTs = {
           <b-card-body class="m-0 p-1">
             <!-- Main Toolbar -->
             <div class="d-flex flex-wrap m-0 p-0">
-              <div v-if="settings.tabIndex == 0" class="mt-1 pr-1" style="max-width: 150px;">
-                <b-form-input type="text" size="sm" :value="filter.searchString" @change="updateMintMonitorFilter('searchString', $event)" debounce="600" v-b-popover.hover.bottom="'Poweruser regex, or simple search string'" placeholder="🔍 {regex|addy}"></b-form-input>
+              <div v-if="settings.tabIndex == 0" class="mt-1 pr-1" style="max-width: 170px;">
+                <b-form-input type="text" size="sm" :value="filter.searchString" @change="updateMintMonitorFilter('searchString', $event)" debounce="600" v-b-popover.hover.bottom="'Search by collection symbol, name or address'" placeholder="🔍 {symbol|name|addy}"></b-form-input>
               </div>
               <div v-if="settings.tabIndex == 10" class="mt-1" style="max-width: 150px;">
                 <b-form-input type="text" size="sm" :value="filter.searchString" @change="updateFilter('searchString', $event)" debounce="600" v-b-popover.hover.bottom="'Poweruser regex, or simple search string'" placeholder="🔍 {regex}"></b-form-input>
@@ -49,19 +49,19 @@ const NFTs = {
               </div>
 
               <div v-if="settings.tabIndex == 0" class="mt-1 pl-1" style="max-width: 100px;">
-                <b-form-input type="text" size="sm" :value="filter.startBlockNumber" @change="updateMintMonitorFilter('startBlockNumber', $event)" debounce="600" v-b-popover.hover.bottom="'Block number from'" placeholder="from"></b-form-input>
+                <b-form-input type="text" size="sm" :value="filter.startBlockNumber" @change="updateMintMonitorFilter('startBlockNumber', $event)" debounce="600" v-b-popover.hover.bottom="'Search from block number'" placeholder="from"></b-form-input>
               </div>
               <div v-if="settings.tabIndex == 0" class="mt-1">
                 -
               </div>
               <div v-if="settings.tabIndex == 0" class="mt-1" style="max-width: 100px;">
-                <b-form-input type="text" size="sm" :value="filter.endBlockNumber" @change="updateMintMonitorFilter('endBlockNumber', $event)" debounce="600" v-b-popover.hover.bottom="'Block number to'" placeholder="to"></b-form-input>
+                <b-form-input type="text" size="sm" :value="filter.endBlockNumber" @change="updateMintMonitorFilter('endBlockNumber', $event)" debounce="600" v-b-popover.hover.bottom="'Search to block number'" placeholder="to"></b-form-input>
               </div>
               <div v-if="settings.tabIndex == 0" class="mt-1 pl-1">
                 <b-button size="sm" @click="monitorMints('scan')" :disabled="sync.inProgress || !powerOn || network.chainId != 1 || filter.startBlockNumber == null || filter.endBlockNumber == null" variant="primary" style="min-width: 80px; ">Scan</b-button>
               </div>
               <div v-if="settings.tabIndex == 0" class="mt-2 pl-1">
-                <b-link size="sm" :to="getURL"><font size="-1">Share</font></b-link>
+                <b-link size="sm" :to="getURL" v-b-popover.hover.bottom="'Share this link for the same search'" ><font size="-1">Share</font></b-link>
               </div>
 
               <div v-if="settings.tabIndex == 1" class="mt-1 pr-1">
