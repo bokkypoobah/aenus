@@ -56,7 +56,7 @@ const NFTs = {
               <div v-if="settings.tabIndex == 0" class="mt-1 pl-1">
                 <b-button size="sm" @click="monitorMints('scan')" :disabled="sync.inProgress || !powerOn || network.chainId != 1 || filter.startBlockNumber == null || filter.endBlockNumber == null" variant="primary" style="min-width: 80px; ">Scan</b-button>
               </div>
-              <div v-if="settings.tabIndex == 0" class="mt-1 pl-1">
+              <div v-if="settings.tabIndex == 0" class="mt-2 pl-1">
                 <b-link size="sm" :to="getURL"><font size="-1">Share</font></b-link>
               </div>
 
