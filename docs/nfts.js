@@ -462,7 +462,6 @@ const nftsModule = {
         const block = await provider.getBlock("latest");
         const blockNumber = block.number;
 
-        const transfers = [];
         const contractsCollator = {};
 
         if (filterUpdate != null) {
@@ -522,21 +521,12 @@ const nftsModule = {
                   logIndex: event.logIndex,
                   txHash: event.transactionHash,
                 };
-                transfers.push(transfer);
                 contractsCollator[contract].push(transfer);
               }
             }
             toBlock -= batchSize;
             state.sync.completed = endBlockNumber - toBlock;
           } while (toBlock > startBlockNumber && !state.halt);
-          transfers.sort((a, b) => {
-            if (a.blockNumber == b.blockNumber) {
-              return b.logIndex - a.logIndex;
-            } else {
-              return b.blockNumber - a.blockNumber;
-            }
-          });
-          state.transfers = transfers;
           // Collections
           const erc721Helper = new ethers.Contract(ERC721HELPERADDRESS, ERC721HELPERABI, provider);
           const contracts = Object.keys(contractsCollator);
