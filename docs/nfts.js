@@ -56,7 +56,9 @@ const NFTs = {
               <div v-if="settings.tabIndex == 0" class="mt-1 pl-1">
                 <b-button size="sm" @click="monitorMints('scan')" :disabled="sync.inProgress || !powerOn || network.chainId != 1 || filter.startBlockNumber == null || filter.endBlockNumber == null" variant="primary" style="min-width: 80px; ">Scan</b-button>
               </div>
-
+              <div v-if="settings.tabIndex == 0" class="mt-1 pl-1">
+                <b-link size="sm" :to="getURL"><font size="-1">Share</font></b-link>
+              </div>
 
               <div v-if="settings.tabIndex == 1" class="mt-1 pr-1">
                 <b-button size="sm" @click="monitorMints('partial')" :disabled="sync.inProgress || !powerOn || network.chainId != 1" variant="primary" style="min-width: 80px; ">Scan</b-button>
@@ -894,7 +896,25 @@ const NFTs = {
         }
       });
       return results;
-    }
+    },
+    getURL() {
+      let url = '/nfts/mintmonitor/';
+      const startBlockNumber = this.filter.startBlockNumber && parseInt(this.filter.startBlockNumber.toString().replace(/,/g, '')) || null;
+      const endBlockNumber = this.filter.endBlockNumber && parseInt(this.filter.endBlockNumber.toString().replace(/,/g, '')) || null;
+      if (startBlockNumber != null && endBlockNumber != null) {
+        if (startBlockNumber == endBlockNumber) {
+          url = url + startBlockNumber + '/';
+        } else {
+          url = url + startBlockNumber + '-' + endBlockNumber + '/';
+        }
+      } else {
+        url = url + '/';
+      }
+      if (this.filter.searchString != null && this.filter.searchString.length > 0) {
+        url = url + this.filter.searchString;
+      }
+      return url;
+    },
   },
   methods: {
     getContractOrCollection(address) {
@@ -1021,8 +1041,8 @@ const NFTs = {
           endBlockNumber = this.blocks.replace(/^.*\-\s*/, '');
         }
         const filterUpdate = {};
-        filterUpdate['startBlockNumber'] = startBlockNumber;
-        filterUpdate['endBlockNumber'] = endBlockNumber;
+        filterUpdate['startBlockNumber'] = parseInt(startBlockNumber);
+        filterUpdate['endBlockNumber'] = parseInt(endBlockNumber);
         filterUpdate['searchString'] = this.search;
         setTimeout(function() {
           store.dispatch('nfts/monitorMints', { syncMode: 'scan', configUpdate: null, filterUpdate: filterUpdate });
@@ -1442,8 +1462,8 @@ const nftsModule = {
         let startBlockNumber = null;
         let endBlockNumber = null;
         if (syncMode == 'scan') {
-          startBlockNumber = parseInt(state.filter.startBlockNumber.replace(/,/g, ''));
-          endBlockNumber = parseInt(state.filter.endBlockNumber.replace(/,/g, ''));
+          startBlockNumber = parseInt(state.filter.startBlockNumber.toString().replace(/,/g, ''));
+          endBlockNumber = parseInt(state.filter.endBlockNumber.toString().replace(/,/g, ''));
         } else if (syncMode == 'scanLatest') {
           startBlockNumber = blockNumber - state.config.lookback;
           endBlockNumber = blockNumber;
