@@ -15,6 +15,9 @@ const NFTs = {
           <b-card-body class="m-0 p-1">
             <!-- Main Toolbar -->
             <div class="d-flex flex-wrap m-0 p-0">
+              <div v-if="settings.tabIndex == 30" class="mt-1 pr-1" style="max-width: 150px;">
+                <b-form-input type="text" size="sm" :value="filter.mintMonitorSearchString" @change="updateMintMonitorFilter('mintMonitorSearchString', $event)" debounce="600" v-b-popover.hover.bottom="'Poweruser regex, or simple search string'" placeholder="🔍 {regex|addy}"></b-form-input>
+              </div>
               <div v-if="settings.tabIndex == 10" class="mt-1" style="max-width: 150px;">
                 <b-form-input type="text" size="sm" :value="filter.searchString" @change="updateFilter('searchString', $event)" debounce="600" v-b-popover.hover.bottom="'Poweruser regex, or simple search string'" placeholder="🔍 {regex}"></b-form-input>
               </div>
@@ -31,12 +34,29 @@ const NFTs = {
                 <b-form-input type="text" size="sm" :value="filter.priceTo" @change="updateFilter('priceTo', $event)" debounce="600" v-b-popover.hover.bottom="'Price to, ETH'" placeholder="max"></b-form-input>
               </div>
 
+              <div class="mt-1 pr-1 flex-grow-1">
+              </div>
+
+              <div v-if="settings.tabIndex == 30" class="mt-1 pr-1" style="max-width: 120px;">
+                <b-form-input type="text" size="sm" :value="filter.priceFrom" @change="updateFilter('priceFrom', $event)" debounce="600" v-b-popover.hover.bottom="'Price from, ETH'" placeholder="min"></b-form-input>
+              </div>
+              <div v-if="settings.tabIndex == 30" class="mt-1">
+                -
+              </div>
+              <div v-if="settings.tabIndex == 30" class="mt-1 pr-1" style="max-width: 120px;">
+                <b-form-input type="text" size="sm" :value="filter.priceTo" @change="updateFilter('priceTo', $event)" debounce="600" v-b-popover.hover.bottom="'Price to, ETH'" placeholder="max"></b-form-input>
+              </div>
+
+
+              <div class="mt-1 pr-1 flex-grow-1">
+              </div>
+
               <div v-if="settings.tabIndex == 0" class="mt-1 pr-1">
-                <b-button size="sm" @click="checkLogs('partial')" :disabled="sync.inProgress || !powerOn || network.chainId != 1" variant="primary" style="min-width: 80px; ">Scan Latest 100 Blocks</b-button>
+                <b-button size="sm" @click="monitorMints('partial')" :disabled="sync.inProgress || !powerOn || network.chainId != 1" variant="primary" style="min-width: 80px; ">Scan Latest 100 Blocks</b-button>
               </div>
 
               <div v-if="settings.tabIndex == 1" class="mt-1 pr-1">
-                <b-button size="sm" @click="checkLogs('partial')" :disabled="sync.inProgress || !powerOn || network.chainId != 1" variant="primary" style="min-width: 80px; ">Scan</b-button>
+                <b-button size="sm" @click="monitorMints('partial')" :disabled="sync.inProgress || !powerOn || network.chainId != 1" variant="primary" style="min-width: 80px; ">Scan</b-button>
               </div>
               <div class="mt-1 pr-1 flex-grow-1">
               </div>
@@ -97,7 +117,7 @@ const NFTs = {
             <!-- Mint Monitor -->
             <div v-if="settings.tabIndex == 0">
               <b-alert size="sm" :show="powerOn && network.chainId == 1" dismissible variant="danger" class="m-0 mt-1">
-                Be careful executing unverified contracts and signing messages
+                Be careful when interacting with unverified contracts and signing messages on dodgy websites!
               </b-alert>
 
               <b-table small striped hover :fields="collectionsFields" :items="collectionsData" table-class="w-100" class="m-1 p-1">
@@ -901,17 +921,23 @@ const NFTs = {
       // logInfo("NFTs", "updateConfig: " + field + " => " + JSON.stringify(config));
       const configUpdate = {};
       configUpdate[field] = config;
-      store.dispatch('ensSales/updateConfig', configUpdate);
+      store.dispatch('nfts/updateConfig', configUpdate);
+    },
+    updateMintMonitorFilter(field, filter) {
+      logInfo("NFTs", "updateMintMonitorFilter: " + field + " => " + JSON.stringify(filter));
+      const filterUpdate = {};
+      filterUpdate[field] = filter;
+      store.dispatch('nfts/updateMintMonitorFilter', filterUpdate);
     },
     updateFilter(field, filter) {
       // logInfo("NFTs", "updateFilter: " + field + " => " + JSON.stringify(filter));
       const filterUpdate = {};
       filterUpdate[field] = filter;
-      store.dispatch('ensSales/updateFilter', filterUpdate);
+      store.dispatch('nfts/updateFilter', filterUpdate);
     },
-    async checkLogs(syncMode) {
+    async monitorMints(syncMode) {
       // logInfo("NFTs", "loadSales - syncMode: " + syncMode);
-      store.dispatch('nfts/checkLogs', syncMode);
+      store.dispatch('nfts/monitorMints', syncMode);
     },
     async loadSales(syncMode) {
       // logInfo("NFTs", "loadSales - syncMode: " + syncMode);
@@ -989,6 +1015,7 @@ const nftsModule = {
       period: { term: 1, termType: "month" },
     },
     filter: {
+      mintMonitorSearchString: "testing",
       searchString: null,
       searchAccounts: null,
       priceFrom: null,
@@ -1353,10 +1380,10 @@ const nftsModule = {
       db0.close();
     },
 
-    // --- checkLogs() ---
-    async checkLogs(state, { syncMode, configUpdate, filterUpdate }) {
-      // --- loadSales() start ---
-      logInfo("nftsModule", "mutations.checkLogs() - syncMode: " + syncMode + ", configUpdate: " + JSON.stringify(configUpdate) + ", filterUpdate: " + JSON.stringify(filterUpdate));
+    // --- monitorMints() ---
+    async monitorMints(state, { syncMode, configUpdate, filterUpdate }) {
+      // --- monitorMints() start ---
+      logInfo("nftsModule", "mutations.monitorMints() - syncMode: " + syncMode + ", configUpdate: " + JSON.stringify(configUpdate) + ", filterUpdate: " + JSON.stringify(filterUpdate));
       if (window.ethereum) {
         state.sync.inProgress = true;
         const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -1391,7 +1418,7 @@ const nftsModule = {
             ],
           };
           const events = await provider.getLogs(filter);
-          // console.log("checkLogs - events: " + JSON.stringify(events.slice(0, 1)));
+          // console.log("monitorMints - events: " + JSON.stringify(events.slice(0, 1)));
 
           for (const event of events) {
             if (!event.removed && event.topics.length == 4) {
@@ -1435,11 +1462,11 @@ const nftsModule = {
           tokenInfo = await erc721Helper.tokenInfo(contracts);
           for (let i = 0; i < contracts.length; i++) {
             contractsCollator[contracts[i]].sort((a, b) => {
-              if (a.blockNumber == b.blockNumber) {
+              // if (a.blockNumber == b.blockNumber) {
                 return b.logIndex - a.logIndex;
-              } else {
-                return b.blockNumber - a.blockNumber;
-              }
+              // } else {
+              //   return b.blockNumber - a.blockNumber;
+              // }
             });
             collections[contracts[i]] = {
               status: ethers.BigNumber.from(tokenInfo[0][i]).toString(),
@@ -1464,6 +1491,10 @@ const nftsModule = {
     },
   },
   actions: {
+    updateMintMonitorFilter(context, filterUpdate) {
+      logInfo("nftsModule", "filterUpdates.updateMintMonitorFilter() - filterUpdate: " + JSON.stringify(filterUpdate));
+      context.commit('monitorMints', { syncMode: 'updateMintMonitorFilter', configUpdate: null, filterUpdate });
+    },
     updateFilter(context, filterUpdate) {
       // logInfo("nftsModule", "filterUpdates.updateFilter() - filterUpdate: " + JSON.stringify(filterUpdate));
       context.commit('loadSales', { syncMode: 'updateFilter', configUpdate: null, filterUpdate });
@@ -1472,9 +1503,9 @@ const nftsModule = {
       // logInfo("nftsModule", "configUpdates.updateConfig() - configUpdate: " + JSON.stringify(configUpdate));
       context.commit('loadSales', { syncMode: 'updateConfig', configUpdate, filterUpdate: null });
     },
-    checkLogs(context, syncMode) {
-      // logInfo("nftsModule", "actions.checkLogs() - syncMode: " + syncMode);
-      context.commit('checkLogs', { syncMode: syncMode, configUpdate: null, filterUpdate: null } );
+    monitorMints(context, syncMode) {
+      // logInfo("nftsModule", "actions.monitorMints() - syncMode: " + syncMode);
+      context.commit('monitorMints', { syncMode: syncMode, configUpdate: null, filterUpdate: null } );
     },
     loadSales(context, syncMode) {
       // logInfo("nftsModule", "actions.loadSales() - syncMode: " + syncMode);
