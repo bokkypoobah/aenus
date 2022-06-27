@@ -410,7 +410,7 @@ const NFTs = {
       </b-card>
     </div>
   `,
-  props: ['search', 'topic'],
+  props: ['tab', 'blocks', 'search'],
   data: function() {
     return {
       count: 0,
@@ -958,7 +958,7 @@ const NFTs = {
     },
     async monitorMints(syncMode) {
       // logInfo("NFTs", "loadSales - syncMode: " + syncMode);
-      store.dispatch('nfts/monitorMints', syncMode);
+      store.dispatch('nfts/monitorMints', { syncMode, configUpdate: null, filterUpdate: null });
     },
     async loadSales(syncMode) {
       // logInfo("NFTs", "loadSales - syncMode: " + syncMode);
@@ -1007,13 +1007,30 @@ const NFTs = {
     logDebug("NFTs", "beforeDestroy()");
   },
   mounted() {
-    logInfo("NFTs", "mounted() $route: " + JSON.stringify(this.$route.params) + ", props['search']: " + this.search + ", props['topic']: " + this.topic);
-    if (this.search == "mintmonitor") {
+    logInfo("NFTs", "mounted() $route: " + JSON.stringify(this.$route.params) + ", props['tab']: " + this.tab + ", props['blocks']: " + this.blocks + ", props['search']: " + this.search);
+    if (this.tab == "mintmonitor") {
       this.settings.tabIndex = 0;
-    } else if (this.search == "approvals") {
+      let startBlockNumber = null;
+      let endBlockNumber = null;
+      if (this.blocks != null) {
+        if (new RegExp('^[0-9,]+$').test(this.blocks)) {
+          startBlockNumber = this.blocks;
+          endBlockNumber = this.blocks;
+        } else if (new RegExp('^[0-9,]+\s*\-\s*[0-9,]+$').test(this.blocks)) {
+          startBlockNumber = this.blocks.replace(/\s*\-.*$/, '');
+          endBlockNumber = this.blocks.replace(/^.*\-\s*/, '');
+        }
+        const filterUpdate = {};
+        filterUpdate['startBlockNumber'] = startBlockNumber;
+        filterUpdate['endBlockNumber'] = endBlockNumber;
+        filterUpdate['searchString'] = this.search;
+        setTimeout(function() {
+          store.dispatch('nfts/monitorMints', { syncMode: 'scan', configUpdate: null, filterUpdate: filterUpdate });
+        }, 5000);
+      }
+    } else if (this.tab == "approvals") {
       this.settings.tabIndex = 1;
     }
-    store.dispatch('ensSales/loadSales', 'mounted');
 
     this.reschedule = true;
     logDebug("NFTs", "Calling timeoutCallback()");
@@ -1427,20 +1444,15 @@ const nftsModule = {
         if (syncMode == 'scan') {
           startBlockNumber = parseInt(state.filter.startBlockNumber.replace(/,/g, ''));
           endBlockNumber = parseInt(state.filter.endBlockNumber.replace(/,/g, ''));
-
         } else if (syncMode == 'scanLatest') {
           startBlockNumber = blockNumber - state.config.lookback;
           endBlockNumber = blockNumber;
           state.filter.startBlockNumber = ethers.utils.commify(startBlockNumber);
           state.filter.endBlockNumber = ethers.utils.commify(endBlockNumber);
         }
-
-        console.log("startBlockNumber: " + startBlockNumber + ", endBlockNumber: " + endBlockNumber);
         if (startBlockNumber != null && startBlockNumber <= endBlockNumber) {
           state.sync.inProgress = true;
-
           const batchSize = 25;
-
           let toBlock = endBlockNumber;
           do {
             let fromBlock = toBlock - batchSize;
@@ -1460,13 +1472,11 @@ const nftsModule = {
             };
             const events = await provider.getLogs(filter);
             // console.log("monitorMints - events: " + JSON.stringify(events.slice(0, 1)));
-
             for (const event of events) {
               if (!event.removed && event.topics.length == 4) {
                 const contract = event.address.toLowerCase();
                 const tokenId = event.topics[3] || event.data || null;
                 const bnTokenId = tokenId == null ? null : ethers.BigNumber.from(tokenId);
-
                 if (!(contract in contractsCollator)) {
                   contractsCollator[contract] = [];
                 }
@@ -1485,7 +1495,6 @@ const nftsModule = {
             }
             toBlock -= batchSize;
           } while (toBlock > startBlockNumber);
-
           transfers.sort((a, b) => {
             if (a.blockNumber == b.blockNumber) {
               return b.logIndex - a.logIndex;
@@ -1494,7 +1503,7 @@ const nftsModule = {
             }
           });
           state.transfers = transfers;
-
+          // Collections
           const erc721Helper = new ethers.Contract(ERC721HELPERADDRESS, ERC721HELPERABI, provider);
           const contracts = Object.keys(contractsCollator);
           let tokenInfo = null;
@@ -1546,9 +1555,9 @@ const nftsModule = {
       // logInfo("nftsModule", "configUpdates.updateConfig() - configUpdate: " + JSON.stringify(configUpdate));
       context.commit('loadSales', { syncMode: 'updateConfig', configUpdate, filterUpdate: null });
     },
-    monitorMints(context, syncMode) {
-      // logInfo("nftsModule", "actions.monitorMints() - syncMode: " + syncMode);
-      context.commit('monitorMints', { syncMode: syncMode, configUpdate: null, filterUpdate: null } );
+    monitorMints(context, { syncMode, configUpdate, filterUpdate }) {
+      logInfo("nftsModule", "actions.monitorMints() - syncMode: " + syncMode + ", configUpdate: " + JSON.stringify(configUpdate) + ", filterUpdate: " + JSON.stringify(filterUpdate));
+      context.commit('monitorMints', { syncMode: syncMode, configUpdate: configUpdate, filterUpdate: filterUpdate } );
     },
     loadSales(context, syncMode) {
       // logInfo("nftsModule", "actions.loadSales() - syncMode: " + syncMode);

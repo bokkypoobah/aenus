@@ -14,7 +14,7 @@ const routes = [{
     name: 'CryptoPunks',
     props: true,
   }, {
-    path: '/nfts/:search?/:topic?',
+    path: '/nfts/:tab?/:blocks?/:search?',
     component: NFTs,
     name: 'NFTs',
     props: true,
