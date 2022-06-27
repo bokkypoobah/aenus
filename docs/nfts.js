@@ -38,7 +38,7 @@ const NFTs = {
               </div>
 
               <div v-if="settings.tabIndex == 0" class="mt-1 pr-1">
-                <b-form-select size="sm" :value="filter.scanBlocks" :options="scanBlocksOptions" @change="updateMintMonitorFilter('scanBlocks', $event)" v-b-popover.hover.bottom="'Number of blocks to scan'"></b-form-select>
+                <b-form-select size="sm" :value="filter.scanBlocks" :options="scanBlocksOptions" @change="updateMintMonitorFilter('scanBlocks', $event)" :disabled="sync.inProgress" v-b-popover.hover.bottom="'Number of blocks to scan'"></b-form-select>
               </div>
 
               <div v-if="settings.tabIndex == 0" class="mt-1 pr-1">
@@ -48,12 +48,16 @@ const NFTs = {
               <div class="mt-1 flex-grow-1">
               </div>
 
-              <div class="mt-2" style="width: 200px;">
+              <div v-if="settings.tabIndex == 0" class="mt-2" style="width: 200px;">
                 <b-progress v-if="sync.inProgress" height="1.5rem" :max="sync.total" :label="'((sync.completed/sync.total)*100).toFixed(2) + %'" show-progress :animated="sync.inProgress" :variant="sync.inProgress ? 'success' : 'secondary'" v-b-popover.hover.bottom="'Click on the Sync(ing) button to (un)pause'">
                   <b-progress-bar :value="sync.completed">
                     {{ sync.completed + '/' + sync.total + ' ' + ((sync.completed / sync.total) * 100).toFixed(0) + '%' }}
                   </b-progress-bar>
                 </b-progress>
+              </div>
+
+              <div v-if="settings.tabIndex == 0" class="ml-0 mt-1">
+                <b-button v-if="sync.inProgress" size="sm" @click="halt" variant="link" v-b-popover.hover.bottom="'Halt'"><b-icon-stop-fill shift-v="+1" font-scale="1.0"></b-icon-stop-fill></b-button>
               </div>
 
               <div class="mt-1 flex-grow-1">
@@ -441,7 +445,6 @@ const NFTs = {
         pageSize: 100,
         currentPage: 1,
         activityMaxItems: 50,
-        scanBlocks: 100,
       },
 
       dailyChartSelectedItems: [],
@@ -451,6 +454,8 @@ const NFTs = {
         { value: 100, text: '100' },
         { value: 500, text: '500' },
         { value: 1000, text: '1k' },
+        { value: 5000, text: '5k' },
+        { value: 10000, text: '10k' },
       ],
 
       sortOptions: [
@@ -1008,7 +1013,7 @@ const NFTs = {
       store.dispatch('ensSales/loadSales', syncMode);
     },
     async halt() {
-      store.dispatch('ensSales/halt');
+      store.dispatch('nfts/halt');
     },
     exportSales() {
       const rows = [
@@ -1097,7 +1102,7 @@ const nftsModule = {
     },
     filter: {
       searchString: null,
-      scanBlocks: 100,
+      scanBlocks: 500,
       startBlockNumber: null,
       endBlockNumber: null,
       searchAccounts: null,
@@ -1504,6 +1509,7 @@ const nftsModule = {
         }
         console.log("startBlockNumber: " + startBlockNumber + ", endBlockNumber: " + endBlockNumber);
         if (startBlockNumber != null && startBlockNumber <= endBlockNumber) {
+          state.sync.completed = 0;
           state.sync.total = endBlockNumber - startBlockNumber;
           state.sync.inProgress = true;
           const batchSize = 25;
@@ -1549,7 +1555,7 @@ const nftsModule = {
             }
             toBlock -= batchSize;
             state.sync.completed = endBlockNumber - toBlock;
-          } while (toBlock > startBlockNumber);
+          } while (toBlock > startBlockNumber && !state.halt);
           transfers.sort((a, b) => {
             if (a.blockNumber == b.blockNumber) {
               return b.logIndex - a.logIndex;
