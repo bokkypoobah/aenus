@@ -361,8 +361,6 @@ const NFTs = {
   },
   methods: {
     getContractOrCollection(address) {
-      console.log("getContractOrCollection - address: " + address);
-      console.log("getContractOrCollection - this.mintMonitorCollections: " + JSON.stringify(this.mintMonitorCollections));
       if (this.mintMonitorCollections && (address in this.mintMonitorCollections)) {
         const collection = this.mintMonitorCollections[address];
         return collection.symbol + ' - ' + collection.name + (collection.totalSupply > 0 ? (' (' + collection.totalSupply + ')') : '');
