@@ -118,10 +118,14 @@ const NFTs = {
               <!-- Collection -->
               <div v-if="settings.tabIndex == 0">
                 <b-card no-header class="mt-1">
+                  <b-table small striped hover :items="filteredCollectionTokens" table-class="w-100" class="m-1 p-1">
+                  </b-table>
+                  <!--
+                  <b-table small striped hover :fields="mintMonitorCollectionsFields" :items="filteredCollectionTokens" table-class="w-100" class="m-1 p-1">
                   <b-form-group label-cols="4" label-size="sm" label="Name" label-align="right" class="mb-2">
                     <b-form-input type="text" size="sm" :value="collectionInfo && collectionInfo.name || ''" readonly></b-form-input>
                   </b-form-group>
-                  <!--
+                  {{ filteredCollectionTokens }}
                   <b-form-group label-cols="4" label-size="sm" label="Description" label-align="right" class="mb-2">
                     <b-form-textarea size="sm" :value="collectionInfo && collectionInfo.metadata && collectionInfo.metadata.description || ''" readonly rows="3" max-rows="10"></b-form-textarea>
                   </b-form-group>
@@ -305,6 +309,13 @@ const NFTs = {
     },
     mintMonitorCollections() {
       return store.getters['nfts/mintMonitorCollections'];
+    },
+    filteredCollectionTokens() {
+      const results = [];
+      for (const [tokenId, token] of Object.entries(this.collectionTokens)) {
+        results.push({ tokenId: tokenId, owner: token.owner });
+      }
+      return results;
     },
     mintMonitorCollectionsData() {
       const searchStrings = this.filter.searchString && this.filter.searchString.length > 0 && this.filter.searchString.split(/[, \t\n]+/).map(s => s.toLowerCase().trim()) || null;
@@ -600,13 +611,14 @@ const nftsModule = {
              return [];
           });
         state.collectionInfo = collectionInfo && collectionInfo.collection || {};
-        console.log("state.collectionInfo: " + JSON.stringify(state.collectionInfo, null, 2));
+        // console.log("state.collectionInfo: " + JSON.stringify(state.collectionInfo, null, 2));
 
         state.sync.total = collectionInfo && collectionInfo.collection && collectionInfo.collection.tokenCount || 0;
         state.sync.total = 5;
 
         let totalRecords = 0;
         let continuation = null;
+        let tokens = {};
         do {
           let url = "https://api.reservoir.tools/tokens/details/v4?contract=" + state.filter.collection.address +
             "&limit=20" +
@@ -620,7 +632,24 @@ const nftsModule = {
                state.sync.error = true;
                return [];
             });
-          console.log(JSON.stringify(data, null, 2));
+          // console.log(JSON.stringify(data, null, 2));
+
+          if (data && data.tokens) {
+            // console.log(JSON.stringify(data.tokens, null, 2));
+            for (const record of data.tokens) {
+              console.log(JSON.stringify(record, null, 2));
+              const token = record.token;
+              tokens[token.tokenId] = {
+                tokenId: token.tokenId,
+                owner: token.owner,
+                attributes: token.attributes,
+              };
+            }
+          }
+
+          console.log(JSON.stringify(tokens, null, 2));
+
+
           let numberOfRecords = state.sync.error ? 0 : await processSales(data);
           // let numberOfRecords = state.sync.error ? 0 : data.tokens.length;
           totalRecords += numberOfRecords;
@@ -628,7 +657,7 @@ const nftsModule = {
           state.sync.completed = totalRecords;
         } while (continuation != null && !state.halt && !state.sync.error && totalRecords < state.sync.total);
 
-
+        state.collectionTokens = tokens;
 
         if (false) {
 
