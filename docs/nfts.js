@@ -23,10 +23,17 @@ const NFTs = {
                     <template #button-content>
                       ▼ <span class="sr-only">Presets</span>
                     </template>
-                    <b-dropdown-item @click="filter.collection.address = '0x31385d3520bced94f77aae104b406994d8f2168c'">Bastard GAN Punks V2</b-dropdown-item>
-                    <b-dropdown-item @click="filter.collection.address = '0xc3f733ca98e0dad0386979eb96fb1722a1a05e69'">MoonCats</b-dropdown-item>
-                    <b-dropdown-item @click="filter.collection.address = '0x282bdd42f4eb70e7a9d9f40c8fea0825b7f68c5d'">CryptoPunks V1 (wrapped)</b-dropdown-item>
+                    <b-dropdown-item @click="filter.collection.address = '0x31385d3520bced94f77aae104b406994d8f2168c'">BASTARD GAN PUNKS V2</b-dropdown-item>
+                    <b-dropdown-item @click="filter.collection.address = '0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d'">Bored Ape Yacht Club</b-dropdown-item>
+                    <b-dropdown-item @click="filter.collection.address = '0x1cb1a5e65610aeff2551a50f76a87a7d3fb649c6'">CrypToadz</b-dropdown-item>
                     <b-dropdown-item @click="filter.collection.address = '0x42069abfe407c60cf4ae4112bedead391dba1cdb'">CryptoDickButts</b-dropdown-item>
+                    <b-dropdown-item @click="filter.collection.address = '0x1a2f71468f656e97c2f86541e57189f59951efe7'">Cryptomories</b-dropdown-item>
+                    <b-dropdown-item @click="filter.collection.address = '0x282bdd42f4eb70e7a9d9f40c8fea0825b7f68c5d'">CryptoPunks V1 (wrapped)</b-dropdown-item>
+                    <b-dropdown-item @click="filter.collection.address = '0xc2c747e0f7004f9e8817db2ca4997657a7746928'">Hashmasks</b-dropdown-item>
+                    <b-dropdown-item @click="filter.collection.address = '0x79fcdef22feed20eddacbb2587640e45491b757f'">mfers</b-dropdown-item>
+                    <b-dropdown-item @click="filter.collection.address = '0xc3f733ca98e0dad0386979eb96fb1722a1a05e69'">MoonCats</b-dropdown-item>
+                    <b-dropdown-item @click="filter.collection.address = '0x60e4d786628fea6478f785a6d7e704777c86a7c6'">Mutant Ape Yacht Club</b-dropdown-item>
+                    <b-dropdown-item @click="filter.collection.address = '0xe0fa9fb0e30ca86513642112bee1cbbaa2a0580d'">The Greats by Wolfgang Beltracchi</b-dropdown-item>
                   </b-dropdown>
                 </div>
                 <div v-if="settings.tabIndex == 0" class="mt-1 pl-1">
