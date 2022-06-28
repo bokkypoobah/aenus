@@ -10,7 +10,7 @@ const NFTs = {
             </b-tab>
           </b-tabs>
 
-          <b-card no-body no-header :img-src="settings.tabIndex == 0 && collectionInfo && collectionInfo.metadata && collectionInfo.metadata.bannerImageUrl" img-top class="m-0 p-0 border-0">
+          <b-card no-body no-header :img-src="settings.tabIndex == 0 && collectionInfo && collectionInfo.metadata && collectionInfo.metadata.bannerImageUrl || ''" img-top class="m-0 p-0 border-0">
 
             <b-card-body class="m-0 p-1">
               <!-- Main Toolbar -->
