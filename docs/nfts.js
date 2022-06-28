@@ -19,6 +19,17 @@ const NFTs = {
                   <b-form-input type="text" size="sm" :value="filter.collection.address" @change="updateCollectionFilter('collection.address', $event)" debounce="600" v-b-popover.hover.bottom="'Collection address'" placeholder="{ERC-721 contract 0xaddy}"></b-form-input>
                 </div>
                 <div v-if="settings.tabIndex == 0" class="mt-1 pl-1">
+                  <b-dropdown size="sm"  variant="link" toggle-class="text-decoration-none" no-caret>
+                    <template #button-content>
+                      ▼ <span class="sr-only">Presets</span>
+                    </template>
+                    <b-dropdown-item @click="filter.collection.address = '0x31385d3520bced94f77aae104b406994d8f2168c'">Bastard GAN Punks V2</b-dropdown-item>
+                    <b-dropdown-item @click="filter.collection.address = '0xc3f733ca98e0dad0386979eb96fb1722a1a05e69'">MoonCats</b-dropdown-item>
+                    <b-dropdown-item @click="filter.collection.address = '0x282bdd42f4eb70e7a9d9f40c8fea0825b7f68c5d'">CryptoPunks V1 (wrapped)</b-dropdown-item>
+                    <b-dropdown-item @click="filter.collection.address = '0x42069abfe407c60cf4ae4112bedead391dba1cdb'">CryptoDickButts</b-dropdown-item>
+                  </b-dropdown>
+                </div>
+                <div v-if="settings.tabIndex == 0" class="mt-1 pl-1">
                   <b-button size="sm" @click="updateCollection('sync')" :disabled="sync.inProgress || !powerOn || network.chainId != 1" variant="primary">Sync</b-button>
                 </div>
                 <div v-if="settings.tabIndex == 1" class="mt-1" style="max-width: 170px;">
