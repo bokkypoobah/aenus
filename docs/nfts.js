@@ -75,12 +75,16 @@ const NFTs = {
                 <div class="mt-1 flex-grow-1">
                 </div>
                 <div v-if="settings.tabIndex == 0" class="mt-1 pr-1">
+                  <b-form-select size="sm" v-model="settings.collection.sortOption" :options="sortOptions" v-b-popover.hover.bottom="'Yeah. Sort'"></b-form-select>
+                </div>
+                <div v-if="settings.tabIndex == 0" class="mt-1 pr-1">
+                  <font size="-2" v-b-popover.hover.bottom="'Blah'">{{ filteredSortedCollectionTokens.length }}</font>
+                </div>
+                <div v-if="settings.tabIndex == 0" class="mt-1 pr-1">
                   <b-pagination size="sm" v-model="settings.collection.currentPage" :total-rows="filteredSortedCollectionTokens.length" :per-page="settings.collection.pageSize" style="height: 0;"></b-pagination>
                 </div>
                 <div v-if="settings.tabIndex == 0" class="mt-1 pl-1">
-                  <!--
-                  <b-form-select size="sm" v-model="settings.pageSize" :options="pageSizes" v-b-popover.hover.bottom="'Page size'"></b-form-select>
-                  -->
+                  <b-form-select size="sm" v-model="settings.collection.pageSize" :options="pageSizes" v-b-popover.hover.bottom="'Page size'"></b-form-select>
                 </div>
                 <div v-if="settings.tabIndex == 1" class="mt-1 pl-1">
                   <b-form-select size="sm" v-model="settings.activityMaxItems" :options="activityMaxItemsOptions" v-b-popover.hover.bottom="'Max items to display'"></b-form-select>
@@ -296,12 +300,27 @@ const NFTs = {
         timeTo: null,
         activityMaxItems: 50,
         collection: {
+          sortOption: 'idasc',
           pageSize: 100,
           currentPage: 1
         }
       },
 
       dailyChartSelectedItems: [],
+
+      sortOptions: [
+        { value: 'idasc', text: '▲ Id' },
+        { value: 'iddsc', text: '▼ Id' },
+      ],
+
+      pageSizes: [
+        { value: 10, text: '10' },
+        { value: 100, text: '100' },
+        { value: 500, text: '500' },
+        { value: 1000, text: '1k' },
+        { value: 2500, text: '2.5k' },
+        { value: 10000, text: '10k' },
+      ],
 
       scanBlocksOptions: [
         { value: 5, text: '5' },
@@ -373,7 +392,13 @@ const NFTs = {
       return results;
     },
     filteredSortedCollectionTokens() {
-      return this.filteredCollectionTokens;
+      let results = this.filteredCollectionTokens;
+      if (this.settings.collection.sortOption == 'idasc') {
+        results.sort((a, b) => a.tokenId - b.tokenId);
+      } else if (this.settings.collection.sortOption == 'iddsc') {
+        results.sort((a, b) => b.tokenId - a.tokenId);
+      }
+      return results;
     },
     pagedFilteredCollectionTokens() {
       return this.filteredSortedCollectionTokens.slice((this.settings.collection.currentPage - 1) * this.settings.collection.pageSize, this.settings.collection.currentPage * this.settings.collection.pageSize);
