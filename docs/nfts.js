@@ -66,12 +66,9 @@ const NFTs = {
                 <b-link size="sm" :to="getURL" v-b-popover.hover.bottom="'Share this link for the same search'" ><font size="-1">Share</font></b-link>
               </div>
 
-              <div v-if="settings.tabIndex == 1" class="mt-1 pr-1">
-                <b-button size="sm" @click="monitorMints('partial')" :disabled="sync.inProgress || !powerOn || network.chainId != 1" variant="primary" style="min-width: 80px; ">Scan</b-button>
+              <div class="mt-1 flex-grow-1">
               </div>
-              <div class="mt-1 pr-1 flex-grow-1">
-              </div>
-              <div v-if="settings.tabIndex == 0" class="mt-1">
+              <div v-if="settings.tabIndex == 0" class="mt-1 pl-1">
                 <b-form-select size="sm" v-model="settings.activityMaxItems" :options="activityMaxItemsOptions" v-b-popover.hover.bottom="'Max items to display'"></b-form-select>
               </div>
             </div>
