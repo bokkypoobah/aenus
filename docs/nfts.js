@@ -522,7 +522,7 @@ const nftsModule = {
             let batchSize;
             // Aug 1 2021
             if (toBlock < 12936340) {
-              batchSize = 500;
+              batchSize = 250;
             } else {
               batchSize = 25;
             }
