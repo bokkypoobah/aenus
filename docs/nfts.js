@@ -516,9 +516,16 @@ const nftsModule = {
           state.sync.completed = 0;
           state.sync.total = endBlockNumber - startBlockNumber;
           state.sync.inProgress = true;
-          const batchSize = 25;
+          // const batchSize = 25;
           let toBlock = endBlockNumber;
           do {
+            let batchSize;
+            // Aug 1 2021
+            if (toBlock < 12936340) {
+              batchSize = 500;
+            } else {
+              batchSize = 25;
+            }
             let fromBlock = toBlock - batchSize;
             if (fromBlock < startBlockNumber) {
               fromBlock = startBlockNumber;
