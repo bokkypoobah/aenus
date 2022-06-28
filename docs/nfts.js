@@ -10,7 +10,7 @@ const NFTs = {
             </b-tab>
           </b-tabs>
 
-          <b-card no-body no-header :img-src="collectionInfo && collectionInfo.metadata && collectionInfo.metadata.bannerImageUrl" img-top class="m-0 p-0 border-0">
+          <b-card no-body no-header :img-src="settings.tabIndex == 0 && collectionInfo && collectionInfo.metadata && collectionInfo.metadata.bannerImageUrl" img-top class="m-0 p-0 border-0">
 
             <b-card-body class="m-0 p-1">
               <!-- Main Toolbar -->
@@ -235,6 +235,10 @@ const NFTs = {
                     </b-button>
                     <b-popover :target="'popover-target-' + data.item.contract" placement="right">
                       <template #title>{{ getContractOrCollection(data.item.contract) }}</template>
+                      <b-link @click="settings.tabIndex = 0; updateCollectionFilter('collection.address', data.item.contract); " v-b-popover.hover.bottom="'Inspect collection'" target="_blank">
+                        View Collection
+                      </b-link>
+                      <br />
                       <b-link :href="'https://etherscan.io/address/' + data.item.contract + '#code'" v-b-popover.hover.bottom="'View in Etherscan.io'" target="_blank">
                         Etherscan - Contract Code
                       </b-link>
