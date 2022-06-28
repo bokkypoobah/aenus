@@ -506,7 +506,7 @@ const nftsModule = {
         startBlockNumber: 4000000,
       },
       searchString: null,
-      scanBlocks: 5, // TODO 500,
+      scanBlocks: 500,
       startBlockNumber: null,
       endBlockNumber: null,
     },
