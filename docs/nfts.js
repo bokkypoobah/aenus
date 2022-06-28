@@ -45,7 +45,7 @@ const NFTs = {
                     </b-progress-bar>
                   </b-progress>
                 </div>
-                <div v-if="settings.tabIndex == 1" class="ml-0 mt-1">
+                <div v-if="settings.tabIndex == 0 || settings.tabIndex == 1" class="ml-0 mt-1">
                   <b-button v-if="sync.inProgress" size="sm" @click="halt" variant="link" v-b-popover.hover.bottom="'Halt'"><b-icon-stop-fill shift-v="+1" font-scale="1.0"></b-icon-stop-fill></b-button>
                 </div>
 
@@ -73,6 +73,14 @@ const NFTs = {
                 </div>
 
                 <div class="mt-1 flex-grow-1">
+                </div>
+                <div v-if="settings.tabIndex == 0" class="mt-1 pr-1">
+                  <b-pagination size="sm" v-model="settings.collection.currentPage" :total-rows="filteredSortedCollectionTokens.length" :per-page="settings.collection.pageSize" style="height: 0;"></b-pagination>
+                </div>
+                <div v-if="settings.tabIndex == 0" class="mt-1 pl-1">
+                  <!--
+                  <b-form-select size="sm" v-model="settings.pageSize" :options="pageSizes" v-b-popover.hover.bottom="'Page size'"></b-form-select>
+                  -->
                 </div>
                 <div v-if="settings.tabIndex == 1" class="mt-1 pl-1">
                   <b-form-select size="sm" v-model="settings.activityMaxItems" :options="activityMaxItemsOptions" v-b-popover.hover.bottom="'Max items to display'"></b-form-select>
@@ -117,10 +125,53 @@ const NFTs = {
 
               <!-- Collection -->
               <div v-if="settings.tabIndex == 0">
-                <b-card no-header class="mt-1">
+                <b-card no-header no-body class="mt-1">
+
+                  <b-card-group deck class="m-1 p-0">
+                    <div v-for="token in pagedFilteredCollectionTokens">
+                      <b-card body-class="p-0" header-class="p-1" img-top class="m-1 p-0 border-0" style="max-width: 7rem;">
+                        <b-avatar rounded size="7rem" :src="token.image"></b-avatar>
+                        <b-card-text class="text-right">
+                          <div class="d-flex justify-content-between m-0 p-0">
+                            <div>
+                              <font size="-1">
+                                <b-badge variant="light" v-b-popover.hover.bottom="'blah'">{{ token.tokenId }}</b-badge>
+                              </font>
+                            </div>
+                            <!--
+                            <div class="flex-grow-1">
+                              <font v-if="secondsOld(event.timestamp) < 3600" size="-1">
+                                <b-badge variant="dark" v-b-popover.hover.bottom="formatTimestamp(event.timestamp)">{{ formatTerm(event.timestamp) }}</b-badge>
+                              </font>
+                              <font v-else-if="secondsOld(event.timestamp) > 86400" size="-1">
+                                <b-badge variant="light" v-b-popover.hover.bottom="formatTimestamp(event.timestamp)">{{ formatTerm(event.timestamp) }}</b-badge>
+                              </font>
+                              <font v-else size="-1">
+                                <b-badge variant="secondary" v-b-popover.hover.bottom="formatTimestamp(event.timestamp)">{{ formatTerm(event.timestamp) }}</b-badge>
+                              </font>
+                            </div>
+                            -->
+                            <div class="flex-grow-1">
+                            </div>
+                            <div>
+                              <!--
+                              <font size="-1">
+                                <b-badge :variant="(activity.type == 'Sales') ? 'success' : ((activity.type == 'Asks') ? 'primary' : 'warning')" v-b-popover.hover.bottom="formatETH(event.amount)">{{ formatETHShort(event.amount) }}</b-badge>
+                              </font>
+                              -->
+                            </div>
+                          </div>
+                        </b-card-text>
+                      </b-card>
+                    </div>
+                  </b-card-group>
+
+
+                  <!--
+
+
                   <b-table small striped hover :items="filteredCollectionTokens" table-class="w-100" class="m-1 p-1">
                   </b-table>
-                  <!--
                   <b-table small striped hover :fields="mintMonitorCollectionsFields" :items="filteredCollectionTokens" table-class="w-100" class="m-1 p-1">
                   <b-form-group label-cols="4" label-size="sm" label="Name" label-align="right" class="mb-2">
                     <b-form-input type="text" size="sm" :value="collectionInfo && collectionInfo.name || ''" readonly></b-form-input>
@@ -244,6 +295,10 @@ const NFTs = {
         dateTo: null,
         timeTo: null,
         activityMaxItems: 50,
+        collection: {
+          pageSize: 100,
+          currentPage: 1
+        }
       },
 
       dailyChartSelectedItems: [],
@@ -313,9 +368,15 @@ const NFTs = {
     filteredCollectionTokens() {
       const results = [];
       for (const [tokenId, token] of Object.entries(this.collectionTokens)) {
-        results.push({ tokenId: tokenId, owner: token.owner });
+        results.push(token);
       }
       return results;
+    },
+    filteredSortedCollectionTokens() {
+      return this.filteredCollectionTokens;
+    },
+    pagedFilteredCollectionTokens() {
+      return this.filteredSortedCollectionTokens.slice((this.settings.collection.currentPage - 1) * this.settings.collection.pageSize, this.settings.collection.currentPage * this.settings.collection.pageSize);
     },
     mintMonitorCollectionsData() {
       const searchStrings = this.filter.searchString && this.filter.searchString.length > 0 && this.filter.searchString.split(/[, \t\n]+/).map(s => s.toLowerCase().trim()) || null;
@@ -614,7 +675,7 @@ const nftsModule = {
         // console.log("state.collectionInfo: " + JSON.stringify(state.collectionInfo, null, 2));
 
         state.sync.total = collectionInfo && collectionInfo.collection && collectionInfo.collection.tokenCount || 0;
-        state.sync.total = 5;
+        // state.sync.total = 5;
 
         let totalRecords = 0;
         let continuation = null;
@@ -636,18 +697,21 @@ const nftsModule = {
 
           if (data && data.tokens) {
             // console.log(JSON.stringify(data.tokens, null, 2));
+            // console.log(JSON.stringify(data.tokens[0], null, 2));
             for (const record of data.tokens) {
-              console.log(JSON.stringify(record, null, 2));
               const token = record.token;
               tokens[token.tokenId] = {
                 tokenId: token.tokenId,
                 owner: token.owner,
+                name: token.name,
+                description: token.description,
                 attributes: token.attributes,
+                image: token.image,
               };
             }
           }
 
-          console.log(JSON.stringify(tokens, null, 2));
+          // console.log(JSON.stringify(tokens, null, 2));
 
 
           let numberOfRecords = state.sync.error ? 0 : await processSales(data);
