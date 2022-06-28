@@ -7,7 +7,7 @@ const NFTs = {
             <b-tab title="Mint Monitor" @click="updateURL('mintmonitor');">
             </b-tab>
             <!--
-            <b-tab title="Account" @click="updateURL('account');">
+            <b-tab title="Collection" @click="updateURL('collection');">
             </b-tab>
             -->
           </b-tabs>
@@ -119,7 +119,7 @@ const NFTs = {
                 Be careful when interacting with unverified contracts and signing messages on dodgy websites!
               </b-alert>
 
-              <b-table small striped hover :fields="collectionsFields" :items="collectionsData" table-class="w-100" class="m-1 p-1">
+              <b-table small striped hover :fields="mintMonitorCollectionsFields" :items="mintMonitorCollectionsData" table-class="w-100" class="m-1 p-1">
                 <template #cell(index)="data">
                   {{ data.index + 1 }}
                 </template>
@@ -232,7 +232,7 @@ const NFTs = {
         { value: 10000, text: '10k' },
       ],
 
-      collectionsFields: [
+      mintMonitorCollectionsFields: [
         { key: 'index', label: '#', thStyle: 'width: 5%;', thClass: 'text-right', tdClass: 'text-right' },
         { key: 'contract', label: 'Contract', thStyle: 'width: 25%;', thClass: 'text-left', tdClass: 'text-left' },
         { key: 'mints', label: 'Mints', thStyle: 'width: 5%;', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
@@ -266,14 +266,13 @@ const NFTs = {
     transfers() {
       return store.getters['nfts/transfers'];
     },
-    collections() {
-      return store.getters['nfts/collections'];
+    mintMonitorCollections() {
+      return store.getters['nfts/mintMonitorCollections'];
     },
-
-    collectionsData() {
+    mintMonitorCollectionsData() {
       const searchStrings = this.filter.searchString && this.filter.searchString.length > 0 && this.filter.searchString.split(/[, \t\n]+/).map(s => s.toLowerCase().trim()) || null;
       const results = [];
-      for (const [contract, collection] of Object.entries(this.collections)) {
+      for (const [contract, collection] of Object.entries(this.mintMonitorCollections)) {
         let include = true;
         const symbol = collection.symbol.toLowerCase();
         const name = collection.name.toLowerCase();
@@ -347,8 +346,6 @@ const NFTs = {
       filterUpdate[field] = filter;
       store.dispatch('nfts/updateMintMonitorFilter', filterUpdate);
     },
-
-
     async calendarUpdated(field, context) {
       logInfo("NFTs", "calendarUpdated - field: " + field + ", context: " + JSON.stringify(context));
       if (field == 'dateFrom' && this.settings.dateFrom != null && this.settings.dateTo == null) {
@@ -395,18 +392,14 @@ const NFTs = {
         }
       }
     },
-
     async monitorMints(syncMode) {
-      // logInfo("NFTs", "monitorMints - syncMode: " + syncMode);
       store.dispatch('nfts/monitorMints', { syncMode, configUpdate: null, filterUpdate: null });
     },
     async halt() {
       store.dispatch('nfts/halt');
     },
-
     async timeoutCallback() {
       logDebug("NFTs", "timeoutCallback() count: " + this.count);
-
       this.count++;
       var t = this;
       if (this.reschedule) {
@@ -441,14 +434,12 @@ const NFTs = {
           store.dispatch('nfts/monitorMints', { syncMode: 'scan', configUpdate: null, filterUpdate: filterUpdate });
         }, 1000);
       }
-    } else if (this.tab == "account") {
+    } else if (this.tab == "collection") {
       this.settings.tabIndex = 1;
     }
-
     this.reschedule = true;
     logDebug("NFTs", "Calling timeoutCallback()");
     this.timeoutCallback();
-    // this.loadNFTs();
   },
   destroyed() {
     this.reschedule = false;
@@ -471,14 +462,14 @@ const nftsModule = {
       completed: null,
     },
 
-    collections: {},
+    mintMonitorCollections: {},
     halt: false,
     params: null,
   },
   getters: {
     filter: state => state.filter,
     sync: state => state.sync,
-    collections: state => state.collections,
+    mintMonitorCollections: state => state.mintMonitorCollections,
     params: state => state.params,
   },
   mutations: {
@@ -592,7 +583,7 @@ const nftsModule = {
           } catch (e) {
             console.log("ERROR - Not ERC-721");
           }
-          state.collections = collections;
+          state.mintMonitorCollections = collections;
         }
         state.sync.inProgress = false;
       }
