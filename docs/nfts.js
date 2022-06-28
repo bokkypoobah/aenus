@@ -18,21 +18,6 @@ const NFTs = {
               <div v-if="settings.tabIndex == 0" class="mt-1 pr-1" style="max-width: 170px;">
                 <b-form-input type="text" size="sm" :value="filter.searchString" @change="updateMintMonitorFilter('searchString', $event)" debounce="600" v-b-popover.hover.bottom="'Search by collection symbol, name or address'" placeholder="🔍 {symbol|name|addy}"></b-form-input>
               </div>
-              <div v-if="settings.tabIndex == 10" class="mt-1" style="max-width: 150px;">
-                <b-form-input type="text" size="sm" :value="filter.searchString" @change="updateFilter('searchString', $event)" debounce="600" v-b-popover.hover.bottom="'Poweruser regex, or simple search string'" placeholder="🔍 {regex}"></b-form-input>
-              </div>
-              <div v-if="settings.tabIndex == 10" class="mt-1 pr-1" style="max-width: 150px;">
-                <b-form-input type="text" size="sm" :value="filter.searchAccounts" @change="updateFilter('searchAccounts', $event)" debounce="600" v-b-popover.hover.bottom="'List of account search strings'" placeholder="🔍 0x12... ..."></b-form-input>
-              </div>
-              <div v-if="settings.tabIndex == 10" class="mt-1 pr-1" style="max-width: 80px;">
-                <b-form-input type="text" size="sm" :value="filter.priceFrom" @change="updateFilter('priceFrom', $event)" debounce="600" v-b-popover.hover.bottom="'Price from, ETH'" placeholder="min"></b-form-input>
-              </div>
-              <div v-if="settings.tabIndex == 10" class="mt-1">
-                -
-              </div>
-              <div v-if="settings.tabIndex == 10" class="mt-1 pr-1" style="max-width: 80px;">
-                <b-form-input type="text" size="sm" :value="filter.priceTo" @change="updateFilter('priceTo', $event)" debounce="600" v-b-popover.hover.bottom="'Price to, ETH'" placeholder="max"></b-form-input>
-              </div>
 
               <div class="mt-1 flex-grow-1">
               </div>
@@ -40,7 +25,6 @@ const NFTs = {
               <div v-if="settings.tabIndex == 0" class="mt-1 pr-1">
                 <b-form-select size="sm" :value="filter.scanBlocks" :options="scanBlocksOptions" @change="updateMintMonitorFilter('scanBlocks', $event)" :disabled="sync.inProgress" v-b-popover.hover.bottom="'Number of blocks to scan'"></b-form-select>
               </div>
-
               <div v-if="settings.tabIndex == 0" class="mt-1 pr-1">
                 <b-button size="sm" @click="monitorMints('scanLatest')" :disabled="sync.inProgress || !powerOn || network.chainId != 1" variant="primary" style="min-width: 80px; ">{{ 'Scan Latest ' + filter.scanBlocks + ' Blocks' }}</b-button>
               </div>
@@ -55,7 +39,6 @@ const NFTs = {
                   </b-progress-bar>
                 </b-progress>
               </div>
-
               <div v-if="settings.tabIndex == 0" class="ml-0 mt-1">
                 <b-button v-if="sync.inProgress" size="sm" @click="halt" variant="link" v-b-popover.hover.bottom="'Halt'"><b-icon-stop-fill shift-v="+1" font-scale="1.0"></b-icon-stop-fill></b-button>
               </div>
@@ -63,7 +46,10 @@ const NFTs = {
               <div class="mt-1 flex-grow-1">
               </div>
 
-              <div v-if="settings.tabIndex == 0" class="mt-1 pl-1" style="max-width: 100px;">
+              <div v-if="settings.tabIndex == 0" class="mt-1">
+                <b-button size="sm" :pressed.sync="settings.datetimeToolbar" variant="link" v-b-popover.hover.bottom="'Select by UTC date & time'"><span v-if="settings.datetimeToolbar"><b-icon-calendar3-fill shift-v="+1" font-scale="1.0"></b-icon-calendar3-fill></span><span v-else><b-icon-calendar3 shift-v="+1" font-scale="1.0"></b-icon-calendar3></span></b-button>
+              </div>
+              <div v-if="settings.tabIndex == 0" class="mt-1" style="max-width: 100px;">
                 <b-form-input type="text" size="sm" :value="filter.startBlockNumber" @change="updateMintMonitorFilter('startBlockNumber', $event)" debounce="600" v-b-popover.hover.bottom="'Search from block number'" placeholder="from"></b-form-input>
               </div>
               <div v-if="settings.tabIndex == 0" class="mt-1">
@@ -72,6 +58,7 @@ const NFTs = {
               <div v-if="settings.tabIndex == 0" class="mt-1" style="max-width: 100px;">
                 <b-form-input type="text" size="sm" :value="filter.endBlockNumber" @change="updateMintMonitorFilter('endBlockNumber', $event)" debounce="600" v-b-popover.hover.bottom="'Search to block number'" placeholder="to"></b-form-input>
               </div>
+
               <div v-if="settings.tabIndex == 0" class="mt-1 pl-1">
                 <b-button size="sm" @click="monitorMints('scan')" :disabled="sync.inProgress || !powerOn || network.chainId != 1 || filter.startBlockNumber == null || filter.endBlockNumber == null" variant="primary" style="min-width: 80px; ">Scan</b-button>
               </div>
@@ -84,39 +71,29 @@ const NFTs = {
               </div>
               <div class="mt-1 pr-1 flex-grow-1">
               </div>
-              <div v-if="settings.tabIndex == 10" class="mt-1 pr-1">
-                <b-input-group class="mb-2" style="height: 0;">
-                  <template #append>
-                    <b-button size="sm" :pressed.sync="settings.syncToolbar" variant="outline-primary" v-b-popover.hover.bottom="'Sync settings'"><span v-if="settings.syncToolbar"><b-icon-gear-fill shift-v="+1" font-scale="1.0"></b-icon-gear-fill></span><span v-else><b-icon-gear shift-v="+1" font-scale="1.0"></b-icon-gear></span></b-button>
-                  </template>
-                  <b-button v-if="!sync.inProgress" size="sm" @click="loadSales('partial')" variant="primary" v-b-popover.hover.bottom="'Partial Sync'" style="min-width: 80px; ">Sync</b-button>
-                  <b-button v-if="sync.inProgress" size="sm" @click="halt" variant="primary" v-b-popover.hover.bottom="'Halt'" style="min-width: 80px; ">Syncing</b-button>
-                </b-input-group>
-              </div>
-              <div class="mt-1 pr-1 flex-grow-1">
-              </div>
-              <div v-if="settings.tabIndex == 10" class="mt-1 pr-1">
-                <b-button size="sm" @click="exportSales" :disabled="filteredSortedSales.length == 0" variant="link" v-b-popover.hover.bottom="'Export to CSV for easy import into a spreadsheet'">Export</b-button>
-              </div>
-              <div v-if="settings.tabIndex == 10" class="mt-1 pr-1">
-                <b-form-select size="sm" v-model="settings.sortOption" :options="sortOptions" v-b-popover.hover.bottom="'Yeah. Sort'"></b-form-select>
-              </div>
-              <div v-if="settings.tabIndex == 10" class="mt-1 pr-1">
-                <font size="-2" v-b-popover.hover.bottom="formatTimestamp(earliestEntry) + ' to ' + formatTimestamp(latestEntry)">{{ filteredSortedSales.length }}</font>
-              </div>
-              <div v-if="settings.tabIndex == 10" class="mt-1 pr-1">
-                <b-pagination size="sm" v-model="settings.currentPage" :total-rows="filteredSortedSales.length" :per-page="settings.pageSize" style="height: 0;"></b-pagination>
-              </div>
-              <div v-if="settings.tabIndex == 10" class="mt-1">
-                <b-form-select size="sm" v-model="settings.pageSize" :options="pageSizes" v-b-popover.hover.bottom="'Page size'"></b-form-select>
-              </div>
               <div v-if="settings.tabIndex == 0" class="mt-1">
                 <b-form-select size="sm" v-model="settings.activityMaxItems" :options="activityMaxItemsOptions" v-b-popover.hover.bottom="'Max items to display'"></b-form-select>
               </div>
             </div>
 
             <!-- Sync Toolbar -->
-            <div v-if="settings.syncToolbar" class="d-flex flex-wrap m-0 p-0 pb-1">
+            <div v-if="settings.datetimeToolbar" class="d-flex flex-wrap justify-content-center m-0 p-0 pb-1">
+              <div class="mt-1 pr-1">
+                <b-calendar v-model="settings.dateFrom" @context="calendarUpdated('dateFrom', $event)"></b-calendar>
+              </div>
+              <div class="mt-1">
+                <b-time v-model="settings.timeFrom" @context="calendarUpdated('timeFrom', $event)"></b-time>
+              </div>
+              <div v-if="settings.tabIndex == 0" class="mt-1">
+                -
+              </div>
+              <div class="mt-1 pr-1">
+                <b-calendar v-model="settings.dateTo" @context="calendarUpdated('dateTo', $event)"></b-calendar>
+              </div>
+              <div class="mt-1 pr-1">
+                <b-time v-model="settings.timeTo" @context="calendarUpdated('timeTo', $event)"></b-time>
+              </div>
+              <!--
               <div class="mt-1 pr-1">
                 <b-form-select size="sm" :value="config.period" @change="updateConfig('period', $event)" :options="periods" :disabled="sync.inProgress" v-b-popover.hover.bottom="'Sales history period'"></b-form-select>
               </div>
@@ -132,6 +109,7 @@ const NFTs = {
               <div class="mt-1 pr-1" style="max-width: 150px;">
                 <b-button size="sm" @click="loadSales('clearCache')" variant="primary" v-b-popover.hover.bottom="'Reset application data'">Clear Local Cache</b-button>
               </div>
+              -->
             </div>
 
             <b-alert size="sm" :show="!powerOn || network.chainId != 1" variant="primary" class="m-0 mt-1">
@@ -229,6 +207,11 @@ const NFTs = {
 
       settings: {
         tabIndex: 0,
+        datetimeToolbar: false,
+        dateFrom: null,
+        timeFrom: null,
+        dateTo: null,
+        timeTo: null,
         activityMaxItems: 50,
       },
 
@@ -367,8 +350,57 @@ const NFTs = {
       filterUpdate[field] = filter;
       store.dispatch('nfts/updateMintMonitorFilter', filterUpdate);
     },
+
+
+    async calendarUpdated(field, context) {
+      logInfo("NFTs", "calendarUpdated - field: " + field + ", context: " + JSON.stringify(context));
+      if (field == 'dateFrom' && this.settings.dateFrom != null && this.settings.dateTo == null) {
+        this.settings.dateTo = this.settings.dateFrom;
+      }
+      if ((field == 'dateFrom' || field == 'timeFrom') && this.settings.dateFrom != null && this.settings.timeFrom != null) {
+        logInfo("NFTs", "calendarUpdated - dateFrom: " + this.settings.dateFrom + ", timeFrom: " + this.settings.timeFrom);
+        const fromTimestamp = moment.utc(this.settings.dateFrom + ' ' + this.settings.timeFrom).unix();
+        const data = await fetch(BLOCKTIMESTAMPSUBGRAPHURL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify({
+            query: BLOCKTIMESTAMPAFTERQUERY,
+            variables: { timestamp: fromTimestamp },
+          })
+        }).then(handleErrors)
+          .then(response => response.json());
+        if (data && data.data && data.data.blocks && data.data.blocks.length == 1) {
+          const filterUpdate = { startBlockNumber: ethers.utils.commify(data.data.blocks[0].number) };
+          store.dispatch('nfts/updateMintMonitorFilter', filterUpdate);
+        }
+      }
+      if ((field == 'dateTo' || field == 'timeTo') && this.settings.dateTo != null && this.settings.timeTo != null) {
+        logInfo("NFTs", "calendarUpdated - dateTo: " + this.settings.dateTo + ", timeTo: " + this.settings.timeTo);
+        const toTimestamp = moment.utc(this.settings.dateTo + ' ' + this.settings.timeTo).unix();
+        const data = await fetch(BLOCKTIMESTAMPSUBGRAPHURL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify({
+            query: BLOCKTIMESTAMPAFTERQUERY,
+            variables: { timestamp: toTimestamp },
+          })
+        }).then(handleErrors)
+          .then(response => response.json());
+        if (data && data.data && data.data.blocks && data.data.blocks.length == 1) {
+          const filterUpdate = { endBlockNumber: ethers.utils.commify(data.data.blocks[0].number) };
+          store.dispatch('nfts/updateMintMonitorFilter', filterUpdate);
+        }
+      }
+    },
+
     async monitorMints(syncMode) {
-      // logInfo("NFTs", "loadSales - syncMode: " + syncMode);
+      // logInfo("NFTs", "monitorMints - syncMode: " + syncMode);
       store.dispatch('nfts/monitorMints', { syncMode, configUpdate: null, filterUpdate: null });
     },
     async halt() {
