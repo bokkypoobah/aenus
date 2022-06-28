@@ -744,7 +744,10 @@ const nftsModule = {
           totalRecords += numberOfRecords;
           continuation = data.continuation;
           state.sync.completed = totalRecords;
-        } while (continuation != null && !state.halt && !state.sync.error && totalRecords < state.sync.total);
+          if (state.sync.total < totalRecords) {
+            state.sync.total = totalRecords;
+          }
+        } while (continuation != null && !state.halt && !state.sync.error /*&& totalRecords < state.sync.total*/);
 
         state.collectionTokens = tokens;
 
