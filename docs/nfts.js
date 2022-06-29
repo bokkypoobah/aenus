@@ -25,6 +25,9 @@ const NFTs = {
                       <b-dropdown-item @click="filter.collection.address = '0x629a493a94b611138d4bee231f94f5c08ab6570a'">Oct 22 Etheria v1.0 (wrapped, image not working)</b-dropdown-item>
                       <b-dropdown-item @click="filter.collection.address = '0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85'">Apr 26 ENS (new Jan 30 2020)</b-dropdown-item>
                     </b-dropdown-group>
+                    <b-dropdown-group header="2016 Vintage">
+                      <b-dropdown-item @click="filter.collection.address = '0x050dc61dFB867E0fE3Cf2948362b6c0F3fAF790b'">Nov 17 PixelMap (wrapped)</b-dropdown-item>
+                    </b-dropdown-group>
                     <b-dropdown-group header="2017 Vintage">
                       <b-dropdown-item @click="filter.collection.address = '0x282bdd42f4eb70e7a9d9f40c8fea0825b7f68c5d'">Jun 09 CryptoPunks V1 (wrapped)</b-dropdown-item>
                       <b-dropdown-item @click="filter.collection.address = '0xb7f7f6c52f2e2fdb1963eab30438024864c313f6'">Jun 22 CryptoPunks V2 (wrapped)</b-dropdown-item>
@@ -174,7 +177,7 @@ const NFTs = {
 
               <!-- Collection -->
               <div v-if="settings.tabIndex == 0">
-                <b-card no-header no-body class="mt-1">
+                <b-card v-if="pagedFilteredCollectionTokens.length > 0" no-header no-body class="mt-1">
 
                   <b-card-group deck class="m-1 p-0">
                     <div v-for="token in pagedFilteredCollectionTokens">
