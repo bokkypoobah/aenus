@@ -40,6 +40,7 @@ const NFTs = {
                       <b-dropdown-item @click="filter.collection.address = '0xe81175546f554ca6ceb63b142f27de7557c5bf62'">Oct 20 Lunar Moon Plots (wrapped)</b-dropdown-item>
                       <b-dropdown-item @click="filter.collection.address = '0x06012c8cf97BEaD5deAe237070F9587f8E7A266d'">Nov 23 CryptoKitties (large data set, not working)</b-dropdown-item>
                       <b-dropdown-item @click="filter.collection.address = '0xd0e7bc3f1efc5f098534bce73589835b8273b9a0'">Dec 24 Wrapped CryptoCats Official</b-dropdown-item>
+                      <b-dropdown-item @click="filter.collection.address = '0x8479277aacff4663aa4241085a7e27934a0b0840'">Dec 30 Realms of Ether (wrapped)</b-dropdown-item>
                     </b-dropdown-group>
                     <b-dropdown-group header="2018 Vintage">
                       <b-dropdown-item @click="filter.collection.address = '0x79986af15539de2db9a5086382daeda917a9cf0c'">Jun 05 Voxels (originally CryptoVoxels, not working)</b-dropdown-item>
