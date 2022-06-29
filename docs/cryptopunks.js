@@ -61,28 +61,28 @@ const CryptoPunks = {
             <!-- Toolbar -->
             <div class="d-flex flex-wrap m-0 p-0" style="min-height: 37px;">
               <div class="mt-2" style="max-width: 150px;">
-                <b-form-input type="text" size="sm" v-model.trim="settings.searchString" debounce="600" v-b-popover.hover.bottom="'Filter by list of punkIds'" placeholder="🔍 id1 id2-id3 ..."></b-form-input>
+                <b-form-input type="text" size="sm" v-model.trim="settings.searchString" debounce="600" v-b-popover.hover.top="'Filter by list of punkIds'" placeholder="🔍 id1 id2-id3 ..."></b-form-input>
               </div>
               <div class="mt-2 pl-2" style="max-width: 150px;">
-                <b-form-input type="text" size="sm" v-model.trim="settings.searchAccounts" debounce="600" v-b-popover.hover.bottom="'Filter by list of owner addresses. Partial matching'" placeholder="🔍 0x12... ..."></b-form-input>
+                <b-form-input type="text" size="sm" v-model.trim="settings.searchAccounts" debounce="600" v-b-popover.hover.top="'Filter by list of owner addresses. Partial matching'" placeholder="🔍 0x12... ..."></b-form-input>
               </div>
               <div class="mt-2 pl-2" style="max-width: 80px;">
-                <b-form-input type="text" size="sm" v-model.trim="settings.priceFrom" debounce="600" v-b-popover.hover.bottom="'ETH from'" placeholder="min"></b-form-input>
+                <b-form-input type="text" size="sm" v-model.trim="settings.priceFrom" debounce="600" v-b-popover.hover.top="'ETH from'" placeholder="min"></b-form-input>
               </div>
               <div class="mt-2">
                 -
               </div>
               <div class="mt-2 pr-2" style="max-width: 80px;">
-                <b-form-input type="text" size="sm" v-model.trim="settings.priceTo" debounce="600" v-b-popover.hover.bottom="'ETH to'" placeholder="max"></b-form-input>
+                <b-form-input type="text" size="sm" v-model.trim="settings.priceTo" debounce="600" v-b-popover.hover.top="'ETH to'" placeholder="max"></b-form-input>
               </div>
               <div class="mt-2 pr-1 flex-grow-1">
               </div>
               <div class="mt-2 pl-1">
-                <b-dropdown v-if="message == null" split size="sm" text="Sync" @click="loadPunks('partial')" variant="primary" v-b-popover.hover.bottom="'Partial Sync'">
+                <b-dropdown v-if="message == null" split size="sm" text="Sync" @click="loadPunks('partial')" variant="primary" v-b-popover.hover.top="'Partial Sync'">
                   <b-dropdown-item @click="loadPunks('full')">Full Sync</b-dropdown-item>
                   <!-- <b-dropdown-item @click="searchLogs()">Search Event Logs (WIP)</b-dropdown-item> -->
                 </b-dropdown>
-                <b-button v-if="message != null" size="sm" @click="halt" variant="primary" v-b-popover.hover.bottom="'Halt'" >{{ message }}</b-button>
+                <b-button v-if="message != null" size="sm" @click="halt" variant="primary" v-b-popover.hover.top="'Halt'" >{{ message }}</b-button>
               </div>
               <div class="mt-2 pr-1 flex-grow-1">
               </div>
@@ -110,26 +110,26 @@ const CryptoPunks = {
                 <b-form-select size="sm" v-model="settings.ownersSortOption" :options="ownersSortOptions" class="w-100"></b-form-select>
               </div>
               <div v-if="settings.tabIndex == 1" class="mt-2 pr-1">
-                <b-button size="sm" :pressed.sync="settings.randomise" @click="settings.sortOption = 'random'; " variant="link" v-b-popover.hover.bottom="'Randomise'"><b-icon-shuffle shift-v="-1" font-scale="1.2"></b-icon-shuffle></b-button>
+                <b-button size="sm" :pressed.sync="settings.randomise" @click="settings.sortOption = 'random'; " variant="link" v-b-popover.hover.top="'Randomise'"><b-icon-shuffle shift-v="-1" font-scale="1.2"></b-icon-shuffle></b-button>
               </div>
               <div v-if="settings.tabIndex == 2" class="mt-2 pr-1">
-                <b-button size="sm" :pressed.sync="settings.randomise" @click="settings.ownersSortOption = 'random'; " variant="link" v-b-popover.hover.bottom="'Randomise'"><b-icon-shuffle shift-v="-1" font-scale="1.2"></b-icon-shuffle></b-button>
+                <b-button size="sm" :pressed.sync="settings.randomise" @click="settings.ownersSortOption = 'random'; " variant="link" v-b-popover.hover.top="'Randomise'"><b-icon-shuffle shift-v="-1" font-scale="1.2"></b-icon-shuffle></b-button>
               </div>
 
               <div v-if="settings.tabIndex == 0" class="mt-2 pl-1">
-                <b-form-select size="sm" v-model="settings.activityMaxItems" :options="activityMaxItemsOptions" v-b-popover.hover.bottom="'Max items to display'"></b-form-select>
+                <b-form-select size="sm" v-model="settings.activityMaxItems" :options="activityMaxItemsOptions" v-b-popover.hover.top="'Max items to display'"></b-form-select>
               </div>
               <div v-if="settings.tabIndex == 3" class="mt-2 pl-1">
-                <b-form-select size="sm" v-model="settings.chartPeriod" :options="chartPeriodOptions" v-b-popover.hover.bottom="'Charting period'"></b-form-select>
+                <b-form-select size="sm" v-model="settings.chartPeriod" :options="chartPeriodOptions" v-b-popover.hover.top="'Charting period'"></b-form-select>
               </div>
               <div v-if="settings.tabIndex == 1" class="mt-2 pl-1">
-                <b-form-select size="sm" v-model="settings.pageSize" :options="pageSizes" v-b-popover.hover.bottom="'Page size'"></b-form-select>
+                <b-form-select size="sm" v-model="settings.pageSize" :options="pageSizes" v-b-popover.hover.top="'Page size'"></b-form-select>
               </div>
               <div v-if="settings.tabIndex == 2" class="mt-2 pl-1">
-                <b-form-select size="sm" v-model="settings.ownersPageSize" :options="pageSizes" v-b-popover.hover.bottom="'Page size'"></b-form-select>
+                <b-form-select size="sm" v-model="settings.ownersPageSize" :options="pageSizes" v-b-popover.hover.top="'Page size'"></b-form-select>
               </div>
               <div class="mt-2 pl-1">
-                <b-button size="sm" v-b-toggle.sidebar-1 variant="link" v-b-popover.hover.bottom="'Filter by Attributes'"><b-icon-filter-right shift-v="-1" font-scale="1.4"></b-icon-filter-right></b-button>
+                <b-button size="sm" v-b-toggle.sidebar-1 variant="link" v-b-popover.hover.top="'Filter by Attributes'"><b-icon-filter-right shift-v="-1" font-scale="1.4"></b-icon-filter-right></b-button>
               </div>
             </div>
 
@@ -546,12 +546,12 @@ const CryptoPunks = {
       ],
 
       chartPeriodOptions: [
-        { value: '1d', text: '1 Day' },
-        { value: '1w', text: '1 Week' },
-        { value: '1m', text: '1 Month' },
-        { value: '3m', text: '3 Months' },
-        { value: '6m', text: '6 Months' },
-        { value: '1y', text: '1 Year' },
+        { value: '1d', text: '1d' },
+        { value: '1w', text: '1w' },
+        { value: '1m', text: '1m' },
+        { value: '3m', text: '3m' },
+        { value: '6m', text: '6m' },
+        { value: '1y', text: '1y' },
         { value: 'all', text: 'All' },
       ],
       chartAttributeFilter: {

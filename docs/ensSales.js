@@ -25,47 +25,47 @@ const ENSSales = {
             <!-- Main Toolbar -->
             <div class="d-flex flex-wrap m-0 p-0">
               <div class="mt-1" style="max-width: 150px;">
-                <b-form-input type="text" size="sm" :value="filter.searchString" @change="updateFilter('searchString', $event)" debounce="600" v-b-popover.hover.bottom="'Poweruser regex, or simple search string'" placeholder="🔍 {regex}"></b-form-input>
+                <b-form-input type="text" size="sm" :value="filter.searchString" @change="updateFilter('searchString', $event)" debounce="600" v-b-popover.hover.top="'Poweruser regex, or simple search string'" placeholder="🔍 {regex}"></b-form-input>
               </div>
               <div class="mt-1 pl-1" style="max-width: 150px;">
-                <b-form-input type="text" size="sm" :value="filter.searchAccounts" @change="updateFilter('searchAccounts', $event)" debounce="600" v-b-popover.hover.bottom="'List of account search strings'" placeholder="🔍 0x12... ..."></b-form-input>
+                <b-form-input type="text" size="sm" :value="filter.searchAccounts" @change="updateFilter('searchAccounts', $event)" debounce="600" v-b-popover.hover.top="'List of account search strings'" placeholder="🔍 0x12... ..."></b-form-input>
               </div>
               <div class="mt-1 pl-1" style="max-width: 80px;">
-                <b-form-input type="text" size="sm" :value="filter.priceFrom" @change="updateFilter('priceFrom', $event)" debounce="600" v-b-popover.hover.bottom="'Price from, ETH'" placeholder="min"></b-form-input>
+                <b-form-input type="text" size="sm" :value="filter.priceFrom" @change="updateFilter('priceFrom', $event)" debounce="600" v-b-popover.hover.top="'Price from, ETH'" placeholder="min"></b-form-input>
               </div>
               <div class="mt-1">
                 -
               </div>
               <div class="mt-1 pr-1" style="max-width: 80px;">
-                <b-form-input type="text" size="sm" :value="filter.priceTo" @change="updateFilter('priceTo', $event)" debounce="600" v-b-popover.hover.bottom="'Price to, ETH'" placeholder="max"></b-form-input>
+                <b-form-input type="text" size="sm" :value="filter.priceTo" @change="updateFilter('priceTo', $event)" debounce="600" v-b-popover.hover.top="'Price to, ETH'" placeholder="max"></b-form-input>
               </div>
               <div class="mt-1 pr-1 flex-grow-1">
               </div>
               <div class="mt-1 pr-1">
                 <b-input-group class="mb-2" style="height: 0;">
                   <template #append>
-                    <b-button size="sm" :pressed.sync="settings.syncToolbar" variant="outline-primary" v-b-popover.hover.bottom="'Sync settings'"><span v-if="settings.syncToolbar"><b-icon-gear-fill shift-v="+1" font-scale="1.0"></b-icon-gear-fill></span><span v-else><b-icon-gear shift-v="+1" font-scale="1.0"></b-icon-gear></span></b-button>
+                    <b-button size="sm" :pressed.sync="settings.syncToolbar" variant="outline-primary" v-b-popover.hover.top="'Sync settings'"><span v-if="settings.syncToolbar"><b-icon-gear-fill shift-v="+1" font-scale="1.0"></b-icon-gear-fill></span><span v-else><b-icon-gear shift-v="+1" font-scale="1.0"></b-icon-gear></span></b-button>
                   </template>
-                  <b-button v-if="!sync.inProgress" size="sm" @click="loadSales('partial')" variant="primary" v-b-popover.hover.bottom="'Partial Sync'" style="min-width: 80px; ">Sync</b-button>
-                  <b-button v-if="sync.inProgress" size="sm" @click="halt" variant="primary" v-b-popover.hover.bottom="'Halt'" style="min-width: 80px; ">Syncing</b-button>
+                  <b-button v-if="!sync.inProgress" size="sm" @click="loadSales('partial')" variant="primary" v-b-popover.hover.top="'Partial Sync'" style="min-width: 80px; ">Sync</b-button>
+                  <b-button v-if="sync.inProgress" size="sm" @click="halt" variant="primary" v-b-popover.hover.top="'Halt'" style="min-width: 80px; ">Syncing</b-button>
                 </b-input-group>
               </div>
               <div class="mt-1 pr-1 flex-grow-1">
               </div>
               <div v-if="settings.tabIndex == 0" class="mt-1 pr-1">
-                <b-button size="sm" @click="exportSales" :disabled="filteredSortedSales.length == 0" variant="link" v-b-popover.hover.bottom="'Export to CSV for easy import into a spreadsheet'">Export</b-button>
+                <b-button size="sm" @click="exportSales" :disabled="filteredSortedSales.length == 0" variant="link" v-b-popover.hover.top="'Export to CSV for easy import into a spreadsheet'">Export</b-button>
               </div>
               <div v-if="settings.tabIndex == 0" class="mt-1 pr-1">
-                <b-form-select size="sm" v-model="settings.sortOption" :options="sortOptions" v-b-popover.hover.bottom="'Yeah. Sort'"></b-form-select>
+                <b-form-select size="sm" v-model="settings.sortOption" :options="sortOptions" v-b-popover.hover.top="'Yeah. Sort'"></b-form-select>
               </div>
               <div v-if="settings.tabIndex == 0" class="mt-1 pr-1">
-                <font size="-2" v-b-popover.hover.bottom="formatTimestamp(earliestEntry) + ' to ' + formatTimestamp(latestEntry)">{{ filteredSortedSales.length }}</font>
+                <font size="-2" v-b-popover.hover.top="formatTimestamp(earliestEntry) + ' to ' + formatTimestamp(latestEntry)">{{ filteredSortedSales.length }}</font>
               </div>
               <div v-if="settings.tabIndex == 0" class="mt-1 pr-1">
                 <b-pagination size="sm" v-model="settings.currentPage" :total-rows="filteredSortedSales.length" :per-page="settings.pageSize" style="height: 0;"></b-pagination>
               </div>
               <div v-if="settings.tabIndex == 0" class="mt-1">
-                <b-form-select size="sm" v-model="settings.pageSize" :options="pageSizes" v-b-popover.hover.bottom="'Page size'"></b-form-select>
+                <b-form-select size="sm" v-model="settings.pageSize" :options="pageSizes" v-b-popover.hover.top="'Page size'"></b-form-select>
               </div>
             </div>
 
@@ -305,12 +305,14 @@ const ENSSales = {
       ],
 
       periods: [
-        { value: { term: 7, termType: "days" }, text: '1 Week' },
-        { value: { term: 14, termType: "days" }, text: '2 Weeks' },
-        { value: { term: 1, termType: "month" }, text: '1 Month' },
-        { value: { term: 2, termType: "month" }, text: '2 Months' },
-        { value: { term: 3, termType: "month" }, text: '3 Months' },
-        { value: { term: 1, termType: "year" }, text: '1 Year' },
+        { value: { term: 7, termType: "days" }, text: '1w' },
+        { value: { term: 14, termType: "days" }, text: '2w' },
+        { value: { term: 21, termType: "days" }, text: '3w' },
+        { value: { term: 1, termType: "month" }, text: '1m' },
+        { value: { term: 2, termType: "month" }, text: '2m' },
+        { value: { term: 3, termType: "month" }, text: '3m' },
+        { value: { term: 6, termType: "month" }, text: '6m' },
+        { value: { term: 1, termType: "year" }, text: '1y' },
       ],
 
       salesFields: [

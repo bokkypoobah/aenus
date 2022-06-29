@@ -161,19 +161,19 @@ const ENSSearch = {
             <!-- Results Toolbar -->
             <div v-if="Object.keys(searchResults).length > 0" class="d-flex flex-wrap m-0 p-0" style="min-height: 37px;">
               <div v-if="settings.resultsTabIndex != 4" class="mt-2" style="max-width: 150px;">
-                <b-form-input type="text" size="sm" v-model.trim="settings.filter" debounce="600" v-b-popover.hover.bottom="'Filter by regular expression'" placeholder="🔍 {regex}"></b-form-input>
+                <b-form-input type="text" size="sm" v-model.trim="settings.filter" debounce="600" v-b-popover.hover.top="'Filter by regular expression'" placeholder="🔍 {regex}"></b-form-input>
               </div>
               <div v-if="settings.resultsTabIndex != 4" class="mt-2 pl-2" style="max-width: 150px;">
-                <b-form-input type="text" size="sm" v-model.trim="settings.filterAccount" debounce="600" v-b-popover.hover.bottom="'Filter by list of registrant addresses'" placeholder="🔍 0x12... ..."></b-form-input>
+                <b-form-input type="text" size="sm" v-model.trim="settings.filterAccount" debounce="600" v-b-popover.hover.top="'Filter by list of registrant addresses'" placeholder="🔍 0x12... ..."></b-form-input>
               </div>
               <div v-if="settings.resultsTabIndex != 4" class="mt-2 pl-2" style="max-width: 80px;">
-                <b-form-input type="text" size="sm" v-model.trim="settings.priceFrom" debounce="600" v-b-popover.hover.bottom="'ETH from'" placeholder="min"></b-form-input>
+                <b-form-input type="text" size="sm" v-model.trim="settings.priceFrom" debounce="600" v-b-popover.hover.top="'ETH from'" placeholder="min"></b-form-input>
               </div>
               <div v-if="settings.resultsTabIndex != 4" class="mt-2">
                 -
               </div>
               <div v-if="settings.resultsTabIndex != 4" class="mt-2 pr-2" style="max-width: 80px;">
-                <b-form-input type="text" size="sm" v-model.trim="settings.priceTo" debounce="600" v-b-popover.hover.bottom="'ETH to'" placeholder="max"></b-form-input>
+                <b-form-input type="text" size="sm" v-model.trim="settings.priceTo" debounce="600" v-b-popover.hover.top="'ETH to'" placeholder="max"></b-form-input>
               </div>
               <div v-if="settings.resultsTabIndex != 4" class="mt-2 pl-1">
                 <font size="-2">{{ filteredResults.length }}/{{ Object.keys(searchResults).length }}</font>
@@ -184,7 +184,7 @@ const ENSSearch = {
                 <b-form-select size="sm" v-model="settings.sortOption" :options="sortOptions" class="w-100"></b-form-select>
               </div>
               <div v-if="settings.resultsTabIndex != 4 && settings.resultsTabIndex != 5" class="mt-2 pl-1">
-                <b-button size="sm" :pressed.sync="settings.randomise" @click="settings.sortOption = 'random'; " variant="link" v-b-popover.hover.bottom="'Randomise'"><b-icon-arrow-clockwise shift-v="-1" font-scale="1.4"></b-icon-arrow-clockwise></b-button>
+                <b-button size="sm" :pressed.sync="settings.randomise" @click="settings.sortOption = 'random'; " variant="link" v-b-popover.hover.top="'Randomise'"><b-icon-arrow-clockwise shift-v="-1" font-scale="1.4"></b-icon-arrow-clockwise></b-button>
               </div>
               <div v-if="settings.resultsTabIndex != 4" class="mt-2 pl-1">
                 <b-button size="sm" @click="exportNames" :disabled="Object.keys(searchResults).length == 0" variant="link">Export</b-button>

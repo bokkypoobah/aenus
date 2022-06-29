@@ -16,10 +16,10 @@ const NFTs = {
               <!-- Main Toolbar -->
               <div class="d-flex flex-wrap m-0 p-0">
                 <div v-if="settings.tabIndex == 0" class="mt-1" style="width: 380px;">
-                  <b-form-input type="text" size="sm" :value="filter.collection.address" @change="updateCollectionFilter('collection.address', $event)" debounce="600" v-b-popover.hover.bottom="'Collection address'" placeholder="{ERC-721 contract 0xaddy}"></b-form-input>
+                  <b-form-input type="text" size="sm" :value="filter.collection.address" @change="updateCollectionFilter('collection.address', $event)" debounce="600" v-b-popover.hover.top="'Collection address'" placeholder="{ERC-721 address}"></b-form-input>
                 </div>
                 <div v-if="settings.tabIndex == 0" class="mt-1 pl-1">
-                  <b-dropdown size="sm"  variant="link" toggle-class="text-decoration-none" no-caret>
+                  <b-dropdown size="sm"  variant="link" toggle-class="text-decoration-none" no-caret v-b-popover.hover.top="'Some ERC-721 collections'">
                     <template #button-content>
                       ▼ <span class="sr-only">Presets</span>
                     </template>
@@ -40,14 +40,14 @@ const NFTs = {
                   <b-button size="sm" @click="updateCollection('sync')" :disabled="sync.inProgress || !powerOn || network.chainId != 1" variant="primary">Sync</b-button>
                 </div>
                 <div v-if="settings.tabIndex == 1" class="mt-1" style="max-width: 170px;">
-                  <b-form-input type="text" size="sm" :value="filter.searchString" @change="updateMintMonitorFilter('searchString', $event)" debounce="600" v-b-popover.hover.bottom="'Search by collection symbol, name or address'" placeholder="🔍 {symbol|name|addy}"></b-form-input>
+                  <b-form-input type="text" size="sm" :value="filter.searchString" @change="updateMintMonitorFilter('searchString', $event)" debounce="600" v-b-popover.hover.top="'Search by collection symbol, name or address'" placeholder="🔍 {symbol|name|addy}"></b-form-input>
                 </div>
 
                 <div class="mt-1 flex-grow-1">
                 </div>
 
                 <div v-if="settings.tabIndex == 1" class="mt-1 pl-1">
-                  <b-form-select size="sm" :value="filter.scanBlocks" :options="scanBlocksOptions" @change="updateMintMonitorFilter('scanBlocks', $event)" :disabled="sync.inProgress" v-b-popover.hover.bottom="'Number of blocks to scan'"></b-form-select>
+                  <b-form-select size="sm" :value="filter.scanBlocks" :options="scanBlocksOptions" @change="updateMintMonitorFilter('scanBlocks', $event)" :disabled="sync.inProgress" v-b-popover.hover.top="'Number of blocks to scan'"></b-form-select>
                 </div>
                 <div v-if="settings.tabIndex == 1" class="mt-1 pl-1">
                   <b-button size="sm" @click="monitorMints('scanLatest')" :disabled="sync.inProgress || !powerOn || network.chainId != 1" variant="primary" style="min-width: 80px; ">{{ 'Scan Latest ' + filter.scanBlocks + ' Blocks' }}</b-button>
@@ -57,55 +57,55 @@ const NFTs = {
                 </div>
 
                 <div v-if="settings.tabIndex == 0 || settings.tabIndex == 1" class="mt-2" style="width: 200px;">
-                  <b-progress v-if="sync.inProgress" height="1.5rem" :max="sync.total" :label="'((sync.completed/sync.total)*100).toFixed(2) + %'" show-progress :animated="sync.inProgress" :variant="sync.inProgress ? 'success' : 'secondary'" v-b-popover.hover.bottom="'Click on the Sync(ing) button to (un)pause'">
+                  <b-progress v-if="sync.inProgress" height="1.5rem" :max="sync.total" :label="'((sync.completed/sync.total)*100).toFixed(2) + %'" show-progress :animated="sync.inProgress" :variant="sync.inProgress ? 'success' : 'secondary'" v-b-popover.hover.top="'Click on the Sync(ing) button to (un)pause'">
                     <b-progress-bar :value="sync.completed">
                       {{ sync.completed + '/' + sync.total + ' ' + ((sync.completed / sync.total) * 100).toFixed(0) + '%' }}
                     </b-progress-bar>
                   </b-progress>
                 </div>
                 <div v-if="settings.tabIndex == 0 || settings.tabIndex == 1" class="ml-0 mt-1">
-                  <b-button v-if="sync.inProgress" size="sm" @click="halt" variant="link" v-b-popover.hover.bottom="'Halt'"><b-icon-stop-fill shift-v="+1" font-scale="1.0"></b-icon-stop-fill></b-button>
+                  <b-button v-if="sync.inProgress" size="sm" @click="halt" variant="link" v-b-popover.hover.top="'Halt'"><b-icon-stop-fill shift-v="+1" font-scale="1.0"></b-icon-stop-fill></b-button>
                 </div>
 
                 <div class="mt-1 flex-grow-1">
                 </div>
 
                 <div v-if="settings.tabIndex == 1" class="mt-1">
-                  <b-button size="sm" :pressed.sync="settings.datetimeToolbar" variant="link" v-b-popover.hover.bottom="'Select by UTC date & time'"><span v-if="settings.datetimeToolbar"><b-icon-calendar3-fill shift-v="+1" font-scale="1.0"></b-icon-calendar3-fill></span><span v-else><b-icon-calendar3 shift-v="+1" font-scale="1.0"></b-icon-calendar3></span></b-button>
+                  <b-button size="sm" :pressed.sync="settings.datetimeToolbar" variant="link" v-b-popover.hover.top="'Select by UTC date & time'"><span v-if="settings.datetimeToolbar"><b-icon-calendar3-fill shift-v="+1" font-scale="1.0"></b-icon-calendar3-fill></span><span v-else><b-icon-calendar3 shift-v="+1" font-scale="1.0"></b-icon-calendar3></span></b-button>
                 </div>
                 <div v-if="settings.tabIndex == 1" class="mt-1" style="max-width: 100px;">
-                  <b-form-input type="text" size="sm" :value="filter.startBlockNumber" @change="updateMintMonitorFilter('startBlockNumber', $event)" debounce="600" v-b-popover.hover.bottom="'Search from block number'" placeholder="from"></b-form-input>
+                  <b-form-input type="text" size="sm" :value="filter.startBlockNumber" @change="updateMintMonitorFilter('startBlockNumber', $event)" debounce="600" v-b-popover.hover.top="'Search from block number'" placeholder="from"></b-form-input>
                 </div>
                 <div v-if="settings.tabIndex == 1" class="mt-1">
                   -
                 </div>
                 <div v-if="settings.tabIndex == 1" class="mt-1" style="max-width: 100px;">
-                  <b-form-input type="text" size="sm" :value="filter.endBlockNumber" @change="updateMintMonitorFilter('endBlockNumber', $event)" debounce="600" v-b-popover.hover.bottom="'Search to block number'" placeholder="to"></b-form-input>
+                  <b-form-input type="text" size="sm" :value="filter.endBlockNumber" @change="updateMintMonitorFilter('endBlockNumber', $event)" debounce="600" v-b-popover.hover.top="'Search to block number'" placeholder="to"></b-form-input>
                 </div>
 
                 <div v-if="settings.tabIndex == 1" class="mt-1 pl-1">
                   <b-button size="sm" @click="monitorMints('scan')" :disabled="sync.inProgress || !powerOn || network.chainId != 1 || filter.startBlockNumber == null || filter.endBlockNumber == null" variant="primary" style="min-width: 80px; ">Scan</b-button>
                 </div>
                 <div v-if="settings.tabIndex == 1" class="mt-2 pl-1">
-                  <b-link size="sm" :to="getURL" v-b-popover.hover.bottom="'Share this link for the same search'" ><font size="-1">Share</font></b-link>
+                  <b-link size="sm" :to="getURL" v-b-popover.hover.top="'Share this link for the same search'" ><font size="-1">Share</font></b-link>
                 </div>
 
                 <div class="mt-1 flex-grow-1">
                 </div>
                 <div v-if="settings.tabIndex == 0" class="mt-1 pr-1">
-                  <b-form-select size="sm" v-model="settings.collection.sortOption" :options="sortOptions" v-b-popover.hover.bottom="'Yeah. Sort'"></b-form-select>
+                  <b-form-select size="sm" v-model="settings.collection.sortOption" :options="sortOptions" v-b-popover.hover.top="'Yeah. Sort'"></b-form-select>
                 </div>
                 <div v-if="settings.tabIndex == 0" class="mt-1 pr-1">
-                  <font size="-2" v-b-popover.hover.bottom="'Blah'">{{ filteredSortedCollectionTokens.length }}</font>
+                  <font size="-2" v-b-popover.hover.top="'Blah'">{{ filteredSortedCollectionTokens.length }}</font>
                 </div>
                 <div v-if="settings.tabIndex == 0" class="mt-1 pr-1">
                   <b-pagination size="sm" v-model="settings.collection.currentPage" :total-rows="filteredSortedCollectionTokens.length" :per-page="settings.collection.pageSize" style="height: 0;"></b-pagination>
                 </div>
                 <div v-if="settings.tabIndex == 0" class="mt-1 pl-1">
-                  <b-form-select size="sm" v-model="settings.collection.pageSize" :options="pageSizes" v-b-popover.hover.bottom="'Page size'"></b-form-select>
+                  <b-form-select size="sm" v-model="settings.collection.pageSize" :options="pageSizes" v-b-popover.hover.top="'Page size'"></b-form-select>
                 </div>
                 <div v-if="settings.tabIndex == 1" class="mt-1 pl-1">
-                  <b-form-select size="sm" v-model="settings.activityMaxItems" :options="activityMaxItemsOptions" v-b-popover.hover.bottom="'Max items to display'"></b-form-select>
+                  <b-form-select size="sm" v-model="settings.activityMaxItems" :options="activityMaxItemsOptions" v-b-popover.hover.top="'Max items to display'"></b-form-select>
                 </div>
               </div>
 
