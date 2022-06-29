@@ -464,7 +464,7 @@ const CryptoPunks = {
         ownersPageSize: 100,
         ownersSortOption: 'countdsc',
 
-        chartPeriod: '3m',
+        chartPeriod: { term: 3, termType: "month" },
         chartAttribute: "eyes", // null,
         chartDisplayRemainder: true, // null,
         chartMinAmount: 1,
@@ -546,13 +546,16 @@ const CryptoPunks = {
       ],
 
       chartPeriodOptions: [
-        { value: '1d', text: '1dy' },
-        { value: '1w', text: '1wk' },
-        { value: '1m', text: '1mo' },
-        { value: '3m', text: '3mo' },
-        { value: '6m', text: '6mo' },
-        { value: '1y', text: '1yr' },
-        { value: 'all', text: 'All' },
+        { value: { term: 1, termType: "days" }, text: '1dy' },
+        { value: { term: 7, termType: "days" }, text: '1wk' },
+        { value: { term: 14, termType: "days" }, text: '2wk' },
+        { value: { term: 21, termType: "days" }, text: '3wk' },
+        { value: { term: 1, termType: "month" }, text: '1mo' },
+        { value: { term: 2, termType: "month" }, text: '2mo' },
+        { value: { term: 3, termType: "month" }, text: '3mo' },
+        { value: { term: 6, termType: "month" }, text: '6mo' },
+        { value: { term: 1, termType: "year" }, text: '1yr' },
+        { value: { term: 10, termType: "year" }, text: '10yr' },
       ],
       chartAttributeFilter: {
         "3d-glasses": true,
@@ -1253,21 +1256,8 @@ const CryptoPunks = {
       const maxAmount = this.settings.chartMaxAmount && parseFloat(this.settings.chartMaxAmount) >= 0 ? parseFloat(this.settings.chartMaxAmount) : 1000000;
 
       const toTimestamp = new Date()/1000;
-      let days = 1;
-      if (this.settings.chartPeriod == '1dy') {
-        days = 1;
-      } else if (this.settings.chartPeriod == '1wk') {
-        days = 7;
-      } else if (this.settings.chartPeriod == '1mo') {
-        days = 31;
-      } else if (this.settings.chartPeriod == '3mo') {
-        days = 92;
-      } else if (this.settings.chartPeriod == '1yr') {
-        days = 366;
-      } else if (this.settings.chartPeriod == 'all') {
-        days = 10000;
-      }
-      const fromTimestamp = toTimestamp - days * 24 * 60 * 60;
+      const fromTimestamp = moment.unix(toTimestamp).utc().subtract(this.settings.chartPeriod.term, this.settings.chartPeriod.termType).unix();
+      console.log("fromTimestamp: " + fromTimestamp + " " + moment.unix(fromTimestamp).utc().format());
       const series = [];
 
       console.log("chartAttributeFilter: " + JSON.stringify(this.chartAttributeFilter, null, 2));
@@ -1318,28 +1308,10 @@ const CryptoPunks = {
       const minAmount = this.settings.chartMinAmount && parseFloat(this.settings.chartMinAmount) >= 0 ? parseFloat(this.settings.chartMinAmount) : 0;
       const maxAmount = this.settings.chartMaxAmount && parseFloat(this.settings.chartMaxAmount) >= 0 ? parseFloat(this.settings.chartMaxAmount) : 1000000;
       console.log("chartData1 - minAmount: " + minAmount + ", maxAmount: " + maxAmount);
-      // var check = moment().utc().hours(DEFAULTEXPIRYUTCHOUR).minutes(0).seconds(0);
-      // var day0 = moment().utc().add(check.valueOf() < moment() ? 1 : 0, 'd').hours(DEFAULTEXPIRYUTCHOUR).minutes(0).seconds(0);
 
       const now = moment().unix();
       console.log("now: " + now + " " + moment.unix(now).utc().format());
-      // console.log("now: " + now + " " + moment().unix(now).format());
-      let beginPeriod;
-      if (this.settings.chartPeriod == '1d') {
-
-      } else if (this.settings.chartPeriod == '1wk') {
-        beginPeriod = moment.unix(now).utc().startOf('day').subtract(7, 'd').unix();
-      } else if (this.settings.chartPeriod == '1mo') {
-        beginPeriod = moment.unix(now).utc().startOf('day').subtract(1, 'month').unix();
-      } else if (this.settings.chartPeriod == '3mo') {
-        beginPeriod = moment.unix(now).utc().startOf('day').subtract(3, 'month').unix();
-      } else if (this.settings.chartPeriod == '6mo') {
-        beginPeriod = moment.unix(now).utc().startOf('day').subtract(6, 'month').unix();
-      } else if (this.settings.chartPeriod == '1yr') {
-        beginPeriod = moment.unix(now).utc().startOf('day').subtract(1, 'year').unix();
-      } else if (this.settings.chartPeriod == 'all') {
-        beginPeriod = moment.unix(now).utc().startOf('day').subtract(10, 'year').unix();
-      }
+      const beginPeriod = moment.unix(now).utc().subtract(this.settings.chartPeriod.term, this.settings.chartPeriod.termType).unix();
       console.log("beginPeriod: " + beginPeriod + " " + moment.unix(beginPeriod).utc().format());
 
       const collator = {};
