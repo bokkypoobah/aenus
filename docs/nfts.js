@@ -35,7 +35,8 @@ const NFTs = {
                       <b-dropdown-item @click="filter.collection.address = '0x7c40c393dc0f283f318791d746d894ddd3693572'">Aug 09 Wrapped MoonCatsRescue - Unofficial (wrapped)</b-dropdown-item>
                       <b-dropdown-item @click="filter.collection.address = '0x7bb952ab78b28a62b1525aca54a71e7aa6177645'">Aug 27 Thousand Ether Homepage (wrapped)</b-dropdown-item>
                       <b-dropdown-item @click="filter.collection.address = '0x80f1ed6a1ac694317dc5719db099a440627d1ea7'">Aug 29 IKB Cachet de Garantie (wrapped)</b-dropdown-item>
-                      <b-dropdown-item @click="filter.collection.address = '0x5F53f9f5DcF76757f7CbF35C2e47164C65b9b5eD'">Oct 05 Wrapped Historic DADA (wrapped)</b-dropdown-item>
+                      <b-dropdown-item @click="filter.collection.address = '0x5F53f9f5DcF76757f7CbF35C2e47164C65b9b5eD'">Oct 05 Wrapped Historic DADA (wrapped, dyor)</b-dropdown-item>
+                      <b-dropdown-item @click="filter.collection.address = '0x34d77a17038491a2a9eaa6e690b7c7cd39fc8392'">Oct 05 Dada Collectible (wrapped, dyor)</b-dropdown-item>
                       <b-dropdown-item @click="filter.collection.address = '0x06012c8cf97BEaD5deAe237070F9587f8E7A266d'">Nov 23 CryptoKitties (large data set, not working)</b-dropdown-item>
                       <b-dropdown-item @click="filter.collection.address = '0xd0e7bc3f1efc5f098534bce73589835b8273b9a0'">Dec 24 Wrapped CryptoCats Official</b-dropdown-item>
                     </b-dropdown-group>
