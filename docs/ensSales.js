@@ -366,7 +366,7 @@ const ENSSales = {
           // min: this.chartYaxisMin,
           // max: this.chartYaxisMax,
           labels: {
-            formatter: value => parseFloat(value),
+            formatter: value => parseFloat(value).toFixed(2),
           },
         },
       },
@@ -450,7 +450,7 @@ const ENSSales = {
             // min: this.chartYaxisMin,
             // max: this.chartYaxisMax,
             labels: {
-              formatter: value => parseFloat(value),
+              formatter: value => parseFloat(value).toFixed(2),
             },
           },
           {
@@ -464,7 +464,7 @@ const ENSSales = {
             // min: this.chartYaxisMin,
             // max: this.chartYaxisMax,
             labels: {
-              formatter: value => parseFloat(value),
+              formatter: value => parseFloat(value).toFixed(2),
             },
             opposite: true,
             axisTicks: {
@@ -486,7 +486,7 @@ const ENSSales = {
             // min: this.chartYaxisMin,
             // max: this.chartYaxisMax,
             labels: {
-              formatter: value => parseFloat(value),
+              formatter: value => parseFloat(value).toFixed(2),
             },
             opposite: true,
             axisTicks: {
