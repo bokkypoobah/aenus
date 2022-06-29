@@ -450,7 +450,7 @@ const ENSSales = {
             // min: this.chartYaxisMin,
             // max: this.chartYaxisMax,
             labels: {
-              formatter: value => parseFloat(value).toFixed(2),
+              formatter: value => parseInt(value),
             },
           },
           {

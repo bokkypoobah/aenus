@@ -44,10 +44,10 @@ const Welcome = {
                   Data source <b-link href="https://thegraph.com/hosted-service/subgraph/ensdomains/ens" target="_blank">ENS Subgraph</b-link> and <b-link href="https://api.reservoir.tools/#/1.%20Order%20Book/getOrdersAllV1" target="_blank">Reservoir API</b-link>.
                 </li>
                 <li>
-                  You can search for simple strings in the <code>{regex}</code> fields, or use regular expressions. Here's a list of useful regex patterns:
+                  Use simple search strings in the <code>{regex}</code> fields, or use regular expressions like:
                   <ul>
                     <li>
-                      <code>^[0-9]{3}$</code> 3 digits; <code>^0[0-9]{2}$</code> early 3 digits; <code>^([0-9])[0-9]\\1$</code> 3 digit palindromes
+                      <code>^[0-9]{3}$</code> 3 digits; <code>^0[0-9]{2}$</code> early 3 digits; <code>^([0-9])[0-9]\\1$</code> 3 digit palindromes; <code>^[0-9]{3,5}$</code> for 3 to 5 digits
                     </li>
                     <li>
                       <code>^[0-9]{4}$</code> 4 digits; <code>^00[0-9]{2}$</code> early 4 digits; <code>^([0-9])([0-9])\\2\\1$</code> 4 digit palindromes
@@ -56,7 +56,10 @@ const Welcome = {
                       <code>^[0-9]{5}$</code> 5 digits; <code>^000[0-9]{2}$</code> early 5 digits; <code>^([0-9])([0-9])[0-9]\\2\\1$</code> 5 digit palindromes
                     </li>
                     <li>
-                      <code>^[0-9]{6}$</code> 6 digits; <code>^0000[0-9]{2}$</code> early 6 digits; <code>^([0-9])([0-9])([0-9])\\3\\2\\1$</code> 6 digit palindromes
+                      <code>^([0-9])\\1[0-9]\\1\\1$</code> and <code>^([0-9])([0-9])\\1\\2\\1$</code> 5 digit palindromes with 2 unique digits.
+                    </li>
+                    <li>
+                      <code>^[0-9]{6}$</code> 6 digits; <code>^000[0-9]{3}$</code> early 6 digits; <code>^([0-9])([0-9])([0-9])\\3\\2\\1$</code> 6 digit palindromes
                     </li>
                     <li>
                       <code>^[a-z]{3}$</code> 3 alphas; <code>^([a-z])[a-z]\\1$</code> 3 alpha palindromes
