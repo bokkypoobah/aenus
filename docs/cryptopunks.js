@@ -21,7 +21,7 @@ const CryptoPunks = {
           </b-tabs>
 
           <!-- Sidebar filter -->
-          <b-card-body class="m-1 p-1">
+          <b-card-body class="m-0 p-1">
             <div>
               <b-sidebar id="sidebar-1" width="360px" title="Filter By Attributes" right shadow no-header-close header-class="m-0 p-0">
                 <template v-slot:title="{ hide }">
@@ -60,89 +60,89 @@ const CryptoPunks = {
 
             <!-- Toolbar -->
             <div class="d-flex flex-wrap m-0 p-0" style="min-height: 37px;">
-              <div class="mt-2" style="max-width: 150px;">
+              <div class="mt-1" style="max-width: 150px;">
                 <b-form-input type="text" size="sm" v-model.trim="settings.searchString" debounce="600" v-b-popover.hover.top="'Filter by list of punkIds'" placeholder="🔍 id1 id2-id3 ..."></b-form-input>
               </div>
-              <div class="mt-2 pl-2" style="max-width: 150px;">
+              <div class="mt-1 pl-2" style="max-width: 150px;">
                 <b-form-input type="text" size="sm" v-model.trim="settings.searchAccounts" debounce="600" v-b-popover.hover.top="'Filter by list of owner addresses. Partial matching'" placeholder="🔍 0x12... ..."></b-form-input>
               </div>
-              <div class="mt-2 pl-2" style="max-width: 80px;">
+              <div class="mt-1 pl-2" style="max-width: 80px;">
                 <b-form-input type="text" size="sm" v-model.trim="settings.priceFrom" debounce="600" v-b-popover.hover.top="'ETH from'" placeholder="min"></b-form-input>
               </div>
-              <div class="mt-2">
+              <div class="mt-1">
                 -
               </div>
-              <div class="mt-2 pr-2" style="max-width: 80px;">
+              <div class="mt-1 pr-2" style="max-width: 80px;">
                 <b-form-input type="text" size="sm" v-model.trim="settings.priceTo" debounce="600" v-b-popover.hover.top="'ETH to'" placeholder="max"></b-form-input>
               </div>
-              <div class="mt-2 pr-1 flex-grow-1">
+              <div class="mt-1 pr-1 flex-grow-1">
               </div>
-              <div class="mt-2 pl-1">
+              <div class="mt-1 pl-1">
                 <b-dropdown v-if="message == null" split size="sm" text="Sync" @click="loadPunks('partial')" variant="primary" v-b-popover.hover.top="'Partial Sync'">
                   <b-dropdown-item @click="loadPunks('full')">Full Sync</b-dropdown-item>
                   <!-- <b-dropdown-item @click="searchLogs()">Search Event Logs (WIP)</b-dropdown-item> -->
                 </b-dropdown>
                 <b-button v-if="message != null" size="sm" @click="halt" variant="primary" v-b-popover.hover.top="'Halt'" >{{ message }}</b-button>
               </div>
-              <div class="mt-2 pr-1 flex-grow-1">
+              <div class="mt-1 pr-1 flex-grow-1">
               </div>
-              <div v-if="settings.tabIndex == 1" class="mt-2 pl-1">
+              <div v-if="settings.tabIndex == 1" class="mt-1 pl-1">
                 <font size="-2">{{ filteredSortedResults.length }}</font>
               </div>
-              <div v-if="settings.tabIndex == 2" class="mt-2 pl-1">
+              <div v-if="settings.tabIndex == 2" class="mt-1 pl-1">
                 <font size="-2">{{ filteredSortedOwners.length }}</font>
               </div>
-              <div v-if="settings.tabIndex == 1" class="mt-2 pl-1">
+              <div v-if="settings.tabIndex == 1" class="mt-1 pl-1">
                 <b-pagination size="sm" v-model="settings.currentPage" :total-rows="filteredSortedResults.length" :per-page="settings.pageSize"></b-pagination>
               </div>
-              <div v-if="settings.tabIndex == 2" class="mt-2 pl-1">
+              <div v-if="settings.tabIndex == 2" class="mt-1 pl-1">
                 <b-pagination size="sm" v-model="settings.ownersCurrentPage" :total-rows="filteredSortedOwners.length" :per-page="settings.ownersPageSize"></b-pagination>
               </div>
-              <div class="mt-2 pr-1 flex-grow-1">
+              <div class="mt-1 pr-1 flex-grow-1">
               </div>
-              <div v-if="settings.tabIndex == 1" class="mt-2 pr-1">
+              <div v-if="settings.tabIndex == 1" class="mt-1 pr-1">
                 <b-button size="sm" @click="exportPunks" :disabled="filteredSortedResults.length == 0" variant="link">Export</b-button>
               </div>
-              <div v-if="settings.tabIndex == 1" class="mt-2 pr-1">
+              <div v-if="settings.tabIndex == 1" class="mt-1 pr-1">
                 <b-form-select size="sm" v-model="settings.sortOption" :options="sortOptions" class="w-100"></b-form-select>
               </div>
-              <div v-if="settings.tabIndex == 2" class="mt-2 pr-1">
+              <div v-if="settings.tabIndex == 2" class="mt-1 pr-1">
                 <b-form-select size="sm" v-model="settings.ownersSortOption" :options="ownersSortOptions" class="w-100"></b-form-select>
               </div>
-              <div v-if="settings.tabIndex == 1" class="mt-2 pr-1">
+              <div v-if="settings.tabIndex == 1" class="mt-1 pr-1">
                 <b-button size="sm" :pressed.sync="settings.randomise" @click="settings.sortOption = 'random'; " variant="link" v-b-popover.hover.top="'Randomise'"><b-icon-shuffle shift-v="-1" font-scale="1.2"></b-icon-shuffle></b-button>
               </div>
-              <div v-if="settings.tabIndex == 2" class="mt-2 pr-1">
+              <div v-if="settings.tabIndex == 2" class="mt-1 pr-1">
                 <b-button size="sm" :pressed.sync="settings.randomise" @click="settings.ownersSortOption = 'random'; " variant="link" v-b-popover.hover.top="'Randomise'"><b-icon-shuffle shift-v="-1" font-scale="1.2"></b-icon-shuffle></b-button>
               </div>
 
-              <div v-if="settings.tabIndex == 0" class="mt-2 pl-1">
+              <div v-if="settings.tabIndex == 0" class="mt-1 pl-1">
                 <b-form-select size="sm" v-model="settings.activityMaxItems" :options="activityMaxItemsOptions" v-b-popover.hover.top="'Max items to display'"></b-form-select>
               </div>
-              <div v-if="settings.tabIndex == 3" class="mt-2 pl-1">
+              <div v-if="settings.tabIndex == 3" class="mt-1 pl-1">
                 <b-form-select size="sm" v-model="settings.chartPeriod" :options="chartPeriodOptions" v-b-popover.hover.top="'Charting period'"></b-form-select>
               </div>
-              <div v-if="settings.tabIndex == 1" class="mt-2 pl-1">
+              <div v-if="settings.tabIndex == 1" class="mt-1 pl-1">
                 <b-form-select size="sm" v-model="settings.pageSize" :options="pageSizes" v-b-popover.hover.top="'Page size'"></b-form-select>
               </div>
-              <div v-if="settings.tabIndex == 2" class="mt-2 pl-1">
+              <div v-if="settings.tabIndex == 2" class="mt-1 pl-1">
                 <b-form-select size="sm" v-model="settings.ownersPageSize" :options="pageSizes" v-b-popover.hover.top="'Page size'"></b-form-select>
               </div>
-              <div class="mt-2 pl-1">
+              <div class="mt-1 pl-1">
                 <b-button size="sm" v-b-toggle.sidebar-1 variant="link" v-b-popover.hover.top="'Filter by Attributes'"><b-icon-filter-right shift-v="-1" font-scale="1.4"></b-icon-filter-right></b-button>
               </div>
             </div>
 
             <!-- Loading --->
             <div v-if="this.message != null">
-              <b-alert show variant="info" class="m-0 mt-4 p-2 mt-2">
+              <b-alert show variant="info" class="m-0 mt-4 p-2 mt-1">
                 Retrieving data from sources. Please wait.
               </b-alert>
             </div>
 
             <!-- Activities -->
             <div v-if="settings.tabIndex == 0" v-for="(activity, activityIndex) in activities" :key="activityIndex">
-              <b-card v-if="activity.values.length > 0" body-class="p-1 px-3" header-class="p-1 px-3" class="mt-2">
+              <b-card v-if="activity.values.length > 0" body-class="p-1 px-3" header-class="p-1 px-3" class="mt-1">
                 <template #header>
                   <h6 class="mb-0">{{ activity.title }}</h6>
                 </template>
@@ -327,7 +327,7 @@ const CryptoPunks = {
             <div v-if="settings.tabIndex == 3">
               <b-row>
                 <b-col cols="7">
-                  <b-card body-class="m-2 p-1" header-class="p-1" class="mt-2 mr-1" style="height: 550px;">
+                  <b-card body-class="m-2 p-1" header-class="p-1" class="mt-1 mr-1" style="height: 550px;">
                     <template #header>
                       <h6 class="mb-0">CryptoPunks Sales Activity</h6>
                     </template>
@@ -349,7 +349,7 @@ const CryptoPunks = {
                   </b-card>
                 </b-col>
                 <b-col cols="5">
-                  <b-card body-class="m-0 p-0" header-class="p-1 px-3" class="mt-2" style="height: 550px;">
+                  <b-card body-class="m-0 p-0" header-class="p-1 px-3" class="mt-1" style="height: 550px;">
                     <template #header>
                       <h6 class="mb-0">Sales For Selected Day</h6>
                     </template>
@@ -358,7 +358,7 @@ const CryptoPunks = {
                       <b-form-select size="sm" v-model="settings.chartPeriod" :options="chartPeriodOptions" v-b-popover.hover.bottom="'Charting period'" class="w-50"></b-form-select>
                     </b-form-group>
                     -->
-                    <p v-if="dailyChartSelectedItems.length == 0" class="mt-2 p-2">
+                    <p v-if="dailyChartSelectedItems.length == 0" class="mt-1 p-2">
                       Click on a daily column to view the sales for the day
                     </p>
                     <font size="-2">
