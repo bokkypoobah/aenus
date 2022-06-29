@@ -33,7 +33,7 @@ const NFTs = {
                       <b-dropdown-item @click="filter.collection.address = '0xd0e7bc3f1efc5f098534bce73589835b8273b9a0'">Dec 24 Wrapped CryptoCats Official</b-dropdown-item>
                     </b-dropdown-group>
                     <b-dropdown-group header="2018 Vintage">
-                      <b-dropdown-item @click="filter.collection.address = '0x79986af15539de2db9a5086382daeda917a9cf0c'">Jun 05 Voxels (Not working)</b-dropdown-item>
+                      <b-dropdown-item @click="filter.collection.address = '0x79986af15539de2db9a5086382daeda917a9cf0c'">Jun 05 Voxels (originally CryptoVoxels, not working)</b-dropdown-item>
                     </b-dropdown-group>
                     <b-dropdown-group header="2019 Vintage">
                     </b-dropdown-group>
