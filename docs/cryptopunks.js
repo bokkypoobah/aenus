@@ -476,14 +476,14 @@ const CryptoPunks = {
       },
 
       sortOptions: [
-        { value: 'idasc', text: 'Id Ascending' },
-        { value: 'iddsc', text: 'Id Descending' },
-        { value: 'bidasc', text: 'Bid Ascending' },
-        { value: 'biddsc', text: 'Bid Descending' },
-        { value: 'askasc', text: 'Ask Ascending' },
-        { value: 'askdsc', text: 'Ask Descending' },
-        { value: 'lastasc', text: 'Last Price Ascending' },
-        { value: 'lastdsc', text: 'Last Price Descending' },
+        { value: 'idasc', text: '▲ Id' },
+        { value: 'iddsc', text: '▼ Id' },
+        { value: 'bidasc', text: '▲ Bid' },
+        { value: 'biddsc', text: '▼ Bid' },
+        { value: 'askasc', text: '▲ Ask' },
+        { value: 'askdsc', text: '▼ Ask' },
+        { value: 'lastasc', text: '▲ Last Price' },
+        { value: 'lastdsc', text: '▼ Last Price' },
         { value: 'latestbid', text: 'Latest Bid' },
         { value: 'earliestbid', text: 'Earliest Bid' },
         { value: 'latestask', text: 'Latest Ask' },
@@ -496,7 +496,7 @@ const CryptoPunks = {
       ],
 
       ownersSortOptions: [
-        { value: 'countasc', text: 'Count Ascending' },
+        { value: 'countasc', text: '▲ Count' },
         { value: 'countdsc', text: 'Count Descending' },
         // { value: 'latestsale', text: 'Latest Sale' },
         // { value: 'earliestsale', text: 'Earliest Sale' },
@@ -1326,7 +1326,7 @@ const CryptoPunks = {
       // console.log("now: " + now + " " + moment().unix(now).format());
       let beginPeriod;
       if (this.settings.chartPeriod == '1d') {
-        
+
       } else if (this.settings.chartPeriod == '1w') {
         beginPeriod = moment.unix(now).utc().startOf('day').subtract(7, 'd').unix();
       } else if (this.settings.chartPeriod == '1m') {

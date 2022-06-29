@@ -286,10 +286,10 @@ const ENSSales = {
       dailyChartSelectedItems: [],
 
       sortOptions: [
-        { value: 'nameasc', text: 'Name Ascending' },
-        { value: 'namedsc', text: 'Name Descending' },
-        { value: 'priceasc', text: 'Price Ascending' },
-        { value: 'pricedsc', text: 'Price Descending' },
+        { value: 'nameasc', text: '▲ Name' },
+        { value: 'namedsc', text: '▼ Name' },
+        { value: 'priceasc', text: '▲ Price' },
+        { value: 'pricedsc', text: '▼ Price' },
         { value: 'latestsale', text: 'Latest Sale' },
         { value: 'earliestsale', text: 'Earliest Sale' },
         // { value: 'random', text: 'Random' },
