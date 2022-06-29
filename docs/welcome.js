@@ -43,6 +43,36 @@ const Welcome = {
                 <li>
                   Data source <b-link href="https://thegraph.com/hosted-service/subgraph/ensdomains/ens" target="_blank">ENS Subgraph</b-link> and <b-link href="https://api.reservoir.tools/#/1.%20Order%20Book/getOrdersAllV1" target="_blank">Reservoir API</b-link>.
                 </li>
+                <li>
+                  You can search for simple strings in the <code>{regex}</code> fields, or use regular expressions. Here's a list of useful regex patterns:
+                  <ul>
+                    <li>
+                      <code>^[0-9]{3}$</code> 3 digits; <code>^0[0-9]{2}$</code> early 3 digits; <code>^([0-9])[0-9]\\1$</code> 3 digit palindromes
+                    </li>
+                    <li>
+                      <code>^[0-9]{4}$</code> 4 digits; <code>^00[0-9]{2}$</code> early 4 digits; <code>^([0-9])([0-9])\\2\\1$</code> 4 digit palindromes
+                    </li>
+                    <li>
+                      <code>^[0-9]{5}$</code> 5 digits; <code>^000[0-9]{2}$</code> early 5 digits; <code>^([0-9])([0-9])[0-9]\\2\\1$</code> 5 digit palindromes
+                    </li>
+                    <li>
+                      <code>^[0-9]{6}$</code> 6 digits; <code>^0000[0-9]{2}$</code> early 6 digits; <code>^([0-9])([0-9])([0-9])\\3\\2\\1$</code> 6 digit palindromes
+                    </li>
+                    <li>
+                      <code>^[a-z]{3}$</code> 3 alphas; <code>^([a-z])[a-z]\\1$</code> 3 alpha palindromes
+                    </li>
+                    <li>
+                      <code>^[a-z]{4}$</code> 4 alphas; <code>^([a-z])([a-z])\\2\\1$</code> 4 alpha palindromes
+                    </li>
+                    <li>
+                      <code>^[a-z]{5}$</code> 5 alphas; <code>^([a-z])([a-z])[a-z]\\2\\1$</code> 5 alpha palindromes
+                    </li>
+                    <li>
+                      <code>^[a-z0-9]{5}$</code> 5 alphanums; <code>^([a-z0-9])([a-z0-9])[a-z0-9]\\2\\1$</code> 5 alphanum palindromes
+                    </li>
+                  </ul>
+
+                </li>
               </ul>
 
               <h6>CryptoPunks</h6>
