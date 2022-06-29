@@ -20,30 +20,45 @@ const NFTs = {
                 </div>
                 <div v-if="settings.tabIndex == 0" class="mt-1 pl-1">
                   <b-dropdown size="sm" :disabled="sync.inProgress" variant="link" toggle-class="text-decoration-none" v-b-popover.hover.top="'Some ERC-721 collections'">
-                    <b-dropdown-item @click="filter.collection.address = '0xed5af388653567af2f388e6224dc7c4b3241c544'">Azuki</b-dropdown-item>
-                    <b-dropdown-item @click="filter.collection.address = '0x31385d3520bced94f77aae104b406994d8f2168c'">BASTARD GAN PUNKS V2</b-dropdown-item>
-                    <b-dropdown-item @click="filter.collection.address = '0xba30e5f9bb24caa003e9f2f0497ad287fdf95623'">Bored Ape Kennel Club</b-dropdown-item>
-                    <b-dropdown-item @click="filter.collection.address = '0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d'">Bored Ape Yacht Club</b-dropdown-item>
-                    <b-dropdown-item @click="filter.collection.address = '0x1a92f7381b9f03921564a437210bb9396471050c'">Cool Cats NFT</b-dropdown-item>
-                    <b-dropdown-item @click="filter.collection.address = '0x1cb1a5e65610aeff2551a50f76a87a7d3fb649c6'">CrypToadz</b-dropdown-item>
-                    <b-dropdown-item @click="filter.collection.address = '0x42069abfe407c60cf4ae4112bedead391dba1cdb'">CryptoDickButts</b-dropdown-item>
-                    <b-dropdown-item @click="filter.collection.address = '0x1a2f71468f656e97c2f86541e57189f59951efe7'">Cryptomories</b-dropdown-item>
-                    <b-dropdown-item @click="filter.collection.address = '0x282bdd42f4eb70e7a9d9f40c8fea0825b7f68c5d'">CryptoPunks V1 (wrapped)</b-dropdown-item>
-                    <b-dropdown-item @click="filter.collection.address = '0xf1bdfc38b0089097f050141d21f5e8a3cb0ec8fc'">CryptoTitVags</b-dropdown-item>
-                    <b-dropdown-item @click="filter.collection.address = '0x8a90cab2b38dba80c64b7734e58ee1db38b8992e'">Doodles</b-dropdown-item>
-                    <b-dropdown-item @click="filter.collection.address = '0x4b1705c75fde41e35e454ddd14e5d0a0eac06280'">Etheria v0.9</b-dropdown-item>
-                    <b-dropdown-item @click="filter.collection.address = '0x629a493a94b611138d4bee231f94f5c08ab6570a'">Etheria v1.0</b-dropdown-item>
-                    <b-dropdown-item @click="filter.collection.address = '0xc2c747e0f7004f9e8817db2ca4997657a7746928'">Hashmasks</b-dropdown-item>
-                    <b-dropdown-item @click="filter.collection.address = '0x7bd29408f11d2bfc23c34f18275bbf23bb716bc7'">Meebits</b-dropdown-item>
-                    <b-dropdown-item @click="filter.collection.address = '0x79fcdef22feed20eddacbb2587640e45491b757f'">mfers</b-dropdown-item>
-                    <b-dropdown-item @click="filter.collection.address = '0x23581767a106ae21c074b2276d25e5c3e136a68b'">Moonbirds</b-dropdown-item>
-                    <b-dropdown-item @click="filter.collection.address = '0xc3f733ca98e0dad0386979eb96fb1722a1a05e69'">MoonCats</b-dropdown-item>
-                    <b-dropdown-item @click="filter.collection.address = '0x60e4d786628fea6478f785a6d7e704777c86a7c6'">Mutant Ape Yacht Club</b-dropdown-item>
-                    <b-dropdown-item @click="filter.collection.address = '0x34d85c9cdeb23fa97cb08333b511ac86e1c4e258'">Otherdeed for Otherside</b-dropdown-item>
-                    <b-dropdown-item @click="filter.collection.address = '0xbd3531da5cf5857e7cfaa92426877b022e612cf8'">Pudgy Penguins</b-dropdown-item>
-                    <b-dropdown-item @click="filter.collection.address = '0xe0fa9fb0e30ca86513642112bee1cbbaa2a0580d'">The Greats by Wolfgang Beltracchi</b-dropdown-item>
-                    <!-- Not working <b-dropdown-item @click="filter.collection.address = '0x79986af15539de2db9a5086382daeda917a9cf0c'">Voxels</b-dropdown-item> -->
-                    <b-dropdown-item @click="filter.collection.address = '0xd0e7bc3f1efc5f098534bce73589835b8273b9a0'">Wrapped CryptoCats Official</b-dropdown-item>
+                    <b-dropdown-group header="2015 Vintage">
+                      <b-dropdown-item @click="filter.collection.address = '0x4b1705c75fde41e35e454ddd14e5d0a0eac06280'">Oct 19 Etheria v0.9 (wrapped, image not working)</b-dropdown-item>
+                      <b-dropdown-item @click="filter.collection.address = '0x629a493a94b611138d4bee231f94f5c08ab6570a'">Oct 22 Etheria v1.0 (wrapped, image not working)</b-dropdown-item>
+                    </b-dropdown-group>
+                    <b-dropdown-group header="2017 Vintage">
+                      <b-dropdown-item @click="filter.collection.address = '0x282bdd42f4eb70e7a9d9f40c8fea0825b7f68c5d'">Jun 09 CryptoPunks V1 (wrapped)</b-dropdown-item>
+                      <b-dropdown-item @click="filter.collection.address = '0xc3f733ca98e0dad0386979eb96fb1722a1a05e69'">Aug 09 MoonCats</b-dropdown-item>
+                      <b-dropdown-item @click="filter.collection.address = '0x06012c8cf97BEaD5deAe237070F9587f8E7A266d'">Nov 23 CryptoKitties (large data set, not working)</b-dropdown-item>
+                      <b-dropdown-item @click="filter.collection.address = '0xd0e7bc3f1efc5f098534bce73589835b8273b9a0'">Dec 24 Wrapped CryptoCats Official</b-dropdown-item>
+                    </b-dropdown-group>
+                    <b-dropdown-group header="2018 Vintage">
+                      <b-dropdown-item @click="filter.collection.address = '0x79986af15539de2db9a5086382daeda917a9cf0c'">Jun 05 Voxels (Not working)</b-dropdown-item>
+                    </b-dropdown-group>
+                    <b-dropdown-group header="2019 Vintage">
+                    </b-dropdown-group>
+                    <b-dropdown-group header="2020 Vintage">
+                    </b-dropdown-group>
+                    <b-dropdown-group header="2021 Vintage">
+                      <b-dropdown-item @click="filter.collection.address = '0xc2c747e0f7004f9e8817db2ca4997657a7746928'">Jan 28 Hashmasks</b-dropdown-item>
+                      <b-dropdown-item @click="filter.collection.address = '0x31385d3520bced94f77aae104b406994d8f2168c'">Mar 07 BASTARD GAN PUNKS V2</b-dropdown-item>
+                      <b-dropdown-item @click="filter.collection.address = '0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d'">Apr 22 Bored Ape Yacht Club</b-dropdown-item>
+                      <b-dropdown-item @click="filter.collection.address = '0x7bd29408f11d2bfc23c34f18275bbf23bb716bc7'">May 03 Meebits</b-dropdown-item>
+                      <b-dropdown-item @click="filter.collection.address = '0xba30e5f9bb24caa003e9f2f0497ad287fdf95623'">Jun 18 Bored Ape Kennel Club</b-dropdown-item>
+                      <b-dropdown-item @click="filter.collection.address = '0x1a92f7381b9f03921564a437210bb9396471050c'">Jun 27 Cool Cats NFT</b-dropdown-item>
+                      <b-dropdown-item @click="filter.collection.address = '0xbd3531da5cf5857e7cfaa92426877b022e612cf8'">Jul 22 Pudgy Penguins</b-dropdown-item>
+                      <b-dropdown-item @click="filter.collection.address = '0x42069abfe407c60cf4ae4112bedead391dba1cdb'">Jul 28 CryptoDickButts</b-dropdown-item>
+                      <b-dropdown-item @click="filter.collection.address = '0x60e4d786628fea6478f785a6d7e704777c86a7c6'">Aug 28 Mutant Ape Yacht Club</b-dropdown-item>
+                      <b-dropdown-item @click="filter.collection.address = '0x1cb1a5e65610aeff2551a50f76a87a7d3fb649c6'">Sep 08 CrypToadz</b-dropdown-item>
+                      <b-dropdown-item @click="filter.collection.address = '0x1a2f71468f656e97c2f86541e57189f59951efe7'">Oct 07 Cryptomories</b-dropdown-item>
+                      <b-dropdown-item @click="filter.collection.address = '0x8a90cab2b38dba80c64b7734e58ee1db38b8992e'">Oct 16 Doodles</b-dropdown-item>
+                      <b-dropdown-item @click="filter.collection.address = '0xe0fa9fb0e30ca86513642112bee1cbbaa2a0580d'">Oct 18 The Greats by Wolfgang Beltracchi</b-dropdown-item>
+                      <b-dropdown-item @click="filter.collection.address = '0x79fcdef22feed20eddacbb2587640e45491b757f'">Nov 29 mfers</b-dropdown-item>
+                    </b-dropdown-group>
+                    <b-dropdown-group header="2022">
+                      <b-dropdown-item @click="filter.collection.address = '0xed5af388653567af2f388e6224dc7c4b3241c544'">Jan 10 Azuki</b-dropdown-item>
+                      <b-dropdown-item @click="filter.collection.address = '0xf1bdfc38b0089097f050141d21f5e8a3cb0ec8fc'">Jan 28 CryptoTitVags</b-dropdown-item>
+                      <b-dropdown-item @click="filter.collection.address = '0x23581767a106ae21c074b2276d25e5c3e136a68b'">Apr 15 Moonbirds</b-dropdown-item>
+                      <b-dropdown-item @click="filter.collection.address = '0x34d85c9cdeb23fa97cb08333b511ac86e1c4e258'">Apr 28 Otherdeed for Otherside</b-dropdown-item>
+                    </b-dropdown-group>
                   </b-dropdown>
                 </div>
                 <div v-if="settings.tabIndex == 0" class="mt-1 pl-1">
