@@ -33,6 +33,7 @@ const NFTs = {
                       <b-dropdown-item @click="filter.collection.address = '0xb7f7f6c52f2e2fdb1963eab30438024864c313f6'">Jun 22 CryptoPunks V2 (wrapped)</b-dropdown-item>
                       <b-dropdown-item @click="filter.collection.address = '0xc3f733ca98e0dad0386979eb96fb1722a1a05e69'">Aug 09 MoonCats (wrapped, official)</b-dropdown-item>
                       <b-dropdown-item @click="filter.collection.address = '0x7c40c393dc0f283f318791d746d894ddd3693572'">Aug 09 Wrapped MoonCatsRescue - Unofficial (wrapped)</b-dropdown-item>
+                      <b-dropdown-item @click="filter.collection.address = '0x7bb952ab78b28a62b1525aca54a71e7aa6177645'">Aug 27 Thousand Ether Homepage (wrapped)</b-dropdown-item>
                       <b-dropdown-item @click="filter.collection.address = '0x80f1ed6a1ac694317dc5719db099a440627d1ea7'">Aug 29 IKB Cachet de Garantie (wrapped)</b-dropdown-item>
                       <b-dropdown-item @click="filter.collection.address = '0x06012c8cf97BEaD5deAe237070F9587f8E7A266d'">Nov 23 CryptoKitties (large data set, not working)</b-dropdown-item>
                       <b-dropdown-item @click="filter.collection.address = '0xd0e7bc3f1efc5f098534bce73589835b8273b9a0'">Dec 24 Wrapped CryptoCats Official</b-dropdown-item>
@@ -739,6 +740,7 @@ const nftsModule = {
         }
 
         state.sync.completed = 0;
+        state.sync.error = null;
         state.sync.inProgress = true;
 
         let url = "https://api.reservoir.tools/collection/v2?id=" + state.filter.collection.address;
@@ -752,7 +754,7 @@ const nftsModule = {
              return [];
           });
         state.collectionInfo = collectionInfo && collectionInfo.collection || {};
-        // console.log("state.collectionInfo: " + JSON.stringify(state.collectionInfo, null, 2));
+        console.log("state.collectionInfo: " + JSON.stringify(state.collectionInfo, null, 2));
 
         state.sync.total = collectionInfo && collectionInfo.collection && collectionInfo.collection.tokenCount || 0;
         // state.sync.total = 5;
@@ -802,7 +804,7 @@ const nftsModule = {
           if (state.sync.total < totalRecords) {
             state.sync.total = totalRecords;
           }
-        } while (continuation != null && !state.halt && !state.sync.error /*&& totalRecords < state.sync.total*/);
+        } while (continuation != null && !state.halt && !state.sync.error && totalRecords < 200 /*&& totalRecords < state.sync.total*/);
 
         state.collectionTokens = tokens;
 
