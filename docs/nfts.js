@@ -46,6 +46,7 @@ const NFTs = {
                       <b-dropdown-item @click="filter.collection.address = '0x79986af15539de2db9a5086382daeda917a9cf0c'">Jun 05 Voxels (originally CryptoVoxels, not working)</b-dropdown-item>
                     </b-dropdown-group>
                     <b-dropdown-group header="2019 Vintage">
+                      <b-dropdown-item @click="filter.collection.address = '0xd4e4078ca3495de5b1d4db434bebc5a986197782'">Apr 05 Autoglyph</b-dropdown-item>                    
                     </b-dropdown-group>
                     <b-dropdown-group header="2020 Vintage">
                     </b-dropdown-group>
