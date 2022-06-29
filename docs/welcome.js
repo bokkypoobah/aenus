@@ -4,22 +4,8 @@ const Welcome = {
 
       <b-card no-body header="Welcome" class="border-0" header-class="p-1">
         <b-card no-body class="p-0 mt-1">
-          <!--
-          <b-card class="my-3" header-class="warningheader" header="Web3 Connection And/Or Incorrect Network Detected" v-if="!powerOn || (network.chainId != 1 && network.chainId != 4)">
-            <b-card-text>
-              Please install the MetaMask extension, connect to the Rinkeby network and refresh this page. Then click the [Power] button on the top right.
-            </b-card-text>
-          </b-card>
-          -->
 
           <b-card-body class="p-2">
-            <!--
-            <b-card class="my-3" header-class="warningheader" header="Mainnet Warning" v-if="network.chainId == 1">
-              <b-card-text>
-                Please use the Rinkeby Network, as the Mainnet is in alpha.
-              </b-card-text>
-            </b-card>
-            -->
 
             <b-card-text class="mt-2">
               <i>aenus advanced ENS and NFT utilities</i> (work in progress) will simplify some of your Ethereum blockchain operations.
@@ -115,13 +101,31 @@ $ anywhere -h localhost</pre>
                 </li>
               </ul>
 
-              <!--
+              <h6>See Also</h6>
               <ul>
                 <li>
-                  <b>Makers</b> add orders to buy or sell NFTs in the Nix exchange at <b-link :href="network.explorer + 'address/' + network.nixAddress + '#code'" target="_blank">{{ network.nixAddress && (network.nixAddress.substring(0, 20) + '...') || '' }}</b-link>. (Exchange -> Orders)
+                  <b-link href="https://bokkypoobah.github.io/ExploringCryptoPunksOnChain/" target="_blank">https://bokkypoobah.github.io/ExploringCryptoPunksOnChain/</b-link>
+                </li>
+                <li>
+                  <b-link href="https://bokkypoobah.github.io/MoonCatExplainer/" target="_blank">https://bokkypoobah.github.io/MoonCatExplainer/</b-link>
+                </li>
+                <li>
+                  <b-link href="https://bokkypoobah.github.io/BestBastardGANPunks/" target="_blank">https://bokkypoobah.github.io/BestBastardGANPunks/</b-link>
+                </li>
+                <li>
+                  <b-link href="https://bokkypoobah.github.io/GlicPixxxSurfer/" target="_blank">https://bokkypoobah.github.io/GlicPixxxSurfer/</b-link>
+                </li>
+                <li>
+                  <b-link href="https://bokkypoobah.github.io/BestLunarToken/" target="_blank">https://bokkypoobah.github.io/BestLunarToken/</b-link>
+                </li>
+                <li>
+                  <b-link href="https://github.com/bokkypoobah/BokkyPooBahsDateTimeLibrary" target="_blank">BokkyPooBahsDateTimeLibrary</b-link>
+                </li>
+                <li>
+                  <b-link href="https://github.com/bokkypoobah/BokkyPooBahsRedBlackTreeLibrary" target="_blank">BokkyPooBahsRedBlackTreeLibrary</b-link>
                 </li>
               </ul>
-              -->
+
             </b-card-text>
 
             <b-card-text class="mt-3">
