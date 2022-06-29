@@ -211,7 +211,7 @@ const ENSSearch = {
                   <span v-for="(result, resultIndex) in data.item.results" :key="resultIndex">
                     <b-button :id="'popover-target-' + result.labelName + '-' + resultIndex" variant="link" class="m-0 p-0">
                       <span v-if="result.warn == null">
-                        {{ result.labelName }}
+                        {{ !result.labelName ? '' : (result.labelName.length > 128 ? (result.labelName.substring(0, 128) + '...') : result.labelName) }}
                       </span>
                       <span v-if="result.warn != null">
                         <b-badge v-if="result.warn != null" v-b-popover.hover.bottom="'Expiring ' + formatDate(result.expiryDate) + ' UTC'" variant="warning">{{ result.labelName }}</b-badge>
