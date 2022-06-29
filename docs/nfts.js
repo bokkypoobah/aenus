@@ -31,7 +31,9 @@ const NFTs = {
                     <b-dropdown-group header="2017 Vintage">
                       <b-dropdown-item @click="filter.collection.address = '0x282bdd42f4eb70e7a9d9f40c8fea0825b7f68c5d'">Jun 09 CryptoPunks V1 (wrapped)</b-dropdown-item>
                       <b-dropdown-item @click="filter.collection.address = '0xb7f7f6c52f2e2fdb1963eab30438024864c313f6'">Jun 22 CryptoPunks V2 (wrapped)</b-dropdown-item>
-                      <b-dropdown-item @click="filter.collection.address = '0xc3f733ca98e0dad0386979eb96fb1722a1a05e69'">Aug 09 MoonCats</b-dropdown-item>
+                      <b-dropdown-item @click="filter.collection.address = '0xc3f733ca98e0dad0386979eb96fb1722a1a05e69'">Aug 09 MoonCats (wrapped, official)</b-dropdown-item>
+                      <b-dropdown-item @click="filter.collection.address = '0x7c40c393dc0f283f318791d746d894ddd3693572'">Aug 09 Wrapped MoonCatsRescue - Unofficial (wrapped)</b-dropdown-item>
+                      <b-dropdown-item @click="filter.collection.address = '0x80f1ed6a1ac694317dc5719db099a440627d1ea7'">Aug 29 IKB Cachet de Garantie (wrapped)</b-dropdown-item>
                       <b-dropdown-item @click="filter.collection.address = '0x06012c8cf97BEaD5deAe237070F9587f8E7A266d'">Nov 23 CryptoKitties (large data set, not working)</b-dropdown-item>
                       <b-dropdown-item @click="filter.collection.address = '0xd0e7bc3f1efc5f098534bce73589835b8273b9a0'">Dec 24 Wrapped CryptoCats Official</b-dropdown-item>
                     </b-dropdown-group>

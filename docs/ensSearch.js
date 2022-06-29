@@ -785,12 +785,12 @@ const ENSSearch = {
       ],
 
       pageSizes: [
-        { value: 10, text: '10/P' },
-        { value: 100, text: '100/P' },
-        { value: 500, text: '500/P' },
-        { value: 1000, text: '1,000/P' },
-        { value: 2145, text: '2,145/P' },
-        { value: 66666, text: 'ALL' },
+        { value: 10, text: '10' },
+        { value: 100, text: '100' },
+        { value: 500, text: '500' },
+        { value: 1000, text: '1k' },
+        { value: 2500, text: '2.5k' },
+        { value: 10000, text: '10k' },
       ],
 
       setOptions: [

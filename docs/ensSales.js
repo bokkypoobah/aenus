@@ -305,14 +305,14 @@ const ENSSales = {
       ],
 
       periods: [
-        { value: { term: 7, termType: "days" }, text: '1w' },
-        { value: { term: 14, termType: "days" }, text: '2w' },
-        { value: { term: 21, termType: "days" }, text: '3w' },
-        { value: { term: 1, termType: "month" }, text: '1m' },
-        { value: { term: 2, termType: "month" }, text: '2m' },
-        { value: { term: 3, termType: "month" }, text: '3m' },
-        { value: { term: 6, termType: "month" }, text: '6m' },
-        { value: { term: 1, termType: "year" }, text: '1y' },
+        { value: { term: 7, termType: "days" }, text: '1wk' },
+        { value: { term: 14, termType: "days" }, text: '2wk' },
+        { value: { term: 21, termType: "days" }, text: '3wk' },
+        { value: { term: 1, termType: "month" }, text: '1mo' },
+        { value: { term: 2, termType: "month" }, text: '2mo' },
+        { value: { term: 3, termType: "month" }, text: '3mo' },
+        { value: { term: 6, termType: "month" }, text: '6mo' },
+        { value: { term: 1, termType: "year" }, text: '1yr' },
       ],
 
       salesFields: [

@@ -546,12 +546,12 @@ const CryptoPunks = {
       ],
 
       chartPeriodOptions: [
-        { value: '1d', text: '1d' },
-        { value: '1w', text: '1w' },
-        { value: '1m', text: '1m' },
-        { value: '3m', text: '3m' },
-        { value: '6m', text: '6m' },
-        { value: '1y', text: '1y' },
+        { value: '1d', text: '1dy' },
+        { value: '1w', text: '1wk' },
+        { value: '1m', text: '1mo' },
+        { value: '3m', text: '3mo' },
+        { value: '6m', text: '6mo' },
+        { value: '1y', text: '1yr' },
         { value: 'all', text: 'All' },
       ],
       chartAttributeFilter: {
@@ -1254,15 +1254,15 @@ const CryptoPunks = {
 
       const toTimestamp = new Date()/1000;
       let days = 1;
-      if (this.settings.chartPeriod == '1d') {
+      if (this.settings.chartPeriod == '1dy') {
         days = 1;
-      } else if (this.settings.chartPeriod == '1w') {
+      } else if (this.settings.chartPeriod == '1wk') {
         days = 7;
-      } else if (this.settings.chartPeriod == '1m') {
+      } else if (this.settings.chartPeriod == '1mo') {
         days = 31;
-      } else if (this.settings.chartPeriod == '3m') {
+      } else if (this.settings.chartPeriod == '3mo') {
         days = 92;
-      } else if (this.settings.chartPeriod == '1y') {
+      } else if (this.settings.chartPeriod == '1yr') {
         days = 366;
       } else if (this.settings.chartPeriod == 'all') {
         days = 10000;
@@ -1327,15 +1327,15 @@ const CryptoPunks = {
       let beginPeriod;
       if (this.settings.chartPeriod == '1d') {
 
-      } else if (this.settings.chartPeriod == '1w') {
+      } else if (this.settings.chartPeriod == '1wk') {
         beginPeriod = moment.unix(now).utc().startOf('day').subtract(7, 'd').unix();
-      } else if (this.settings.chartPeriod == '1m') {
+      } else if (this.settings.chartPeriod == '1mo') {
         beginPeriod = moment.unix(now).utc().startOf('day').subtract(1, 'month').unix();
-      } else if (this.settings.chartPeriod == '3m') {
+      } else if (this.settings.chartPeriod == '3mo') {
         beginPeriod = moment.unix(now).utc().startOf('day').subtract(3, 'month').unix();
-      } else if (this.settings.chartPeriod == '6m') {
+      } else if (this.settings.chartPeriod == '6mo') {
         beginPeriod = moment.unix(now).utc().startOf('day').subtract(6, 'month').unix();
-      } else if (this.settings.chartPeriod == '1y') {
+      } else if (this.settings.chartPeriod == '1yr') {
         beginPeriod = moment.unix(now).utc().startOf('day').subtract(1, 'year').unix();
       } else if (this.settings.chartPeriod == 'all') {
         beginPeriod = moment.unix(now).utc().startOf('day').subtract(10, 'year').unix();
