@@ -19,10 +19,7 @@ const NFTs = {
                   <b-form-input type="text" size="sm" :value="filter.collection.address" @change="updateCollectionFilter('collection.address', $event)" :disabled="sync.inProgress" debounce="600" v-b-popover.hover.top="'Collection address'" placeholder="{ERC-721 address}"></b-form-input>
                 </div>
                 <div v-if="settings.tabIndex == 0" class="mt-1 pl-1">
-                  <b-dropdown size="sm" :disabled="sync.inProgress" variant="link" toggle-class="text-decoration-none" no-caret v-b-popover.hover.top="'Some ERC-721 collections'">
-                    <template #button-content>
-                      ▼ <span class="sr-only">ERC-721 Presets</span>
-                    </template>
+                  <b-dropdown size="sm" :disabled="sync.inProgress" variant="link" toggle-class="text-decoration-none" v-b-popover.hover.top="'Some ERC-721 collections'">
                     <b-dropdown-item @click="filter.collection.address = '0xed5af388653567af2f388e6224dc7c4b3241c544'">Azuki</b-dropdown-item>
                     <b-dropdown-item @click="filter.collection.address = '0x31385d3520bced94f77aae104b406994d8f2168c'">BASTARD GAN PUNKS V2</b-dropdown-item>
                     <b-dropdown-item @click="filter.collection.address = '0xba30e5f9bb24caa003e9f2f0497ad287fdf95623'">Bored Ape Kennel Club</b-dropdown-item>
