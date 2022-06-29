@@ -19,14 +19,15 @@ const NFTs = {
                   <b-form-input type="text" size="sm" :value="filter.collection.address" @change="updateCollectionFilter('collection.address', $event)" :disabled="sync.inProgress" debounce="600" v-b-popover.hover.top="'Collection address'" placeholder="{ERC-721 address}"></b-form-input>
                 </div>
                 <div v-if="settings.tabIndex == 0" class="mt-1 pl-1">
-                  <b-dropdown dropright size="sm" :disabled="sync.inProgress" variant="link" toggle-class="text-decoration-none" v-b-popover.hover.top="'Some ERC-721 collections'">
+                  <b-dropdown dropright size="sm" :disabled="sync.inProgress" variant="link" toggle-class="text-decoration-none" v-b-popover.hover.top="'Some vintage and higher total trading volume ERC-721 collections'">
                     <b-dropdown-group header="2015 Vintage">
                       <b-dropdown-item @click="filter.collection.address = '0x4b1705c75fde41e35e454ddd14e5d0a0eac06280'">Oct 19 Etheria v0.9 (wrapped, image not working)</b-dropdown-item>
                       <b-dropdown-item @click="filter.collection.address = '0x629a493a94b611138d4bee231f94f5c08ab6570a'">Oct 22 Etheria v1.0 (wrapped, image not working)</b-dropdown-item>
-                      <b-dropdown-item @click="filter.collection.address = '0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85'">Apr-26 ENS (new Jan 30 2020)</b-dropdown-item>
+                      <b-dropdown-item @click="filter.collection.address = '0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85'">Apr 26 ENS (new Jan 30 2020)</b-dropdown-item>
                     </b-dropdown-group>
                     <b-dropdown-group header="2017 Vintage">
                       <b-dropdown-item @click="filter.collection.address = '0x282bdd42f4eb70e7a9d9f40c8fea0825b7f68c5d'">Jun 09 CryptoPunks V1 (wrapped)</b-dropdown-item>
+                      <b-dropdown-item @click="filter.collection.address = '0xb7f7f6c52f2e2fdb1963eab30438024864c313f6'">Jun 22 CryptoPunks V2 (wrapped)</b-dropdown-item>
                       <b-dropdown-item @click="filter.collection.address = '0xc3f733ca98e0dad0386979eb96fb1722a1a05e69'">Aug 09 MoonCats</b-dropdown-item>
                       <b-dropdown-item @click="filter.collection.address = '0x06012c8cf97BEaD5deAe237070F9587f8E7A266d'">Nov 23 CryptoKitties (large data set, not working)</b-dropdown-item>
                       <b-dropdown-item @click="filter.collection.address = '0xd0e7bc3f1efc5f098534bce73589835b8273b9a0'">Dec 24 Wrapped CryptoCats Official</b-dropdown-item>
@@ -63,7 +64,7 @@ const NFTs = {
                   </b-dropdown>
                 </div>
                 <div v-if="settings.tabIndex == 0" class="mt-1 pl-1">
-                  <b-button size="sm" @click="updateCollection('sync')" :disabled="sync.inProgress" variant="primary">Sync</b-button>
+                  <b-button size="sm" @click="updateCollection('sync')" :disabled="sync.inProgress" variant="primary">Retrieve</b-button>
                 </div>
                 <div v-if="settings.tabIndex == 1" class="mt-1" style="max-width: 170px;">
                   <b-form-input type="text" size="sm" :value="filter.searchString" @change="updateMintMonitorFilter('searchString', $event)" debounce="600" v-b-popover.hover.top="'Search by collection symbol, name or address'" placeholder="🔍 {symbol|name|addy}"></b-form-input>
