@@ -19,7 +19,7 @@ const NFTs = {
                   <b-form-input type="text" size="sm" :value="filter.collection.address" @change="updateCollectionFilter('collection.address', $event)" :disabled="sync.inProgress" debounce="600" v-b-popover.hover.top="'Collection address'" placeholder="{ERC-721 address}"></b-form-input>
                 </div>
                 <div v-if="settings.tabIndex == 0" class="mt-1 pl-1">
-                  <b-dropdown size="sm" :disabled="sync.inProgress" variant="link" toggle-class="text-decoration-none" v-b-popover.hover.top="'Some ERC-721 collections'">
+                  <b-dropdown dropright size="sm" :disabled="sync.inProgress" variant="link" toggle-class="text-decoration-none" v-b-popover.hover.top="'Some ERC-721 collections'">
                     <b-dropdown-group header="2015 Vintage">
                       <b-dropdown-item @click="filter.collection.address = '0x4b1705c75fde41e35e454ddd14e5d0a0eac06280'">Oct 19 Etheria v0.9 (wrapped, image not working)</b-dropdown-item>
                       <b-dropdown-item @click="filter.collection.address = '0x629a493a94b611138d4bee231f94f5c08ab6570a'">Oct 22 Etheria v1.0 (wrapped, image not working)</b-dropdown-item>
