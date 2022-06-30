@@ -227,6 +227,9 @@ const NFTs = {
                             <template #cell(attributeOption)="data">
                               {{ data.item.attributeOption }}
                             </template>
+                            <template #cell(attributeTotal)="data">
+                              {{ data.item.attributeTotal.length }}
+                            </template>
                           </b-table>
                         </font>
                       </b-card>
@@ -469,43 +472,41 @@ const NFTs = {
       const collator = { };
       for (const [tokenId, token] of Object.entries(this.collectionTokens)) {
         for (let attribute of token.attributes) {
-            const traitType = attribute.key;
+            const key = attribute.key;
             const value = attribute.value;
-            if (!collator[traitType]) {
-              collator[traitType] = {};
+            if (!collator[key]) {
+              collator[key] = {};
             }
-            if (!collator[traitType][value]) {
-              collator[traitType][value] = 1;
+            if (!collator[key][value]) {
+              collator[key][value] = [token.tokenId];
             } else {
-              collator[traitType][value]++;
+              collator[key][value].push(token.tokenId);
             }
         }
       }
       return collator;
     },
     filteredCollectionTokens() {
-      const results = [];
-      for (const [tokenId, token] of Object.entries(this.collectionTokens)) {
-        let include = true;
-        function getAttribute(token, category) {
-          for (let attributeIndex in token.attributes) {
-            const attribute = token.attributes[attributeIndex];
-            if (attribute.key == category) {
-              return attribute.value;
-            }
-          }
-          return null;
-        }
-        for (const [key, value] of Object.entries(this.collectionAttributeFilter)) {
-          const attributeValue = getAttribute(token, key);
-          if (!value[attributeValue]) {
-            include = false;
-            break;
-          }
-        }
-        if (include) {
+      let results = [];
+      if (Object.keys(this.collectionAttributeFilter) == 0) {
+        for (const [tokenId, token] of Object.entries(this.collectionTokens)) {
           results.push(token);
         }
+      } else {
+        let selectedTokenIds = [];
+        for (const [trait, value] of Object.entries(this.collectionAttributeFilter)) {
+          let thisTraitTokenIds = [];
+          for (const selectedValue of Object.keys(value)) {
+            const tokenIds = this.collectionTokensAttributesWithCounts[trait][selectedValue];
+            thisTraitTokenIds = [...thisTraitTokenIds, ...tokenIds];
+          }
+          if (selectedTokenIds.length == 0) {
+            selectedTokenIds = thisTraitTokenIds;
+          } else {
+            selectedTokenIds = selectedTokenIds.filter(tokenId => thisTraitTokenIds.includes(tokenId));
+          }
+        }
+        results = Object.values(selectedTokenIds).map(tokenId => this.collectionTokens[tokenId]);
       }
       return results;
     },
@@ -740,7 +741,7 @@ const nftsModule = {
   state: {
     filter: {
       collection: {
-        address: null, // "0x31385d3520bced94f77aae104b406994d8f2168c",
+        address: "0xd0e7bc3f1efc5f098534bce73589835b8273b9a0", // TODO: null, // "0x31385d3520bced94f77aae104b406994d8f2168c",
         startBlockNumber: 4000000,
       },
       searchString: null,
