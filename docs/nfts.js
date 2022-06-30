@@ -76,6 +76,7 @@ const NFTs = {
                     <b-dropdown-group header="2022">
                       <b-dropdown-item @click="filter.collection.address = '0xed5af388653567af2f388e6224dc7c4b3241c544'">Jan 10 Azuki</b-dropdown-item>
                       <b-dropdown-item @click="filter.collection.address = '0xf1bdfc38b0089097f050141d21f5e8a3cb0ec8fc'">Jan 28 CryptoTitVags</b-dropdown-item>
+                      <b-dropdown-item @click="filter.collection.address = '0x45bC849a53a3531648EE7E27dD09FCaa23Ca5ff9'">Mar 25 PepeMfers Official</b-dropdown-item>
                       <b-dropdown-item @click="filter.collection.address = '0x23581767a106ae21c074b2276d25e5c3e136a68b'">Apr 15 Moonbirds</b-dropdown-item>
                       <b-dropdown-item @click="filter.collection.address = '0x34d85c9cdeb23fa97cb08333b511ac86e1c4e258'">Apr 28 Otherdeed for Otherside</b-dropdown-item>
                     </b-dropdown-group>
