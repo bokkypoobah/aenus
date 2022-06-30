@@ -84,6 +84,14 @@ const NFTs = {
                 <div v-if="settings.tabIndex == 2" class="mt-1" style="max-width: 170px;">
                   <b-form-input type="text" size="sm" :value="filter.searchString" @change="updateMintMonitorFilter('searchString', $event)" debounce="600" v-b-popover.hover.top="'Search by collection symbol, name or address'" placeholder="🔍 {symbol|name|addy}"></b-form-input>
                 </div>
+                <div class="mt-1 flex-grow-1">
+                </div>
+                <div v-if="settings.tabIndex == 1" class="mt-1">
+                  <b-button size="sm" :pressed.sync="settings.collection.showInfo" variant="link" v-b-popover.hover.top="'Show collection info'"><span v-if="settings.collection.showInfo"><b-icon-info-circle-fill shift-v="+1" font-scale="1.0"></b-icon-info-circle-fill></span><span v-else><b-icon-info-circle shift-v="+1" font-scale="1.0"></b-icon-info-circle></span></b-button>
+                </div>
+                <div v-if="settings.tabIndex == 1" class="mt-1">                  
+                  <b-badge variant="light">{{ collectionInfo && collectionInfo.name || '' }}</b-badge>
+                </div>
 
                 <div class="mt-1 flex-grow-1">
                 </div>
@@ -189,6 +197,12 @@ const NFTs = {
 
               <!-- Collection -->
               <div v-if="settings.tabIndex == 1">
+                <b-card v-if="settings.collection.showInfo && collectionInfo != null" no-header no-body class="mt-1">
+                  <pre>
+{{ JSON.stringify(collectionInfo, null, 2) }}
+                  </pre>
+                </b-card>
+
                 <b-card v-if="pagedFilteredCollectionTokens.length > 0" no-header no-body class="mt-1">
 
                   <b-card-group deck class="m-1 p-0">
@@ -364,6 +378,7 @@ const NFTs = {
         timeTo: null,
         activityMaxItems: 50,
         collection: {
+          showInfo: false,
           sortOption: 'idasc',
           pageSize: 100,
           currentPage: 1
