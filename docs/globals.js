@@ -306,7 +306,8 @@ const CRYPTOPUNKSPUNKBYIDSQUERY = `
       id
       metadata {
         tokenURI
-        imageURI
+        image
+        svg
         traits {
           id
         }
