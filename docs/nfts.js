@@ -4,9 +4,9 @@ const NFTs = {
       <b-card no-body no-header class="border-0">
         <b-card no-body class="p-0 mt-1">
           <b-tabs card align="left" no-body v-model="settings.tabIndex" active-tab-class="m-0 p-0">
-            <b-tab title="Collections(wip)" @click="updateURL('collections');">
+            <b-tab disabled title="Collections(wip)" @click="updateURL('collections');">
             </b-tab>
-            <b-tab title="Collection(wip)" @click="updateURL('collection');">
+            <b-tab title="Collection" @click="updateURL('collection');">
             </b-tab>
             <b-tab title="Mint Monitor" @click="updateURL('mintmonitor');">
             </b-tab>
@@ -222,7 +222,7 @@ const NFTs = {
                         <font size="-2">
                           <b-table small fixed striped sticky-header="200px" :fields="collectionAttributeFields" :items="getSortedTraitsForCollectionTokensAttributes(attributeKey)" head-variant="light">
                             <template #cell(select)="data">
-                              <b-form-checkbox :checked="(collectionAttributeFilter[attributeKey] && collectionAttributeFilter[attributeKey].attributeOption) ? 1 : 0" value="1" @change="filterChange(attributeKey, data.item.attributeOption)"></b-form-checkbox>
+                              <b-form-checkbox size="sm" :checked="(collectionAttributeFilter[attributeKey] && collectionAttributeFilter[attributeKey].attributeOption) ? 1 : 0" value="1" @change="collectionFilterChange(attributeKey, data.item.attributeOption)"></b-form-checkbox>
                             </template>
                             <template #cell(attributeOption)="data">
                               {{ data.item.attributeOption }}
@@ -468,9 +468,7 @@ const NFTs = {
     collectionTokensAttributesWithCounts() {
       const collator = { };
       for (const [tokenId, token] of Object.entries(this.collectionTokens)) {
-        // console.log(JSON.stringify(token, null, 2));
         for (let attribute of token.attributes) {
-          // console.log(tokenId + " " + JSON.stringify(attribute));
             const traitType = attribute.key;
             const value = attribute.value;
             if (!collator[traitType]) {
@@ -483,13 +481,31 @@ const NFTs = {
             }
         }
       }
-      console.log("collectionTokensAttributesWithCounts: " + JSON.stringify(collator, null, 2));
       return collator;
     },
     filteredCollectionTokens() {
       const results = [];
       for (const [tokenId, token] of Object.entries(this.collectionTokens)) {
-        results.push(token);
+        let include = true;
+        function getAttribute(token, category) {
+          for (let attributeIndex in token.attributes) {
+            const attribute = token.attributes[attributeIndex];
+            if (attribute.key == category) {
+              return attribute.value;
+            }
+          }
+          return null;
+        }
+        for (const [key, value] of Object.entries(this.collectionAttributeFilter)) {
+          const attributeValue = getAttribute(token, key);
+          if (!value[attributeValue]) {
+            include = false;
+            break;
+          }
+        }
+        if (include) {
+          results.push(token);
+        }
       }
       return results;
     },
@@ -568,15 +584,25 @@ const NFTs = {
     },
     getSortedTraitsForCollectionTokensAttributes(category) {
       const results = [];
-      console.log("getSortedTraitsForCollectionTokensAttributes - category: " + category);
       for (let attributeKey in this.collectionTokensAttributesWithCounts[category]) {
-        console.log("getSortedTraitsForCollectionTokensAttributes - attributeKey: " + attributeKey);
         const c = this.collectionTokensAttributesWithCounts[category][attributeKey];
         results.push({ attributeOption: attributeKey, attributeTotal: c })
       }
       results.sort((a, b) => b.attributeTotal - a.attributeTotal);
-      console.log("getSortedTraitsForCollectionTokensAttributes: " + JSON.stringify(results, null, 2));
       return results;
+    },
+    collectionFilterChange(attribute, option) {
+      if (!this.collectionAttributeFilter[attribute]) {
+        Vue.set(this.collectionAttributeFilter, attribute, {});
+      }
+      if (this.collectionAttributeFilter[attribute][option]) {
+        Vue.delete(this.collectionAttributeFilter[attribute], option);
+        if (Object.keys(this.collectionAttributeFilter[attribute]) == 0) {
+          Vue.delete(this.collectionAttributeFilter, attribute);
+        }
+      } else {
+        Vue.set(this.collectionAttributeFilter[attribute], option, true);
+      }
     },
     getTokenIdString(tokenId) {
       const str = tokenId.toString();
@@ -864,7 +890,7 @@ const nftsModule = {
           if (state.sync.total < totalRecords) {
             state.sync.total = totalRecords;
           }
-        } while (continuation != null && !state.halt && !state.sync.error /* && totalRecords < 60 && totalRecords < state.sync.total*/);
+        } while (continuation != null && !state.halt && !state.sync.error /* && totalRecords < 20 && totalRecords < state.sync.total*/);
 
         state.collectionTokens = tokens;
 
