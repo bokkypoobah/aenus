@@ -589,7 +589,7 @@ const NFTs = {
         const c = this.collectionTokensAttributesWithCounts[category][attributeKey];
         results.push({ attributeOption: attributeKey, attributeTotal: c })
       }
-      results.sort((a, b) => b.attributeTotal - a.attributeTotal);
+      results.sort((a, b) => b.attributeTotal.length - a.attributeTotal.length);
       return results;
     },
     collectionFilterChange(attribute, option) {
