@@ -17,6 +17,9 @@ const NFTs = {
             <b-card-body class="m-0 p-1">
               <!-- Main Toolbar -->
               <div class="d-flex flex-wrap m-0 p-0">
+                <div v-if="settings.tabIndex == 1" class="mt-1">
+                  <b-button size="sm" :pressed.sync="settings.collection.showFilter" variant="link" v-b-popover.hover.top="'Show collection info'"><span v-if="settings.collection.showFilter"><b-icon-layout-sidebar-inset shift-v="+1" font-scale="1.0"></b-icon-layout-sidebar-inset></span><span v-else><b-icon-layout-sidebar shift-v="+1" font-scale="1.0"></b-icon-layout-sidebar></span></b-button>
+                </div>
                 <div v-if="settings.tabIndex == 1" class="mt-1" style="width: 380px;">
                   <b-form-input type="text" size="sm" :value="filter.collection.address" @change="updateCollectionFilter('collection.address', $event)" :disabled="sync.inProgress" debounce="600" v-b-popover.hover.top="'Collection address'" placeholder="{ERC-721 address}"></b-form-input>
                 </div>
@@ -89,7 +92,7 @@ const NFTs = {
                 <div v-if="settings.tabIndex == 1" class="mt-1">
                   <b-button size="sm" :pressed.sync="settings.collection.showInfo" variant="link" v-b-popover.hover.top="'Show collection info'"><span v-if="settings.collection.showInfo"><b-icon-info-circle-fill shift-v="+1" font-scale="1.0"></b-icon-info-circle-fill></span><span v-else><b-icon-info-circle shift-v="+1" font-scale="1.0"></b-icon-info-circle></span></b-button>
                 </div>
-                <div v-if="settings.tabIndex == 1" class="mt-1">                  
+                <div v-if="settings.tabIndex == 1" class="mt-1">
                   <b-badge variant="light">{{ collectionInfo && collectionInfo.name || '' }}</b-badge>
                 </div>
 
@@ -195,81 +198,72 @@ const NFTs = {
                 -->
               </div>
 
-              <!-- Collection -->
+              <!-- Collection information -->
               <div v-if="settings.tabIndex == 1">
                 <b-card v-if="settings.collection.showInfo && collectionInfo != null" no-header no-body class="mt-1">
                   <pre>
 {{ JSON.stringify(collectionInfo, null, 2) }}
                   </pre>
                 </b-card>
+              </div>
 
-                <b-card v-if="pagedFilteredCollectionTokens.length > 0" no-header no-body class="mt-1">
-
-                  <b-card-group deck class="m-1 p-0">
-                    <div v-for="token in pagedFilteredCollectionTokens">
-                      <b-card body-class="p-0" header-class="p-1" img-top class="m-1 p-0 border-0" style="max-width: 7rem;">
-                        <b-avatar rounded size="7rem" :src="token.image"></b-avatar>
-                        <b-card-text class="text-right">
-                          <div class="d-flex justify-content-between m-0 p-0">
-                            <div>
-                              <font size="-1">
-                                <b-badge variant="light" v-b-popover.hover.bottom="'blah'">{{ token.tokenId }}</b-badge>
-                              </font>
-                            </div>
-                            <!--
-                            <div class="flex-grow-1">
-                              <font v-if="secondsOld(event.timestamp) < 3600" size="-1">
-                                <b-badge variant="dark" v-b-popover.hover.bottom="formatTimestamp(event.timestamp)">{{ formatTerm(event.timestamp) }}</b-badge>
-                              </font>
-                              <font v-else-if="secondsOld(event.timestamp) > 86400" size="-1">
-                                <b-badge variant="light" v-b-popover.hover.bottom="formatTimestamp(event.timestamp)">{{ formatTerm(event.timestamp) }}</b-badge>
-                              </font>
-                              <font v-else size="-1">
-                                <b-badge variant="secondary" v-b-popover.hover.bottom="formatTimestamp(event.timestamp)">{{ formatTerm(event.timestamp) }}</b-badge>
-                              </font>
-                            </div>
-                            -->
-                            <div class="flex-grow-1">
-                            </div>
-                            <div>
-                              <!--
-                              <font size="-1">
-                                <b-badge :variant="(activity.type == 'Sales') ? 'success' : ((activity.type == 'Asks') ? 'primary' : 'warning')" v-b-popover.hover.bottom="formatETH(event.amount)">{{ formatETHShort(event.amount) }}</b-badge>
-                              </font>
-                              -->
-                            </div>
-                          </div>
-                        </b-card-text>
+              <!-- Collection -->
+              <b-row v-if="settings.tabIndex == 1" class="m-0 p-0">
+                <!-- Collection Filter -->
+                <b-col v-if="settings.collection.showFilter" cols="2" class="m-0 p-0">
+                  <b-card no-header body-class="m-1 p-1" class="m-1 mt-2 mr-0 p-0">
+                    <div v-for="(attributeKey, attributeIndex) in Object.keys(collectionTokensAttributesWithCounts).sort()" v-bind:key="attributeIndex">
+                      <b-card body-class="p-0" class="m-1 p-1">
+                        <template #header>
+                          <span variant="secondary" class="small truncate">
+                            {{ attributeKey }}
+                          </span>
+                        </template>
+                        <font size="-2">
+                          <b-table small fixed striped sticky-header="200px" :fields="collectionAttributeFields" :items="getSortedTraitsForCollectionTokensAttributes(attributeKey)" head-variant="light">
+                            <template #cell(select)="data">
+                              <b-form-checkbox :checked="(collectionAttributeFilter[attributeKey] && collectionAttributeFilter[attributeKey].attributeOption) ? 1 : 0" value="1" @change="filterChange(attributeKey, data.item.attributeOption)"></b-form-checkbox>
+                            </template>
+                            <template #cell(attributeOption)="data">
+                              {{ data.item.attributeOption }}
+                            </template>
+                          </b-table>
+                        </font>
                       </b-card>
                     </div>
-                  </b-card-group>
-
-
-                  <!--
-
-
-                  <b-table small striped hover :items="filteredCollectionTokens" table-class="w-100" class="m-1 p-1">
-                  </b-table>
-                  <b-table small striped hover :fields="mintMonitorCollectionsFields" :items="filteredCollectionTokens" table-class="w-100" class="m-1 p-1">
-                  <b-form-group label-cols="4" label-size="sm" label="Name" label-align="right" class="mb-2">
-                    <b-form-input type="text" size="sm" :value="collectionInfo && collectionInfo.name || ''" readonly></b-form-input>
-                  </b-form-group>
-                  {{ filteredCollectionTokens }}
-                  <b-form-group label-cols="4" label-size="sm" label="Description" label-align="right" class="mb-2">
-                    <b-form-textarea size="sm" :value="collectionInfo && collectionInfo.metadata && collectionInfo.metadata.description || ''" readonly rows="3" max-rows="10"></b-form-textarea>
-                  </b-form-group>
-                  -->
-                  <b-card-text>
-                    <!--
-                    {{ collectionInfo }}
-                    <b-form-input type="text" size="sm" @change="recalculate('searchTokenId')" v-model.trim="settings.searchTokenId" debounce="600" placeholder="🔍 ID1, ID2-ID3, ..." class="mb-2"></b-form-input>
-                    <b-form-input type="text" size="sm" @change="recalculate('searchAccount')" v-model.trim="settings.searchAccount" debounce="600" placeholder="🔍 ENS1, ADDY2, ..." class="mb-2"></b-form-input>
-                    <b-form-input type="text" size="sm" @change="recalculate('searchLyrics')" v-model.trim="settings.searchLyrics" debounce="600" placeholder="🔍 LYRICS" class="mb-2"></b-form-input>
-                    <b-form-checkbox @change="recalculate('searchForSaleOnly')" v-model.trim="settings.searchForSaleOnly" debounce="600">For Sale Only (coming)</b-form-checkbox>
-                    -->
-                  </b-card-text>
-                </b-card>
-              </div>
+                  </b-card>
+                </b-col>
+                <b-col class="m-0 p-0">
+                  <!-- Collection Results -->
+                  <div v-if="pagedFilteredCollectionTokens.length > 0">
+                    <b-card-group deck class="m-1 ml-0 p-0">
+                      <div v-for="token in pagedFilteredCollectionTokens">
+                        <b-card body-class="p-0" header-class="p-1" img-top class="m-1 p-0 border-0" style="max-width: 7rem;">
+                          <b-avatar rounded size="7rem" :src="token.image"></b-avatar>
+                          <b-card-text class="text-right">
+                            <div class="d-flex justify-content-between m-0 p-0">
+                              <div>
+                                <font size="-1">
+                                  <b-badge variant="light" v-b-popover.hover.bottom="'blah'">{{ token.tokenId }}</b-badge>
+                                </font>
+                              </div>
+                              <div class="flex-grow-1">
+                              </div>
+                              <div>
+                                <!--
+                                <font size="-1">
+                                  <b-badge :variant="(activity.type == 'Sales') ? 'success' : ((activity.type == 'Asks') ? 'primary' : 'warning')" v-b-popover.hover.bottom="formatETH(event.amount)">{{ formatETHShort(event.amount) }}</b-badge>
+                                </font>
+                                -->
+                              </div>
+                            </div>
+                          </b-card-text>
+                        </b-card>
+                      </div>
+                    </b-card-group>
+                  </div>
+                </b-col>
+              </b-row>
 
               <!-- Mint Monitor -->
               <div v-if="settings.tabIndex == 2">
@@ -379,12 +373,14 @@ const NFTs = {
         activityMaxItems: 50,
         collection: {
           showInfo: false,
+          showFilter: true,
           sortOption: 'idasc',
           pageSize: 100,
           currentPage: 1
         }
       },
 
+      collectionAttributeFilter: {},
       dailyChartSelectedItems: [],
 
       sortOptions: [
@@ -418,6 +414,12 @@ const NFTs = {
         { value: 500, text: '500' },
         { value: 1000, text: '1k' },
         { value: 10000, text: '10k' },
+      ],
+
+      collectionAttributeFields: [
+        { key: 'select', label: '', thStyle: 'width: 10%;' },
+        { key: 'attributeOption', label: 'Attribute' /*, sortable: true*/ },
+        { key: 'attributeTotal', label: 'Count', /*sortable: true,*/ thStyle: 'width: 30%;', thClass: 'text-right', tdClass: 'text-right' },
       ],
 
       mintMonitorCollectionsFields: [
@@ -462,6 +464,27 @@ const NFTs = {
     },
     mintMonitorCollections() {
       return store.getters['nfts/mintMonitorCollections'];
+    },
+    collectionTokensAttributesWithCounts() {
+      const collator = { };
+      for (const [tokenId, token] of Object.entries(this.collectionTokens)) {
+        // console.log(JSON.stringify(token, null, 2));
+        for (let attribute of token.attributes) {
+          // console.log(tokenId + " " + JSON.stringify(attribute));
+            const traitType = attribute.key;
+            const value = attribute.value;
+            if (!collator[traitType]) {
+              collator[traitType] = {};
+            }
+            if (!collator[traitType][value]) {
+              collator[traitType][value] = 1;
+            } else {
+              collator[traitType][value]++;
+            }
+        }
+      }
+      console.log("collectionTokensAttributesWithCounts: " + JSON.stringify(collator, null, 2));
+      return collator;
     },
     filteredCollectionTokens() {
       const results = [];
@@ -542,6 +565,18 @@ const NFTs = {
         return collection.symbol + ' - ' + collection.name + (collection.totalSupply > 0 ? (' (' + collection.totalSupply + ')') : '');
       }
       return address.substring(0, 12);
+    },
+    getSortedTraitsForCollectionTokensAttributes(category) {
+      const results = [];
+      console.log("getSortedTraitsForCollectionTokensAttributes - category: " + category);
+      for (let attributeKey in this.collectionTokensAttributesWithCounts[category]) {
+        console.log("getSortedTraitsForCollectionTokensAttributes - attributeKey: " + attributeKey);
+        const c = this.collectionTokensAttributesWithCounts[category][attributeKey];
+        results.push({ attributeOption: attributeKey, attributeTotal: c })
+      }
+      results.sort((a, b) => b.attributeTotal - a.attributeTotal);
+      console.log("getSortedTraitsForCollectionTokensAttributes: " + JSON.stringify(results, null, 2));
+      return results;
     },
     getTokenIdString(tokenId) {
       const str = tokenId.toString();
@@ -679,7 +714,7 @@ const nftsModule = {
   state: {
     filter: {
       collection: {
-        address: null, // "0x31385d3520bced94f77aae104b406994d8f2168c",
+        address: "0xd0e7bc3f1efc5f098534bce73589835b8273b9a0", // TODO: null, // "0x31385d3520bced94f77aae104b406994d8f2168c",
         startBlockNumber: 4000000,
       },
       searchString: null,
@@ -779,7 +814,7 @@ const nftsModule = {
              return [];
           });
         state.collectionInfo = collectionInfo && collectionInfo.collection || {};
-        console.log("state.collectionInfo: " + JSON.stringify(state.collectionInfo, null, 2));
+        // console.log("state.collectionInfo: " + JSON.stringify(state.collectionInfo, null, 2));
 
         state.sync.total = collectionInfo && collectionInfo.collection && collectionInfo.collection.tokenCount || 0;
         // state.sync.total = 5;
@@ -829,7 +864,7 @@ const nftsModule = {
           if (state.sync.total < totalRecords) {
             state.sync.total = totalRecords;
           }
-        } while (continuation != null && !state.halt && !state.sync.error /*&& totalRecords < 200 && totalRecords < state.sync.total*/);
+        } while (continuation != null && !state.halt && !state.sync.error && totalRecords < 60 /* && totalRecords < state.sync.total*/);
 
         state.collectionTokens = tokens;
 
