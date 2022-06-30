@@ -210,10 +210,10 @@ const NFTs = {
               <!-- Collection -->
               <b-row v-if="settings.tabIndex == 1" class="m-0 p-0">
                 <!-- Collection Filter -->
-                <b-col v-if="settings.collection.showFilter" cols="2" class="m-0 p-0">
-                  <b-card no-header body-class="m-1 p-1" class="m-1 mt-2 mr-0 p-0">
+                <b-col v-if="settings.collection.showFilter" cols="2" class="m-0 p-0 border-0">
+                  <b-card no-header no-body body-class="m-0 p-0 border-0" class="m-0 mt-1 p-0 border-0">
                     <div v-for="(attributeKey, attributeIndex) in Object.keys(collectionTokensAttributesWithCounts).sort()" v-bind:key="attributeIndex">
-                      <b-card body-class="p-0" class="m-1 p-1">
+                      <b-card header-class="m-0 px-2 pt-2 pb-0" body-class="p-0" class="m-0 p-1 border-0">
                         <template #header>
                           <span variant="secondary" class="small truncate">
                             {{ attributeKey }}
@@ -864,7 +864,7 @@ const nftsModule = {
           if (state.sync.total < totalRecords) {
             state.sync.total = totalRecords;
           }
-        } while (continuation != null && !state.halt && !state.sync.error && totalRecords < 60 /* && totalRecords < state.sync.total*/);
+        } while (continuation != null && !state.halt && !state.sync.error /* && totalRecords < 60 && totalRecords < state.sync.total*/);
 
         state.collectionTokens = tokens;
 
