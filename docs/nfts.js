@@ -740,7 +740,7 @@ const nftsModule = {
   state: {
     filter: {
       collection: {
-        address: "0xd0e7bc3f1efc5f098534bce73589835b8273b9a0", // TODO: null, // "0x31385d3520bced94f77aae104b406994d8f2168c",
+        address: null, // "0x31385d3520bced94f77aae104b406994d8f2168c",
         startBlockNumber: 4000000,
       },
       searchString: null,
