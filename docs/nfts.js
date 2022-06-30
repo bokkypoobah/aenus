@@ -4,21 +4,23 @@ const NFTs = {
       <b-card no-body no-header class="border-0">
         <b-card no-body class="p-0 mt-1">
           <b-tabs card align="left" no-body v-model="settings.tabIndex" active-tab-class="m-0 p-0">
-            <b-tab title="Collection" @click="updateURL('collection');">
+            <b-tab title="Collections(wip)" @click="updateURL('collections');">
+            </b-tab>
+            <b-tab title="Collection(wip)" @click="updateURL('collection');">
             </b-tab>
             <b-tab title="Mint Monitor" @click="updateURL('mintmonitor');">
             </b-tab>
           </b-tabs>
 
-          <b-card no-body no-header :img-src="settings.tabIndex == 0 && collectionInfo && collectionInfo.metadata && collectionInfo.metadata.bannerImageUrl || ''" img-top class="m-0 p-0 border-0">
+          <b-card no-body no-header :img-src="settings.tabIndex == 1 && collectionInfo && collectionInfo.metadata && collectionInfo.metadata.bannerImageUrl || ''" img-top class="m-0 p-0 border-0">
 
             <b-card-body class="m-0 p-1">
               <!-- Main Toolbar -->
               <div class="d-flex flex-wrap m-0 p-0">
-                <div v-if="settings.tabIndex == 0" class="mt-1" style="width: 380px;">
+                <div v-if="settings.tabIndex == 1" class="mt-1" style="width: 380px;">
                   <b-form-input type="text" size="sm" :value="filter.collection.address" @change="updateCollectionFilter('collection.address', $event)" :disabled="sync.inProgress" debounce="600" v-b-popover.hover.top="'Collection address'" placeholder="{ERC-721 address}"></b-form-input>
                 </div>
-                <div v-if="settings.tabIndex == 0" class="mt-1 pl-1">
+                <div v-if="settings.tabIndex == 1" class="mt-1 pl-1">
                   <b-dropdown dropright size="sm" :disabled="sync.inProgress" variant="link" toggle-class="text-decoration-none" v-b-popover.hover.top="'Some vintage and higher total trading volume ERC-721 collections'">
                     <b-dropdown-group header="2015 Vintage">
                       <b-dropdown-item @click="filter.collection.address = '0x4b1705c75fde41e35e454ddd14e5d0a0eac06280'">Oct 19 Etheria v0.9 (wrapped, image not working)</b-dropdown-item>
@@ -76,75 +78,75 @@ const NFTs = {
                     </b-dropdown-group>
                   </b-dropdown>
                 </div>
-                <div v-if="settings.tabIndex == 0" class="mt-1 pl-1">
+                <div v-if="settings.tabIndex == 1" class="mt-1 pl-1">
                   <b-button size="sm" @click="updateCollection('sync')" :disabled="sync.inProgress" variant="primary">Retrieve</b-button>
                 </div>
-                <div v-if="settings.tabIndex == 1" class="mt-1" style="max-width: 170px;">
+                <div v-if="settings.tabIndex == 2" class="mt-1" style="max-width: 170px;">
                   <b-form-input type="text" size="sm" :value="filter.searchString" @change="updateMintMonitorFilter('searchString', $event)" debounce="600" v-b-popover.hover.top="'Search by collection symbol, name or address'" placeholder="🔍 {symbol|name|addy}"></b-form-input>
                 </div>
 
                 <div class="mt-1 flex-grow-1">
                 </div>
 
-                <div v-if="settings.tabIndex == 1" class="mt-1 pl-1">
+                <div v-if="settings.tabIndex == 2" class="mt-1 pl-1">
                   <b-form-select size="sm" :value="filter.scanBlocks" :options="scanBlocksOptions" @change="updateMintMonitorFilter('scanBlocks', $event)" :disabled="sync.inProgress" v-b-popover.hover.top="'Number of blocks to scan'"></b-form-select>
                 </div>
-                <div v-if="settings.tabIndex == 1" class="mt-1 pl-1">
+                <div v-if="settings.tabIndex == 2" class="mt-1 pl-1">
                   <b-button size="sm" @click="monitorMints('scanLatest')" :disabled="sync.inProgress || !powerOn || network.chainId != 1" variant="primary" style="min-width: 80px; ">{{ 'Scan Latest ' + filter.scanBlocks + ' Blocks' }}</b-button>
                 </div>
 
                 <div class="mt-1 flex-grow-1">
                 </div>
 
-                <div v-if="settings.tabIndex == 0 || settings.tabIndex == 1" class="mt-2" style="width: 200px;">
+                <div v-if="settings.tabIndex == 1 || settings.tabIndex == 2" class="mt-2" style="width: 200px;">
                   <b-progress v-if="sync.inProgress" height="1.5rem" :max="sync.total" :label="'((sync.completed/sync.total)*100).toFixed(2) + %'" show-progress :animated="sync.inProgress" :variant="sync.inProgress ? 'success' : 'secondary'" v-b-popover.hover.top="'Click on the Sync(ing) button to (un)pause'">
                     <b-progress-bar :value="sync.completed">
                       {{ sync.completed + '/' + sync.total + ' ' + ((sync.completed / sync.total) * 100).toFixed(0) + '%' }}
                     </b-progress-bar>
                   </b-progress>
                 </div>
-                <div v-if="settings.tabIndex == 0 || settings.tabIndex == 1" class="ml-0 mt-1">
+                <div v-if="settings.tabIndex == 1 || settings.tabIndex == 2" class="ml-0 mt-1">
                   <b-button v-if="sync.inProgress" size="sm" @click="halt" variant="link" v-b-popover.hover.top="'Halt'"><b-icon-stop-fill shift-v="+1" font-scale="1.0"></b-icon-stop-fill></b-button>
                 </div>
 
                 <div class="mt-1 flex-grow-1">
                 </div>
 
-                <div v-if="settings.tabIndex == 1" class="mt-1">
+                <div v-if="settings.tabIndex == 2" class="mt-1">
                   <b-button size="sm" :pressed.sync="settings.datetimeToolbar" variant="link" v-b-popover.hover.top="'Select by UTC date & time'"><span v-if="settings.datetimeToolbar"><b-icon-calendar3-fill shift-v="+1" font-scale="1.0"></b-icon-calendar3-fill></span><span v-else><b-icon-calendar3 shift-v="+1" font-scale="1.0"></b-icon-calendar3></span></b-button>
                 </div>
-                <div v-if="settings.tabIndex == 1" class="mt-1" style="max-width: 100px;">
+                <div v-if="settings.tabIndex == 2" class="mt-1" style="max-width: 100px;">
                   <b-form-input type="text" size="sm" :value="filter.startBlockNumber" :disabled="sync.inProgress" @change="updateMintMonitorFilter('startBlockNumber', $event)" debounce="600" v-b-popover.hover.top="'Search from block number'" placeholder="from"></b-form-input>
                 </div>
-                <div v-if="settings.tabIndex == 1" class="mt-1">
+                <div v-if="settings.tabIndex == 2" class="mt-1">
                   -
                 </div>
-                <div v-if="settings.tabIndex == 1" class="mt-1" style="max-width: 100px;">
+                <div v-if="settings.tabIndex == 2" class="mt-1" style="max-width: 100px;">
                   <b-form-input type="text" size="sm" :value="filter.endBlockNumber" :disabled="sync.inProgress" @change="updateMintMonitorFilter('endBlockNumber', $event)" debounce="600" v-b-popover.hover.top="'Search to block number'" placeholder="to"></b-form-input>
                 </div>
 
-                <div v-if="settings.tabIndex == 1" class="mt-1 pl-1">
+                <div v-if="settings.tabIndex == 2" class="mt-1 pl-1">
                   <b-button size="sm" @click="monitorMints('scan')" :disabled="sync.inProgress || !powerOn || network.chainId != 1 || filter.startBlockNumber == null || filter.endBlockNumber == null" variant="primary" style="min-width: 80px; ">Scan</b-button>
                 </div>
-                <div v-if="settings.tabIndex == 1" class="mt-2 pl-1">
+                <div v-if="settings.tabIndex == 2" class="mt-2 pl-1">
                   <b-link size="sm" :to="getURL" v-b-popover.hover.top="'Share this link for the same search'" ><font size="-1">Share</font></b-link>
                 </div>
 
                 <div class="mt-1 flex-grow-1">
                 </div>
-                <div v-if="settings.tabIndex == 0" class="mt-1 pr-1">
+                <div v-if="settings.tabIndex == 1" class="mt-1 pr-1">
                   <b-form-select size="sm" v-model="settings.collection.sortOption" :options="sortOptions" v-b-popover.hover.top="'Yeah. Sort'"></b-form-select>
                 </div>
-                <div v-if="settings.tabIndex == 0" class="mt-1 pr-1">
+                <div v-if="settings.tabIndex == 1" class="mt-1 pr-1">
                   <font size="-2" v-b-popover.hover.top="'Blah'">{{ filteredSortedCollectionTokens.length }}</font>
                 </div>
-                <div v-if="settings.tabIndex == 0" class="mt-1 pr-1">
+                <div v-if="settings.tabIndex == 1" class="mt-1 pr-1">
                   <b-pagination size="sm" v-model="settings.collection.currentPage" :total-rows="filteredSortedCollectionTokens.length" :per-page="settings.collection.pageSize" style="height: 0;"></b-pagination>
                 </div>
-                <div v-if="settings.tabIndex == 0" class="mt-1 pl-1">
+                <div v-if="settings.tabIndex == 1" class="mt-1 pl-1">
                   <b-form-select size="sm" v-model="settings.collection.pageSize" :options="pageSizes" v-b-popover.hover.top="'Page size'"></b-form-select>
                 </div>
-                <div v-if="settings.tabIndex == 1" class="mt-1 pl-1">
+                <div v-if="settings.tabIndex == 2" class="mt-1 pl-1">
                   <b-form-select size="sm" v-model="settings.activityMaxItems" :options="activityMaxItemsOptions" v-b-popover.hover.top="'Max items to display'"></b-form-select>
                 </div>
               </div>
@@ -157,7 +159,7 @@ const NFTs = {
                 <div class="mt-1">
                   <b-time v-model="settings.timeFrom" @context="calendarUpdated('timeFrom', $event)"></b-time>
                 </div>
-                <div v-if="settings.tabIndex == 1" class="mt-1">
+                <div v-if="settings.tabIndex == 2" class="mt-1">
                   -
                 </div>
                 <div class="mt-1 pr-1">
@@ -186,7 +188,7 @@ const NFTs = {
               </div>
 
               <!-- Collection -->
-              <div v-if="settings.tabIndex == 0">
+              <div v-if="settings.tabIndex == 1">
                 <b-card v-if="pagedFilteredCollectionTokens.length > 0" no-header no-body class="mt-1">
 
                   <b-card-group deck class="m-1 p-0">
@@ -256,7 +258,7 @@ const NFTs = {
               </div>
 
               <!-- Mint Monitor -->
-              <div v-if="settings.tabIndex == 1">
+              <div v-if="settings.tabIndex == 2">
                 <b-alert size="sm" :show="!powerOn || network.chainId != 1" variant="primary" class="m-0 mt-1">
                   Please connect to the Ethereum mainnet with a web3-enabled browser. Click the [Power] button on the top right.
                 </b-alert>
@@ -623,10 +625,12 @@ const NFTs = {
   },
   mounted() {
     logInfo("NFTs", "mounted() $route: " + JSON.stringify(this.$route.params) + ", props['tab']: " + this.tab + ", props['blocks']: " + this.blocks + ", props['search']: " + this.search);
-    if (this.tab == "collection") {
+    if (this.tab == "collections") {
       this.settings.tabIndex = 0;
-    } else if (this.tab == "mintmonitor") {
+    } else if (this.tab == "collection") {
       this.settings.tabIndex = 1;
+    } else if (this.tab == "mintmonitor") {
+      this.settings.tabIndex = 2;
       let startBlockNumber = null;
       let endBlockNumber = null;
       if (this.blocks != null) {
