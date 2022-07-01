@@ -125,7 +125,7 @@ const NFTs = {
                 </div>
 
                 <div v-if="settings.tabIndex == 2" class="mt-1">
-                  <b-button size="sm" :pressed.sync="settings.datetimeToolbar" variant="link" v-b-popover.hover.top="'Select by UTC date & time'"><span v-if="settings.datetimeToolbar"><b-icon-calendar3-fill shift-v="+1" font-scale="1.0"></b-icon-calendar3-fill></span><span v-else><b-icon-calendar3 shift-v="+1" font-scale="1.0"></b-icon-calendar3></span></b-button>
+                  <b-button size="sm" :pressed.sync="settings.mintMonitor.datetimeToolbar" variant="link" v-b-popover.hover.top="'Select by UTC date & time'"><span v-if="settings.mintMonitor.datetimeToolbar"><b-icon-calendar3-fill shift-v="+1" font-scale="1.0"></b-icon-calendar3-fill></span><span v-else><b-icon-calendar3 shift-v="+1" font-scale="1.0"></b-icon-calendar3></span></b-button>
                 </div>
                 <div v-if="settings.tabIndex == 2" class="mt-1" style="max-width: 100px;">
                   <b-form-input type="text" size="sm" :value="filter.startBlockNumber" :disabled="sync.inProgress" @change="updateMintMonitorFilter('startBlockNumber', $event)" debounce="600" v-b-popover.hover.top="'Search from block number'" placeholder="from"></b-form-input>
@@ -159,26 +159,26 @@ const NFTs = {
                   <b-form-select size="sm" v-model="settings.collection.pageSize" :options="pageSizes" v-b-popover.hover.top="'Page size'"></b-form-select>
                 </div>
                 <div v-if="settings.tabIndex == 2" class="mt-1 pl-1">
-                  <b-form-select size="sm" v-model="settings.activityMaxItems" :options="activityMaxItemsOptions" v-b-popover.hover.top="'Max items to display'"></b-form-select>
+                  <b-form-select size="sm" v-model="settings.mintMonitor.activityMaxItems" :options="activityMaxItemsOptions" v-b-popover.hover.top="'Max items to display'"></b-form-select>
                 </div>
               </div>
 
               <!-- Sync Toolbar -->
-              <div v-if="settings.datetimeToolbar" class="d-flex flex-wrap justify-content-center m-0 p-0 pb-1">
+              <div v-if="settings.mintMonitor.datetimeToolbar" class="d-flex flex-wrap justify-content-center m-0 p-0 pb-1">
                 <div class="mt-1 pr-1">
-                  <b-calendar v-model="settings.dateFrom" @context="calendarUpdated('dateFrom', $event)"></b-calendar>
+                  <b-calendar v-model="settings.mintMonitor.dateFrom" @context="calendarUpdated('dateFrom', $event)"></b-calendar>
                 </div>
                 <div class="mt-1">
-                  <b-time v-model="settings.timeFrom" @context="calendarUpdated('timeFrom', $event)"></b-time>
+                  <b-time v-model="settings.mintMonitor.timeFrom" @context="calendarUpdated('timeFrom', $event)"></b-time>
                 </div>
                 <div v-if="settings.tabIndex == 2" class="mt-1">
                   -
                 </div>
                 <div class="mt-1 pr-1">
-                  <b-calendar v-model="settings.dateTo" @context="calendarUpdated('dateTo', $event)"></b-calendar>
+                  <b-calendar v-model="settings.mintMonitor.dateTo" @context="calendarUpdated('dateTo', $event)"></b-calendar>
                 </div>
                 <div class="mt-1 pr-1">
-                  <b-time v-model="settings.timeTo" @context="calendarUpdated('timeTo', $event)"></b-time>
+                  <b-time v-model="settings.mintMonitor.timeTo" @context="calendarUpdated('timeTo', $event)"></b-time>
                 </div>
                 <!--
                 <div class="mt-1 pr-1">
@@ -316,7 +316,7 @@ const NFTs = {
                     {{ data.item.mints }}
                   </template>
                   <template #cell(tokens)="data">
-                    <span v-for="(transfer, transferIndex) in data.item.transfers.slice(0, settings.activityMaxItems)">
+                    <span v-for="(transfer, transferIndex) in data.item.transfers.slice(0, settings.mintMonitor.activityMaxItems)">
                       <b-button :id="'popover-target-' + data.item.contract + '-' + transfer.tokenId" variant="link" class="m-0 p-0">
                         <span v-if="transfer.contract == '0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85'">
                           <b-img :width="'100%'" :src="'https://metadata.ens.domains/mainnet/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + transfer.tokenId + '/image'">
@@ -371,12 +371,14 @@ const NFTs = {
 
       settings: {
         tabIndex: 0,
-        datetimeToolbar: false,
-        dateFrom: null,
-        timeFrom: null,
-        dateTo: null,
-        timeTo: null,
-        activityMaxItems: 50,
+        mintMonitor: {
+          datetimeToolbar: false,
+          dateFrom: null,
+          timeFrom: null,
+          dateTo: null,
+          timeTo: null,
+          activityMaxItems: 50,
+        },
         collection: {
           showInfo: false,
           showFilter: true,
@@ -626,12 +628,13 @@ const NFTs = {
     },
     async calendarUpdated(field, context) {
       logInfo("NFTs", "calendarUpdated - field: " + field + ", context: " + JSON.stringify(context));
-      if (field == 'dateFrom' && this.settings.dateFrom != null && this.settings.dateTo == null) {
-        this.settings.dateTo = this.settings.dateFrom;
+      const mm = this.settings.mintMonitor;
+      if (field == 'dateFrom' && mm.dateFrom != null && mm.dateTo == null) {
+        mm.dateTo = mm.dateFrom;
       }
-      if ((field == 'dateFrom' || field == 'timeFrom') && this.settings.dateFrom != null && this.settings.timeFrom != null) {
-        logInfo("NFTs", "calendarUpdated - dateFrom: " + this.settings.dateFrom + ", timeFrom: " + this.settings.timeFrom);
-        const fromTimestamp = moment.utc(this.settings.dateFrom + ' ' + this.settings.timeFrom).unix();
+      if ((field == 'dateFrom' || field == 'timeFrom') && mm.dateFrom != null && mm.timeFrom != null) {
+        logInfo("NFTs", "calendarUpdated - dateFrom: " + mm.dateFrom + ", timeFrom: " + mm.timeFrom);
+        const fromTimestamp = moment.utc(mm.dateFrom + ' ' + mm.timeFrom).unix();
         const data = await fetch(BLOCKTIMESTAMPSUBGRAPHURL, {
           method: 'POST',
           headers: {
@@ -649,9 +652,9 @@ const NFTs = {
           store.dispatch('nfts/updateMintMonitorFilter', filterUpdate);
         }
       }
-      if ((field == 'dateTo' || field == 'timeTo') && this.settings.dateTo != null && this.settings.timeTo != null) {
-        logInfo("NFTs", "calendarUpdated - dateTo: " + this.settings.dateTo + ", timeTo: " + this.settings.timeTo);
-        const toTimestamp = moment.utc(this.settings.dateTo + ' ' + this.settings.timeTo).unix();
+      if ((field == 'dateTo' || field == 'timeTo') && mm.dateTo != null && mm.timeTo != null) {
+        logInfo("NFTs", "calendarUpdated - dateTo: " + mm.dateTo + ", timeTo: " + mm.timeTo);
+        const toTimestamp = moment.utc(mm.dateTo + ' ' + mm.timeTo).unix();
         const data = await fetch(BLOCKTIMESTAMPSUBGRAPHURL, {
           method: 'POST',
           headers: {
