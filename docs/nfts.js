@@ -18,7 +18,7 @@ const NFTs = {
               <!-- Main Toolbar -->
               <div class="d-flex flex-wrap m-0 p-0">
                 <div v-if="settings.tabIndex == 1" class="mt-1">
-                  <b-button size="sm" :pressed.sync="settings.collection.showFilter" variant="link" v-b-popover.hover.top="'Show collection info'"><span v-if="settings.collection.showFilter"><b-icon-layout-sidebar-inset shift-v="+1" font-scale="1.0"></b-icon-layout-sidebar-inset></span><span v-else><b-icon-layout-sidebar shift-v="+1" font-scale="1.0"></b-icon-layout-sidebar></span></b-button>
+                  <b-button size="sm" :pressed.sync="settings.collection.showFilter" variant="link" v-b-popover.hover.top="'Show collection filter'"><span v-if="settings.collection.showFilter"><b-icon-layout-sidebar-inset shift-v="+1" font-scale="1.0"></b-icon-layout-sidebar-inset></span><span v-else><b-icon-layout-sidebar shift-v="+1" font-scale="1.0"></b-icon-layout-sidebar></span></b-button>
                 </div>
                 <div v-if="settings.tabIndex == 1" class="mt-1" style="width: 380px;">
                   <b-form-input type="text" size="sm" :value="filter.collection.address" @change="updateCollectionFilter('collection.address', $event)" :disabled="sync.inProgress" debounce="600" v-b-popover.hover.top="'Collection address'" placeholder="{ERC-721 address}"></b-form-input>
@@ -212,29 +212,31 @@ const NFTs = {
               <b-row v-if="settings.tabIndex == 1" class="m-0 p-0">
                 <!-- Collection Filter -->
                 <b-col v-if="settings.collection.showFilter" cols="2" class="m-0 p-0 border-0">
-                  <b-card no-header no-body body-class="m-0 p-0 border-0" class="m-0 mt-1 p-0 border-0">
-                    <div v-for="(attributeKey, attributeIndex) in Object.keys(collectionTokensAttributesWithCounts).sort()" v-bind:key="attributeIndex">
-                      <b-card header-class="m-0 px-2 pt-2 pb-0" body-class="p-0" class="m-0 p-1 border-0">
-                        <template #header>
-                          <span variant="secondary" class="small truncate">
-                            {{ attributeKey }}
-                          </span>
-                        </template>
-                        <font size="-2">
-                          <b-table small fixed striped sticky-header="200px" :fields="collectionAttributeFields" :items="getSortedTraitsForCollectionTokensAttributes(attributeKey)" head-variant="light">
-                            <template #cell(select)="data">
-                              <b-form-checkbox size="sm" :checked="(collectionAttributeFilter[attributeKey] && collectionAttributeFilter[attributeKey].attributeOption) ? 1 : 0" value="1" @change="collectionFilterChange(attributeKey, data.item.attributeOption)"></b-form-checkbox>
-                            </template>
-                            <template #cell(attributeOption)="data">
-                              {{ data.item.attributeOption }}
-                            </template>
-                            <template #cell(attributeTotal)="data">
-                              {{ data.item.attributeTotal.length }}
-                            </template>
-                          </b-table>
-                        </font>
-                      </b-card>
-                    </div>
+                  <b-card no-header no-body class="m-0 p-0 border-0">
+                    <b-card-body class="m-0 p-1" style="flex-grow: 1; max-height: 2000px; overflow-y: auto;">
+                      <div v-for="(attributeKey, attributeIndex) in Object.keys(collectionTokensAttributesWithCounts).sort()" v-bind:key="attributeIndex">
+                        <b-card header-class="m-0 px-2 pt-2 pb-0" body-class="p-0" class="m-0 p-1 border-0">
+                          <template #header>
+                            <span variant="secondary" class="small truncate">
+                              {{ attributeKey }}
+                            </span>
+                          </template>
+                          <font size="-2">
+                            <b-table small fixed striped sticky-header="200px" :fields="collectionAttributeFields" :items="getSortedTraitsForCollectionTokensAttributes(attributeKey)" head-variant="light">
+                              <template #cell(select)="data">
+                                <b-form-checkbox size="sm" :checked="(collectionAttributeFilter[attributeKey] && collectionAttributeFilter[attributeKey].attributeOption) ? 1 : 0" value="1" @change="collectionFilterChange(attributeKey, data.item.attributeOption)"></b-form-checkbox>
+                              </template>
+                              <template #cell(attributeOption)="data">
+                                {{ data.item.attributeOption }}
+                              </template>
+                              <template #cell(attributeTotal)="data">
+                                {{ data.item.attributeTotal.length }}
+                              </template>
+                            </b-table>
+                          </font>
+                        </b-card>
+                      </div>
+                    </b-card-body>
                   </b-card>
                 </b-col>
                 <b-col class="m-0 p-0">
@@ -828,7 +830,7 @@ const nftsModule = {
         }
 
         state.sync.completed = 0;
-        state.sync.error = null;
+        state.sync.error = false;
         state.sync.inProgress = true;
 
         let url = "https://api.reservoir.tools/collection/v2?id=" + state.filter.collection.address;
