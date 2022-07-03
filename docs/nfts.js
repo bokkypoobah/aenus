@@ -21,7 +21,7 @@ const NFTs = {
                   <b-button size="sm" :pressed.sync="settings.collection.showFilter" variant="link" v-b-popover.hover.top="'Show collection filter'"><span v-if="settings.collection.showFilter"><b-icon-layout-sidebar-inset shift-v="+1" font-scale="1.0"></b-icon-layout-sidebar-inset></span><span v-else><b-icon-layout-sidebar shift-v="+1" font-scale="1.0"></b-icon-layout-sidebar></span></b-button>
                 </div>
                 <div v-if="settings.tabIndex == 1" class="mt-1" style="width: 380px;">
-                  <b-form-input type="text" size="sm" :value="filter.collection.address" @change="updateCollectionFilter('collection.address', $event)" :disabled="sync.inProgress" debounce="600" v-b-popover.hover.top="'Collection address'" placeholder="{ERC-721 address}"></b-form-input>
+                  <b-form-input type="text" size="sm" :value="filter.collection.address" @change="updateCollection('filterUpdate', { collection: { address: $event } })" :disabled="sync.inProgress" debounce="600" v-b-popover.hover.top="'Collection address'" placeholder="{ERC-721 address}"></b-form-input>
                 </div>
                 <div v-if="settings.tabIndex == 1" class="mt-1 pl-1">
                   <b-dropdown dropright size="sm" :disabled="sync.inProgress" variant="link" toggle-class="text-decoration-none" v-b-popover.hover.top="'Some vintage and higher total trading volume ERC-721 collections'">
@@ -83,10 +83,10 @@ const NFTs = {
                   </b-dropdown>
                 </div>
                 <div v-if="settings.tabIndex == 1" class="mt-1 pl-1">
-                  <b-button size="sm" @click="updateCollection('sync')" :disabled="sync.inProgress" variant="primary">Retrieve</b-button>
+                  <b-button size="sm" @click="updateCollection('sync', {})" :disabled="sync.inProgress" variant="primary">Retrieve</b-button>
                 </div>
                 <div v-if="settings.tabIndex == 2" class="mt-1" style="max-width: 170px;">
-                  <b-form-input type="text" size="sm" :value="filter.searchString" @change="updateMintMonitorFilter('searchString', $event)" debounce="600" v-b-popover.hover.top="'Search by collection symbol, name or address'" placeholder="🔍 {symbol|name|addy}"></b-form-input>
+                  <b-form-input type="text" size="sm" :value="filter.searchString" @change="monitorMints('updateFilter', { searchString: $event })" debounce="600" v-b-popover.hover.top="'Search by collection symbol, name or address'" placeholder="🔍 {symbol|name|addy}"></b-form-input>
                 </div>
                 <div class="mt-1 flex-grow-1">
                 </div>
@@ -101,10 +101,10 @@ const NFTs = {
                 </div>
 
                 <div v-if="settings.tabIndex == 2" class="mt-1 pl-1">
-                  <b-form-select size="sm" :value="filter.scanBlocks" :options="scanBlocksOptions" @change="updateMintMonitorFilter('scanBlocks', $event)" :disabled="sync.inProgress" v-b-popover.hover.top="'Number of blocks to scan'"></b-form-select>
+                  <b-form-select size="sm" :value="filter.scanBlocks" :options="scanBlocksOptions" @change="monitorMints('filterUpdate', { scanBlocks: $event })" :disabled="sync.inProgress" v-b-popover.hover.top="'Number of blocks to scan'"></b-form-select>
                 </div>
                 <div v-if="settings.tabIndex == 2" class="mt-1 pl-1">
-                  <b-button size="sm" @click="monitorMints('scanLatest')" :disabled="sync.inProgress || !powerOn || network.chainId != 1" variant="primary" style="min-width: 80px; ">{{ 'Scan Latest ' + filter.scanBlocks + ' Blocks' }}</b-button>
+                  <b-button size="sm" @click="monitorMints('scanLatest', {})" :disabled="sync.inProgress || !powerOn || network.chainId != 1" variant="primary" style="min-width: 80px; ">{{ 'Scan Latest ' + filter.scanBlocks + ' Blocks' }}</b-button>
                 </div>
 
                 <div class="mt-1 flex-grow-1">
@@ -128,17 +128,17 @@ const NFTs = {
                   <b-button size="sm" :pressed.sync="settings.periodSelector.displayToolbar" variant="link" v-b-popover.hover.top="'Select by UTC date & time'"><span v-if="settings.periodSelector.displayToolbar"><b-icon-calendar3-fill shift-v="+1" font-scale="1.0"></b-icon-calendar3-fill></span><span v-else><b-icon-calendar3 shift-v="+1" font-scale="1.0"></b-icon-calendar3></span></b-button>
                 </div>
                 <div v-if="settings.tabIndex == 2" class="mt-1" style="max-width: 100px;">
-                  <b-form-input type="text" size="sm" :value="filter.startBlockNumber" :disabled="sync.inProgress" @change="updateMintMonitorFilter('startBlockNumber', $event)" debounce="600" v-b-popover.hover.top="'Search from block number'" placeholder="from"></b-form-input>
+                  <b-form-input type="text" size="sm" :value="filter.startBlockNumber" :disabled="sync.inProgress" @change="monitorMints('filterUpdate', { startBlockNumber: $event })" debounce="600" v-b-popover.hover.top="'Search from block number'" placeholder="from"></b-form-input>
                 </div>
                 <div v-if="settings.tabIndex == 2" class="mt-1">
                   -
                 </div>
                 <div v-if="settings.tabIndex == 2" class="mt-1" style="max-width: 100px;">
-                  <b-form-input type="text" size="sm" :value="filter.endBlockNumber" :disabled="sync.inProgress" @change="updateMintMonitorFilter('endBlockNumber', $event)" debounce="600" v-b-popover.hover.top="'Search to block number'" placeholder="to"></b-form-input>
+                  <b-form-input type="text" size="sm" :value="filter.endBlockNumber" :disabled="sync.inProgress" @change="monitorMints('filterUpdate', { endBlockNumber: $event })" debounce="600" v-b-popover.hover.top="'Search to block number'" placeholder="to"></b-form-input>
                 </div>
 
                 <div v-if="settings.tabIndex == 2" class="mt-1 pl-1">
-                  <b-button size="sm" @click="monitorMints('scan')" :disabled="sync.inProgress || !powerOn || network.chainId != 1 || filter.startBlockNumber == null || filter.endBlockNumber == null" variant="primary" style="min-width: 80px; ">Scan</b-button>
+                  <b-button size="sm" @click="monitorMints('scan', {})" :disabled="sync.inProgress || !powerOn || network.chainId != 1 || filter.startBlockNumber == null || filter.endBlockNumber == null" variant="primary" style="min-width: 80px; ">Scan</b-button>
                 </div>
                 <div v-if="settings.tabIndex == 2" class="mt-2 pl-1">
                   <b-link size="sm" :to="getURL" v-b-popover.hover.top="'Share this link for the same search'" ><font size="-1">Share</font></b-link>
@@ -291,7 +291,7 @@ const NFTs = {
                     </b-button>
                     <b-popover :target="'popover-target-' + data.item.contract" placement="right">
                       <template #title>{{ getContractOrCollection(data.item.contract) }}</template>
-                      <b-link @click="settings.tabIndex = 0; updateCollectionFilter('collection.address', data.item.contract); " v-b-popover.hover.bottom="'Inspect collection'" target="_blank">
+                      <b-link @click="settings.tabIndex = 1; updateCollection('filterUpdate', { collection: { address: data.item.contract } }); " v-b-popover.hover.bottom="'Inspect collection'" target="_blank">
                         View Collection
                       </b-link>
                       <br />
@@ -620,12 +620,6 @@ const NFTs = {
     updateURL(where) {
       this.$router.push('/nfts/' + where);
     },
-    updateMintMonitorFilter(field, value) {
-      logInfo("NFTs", "updateMintMonitorFilter: " + field + " => " + JSON.stringify(value));
-      const filterUpdate = {};
-      filterUpdate[field] = value;
-      store.dispatch('nfts/updateMintMonitorFilter', filterUpdate);
-    },
     async calendarUpdated(field, context) {
       logInfo("NFTs", "calendarUpdated - field: " + field + ", context: " + JSON.stringify(context));
       const mm = this.settings.periodSelector;
@@ -648,8 +642,7 @@ const NFTs = {
         }).then(handleErrors)
           .then(response => response.json());
         if (data && data.data && data.data.blocks && data.data.blocks.length == 1) {
-          const filterUpdate = { startBlockNumber: ethers.utils.commify(data.data.blocks[0].number) };
-          store.dispatch('nfts/updateMintMonitorFilter', filterUpdate);
+          store.dispatch('nfts/monitorMints', { syncMode: 'updateFilter', filterUpdate: { startBlockNumber: ethers.utils.commify(data.data.blocks[0].number) } });
         }
       }
       if ((field == 'dateTo' || field == 'timeTo') && mm.dateTo != null && mm.timeTo != null) {
@@ -668,26 +661,15 @@ const NFTs = {
         }).then(handleErrors)
           .then(response => response.json());
         if (data && data.data && data.data.blocks && data.data.blocks.length == 1) {
-          const filterUpdate = { endBlockNumber: ethers.utils.commify(data.data.blocks[0].number) };
-          store.dispatch('nfts/updateMintMonitorFilter', filterUpdate);
+          store.dispatch('nfts/monitorMints', { syncMode: 'updateFilter', filterUpdate: { endBlockNumber: ethers.utils.commify(data.data.blocks[0].number) } });
         }
       }
     },
-    async monitorMints(syncMode) {
-      store.dispatch('nfts/monitorMints', { syncMode, configUpdate: null, filterUpdate: null });
+    async monitorMints(syncMode, filterUpdate) {
+      store.dispatch('nfts/monitorMints', { syncMode, filterUpdate });
     },
-    updateCollectionFilter(field, value) {
-      logInfo("NFTs", "updateCollectionFilter: " + field + " => " + JSON.stringify(value));
-      const filterUpdate = {};
-      if (field == 'collection.address') {
-        filterUpdate['collection'] = { address: value };
-      } else {
-        filterUpdate[field] = value;
-      }
-      store.dispatch('nfts/updateCollectionFilter', filterUpdate);
-    },
-    async updateCollection(syncMode) {
-      store.dispatch('nfts/updateCollection', { syncMode, configUpdate: null, filterUpdate: null });
+    async updateCollection(syncMode, filterUpdate) {
+      store.dispatch('nfts/updateCollection', { syncMode, filterUpdate });
     },
     async halt() {
       store.dispatch('nfts/halt');
@@ -724,12 +706,13 @@ const NFTs = {
           startBlockNumber = this.blocks.replace(/\s*\-.*$/, '');
           endBlockNumber = this.blocks.replace(/^.*\-\s*/, '');
         }
-        const filterUpdate = {};
-        filterUpdate['startBlockNumber'] = ethers.utils.commify(parseInt(startBlockNumber));
-        filterUpdate['endBlockNumber'] = ethers.utils.commify(parseInt(endBlockNumber));
-        filterUpdate['searchString'] = this.search;
+        const filterUpdate = {
+          startBlockNumber: ethers.utils.commify(parseInt(startBlockNumber)),
+          endBlockNumber: ethers.utils.commify(parseInt(endBlockNumber)),
+          searchString: this.search,
+        };
         setTimeout(function() {
-          store.dispatch('nfts/monitorMints', { syncMode: 'scan', configUpdate: null, filterUpdate: filterUpdate });
+          store.dispatch('nfts/monitorMints', { syncMode: 'scan', filterUpdate });
         }, 1000);
       }
     }
@@ -779,7 +762,7 @@ const nftsModule = {
   mutations: {
 
     // --- updateCollection() ---
-    async updateCollection(state, { syncMode, configUpdate, filterUpdate }) {
+    async updateCollection(state, { syncMode, filterUpdate }) {
 
       async function processSales(data) {
         // const searchForNamesByTokenIds = data.sales
@@ -820,7 +803,7 @@ const nftsModule = {
       }
 
       // --- updateCollection() start ---
-      logInfo("nftsModule", "mutations.updateCollection() - syncMode: " + syncMode + ", configUpdate: " + JSON.stringify(configUpdate) + ", filterUpdate: " + JSON.stringify(filterUpdate));
+      logInfo("nftsModule", "mutations.updateCollection() - syncMode: " + syncMode + ", filterUpdate: " + JSON.stringify(filterUpdate));
       if (window.ethereum) {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const block = await provider.getBlock("latest");
@@ -1031,9 +1014,9 @@ const nftsModule = {
     },
 
     // --- monitorMints() ---
-    async monitorMints(state, { syncMode, configUpdate, filterUpdate }) {
+    async monitorMints(state, { syncMode, filterUpdate }) {
       // --- monitorMints() start ---
-      logInfo("nftsModule", "mutations.monitorMints() - syncMode: " + syncMode + ", configUpdate: " + JSON.stringify(configUpdate) + ", filterUpdate: " + JSON.stringify(filterUpdate));
+      logInfo("nftsModule", "mutations.monitorMints() - syncMode: " + syncMode + ", filterUpdate: " + JSON.stringify(filterUpdate));
       if (window.ethereum) {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const block = await provider.getBlock("latest");
@@ -1151,21 +1134,13 @@ const nftsModule = {
     },
   },
   actions: {
-    updateCollectionFilter(context, filterUpdate) {
-      logInfo("nftsModule", "filterUpdates.updateCollectionFilter() - filterUpdate: " + JSON.stringify(filterUpdate));
-      context.commit('updateCollection', { syncMode: 'updateFilter', configUpdate: null, filterUpdate });
+    updateCollection(context, { syncMode, filterUpdate }) {
+      logInfo("nftsModule", "actions.updateCollection() - syncMode: " + syncMode + ", filterUpdate: " + JSON.stringify(filterUpdate));
+      context.commit('updateCollection', { syncMode, filterUpdate } );
     },
-    updateCollection(context, { syncMode, configUpdate, filterUpdate }) {
-      logInfo("nftsModule", "actions.updateCollection() - syncMode: " + syncMode + ", configUpdate: " + JSON.stringify(configUpdate) + ", filterUpdate: " + JSON.stringify(filterUpdate));
-      context.commit('updateCollection', { syncMode, configUpdate, filterUpdate } );
-    },
-    updateMintMonitorFilter(context, filterUpdate) {
-      logInfo("nftsModule", "filterUpdates.updateMintMonitorFilter() - filterUpdate: " + JSON.stringify(filterUpdate));
-      context.commit('monitorMints', { syncMode: 'updateFilter', configUpdate: null, filterUpdate });
-    },
-    monitorMints(context, { syncMode, configUpdate, filterUpdate }) {
-      logInfo("nftsModule", "actions.monitorMints() - syncMode: " + syncMode + ", configUpdate: " + JSON.stringify(configUpdate) + ", filterUpdate: " + JSON.stringify(filterUpdate));
-      context.commit('monitorMints', { syncMode, configUpdate, filterUpdate } );
+    monitorMints(context, { syncMode, filterUpdate }) {
+      logInfo("nftsModule", "actions.monitorMints() - syncMode: " + syncMode + ", filterUpdate: " + JSON.stringify(filterUpdate));
+      context.commit('monitorMints', { syncMode, filterUpdate } );
     },
     halt(context) {
       context.commit('halt');
