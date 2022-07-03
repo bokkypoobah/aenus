@@ -125,7 +125,7 @@ const NFTs = {
                 </div>
 
                 <div v-if="settings.tabIndex == 2" class="mt-1">
-                  <b-button size="sm" :pressed.sync="settings.dateTimeSelector.displayToolbar" variant="link" v-b-popover.hover.top="'Select by UTC date & time'"><span v-if="settings.dateTimeSelector.displayToolbar"><b-icon-calendar3-fill shift-v="+1" font-scale="1.0"></b-icon-calendar3-fill></span><span v-else><b-icon-calendar3 shift-v="+1" font-scale="1.0"></b-icon-calendar3></span></b-button>
+                  <b-button size="sm" :pressed.sync="settings.periodSelector.displayToolbar" variant="link" v-b-popover.hover.top="'Select by UTC date & time'"><span v-if="settings.periodSelector.displayToolbar"><b-icon-calendar3-fill shift-v="+1" font-scale="1.0"></b-icon-calendar3-fill></span><span v-else><b-icon-calendar3 shift-v="+1" font-scale="1.0"></b-icon-calendar3></span></b-button>
                 </div>
                 <div v-if="settings.tabIndex == 2" class="mt-1" style="max-width: 100px;">
                   <b-form-input type="text" size="sm" :value="filter.startBlockNumber" :disabled="sync.inProgress" @change="updateMintMonitorFilter('startBlockNumber', $event)" debounce="600" v-b-popover.hover.top="'Search from block number'" placeholder="from"></b-form-input>
@@ -164,21 +164,21 @@ const NFTs = {
               </div>
 
               <!-- Sync Toolbar -->
-              <div v-if="settings.dateTimeSelector.displayToolbar" class="d-flex flex-wrap justify-content-center m-0 p-0 pb-1">
+              <div v-if="settings.periodSelector.displayToolbar" class="d-flex flex-wrap justify-content-center m-0 p-0 pb-1">
                 <div class="mt-1 pr-1">
-                  <b-calendar v-model="settings.dateTimeSelector.dateFrom" @context="calendarUpdated('dateFrom', $event)"></b-calendar>
+                  <b-calendar v-model="settings.periodSelector.dateFrom" @context="calendarUpdated('dateFrom', $event)"></b-calendar>
                 </div>
                 <div class="mt-1">
-                  <b-time v-model="settings.dateTimeSelector.timeFrom" @context="calendarUpdated('timeFrom', $event)"></b-time>
+                  <b-time v-model="settings.periodSelector.timeFrom" @context="calendarUpdated('timeFrom', $event)"></b-time>
                 </div>
                 <div v-if="settings.tabIndex == 2" class="mt-1">
                   -
                 </div>
                 <div class="mt-1 pr-1">
-                  <b-calendar v-model="settings.dateTimeSelector.dateTo" @context="calendarUpdated('dateTo', $event)"></b-calendar>
+                  <b-calendar v-model="settings.periodSelector.dateTo" @context="calendarUpdated('dateTo', $event)"></b-calendar>
                 </div>
                 <div class="mt-1 pr-1">
-                  <b-time v-model="settings.dateTimeSelector.timeTo" @context="calendarUpdated('timeTo', $event)"></b-time>
+                  <b-time v-model="settings.periodSelector.timeTo" @context="calendarUpdated('timeTo', $event)"></b-time>
                 </div>
                 <!--
                 <div class="mt-1 pr-1">
@@ -372,7 +372,7 @@ const NFTs = {
       settings: {
         tabIndex: 0,
         activityMaxItems: 50,
-        dateTimeSelector: {
+        periodSelector: {
           displayToolbar: false,
           dateFrom: null,
           timeFrom: null,
@@ -628,7 +628,7 @@ const NFTs = {
     },
     async calendarUpdated(field, context) {
       logInfo("NFTs", "calendarUpdated - field: " + field + ", context: " + JSON.stringify(context));
-      const mm = this.settings.dateTimeSelector;
+      const mm = this.settings.periodSelector;
       if (field == 'dateFrom' && mm.dateFrom != null && mm.dateTo == null) {
         mm.dateTo = mm.dateFrom;
       }
