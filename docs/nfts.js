@@ -4,7 +4,7 @@ const NFTs = {
       <b-card no-body no-header class="border-0">
         <b-card no-body class="p-0 mt-1">
           <b-tabs card align="left" no-body v-model="settings.tabIndex" active-tab-class="m-0 p-0">
-            <b-tab disabled title="Collections(wip)" @click="updateURL('collections');">
+            <b-tab title="Transfers" @click="updateURL('transfers');">
             </b-tab>
             <b-tab title="Collection" @click="updateURL('collection');">
             </b-tab>
@@ -125,7 +125,7 @@ const NFTs = {
                 </div>
 
                 <div v-if="settings.tabIndex == 2" class="mt-1">
-                  <b-button size="sm" :pressed.sync="settings.mintMonitor.datetimeToolbar" variant="link" v-b-popover.hover.top="'Select by UTC date & time'"><span v-if="settings.mintMonitor.datetimeToolbar"><b-icon-calendar3-fill shift-v="+1" font-scale="1.0"></b-icon-calendar3-fill></span><span v-else><b-icon-calendar3 shift-v="+1" font-scale="1.0"></b-icon-calendar3></span></b-button>
+                  <b-button size="sm" :pressed.sync="settings.dateTimeSelector.displayToolbar" variant="link" v-b-popover.hover.top="'Select by UTC date & time'"><span v-if="settings.dateTimeSelector.displayToolbar"><b-icon-calendar3-fill shift-v="+1" font-scale="1.0"></b-icon-calendar3-fill></span><span v-else><b-icon-calendar3 shift-v="+1" font-scale="1.0"></b-icon-calendar3></span></b-button>
                 </div>
                 <div v-if="settings.tabIndex == 2" class="mt-1" style="max-width: 100px;">
                   <b-form-input type="text" size="sm" :value="filter.startBlockNumber" :disabled="sync.inProgress" @change="updateMintMonitorFilter('startBlockNumber', $event)" debounce="600" v-b-popover.hover.top="'Search from block number'" placeholder="from"></b-form-input>
@@ -159,26 +159,26 @@ const NFTs = {
                   <b-form-select size="sm" v-model="settings.collection.pageSize" :options="pageSizes" v-b-popover.hover.top="'Page size'"></b-form-select>
                 </div>
                 <div v-if="settings.tabIndex == 2" class="mt-1 pl-1">
-                  <b-form-select size="sm" v-model="settings.mintMonitor.activityMaxItems" :options="activityMaxItemsOptions" v-b-popover.hover.top="'Max items to display'"></b-form-select>
+                  <b-form-select size="sm" v-model="settings.activityMaxItems" :options="activityMaxItemsOptions" v-b-popover.hover.top="'Max items to display'"></b-form-select>
                 </div>
               </div>
 
               <!-- Sync Toolbar -->
-              <div v-if="settings.mintMonitor.datetimeToolbar" class="d-flex flex-wrap justify-content-center m-0 p-0 pb-1">
+              <div v-if="settings.dateTimeSelector.displayToolbar" class="d-flex flex-wrap justify-content-center m-0 p-0 pb-1">
                 <div class="mt-1 pr-1">
-                  <b-calendar v-model="settings.mintMonitor.dateFrom" @context="calendarUpdated('dateFrom', $event)"></b-calendar>
+                  <b-calendar v-model="settings.dateTimeSelector.dateFrom" @context="calendarUpdated('dateFrom', $event)"></b-calendar>
                 </div>
                 <div class="mt-1">
-                  <b-time v-model="settings.mintMonitor.timeFrom" @context="calendarUpdated('timeFrom', $event)"></b-time>
+                  <b-time v-model="settings.dateTimeSelector.timeFrom" @context="calendarUpdated('timeFrom', $event)"></b-time>
                 </div>
                 <div v-if="settings.tabIndex == 2" class="mt-1">
                   -
                 </div>
                 <div class="mt-1 pr-1">
-                  <b-calendar v-model="settings.mintMonitor.dateTo" @context="calendarUpdated('dateTo', $event)"></b-calendar>
+                  <b-calendar v-model="settings.dateTimeSelector.dateTo" @context="calendarUpdated('dateTo', $event)"></b-calendar>
                 </div>
                 <div class="mt-1 pr-1">
-                  <b-time v-model="settings.mintMonitor.timeTo" @context="calendarUpdated('timeTo', $event)"></b-time>
+                  <b-time v-model="settings.dateTimeSelector.timeTo" @context="calendarUpdated('timeTo', $event)"></b-time>
                 </div>
                 <!--
                 <div class="mt-1 pr-1">
@@ -213,9 +213,9 @@ const NFTs = {
                 <!-- Collection Filter -->
                 <b-col v-if="settings.collection.showFilter" cols="2" class="m-0 p-0 border-0">
                   <b-card no-header no-body class="m-0 p-0 border-0">
-                    <b-card-body class="m-0 p-1" style="flex-grow: 1; max-height: 2000px; overflow-y: auto;">
+                    <b-card-body class="m-0 p-1" style="flex-grow: 1; max-height: 1000px; overflow-y: auto;">
                       <div v-for="(attributeKey, attributeIndex) in Object.keys(collectionTokensAttributesWithCounts).sort()" v-bind:key="attributeIndex">
-                        <b-card header-class="m-0 px-2 pt-2 pb-0" body-class="p-0" class="m-0 p-1 border-0">
+                        <b-card header-class="m-0 px-2 pt-2 pb-0" body-class="p-0" class="m-0 p-0 border-0">
                           <template #header>
                             <span variant="secondary" class="small truncate">
                               {{ attributeKey }}
@@ -316,7 +316,7 @@ const NFTs = {
                     {{ data.item.mints }}
                   </template>
                   <template #cell(tokens)="data">
-                    <span v-for="(transfer, transferIndex) in data.item.transfers.slice(0, settings.mintMonitor.activityMaxItems)">
+                    <span v-for="(transfer, transferIndex) in data.item.transfers.slice(0, settings.activityMaxItems)">
                       <b-button :id="'popover-target-' + data.item.contract + '-' + transfer.tokenId" variant="link" class="m-0 p-0">
                         <span v-if="transfer.contract == '0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85'">
                           <b-img :width="'100%'" :src="'https://metadata.ens.domains/mainnet/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + transfer.tokenId + '/image'">
@@ -371,13 +371,13 @@ const NFTs = {
 
       settings: {
         tabIndex: 0,
-        mintMonitor: {
-          datetimeToolbar: false,
+        activityMaxItems: 50,
+        dateTimeSelector: {
+          displayToolbar: false,
           dateFrom: null,
           timeFrom: null,
           dateTo: null,
           timeTo: null,
-          activityMaxItems: 50,
         },
         collection: {
           showInfo: false,
@@ -385,7 +385,7 @@ const NFTs = {
           sortOption: 'idasc',
           pageSize: 100,
           currentPage: 1
-        }
+        },
       },
 
       collectionAttributeFilter: {},
@@ -628,7 +628,7 @@ const NFTs = {
     },
     async calendarUpdated(field, context) {
       logInfo("NFTs", "calendarUpdated - field: " + field + ", context: " + JSON.stringify(context));
-      const mm = this.settings.mintMonitor;
+      const mm = this.settings.dateTimeSelector;
       if (field == 'dateFrom' && mm.dateFrom != null && mm.dateTo == null) {
         mm.dateTo = mm.dateFrom;
       }
@@ -708,7 +708,7 @@ const NFTs = {
   },
   mounted() {
     logInfo("NFTs", "mounted() $route: " + JSON.stringify(this.$route.params) + ", props['tab']: " + this.tab + ", props['blocks']: " + this.blocks + ", props['search']: " + this.search);
-    if (this.tab == "collections") {
+    if (this.tab == "transfers") {
       this.settings.tabIndex = 0;
     } else if (this.tab == "collection") {
       this.settings.tabIndex = 1;
