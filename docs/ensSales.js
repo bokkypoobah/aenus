@@ -299,11 +299,12 @@ const ENSSales = {
 
       settings: {
         tabIndex: 0,
-        filterToolbar: true,
+        filterToolbar: true, // TODO false
         syncToolbar: false,
         type: null,
         lengthFrom: null,
         lengthTo: null,
+        palindrome: false,
         sortOption: 'latestsale',
         // randomise: false,
         pageSize: 100,
@@ -321,6 +322,7 @@ const ENSSales = {
             { value: '^[0-9a-fx]*$', text: 'Hexadecimal - 0 to 9, a to f, x' },
             { value: '^[\u0660-\u0669]*$', text: 'Arabic - ٠ to ٩' },
             { value: '^[\u09E6-\u09EF]*$', text: 'Bengali - ০, ১, ২, ৩, ৪, ৫, ৬, ৭, ৮, ৯' },
+            { value: '^[영일이삼사오육칠팔구]*$', text: 'Sino-Korean - 영, 일, 이, 삼, 사, 오, 육, 칠, 팔, 구' },
             { value: '^[\u0E50-\u0E59]*$', text: 'Thai - ๐ to ๙' },
           ],
         },
@@ -629,7 +631,6 @@ const ENSSales = {
     },
     filteredSales() {
       let results;
-
       if (this.settings.type == null && this.settings.lengthFrom == null && this.settings.lengthTo == null) {
         results = this.sales;
       } else {
@@ -747,7 +748,7 @@ const ENSSales = {
     chartData() {
       const results = [];
       const data = [];
-      for (const sale of this.sales) {
+      for (const sale of this.filteredSales) {
         data.push([sale.timestamp * 1000, sale.price, 6, sale.name]);
       }
       results.push({ name: "Sales", data: data });
@@ -755,7 +756,7 @@ const ENSSales = {
     },
     dailyData() {
       const collator = {};
-      for (const sale of this.sales) {
+      for (const sale of this.filteredSales) {
         const bucket = moment.unix(sale.timestamp).utc().startOf('day').unix();
         if (!(bucket in collator)) {
           collator[bucket] = { count: 1, total: sale.price, items: [sale] };
