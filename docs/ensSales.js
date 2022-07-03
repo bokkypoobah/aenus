@@ -27,6 +27,9 @@ const ENSSales = {
               <div class="mt-1" style="max-width: 150px;">
                 <b-form-input type="text" size="sm" :value="filter.searchString" @change="updateFilter('searchString', $event)" debounce="600" v-b-popover.hover.top="'Poweruser regex, or simple search string'" placeholder="🔍 {regex}"></b-form-input>
               </div>
+              <div class="mt-1">
+                <b-button size="sm" :pressed.sync="settings.filterToolbar" variant="link" v-b-popover.hover.top="'Additonal filters'"><span v-if="settings.syncToolbar"><b-icon-caret-up-fill shift-v="+1" font-scale="1.0"></b-icon-caret-up-fill></span><span v-else><b-icon-caret-down-fill shift-v="+1" font-scale="1.0"></b-icon-caret-down-fill></span></b-button>
+              </div>
               <div class="mt-1 pl-1" style="max-width: 150px;">
                 <b-form-input type="text" size="sm" :value="filter.searchAccounts" @change="updateFilter('searchAccounts', $event)" debounce="600" v-b-popover.hover.top="'List of account search strings'" placeholder="🔍 0x12... ..."></b-form-input>
               </div>
@@ -66,6 +69,26 @@ const ENSSales = {
               </div>
               <div v-if="settings.tabIndex == 0" class="mt-1">
                 <b-form-select size="sm" v-model="settings.pageSize" :options="pageSizes" v-b-popover.hover.top="'Page size'"></b-form-select>
+              </div>
+            </div>
+
+            <!-- Filter Toolbar -->
+            <div v-if="settings.filterToolbar" class="d-flex flex-wrap m-0 p-0 pb-1">
+              <div class="mt-1 pr-1">
+                <b-form-select size="sm" v-model="settings.type" :options="typeOptions" v-b-popover.hover.top="'Type'"></b-form-select>
+              </div>
+              <div class="mt-1">
+                <b-form-select size="sm" v-model="settings.lengthFrom" :options="lengthFromOptions" v-b-popover.hover.top="'Length from'"></b-form-select>
+              </div>
+              <div class="mt-1">
+                -
+              </div>
+              <div class="mt-1 pr-1">
+                <b-form-select size="sm" v-model="settings.lengthTo" :options="lengthToOptions" v-b-popover.hover.top="'Length from'"></b-form-select>
+              </div>
+              <div class="mt-1 flex-grow-1">
+              </div>
+              <div class="mt-1 pr-1" style="max-width: 150px;">
               </div>
             </div>
 
@@ -276,7 +299,11 @@ const ENSSales = {
 
       settings: {
         tabIndex: 0,
+        filterToolbar: true,
         syncToolbar: false,
+        type: null,
+        lengthFrom: null,
+        lengthTo: null,
         sortOption: 'latestsale',
         // randomise: false,
         pageSize: 100,
@@ -284,6 +311,58 @@ const ENSSales = {
       },
 
       dailyChartSelectedItems: [],
+
+      typeOptions: [
+        { value: null, text: 'type' },
+        {
+          label: 'Numerals',
+          options: [
+            { value: '^[0-9]*$', text: 'Latin - 0 to 9' },
+            { value: '^[0-9a-fx]*$', text: 'Hexadecimal - 0 to 9, a to f, x' },
+            { value: '^[\u0660-\u0669]*$', text: 'Arabic - ٠ to ٩' },
+            { value: '^[\u09E6-\u09EF]*$', text: 'Bengali - ০, ১, ২, ৩, ৪, ৫, ৬, ৭, ৮, ৯' },
+            { value: '^[\u0E50-\u0E59]*$', text: 'Thai - ๐ to ๙' },
+          ],
+        },
+        {
+          label: 'Alphabets',
+          options: [
+            { value: '^[a-z]*$', text: 'a to z' },
+          ],
+        },
+        {
+          label: 'Alphanumerics',
+          options: [
+            { value: '^[0-9a-z]*$', text: '0 to 9, a to z' },
+          ],
+        },
+      ],
+
+      lengthFromOptions: [
+        { value: null, text: 'min' },
+        { value: '3', text: '3' },
+        { value: '4', text: '4' },
+        { value: '5', text: '5' },
+        { value: '6', text: '6' },
+        { value: '7', text: '7' },
+        { value: '8', text: '8' },
+        { value: '9', text: '9' },
+        { value: '10', text: '10' },
+        { value: '20', text: '20' },
+      ],
+
+      lengthToOptions: [
+        { value: null, text: 'max' },
+        { value: '3', text: '3' },
+        { value: '4', text: '4' },
+        { value: '5', text: '5' },
+        { value: '6', text: '6' },
+        { value: '7', text: '7' },
+        { value: '8', text: '8' },
+        { value: '9', text: '9' },
+        { value: '10', text: '10' },
+        { value: '20', text: '20' },
+      ],
 
       sortOptions: [
         { value: 'nameasc', text: '▲ Name' },
@@ -548,8 +627,41 @@ const ENSSales = {
       }
       return timestamp;
     },
+    filteredSales() {
+      let results;
+
+      if (this.settings.type == null && this.settings.lengthFrom == null && this.settings.lengthTo == null) {
+        results = this.sales;
+      } else {
+        results = [];
+        const regex = this.settings.type != null ? new RegExp(this.settings.type, 'i') : null;
+        const lengthFrom = this.settings.lengthFrom && parseInt(this.settings.lengthFrom) >= 3 ? parseInt(this.settings.lengthFrom) : null;
+        const lengthTo = this.settings.lengthTo && parseInt(this.settings.lengthTo) >= 3 ? parseInt(this.settings.lengthTo) : null;
+        for (const sale of this.sales) {
+          let include = true;
+          const name = sale.name && sale.name.replace('.eth', '') || null;
+          if (regex && !regex.test(name)) {
+            include = false;
+          }
+          if (include && lengthFrom != null) {
+            if (name == null || name.length < lengthFrom) {
+              include = false;
+            }
+          }
+          if (include && lengthTo != null) {
+            if (name == null || name.length > lengthTo) {
+              include = false;
+            }
+          }
+          if (include) {
+            results.push(sale);
+          }
+        }
+      }
+      return results;
+    },
     filteredSortedSales() {
-      let results = this.sales;
+      let results = this.filteredSales;
       if (this.settings.sortOption == 'nameasc') {
         results.sort((a, b) => ('' + a.name).localeCompare(b.name));
       } else if (this.settings.sortOption == 'namedsc') {
