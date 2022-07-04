@@ -4,7 +4,7 @@ const NFTs = {
       <b-card no-body no-header class="border-0">
         <b-card no-body class="p-0 mt-1">
           <b-tabs card align="left" no-body v-model="settings.tabIndex" active-tab-class="m-0 p-0">
-            <b-tab title="Transfers" @click="updateURL('transfers');">
+            <b-tab title="Transfers (WIP)" @click="updateURL('transfers');">
             </b-tab>
             <b-tab title="Collection" @click="updateURL('collection');">
             </b-tab>
