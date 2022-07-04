@@ -17,6 +17,9 @@ const NFTs = {
             <b-card-body class="m-0 p-1">
               <!-- Main Toolbar -->
               <div class="d-flex flex-wrap m-0 p-0">
+                <div v-if="settings.tabIndex == 0" class="mt-1" style="width: 150px;">
+                  <b-form-input type="text" size="sm" :value="filter.transfers.accounts" @change="searchTransfers('filterUpdate', { transfers: { accounts: $event } })" :disabled="sync.inProgress" debounce="600" v-b-popover.hover.top="'List of accounts'" placeholder="🔍 0x12... ..."></b-form-input>
+                </div>
                 <div v-if="settings.tabIndex == 1" class="mt-1">
                   <b-button size="sm" :pressed.sync="settings.collection.showFilter" variant="link" v-b-popover.hover.top="'Show collection filter'"><span v-if="settings.collection.showFilter"><b-icon-layout-sidebar-inset shift-v="+1" font-scale="1.0"></b-icon-layout-sidebar-inset></span><span v-else><b-icon-layout-sidebar shift-v="+1" font-scale="1.0"></b-icon-layout-sidebar></span></b-button>
                 </div>
@@ -100,6 +103,9 @@ const NFTs = {
                 <div class="mt-1 flex-grow-1">
                 </div>
 
+                <div v-if="settings.tabIndex == 0" class="mt-1 pl-1">
+                  <b-button size="sm" @click="searchTransfers('scanLatest', {})" :disabled="sync.inProgress || !powerOn || network.chainId != 1" variant="primary">Search</b-button>
+                </div>
                 <div v-if="settings.tabIndex == 2" class="mt-1 pl-1">
                   <b-form-select size="sm" :value="filter.scanBlocks" :options="scanBlocksOptions" @change="monitorMints('filterUpdate', { scanBlocks: $event })" :disabled="sync.inProgress" v-b-popover.hover.top="'Number of blocks to scan'"></b-form-select>
                 </div>
@@ -665,11 +671,14 @@ const NFTs = {
         }
       }
     },
-    async monitorMints(syncMode, filterUpdate) {
-      store.dispatch('nfts/monitorMints', { syncMode, filterUpdate });
+    async searchTransfers(syncMode, filterUpdate) {
+      store.dispatch('nfts/searchTransfers', { syncMode, filterUpdate });
     },
     async updateCollection(syncMode, filterUpdate) {
       store.dispatch('nfts/updateCollection', { syncMode, filterUpdate });
+    },
+    async monitorMints(syncMode, filterUpdate) {
+      store.dispatch('nfts/monitorMints', { syncMode, filterUpdate });
     },
     async halt() {
       store.dispatch('nfts/halt');
@@ -733,6 +742,9 @@ const nftsModule = {
         address: null, // "0x31385d3520bced94f77aae104b406994d8f2168c",
         startBlockNumber: 4000000,
       },
+      transfers: {
+        accounts: null,
+      },
       searchString: null,
       scanBlocks: 500,
       startBlockNumber: null,
@@ -760,6 +772,17 @@ const nftsModule = {
     params: state => state.params,
   },
   mutations: {
+
+    // --- searchTransfers() ---
+    async searchTransfers(state, { syncMode, filterUpdate }) {
+      logInfo("nftsModule", "mutations.searchTransfers() - syncMode: " + syncMode + ", filterUpdate: " + JSON.stringify(filterUpdate));
+
+      if (filterUpdate != null) {
+        console.log("filter before: " + JSON.stringify(state.filter));
+        state.filter = { ...state.filter, ...filterUpdate };
+        console.log("filter after: " + JSON.stringify(state.filter));
+      }
+    },
 
     // --- updateCollection() ---
     async updateCollection(state, { syncMode, filterUpdate }) {
@@ -1134,6 +1157,10 @@ const nftsModule = {
     },
   },
   actions: {
+    searchTransfers(context, { syncMode, filterUpdate }) {
+      logInfo("nftsModule", "actions.searchTransfers() - syncMode: " + syncMode + ", filterUpdate: " + JSON.stringify(filterUpdate));
+      context.commit('searchTransfers', { syncMode, filterUpdate });
+    },
     updateCollection(context, { syncMode, filterUpdate }) {
       logInfo("nftsModule", "actions.updateCollection() - syncMode: " + syncMode + ", filterUpdate: " + JSON.stringify(filterUpdate));
       context.commit('updateCollection', { syncMode, filterUpdate });
