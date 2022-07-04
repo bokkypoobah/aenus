@@ -164,7 +164,7 @@ const ENSSearch = {
                 <b-form-input type="text" size="sm" v-model.trim="settings.filter" debounce="600" v-b-popover.hover.top="'Filter by regular expression'" placeholder="🔍 {regex}"></b-form-input>
               </div>
               <div class="mt-2">
-                <b-button size="sm" :pressed.sync="settings.filterToolbar" variant="link" v-b-popover.hover.top="'Amateur mode filters'"><span v-if="settings.syncToolbar"><b-icon-caret-up-fill shift-v="+1" font-scale="1.0"></b-icon-caret-up-fill></span><span v-else><b-icon-caret-down-fill shift-v="+1" font-scale="1.0"></b-icon-caret-down-fill></span></b-button>
+                <b-button size="sm" :pressed.sync="settings.filterToolbar" variant="link" v-b-popover.hover.top="'Amateur mode filters'"><span v-if="settings.filterToolbar"><b-icon-caret-up-fill shift-v="+1" font-scale="1.0"></b-icon-caret-up-fill></span><span v-else><b-icon-caret-down-fill shift-v="+1" font-scale="1.0"></b-icon-caret-down-fill></span></b-button>
               </div>
               <div v-if="settings.resultsTabIndex != 4" class="mt-2 pl-2" style="max-width: 150px;">
                 <b-form-input type="text" size="sm" v-model.trim="settings.filterAccount" debounce="600" v-b-popover.hover.top="'Filter by list of registrant addresses'" placeholder="🔍 0x12... ..."></b-form-input>
