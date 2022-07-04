@@ -216,18 +216,83 @@ const NFTs = {
 
               <!-- Collection information -->
               <b-card v-if="settings.tabIndex == 0" no-header no-body class="mt-1">
-                <b-table small fixed striped :fields="transferFields" :items="transfers" head-variant="light">
+                <b-table small fixed striped :fields="transfersFields" :items="transfers" head-variant="light">
+                  <template #cell(index)="data">
+                    {{ data.index + 1 }}
+                  </template>
                   <template #cell(collection)="data">
-                    {{ data.item.from }}
+                    <b-button :id="'popover-target-collection-' + data.item.collection + '-' + data.index" variant="link" class="m-0 p-0">
+                      {{ data.item.collection.substring(0, 16) }}
+                    </b-button>
+                    <b-popover :target="'popover-target-collection-' + data.item.collection + '-' + data.index" placement="right">
+                      <template #title>{{ data.item.collection.substring(0, 16) }}</template>
+                      <b-link :href="'https://etherscan.io/address/' + data.item.collection + '#code'" v-b-popover.hover.bottom="'View in Etherscan.io'" target="_blank">
+                        Etherscan - Contract Code
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://etherscan.io/token/' + data.item.collection" v-b-popover.hover.bottom="'View in Etherscan.io'" target="_blank">
+                        Etherscan - Transfers
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://etherscan.io/token/' + data.item.collection + '#balances'" v-b-popover.hover.bottom="'View in Etherscan.io'" target="_blank">
+                        Etherscan - Holders
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://etherscan.io/token/tokenholderchart/' + data.item.collection" v-b-popover.hover.bottom="'View in Etherscan.io'" target="_blank">
+                        Etherscan - Holders Chart
+                      </b-link>
+                    </b-popover>
                   </template>
                   <template #cell(from)="data">
-                    {{ data.item.from }}
+                    <b-button :id="'popover-target-from-' + data.item.from + '-' + data.index" variant="link" class="m-0 p-0">
+                      {{ data.item.from.substring(0, 16) }}
+                    </b-button>
+                    <b-popover :target="'popover-target-from-' + data.item.from + '-' + data.index" placement="right">
+                      <template #title>{{ data.item.from.substring(0, 16) }}</template>
+                      <b-link :href="'https://opensea.io/' + data.item.from" v-b-popover.hover.bottom="'View in opensea.io'" target="_blank">
+                        OpenSea
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://looksrare.org/accounts/' + data.item.from" v-b-popover.hover.bottom="'View in looksrare.org'" target="_blank">
+                        LooksRare
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://x2y2.io/user/' + data.item.from + '/items'" v-b-popover.hover.bottom="'View in x2y2.io'" target="_blank">
+                        X2Y2
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://etherscan.io/address/' + data.item.from" v-b-popover.hover.bottom="'View in etherscan.io'" target="_blank">
+                        EtherScan
+                      </b-link>
+                    </b-popover>
                   </template>
                   <template #cell(to)="data">
-                    {{ data.item.to }}
+                    <b-button :id="'popover-target-to-' + data.item.to + '-' + data.index" variant="link" class="m-0 p-0">
+                      {{ data.item.to.substring(0, 16) }}
+                    </b-button>
+                    <b-popover :target="'popover-target-to-' + data.item.to + '-' + data.index" placement="right">
+                      <template #title>{{ data.item.to.substring(0, 16) }}</template>
+                      <b-link :href="'https://opensea.io/' + data.item.to" v-b-popover.hover.bottom="'View in opensea.io'" target="_blank">
+                        OpenSea
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://looksrare.org/accounts/' + data.item.to" v-b-popover.hover.bottom="'View in looksrare.org'" target="_blank">
+                        LooksRare
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://x2y2.io/user/' + data.item.to + '/items'" v-b-popover.hover.bottom="'View in x2y2.io'" target="_blank">
+                        X2Y2
+                      </b-link>
+                      <br />
+                      <b-link :href="'https://etherscan.io/address/' + data.item.to" v-b-popover.hover.bottom="'View in etherscan.io'" target="_blank">
+                        EtherScan
+                      </b-link>
+                    </b-popover>
                   </template>
                   <template #cell(txHash)="data">
-                    {{ data.item.txHash }}
+                    <b-link :href="'https://etherscan.io/tx/' + data.item.txHash" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                      {{ data.item.txHash.substring(0, 12) }}
+                    </b-link>
                   </template>
                 </b-table>
               </b-card>
@@ -448,11 +513,12 @@ const NFTs = {
         { value: 10000, text: '10k' },
       ],
 
-      transferFields: [
+      transfersFields: [
+        { key: 'index', label: '#', thStyle: 'width: 5%;', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
         { key: 'collection', label: 'Collection', thStyle: 'width: 20%;', sortable: true },
         { key: 'from', label: 'From', thStyle: 'width: 20%;', sortable: true },
         { key: 'to', label: 'To', thStyle: 'width: 20%;', sortable: true },
-        { key: 'txHash', label: 'Tx Hash', sortable: true, thStyle: 'width: 40%;' },
+        { key: 'txHash', label: 'Tx Hash', sortable: true, thStyle: 'width: 35%;' },
       ],
 
       collectionAttributeFields: [
