@@ -214,6 +214,12 @@ const NFTs = {
                 </b-card>
               </div>
 
+              <!-- Collection information -->
+              <b-card v-if="settings.tabIndex == 0" no-header no-body class="mt-1">
+                <b-table small fixed striped :items="transfers" head-variant="light">
+                </b-table>
+              </b-card>
+
               <!-- Collection -->
               <b-row v-if="settings.tabIndex == 1" class="m-0 p-0">
                 <!-- Collection Filter -->
@@ -757,6 +763,7 @@ const nftsModule = {
       completed: null,
     },
 
+    transfers: [],
     collectionInfo: {},
     collectionTokens: {},
     mintMonitorCollections: {},
@@ -766,6 +773,7 @@ const nftsModule = {
   getters: {
     filter: state => state.filter,
     sync: state => state.sync,
+    transfers: state => state.transfers,
     collectionInfo: state => state.collectionInfo,
     collectionTokens: state => state.collectionTokens,
     mintMonitorCollections: state => state.mintMonitorCollections,
@@ -777,10 +785,64 @@ const nftsModule = {
     async searchTransfers(state, { syncMode, filterUpdate }) {
       logInfo("nftsModule", "mutations.searchTransfers() - syncMode: " + syncMode + ", filterUpdate: " + JSON.stringify(filterUpdate));
 
-      if (filterUpdate != null) {
-        console.log("filter before: " + JSON.stringify(state.filter));
-        state.filter = { ...state.filter, ...filterUpdate };
-        console.log("filter after: " + JSON.stringify(state.filter));
+      if (window.ethereum) {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const block = await provider.getBlock("latest");
+        const blockNumber = block.number;
+        if (filterUpdate != null) {
+          console.log("filter before: " + JSON.stringify(state.filter));
+          state.filter = { ...state.filter, ...filterUpdate };
+          console.log("filter after: " + JSON.stringify(state.filter));
+        }
+
+        if (syncMode == 'scanLatest') {
+          const transfers = [];
+          const accounts = state.filter.transfers.accounts.split(/[, \t\n]+/).map(s => '0x000000000000000000000000' + s.substring(2, 42).toLowerCase());
+          console.log("accounts: " + JSON.stringify(accounts));
+          // const account = "0x287F9b46dceA520D829c874b0AF01f4fbfeF9243".toLowerCase();
+          const fromBlock = 15053226; // 00:00 Jul 01 2022
+          const toBlock = 15072709; // 00:00 Jul 04 2022
+          // console.log("fromBlock: " + fromBlock + ", toBlock: " + toBlock);
+          const filterFrom = {
+            address: null, // [NIXADDRESS, weth.address],
+            fromBlock: fromBlock,
+            toBlock: toBlock,
+            topics: [
+              '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef', // Transfer (index_topic_1 address from, index_topic_2 address to, index_topic_3 uint256 id)
+              // null, // '0x0000000000000000000000000000000000000000000000000000000000000000', // Null address
+              accounts, // '0x000000000000000000000000' + account.substring(2, 42),
+              null,
+            ],
+          };
+          const eventsFrom = await provider.getLogs(filterFrom);
+          console.log("monitorMints - eventsFrom: " + JSON.stringify(eventsFrom.slice(0, 1), null, 2));
+
+          const filterTo = {
+            address: null, // [NIXADDRESS, weth.address],
+            fromBlock: fromBlock,
+            toBlock: toBlock,
+            topics: [
+              '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef', // Transfer (index_topic_1 address from, index_topic_2 address to, index_topic_3 uint256 id)
+              // null, // '0x0000000000000000000000000000000000000000000000000000000000000000', // Null address
+              null,
+              accounts, // '0x000000000000000000000000' + account.substring(2, 42),
+            ],
+          };
+          const eventsTo = await provider.getLogs(filterTo);
+          console.log("monitorMints - eventsTo: " + JSON.stringify(eventsTo, null, 2));
+
+          for (const event of [...eventsFrom, ...eventsTo]) {
+            if (!event.removed) {
+              const collection = event.address;
+              const from = '0x' + event.topics[1].substring(26, 66);
+              const to = '0x' + event.topics[2].substring(26, 66);
+              const txHash = '0x' + event.transactionHash;
+              transfers.push({ collection, from, to, txHash });
+            }
+          }
+          state.transfers = transfers;
+
+        }
       }
     },
 
