@@ -385,6 +385,7 @@ const ENSSales = {
       ],
 
       periods: [
+        { value: { term: 1, termType: "days" }, text: '1d' },
         { value: { term: 7, termType: "days" }, text: '1wk' },
         { value: { term: 14, termType: "days" }, text: '2wk' },
         { value: { term: 21, termType: "days" }, text: '3wk' },
@@ -393,6 +394,7 @@ const ENSSales = {
         { value: { term: 3, termType: "month" }, text: '3mo' },
         { value: { term: 6, termType: "month" }, text: '6mo' },
         { value: { term: 1, termType: "year" }, text: '1yr' },
+        { value: { term: 0, termType: "days" }, text: 'Reset' },
       ],
 
       salesFields: [
