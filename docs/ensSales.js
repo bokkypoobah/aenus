@@ -25,10 +25,10 @@ const ENSSales = {
             <!-- Main Toolbar -->
             <div class="d-flex flex-wrap m-0 p-0">
               <div class="mt-1" style="max-width: 150px;">
-                <b-form-input type="text" size="sm" :value="filter.searchString" @change="updateFilter('searchString', $event)" debounce="600" v-b-popover.hover.top="'Poweruser regex, or simple search string'" placeholder="🔍 {regex}"></b-form-input>
+                <b-form-input type="text" size="sm" :value="filter.searchString" @change="updateFilter('searchString', $event)" debounce="600" v-b-popover.hover.top="'Pro mode regex, or simple search string'" placeholder="🔍 {regex}"></b-form-input>
               </div>
               <div class="mt-1">
-                <b-button size="sm" :pressed.sync="settings.filterToolbar" variant="link" v-b-popover.hover.top="'Additonal filters'"><span v-if="settings.syncToolbar"><b-icon-caret-up-fill shift-v="+1" font-scale="1.0"></b-icon-caret-up-fill></span><span v-else><b-icon-caret-down-fill shift-v="+1" font-scale="1.0"></b-icon-caret-down-fill></span></b-button>
+                <b-button size="sm" :pressed.sync="settings.filterToolbar" variant="link" v-b-popover.hover.top="'Amateur mode filters'"><span v-if="settings.syncToolbar"><b-icon-caret-up-fill shift-v="+1" font-scale="1.0"></b-icon-caret-up-fill></span><span v-else><b-icon-caret-down-fill shift-v="+1" font-scale="1.0"></b-icon-caret-down-fill></span></b-button>
               </div>
               <div class="mt-1 pl-1" style="max-width: 150px;">
                 <b-form-input type="text" size="sm" :value="filter.searchAccounts" @change="updateFilter('searchAccounts', $event)" debounce="600" v-b-popover.hover.top="'List of account search strings'" placeholder="🔍 0x12... ..."></b-form-input>
@@ -313,7 +313,7 @@ const ENSSales = {
       dailyChartSelectedItems: [],
 
       typeOptions: [
-        { value: null, text: 'type' },
+        { value: null, text: '(sets)' },
         {
           label: 'Numerals',
           options: [
