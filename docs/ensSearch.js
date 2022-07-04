@@ -163,6 +163,9 @@ const ENSSearch = {
               <div v-if="settings.resultsTabIndex != 4" class="mt-2" style="max-width: 150px;">
                 <b-form-input type="text" size="sm" v-model.trim="settings.filter" debounce="600" v-b-popover.hover.top="'Filter by regular expression'" placeholder="🔍 {regex}"></b-form-input>
               </div>
+              <div class="mt-2">
+                <b-button size="sm" :pressed.sync="settings.filterToolbar" variant="link" v-b-popover.hover.top="'Amateur mode filters'"><span v-if="settings.syncToolbar"><b-icon-caret-up-fill shift-v="+1" font-scale="1.0"></b-icon-caret-up-fill></span><span v-else><b-icon-caret-down-fill shift-v="+1" font-scale="1.0"></b-icon-caret-down-fill></span></b-button>
+              </div>
               <div v-if="settings.resultsTabIndex != 4" class="mt-2 pl-2" style="max-width: 150px;">
                 <b-form-input type="text" size="sm" v-model.trim="settings.filterAccount" debounce="600" v-b-popover.hover.top="'Filter by list of registrant addresses'" placeholder="🔍 0x12... ..."></b-form-input>
               </div>
@@ -201,6 +204,25 @@ const ENSSearch = {
               </div>
               <div v-if="settings.resultsTabIndex == 1 || settings.resultsTabIndex == 2" class="mt-2 pl-1" style="max-width: 200px;">
                 <b-form-select size="sm" v-model="settings.resultsPageSize" :options="pageSizes"></b-form-select>
+              </div>
+            </div>
+
+            <!-- Filter Toolbar -->
+            <div v-if="settings.filterToolbar" class="d-flex flex-wrap m-0 p-0 pb-1">
+              <div class="mt-1 pr-1">
+                <b-form-select size="sm" v-model="settings.type" :options="typeOptions" v-b-popover.hover.top="'Type'"></b-form-select>
+              </div>
+              <div class="mt-1">
+                <b-form-select size="sm" v-model="settings.lengthFrom" :options="lengthFromOptions" v-b-popover.hover.top="'Length from'"></b-form-select>
+              </div>
+              <div class="mt-1">
+                -
+              </div>
+              <div class="mt-1">
+                <b-form-select size="sm" v-model="settings.lengthTo" :options="lengthToOptions" v-b-popover.hover.top="'Length from'"></b-form-select>
+              </div>
+              <div class="mt-2 pl-1">
+                <b-form-checkbox size="sm" v-model="settings.palindrome" value="true">Palindrome</b-form-checkbox>
               </div>
             </div>
 
@@ -660,6 +682,11 @@ const ENSSearch = {
         filterAccount: null,
         priceFrom: null,
         priceTo: null,
+        filterToolbar: true, // TODO false
+        type: null,
+        lengthFrom: null,
+        lengthTo: null,
+        palindrome: false,
         sortOption: 'nameasc',
         randomise: false,
 
@@ -805,6 +832,60 @@ const ENSSearch = {
         { value: 'hours', text: 'Hours 00h00 to 23h59' },
       ],
 
+      typeOptions: [
+        { value: null, text: '(all)' },
+        {
+          label: 'Numerals',
+          options: [
+            { value: '^[0-9]*$', text: 'Latin Numerals - 0 to 9' },
+            { value: '^[0-9a-fx]*$', text: 'Hexadecimal Numerals - 0 to 9, a to f, x' },
+            { value: '^[\u0660-\u0669]*$', text: 'Arabic Numerals - ٠ to ٩' },
+            { value: '^[\u09E6-\u09EF]*$', text: 'Bengali Numerals - ০, ১, ২, ৩, ৪, ৫, ৬, ৭, ৮, ৯' },
+            { value: '^[영일이삼사오육칠팔구]*$', text: 'Sino-Korean Numerals - 영, 일, 이, 삼, 사, 오, 육, 칠, 팔, 구' },
+            { value: '^[〇一二三四五六七八九十百千万]*$', text: 'Chinese Numerals - 〇, 一, 二, 三, 四, 五, 六, 七, 八, 九, 十, 百, 千, 万' },
+            { value: '^[\u0E50-\u0E59]*$', text: 'Thai Numerals - ๐ to ๙' },
+          ],
+        },
+        {
+          label: 'Alphabets',
+          options: [
+            { value: '^[a-z]*$', text: 'a to z' },
+          ],
+        },
+        {
+          label: 'Alphanumerics',
+          options: [
+            { value: '^[0-9a-z]*$', text: '0 to 9, a to z' },
+          ],
+        },
+      ],
+
+      lengthFromOptions: [
+        { value: null, text: 'min' },
+        { value: '3', text: '3' },
+        { value: '4', text: '4' },
+        { value: '5', text: '5' },
+        { value: '6', text: '6' },
+        { value: '7', text: '7' },
+        { value: '8', text: '8' },
+        { value: '9', text: '9' },
+        { value: '10', text: '10' },
+        { value: '20', text: '20' },
+      ],
+
+      lengthToOptions: [
+        { value: null, text: 'max' },
+        { value: '3', text: '3' },
+        { value: '4', text: '4' },
+        { value: '5', text: '5' },
+        { value: '6', text: '6' },
+        { value: '7', text: '7' },
+        { value: '8', text: '8' },
+        { value: '9', text: '9' },
+        { value: '10', text: '10' },
+        { value: '20', text: '20' },
+      ],
+
       imageSizeOptions: [
         { value: '93', text: '93%' },
         { value: '115', text: '115%' },
@@ -900,8 +981,11 @@ const ENSSearch = {
       const searchAccounts = this.settings.filterAccount ? this.settings.filterAccount.split(/[, \t\n]+/).map(s => s.toLowerCase()) : [];
       const priceFrom = this.settings.priceFrom && parseFloat(this.settings.priceFrom) > 0 ? parseFloat(this.settings.priceFrom) : null;
       const priceTo = this.settings.priceTo && parseFloat(this.settings.priceTo) > 0 ? parseFloat(this.settings.priceTo) : null;
+      const typeRegex = this.settings.type != null ? new RegExp(this.settings.type, 'i') : null;
+      const lengthFrom = this.settings.lengthFrom && parseInt(this.settings.lengthFrom) >= 3 ? parseInt(this.settings.lengthFrom) : null;
+      const lengthTo = this.settings.lengthTo && parseInt(this.settings.lengthTo) >= 3 ? parseInt(this.settings.lengthTo) : null;
 
-      if (regex == null && priceFrom == null && priceTo == 0 && searchAccounts.length == 0) {
+      if (regex == null && priceFrom == null && priceTo == 0 && searchAccounts.length == 0 && this.settings.type == null && this.settings.lengthFrom == null && this.settings.lengthTo == null && !this.settings.palindrome) {
         for (result of Object.values(this.searchResults)) {
           results.push(result);
         }
@@ -935,6 +1019,31 @@ const ENSSearch = {
               include = false;
             }
           }
+
+          if (include && typeRegex && !typeRegex.test(result.labelName)) {
+            include = false;
+          }
+          if (include && lengthFrom != null) {
+            if (name == null || result.labelName.length < lengthFrom) {
+              include = false;
+            }
+          }
+          if (include && lengthTo != null) {
+            if (name == null || result.labelName.length > lengthTo) {
+              include = false;
+            }
+          }
+          if (include && this.settings.palindrome) {
+            if (result.labelName == null) {
+              include = false;
+            } else {
+              const reverse = result.labelName.split('').reverse().join('');
+              if (result.labelName !== reverse) {
+                include = false;
+              }
+            }
+          }
+
           if (include) {
             results.push(result);
           }
