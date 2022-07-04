@@ -103,11 +103,11 @@ const NFTs = {
                 <div class="mt-1 flex-grow-1">
                 </div>
 
-                <div v-if="settings.tabIndex == 0" class="mt-1 pl-1">
-                  <b-button size="sm" @click="searchTransfers('scanLatest', {})" :disabled="sync.inProgress || !powerOn || network.chainId != 1" variant="primary">Search</b-button>
-                </div>
-                <div v-if="settings.tabIndex == 2" class="mt-1 pl-1">
+                <div v-if="settings.tabIndex == 0 || settings.tabIndex == 2" class="mt-1 pl-1">
                   <b-form-select size="sm" :value="filter.scanBlocks" :options="scanBlocksOptions" @change="monitorMints('filterUpdate', { scanBlocks: $event })" :disabled="sync.inProgress" v-b-popover.hover.top="'Number of blocks to scan'"></b-form-select>
+                </div>
+                <div v-if="settings.tabIndex == 0" class="mt-1 pl-1">
+                  <b-button size="sm" @click="searchTransfers('scanLatest', {})" :disabled="sync.inProgress || !powerOn || network.chainId != 1" variant="primary">{{ 'Search Latest ' + filter.scanBlocks + ' Blocks' }}</b-button>
                 </div>
                 <div v-if="settings.tabIndex == 2" class="mt-1 pl-1">
                   <b-button size="sm" @click="monitorMints('scanLatest', {})" :disabled="sync.inProgress || !powerOn || network.chainId != 1" variant="primary" style="min-width: 80px; ">{{ 'Scan Latest ' + filter.scanBlocks + ' Blocks' }}</b-button>
@@ -116,7 +116,7 @@ const NFTs = {
                 <div class="mt-1 flex-grow-1">
                 </div>
 
-                <div v-if="settings.tabIndex == 1 || settings.tabIndex == 2" class="mt-2" style="width: 200px;">
+                <div v-if="settings.tabIndex == 0 || settings.tabIndex == 1 || settings.tabIndex == 2" class="mt-2" style="width: 200px;">
                   <b-progress v-if="sync.inProgress" height="1.5rem" :max="sync.total" :label="'((sync.completed/sync.total)*100).toFixed(2) + %'" show-progress :animated="sync.inProgress" :variant="sync.inProgress ? 'success' : 'secondary'" v-b-popover.hover.top="'Click on the Sync(ing) button to (un)pause'">
                     <b-progress-bar :value="sync.completed">
                       {{ sync.completed + '/' + sync.total + ' ' + ((sync.completed / sync.total) * 100).toFixed(0) + '%' }}
@@ -130,19 +130,21 @@ const NFTs = {
                 <div class="mt-1 flex-grow-1">
                 </div>
 
-                <div v-if="settings.tabIndex == 2" class="mt-1">
+                <div v-if="settings.tabIndex == 0 || settings.tabIndex == 2" class="mt-1">
                   <b-button size="sm" :pressed.sync="settings.periodSelector.displayToolbar" variant="link" v-b-popover.hover.top="'Select by UTC date & time'"><span v-if="settings.periodSelector.displayToolbar"><b-icon-calendar3-fill shift-v="+1" font-scale="1.0"></b-icon-calendar3-fill></span><span v-else><b-icon-calendar3 shift-v="+1" font-scale="1.0"></b-icon-calendar3></span></b-button>
                 </div>
-                <div v-if="settings.tabIndex == 2" class="mt-1" style="max-width: 100px;">
+                <div v-if="settings.tabIndex == 0 || settings.tabIndex == 2" class="mt-1" style="max-width: 100px;">
                   <b-form-input type="text" size="sm" :value="filter.startBlockNumber" :disabled="sync.inProgress" @change="monitorMints('filterUpdate', { startBlockNumber: $event })" debounce="600" v-b-popover.hover.top="'Search from block number'" placeholder="from"></b-form-input>
                 </div>
-                <div v-if="settings.tabIndex == 2" class="mt-1">
+                <div v-if="settings.tabIndex == 0 || settings.tabIndex == 2" class="mt-1">
                   -
                 </div>
-                <div v-if="settings.tabIndex == 2" class="mt-1" style="max-width: 100px;">
+                <div v-if="settings.tabIndex == 0 || settings.tabIndex == 2" class="mt-1" style="max-width: 100px;">
                   <b-form-input type="text" size="sm" :value="filter.endBlockNumber" :disabled="sync.inProgress" @change="monitorMints('filterUpdate', { endBlockNumber: $event })" debounce="600" v-b-popover.hover.top="'Search to block number'" placeholder="to"></b-form-input>
                 </div>
-
+                <div v-if="settings.tabIndex == 0" class="mt-1 pl-1">
+                  <b-button size="sm" @click="searchTransfers('scan', {})" :disabled="sync.inProgress || !powerOn || network.chainId != 1 || filter.startBlockNumber == null || filter.endBlockNumber == null" variant="primary" style="min-width: 80px; ">Search</b-button>
+                </div>
                 <div v-if="settings.tabIndex == 2" class="mt-1 pl-1">
                   <b-button size="sm" @click="monitorMints('scan', {})" :disabled="sync.inProgress || !powerOn || network.chainId != 1 || filter.startBlockNumber == null || filter.endBlockNumber == null" variant="primary" style="min-width: 80px; ">Scan</b-button>
                 </div>
@@ -844,12 +846,12 @@ const nftsModule = {
         startBlockNumber: 4000000,
       },
       transfers: {
-        accounts: null,
+        accounts: "0x000001f568875F378Bf6d170B790967FE429C81A 0x287F9b46dceA520D829c874b0AF01f4fbfeF9243", // TODO null,
       },
       searchString: null,
       scanBlocks: 500,
-      startBlockNumber: null,
-      endBlockNumber: null,
+      startBlockNumber: 15053226, // null,
+      endBlockNumber: 15072709, // null,
     },
     sync: {
       inProgress: false,
@@ -884,13 +886,93 @@ const nftsModule = {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const block = await provider.getBlock("latest");
         const blockNumber = block.number;
+        const accounts = state.filter.transfers.accounts.split(/[, \t\n]+/).map(s => '0x000000000000000000000000' + s.substring(2, 42).toLowerCase());
+        console.log("searchTransfers - accounts: " + JSON.stringify(accounts));
         if (filterUpdate != null) {
-          console.log("filter before: " + JSON.stringify(state.filter));
+          console.log("searchTransfers - filter before: " + JSON.stringify(state.filter));
           state.filter = { ...state.filter, ...filterUpdate };
-          console.log("filter after: " + JSON.stringify(state.filter));
+          console.log("searchTransfers - filter after: " + JSON.stringify(state.filter));
+        }
+        let startBlockNumber = null;
+        let endBlockNumber = null;
+        if (syncMode == 'scan') {
+          startBlockNumber = parseInt(state.filter.startBlockNumber.toString().replace(/,/g, ''));
+          endBlockNumber = parseInt(state.filter.endBlockNumber.toString().replace(/,/g, ''));
+        } else if (syncMode == 'scanLatest') {
+          startBlockNumber = blockNumber - state.filter.scanBlocks;
+          endBlockNumber = blockNumber;
+          state.filter.startBlockNumber = ethers.utils.commify(startBlockNumber);
+          state.filter.endBlockNumber = ethers.utils.commify(endBlockNumber);
+        }
+        console.log("searchTransfers - startBlockNumber: " + startBlockNumber + ", endBlockNumber: " + endBlockNumber);
+
+        if (startBlockNumber != null && startBlockNumber <= endBlockNumber) {
+          state.sync.completed = 0;
+          state.sync.total = endBlockNumber - startBlockNumber;
+          state.sync.inProgress = true;
+          const transfers = [];
+          const accounts = state.filter.transfers.accounts.split(/[, \t\n]+/).map(s => '0x000000000000000000000000' + s.substring(2, 42).toLowerCase());
+          console.log("accounts: " + JSON.stringify(accounts));
+          // const batchSize = 25;
+          let toBlock = endBlockNumber;
+          do {
+            let batchSize;
+            // Aug 1 2021
+            if (toBlock < 12936340) {
+              batchSize = 250000;
+            } else {
+              batchSize = 25000;
+            }
+            let fromBlock = toBlock - batchSize;
+            if (fromBlock < startBlockNumber) {
+              fromBlock = startBlockNumber;
+            }
+            const filterFrom = {
+              address: null, // [NIXADDRESS, weth.address],
+              fromBlock: fromBlock,
+              toBlock: toBlock,
+              topics: [
+                '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef', // Transfer (index_topic_1 address from, index_topic_2 address to, index_topic_3 uint256 id)
+                accounts,
+                null,
+              ],
+            };
+            const eventsFrom = await provider.getLogs(filterFrom);
+            // console.log("searchTransfers - eventsFrom: " + JSON.stringify(eventsFrom.slice(0, 1), null, 2));
+            const filterTo = {
+              address: null, // [NIXADDRESS, weth.address],
+              fromBlock: fromBlock,
+              toBlock: toBlock,
+              topics: [
+                '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef', // Transfer (index_topic_1 address from, index_topic_2 address to, index_topic_3 uint256 id)
+                null,
+                accounts,
+              ],
+            };
+            const eventsTo = await provider.getLogs(filterTo);
+            // console.log("searchTransfers - eventsTo: " + JSON.stringify(eventsTo, null, 2));
+
+            for (const event of [...eventsFrom, ...eventsTo]) {
+              if (!event.removed) {
+                const collection = event.address;
+                if (event.topics[3] === undefined) {
+                  console.log("searchTransfers - event: " + JSON.stringify(event, null, 2));
+                }
+                const tokenId = new BigNumber(event.topics[3].substring(2), 16).toFixed(0);
+                const from = '0x' + event.topics[1].substring(26, 66);
+                const to = '0x' + event.topics[2].substring(26, 66);
+                const txHash = event.transactionHash;
+                transfers.push({ collection, tokenId, from, to, txHash });
+              }
+            }
+
+            toBlock -= batchSize;
+            state.sync.completed = endBlockNumber - toBlock;
+          } while (toBlock > startBlockNumber && !state.halt);
+          state.transfers = transfers;
         }
 
-        if (syncMode == 'scanLatest') {
+        if (false && syncMode == 'scanLatest') {
           const transfers = [];
           const accounts = state.filter.transfers.accounts.split(/[, \t\n]+/).map(s => '0x000000000000000000000000' + s.substring(2, 42).toLowerCase());
           console.log("accounts: " + JSON.stringify(accounts));
@@ -940,6 +1022,7 @@ const nftsModule = {
 
         }
       }
+      state.sync.inProgress = false;
     },
 
     // --- updateCollection() ---
