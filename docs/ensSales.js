@@ -313,7 +313,7 @@ const ENSSales = {
       dailyChartSelectedItems: [],
 
       typeOptions: [
-        { value: null, text: '(sets)' },
+        { value: null, text: '(all)' },
         {
           label: 'Numerals',
           options: [
