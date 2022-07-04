@@ -1136,11 +1136,11 @@ const nftsModule = {
   actions: {
     updateCollection(context, { syncMode, filterUpdate }) {
       logInfo("nftsModule", "actions.updateCollection() - syncMode: " + syncMode + ", filterUpdate: " + JSON.stringify(filterUpdate));
-      context.commit('updateCollection', { syncMode, filterUpdate } );
+      context.commit('updateCollection', { syncMode, filterUpdate });
     },
     monitorMints(context, { syncMode, filterUpdate }) {
       logInfo("nftsModule", "actions.monitorMints() - syncMode: " + syncMode + ", filterUpdate: " + JSON.stringify(filterUpdate));
-      context.commit('monitorMints', { syncMode, filterUpdate } );
+      context.commit('monitorMints', { syncMode, filterUpdate });
     },
     halt(context) {
       context.commit('halt');
