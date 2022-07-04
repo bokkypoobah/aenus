@@ -137,31 +137,31 @@ const ENSSales = {
                     X2Y2
                   </b-link>
                   <br />
-                  <b-link v-if="data.item.name" :href="'https://etherscan.io/enslookup-search?search=' + data.item.name.replace('.eth', '')" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                  <b-link v-if="data.item.name" :href="'https://etherscan.io/enslookup-search?search=' + data.item.name.replace(/\.eth.*$/, '')" v-b-popover.hover="'View in etherscan.io'" target="_blank">
                     EtherScan
                   </b-link>
                   <br />
-                  <b-link v-if="data.item.name" :href="'https://duckduckgo.com/?q=' + data.item.name.replace('.eth', '')" v-b-popover.hover="'Search name in duckduckgo.com'" target="_blank">
+                  <b-link v-if="data.item.name" :href="'https://duckduckgo.com/?q=' + data.item.name.replace(/\.eth.*$/, '')" v-b-popover.hover="'Search name in duckduckgo.com'" target="_blank">
                     DuckDuckGo
                   </b-link>
                   <br />
-                  <b-link v-if="data.item.name" :href="'https://www.google.com/search?q=' + data.item.name.replace('.eth', '')" v-b-popover.hover="'Search name in google.com'" target="_blank">
+                  <b-link v-if="data.item.name" :href="'https://www.google.com/search?q=' + data.item.name.replace(/\.eth.*$/, '')" v-b-popover.hover="'Search name in google.com'" target="_blank">
                     Google
                   </b-link>
                   <br />
-                  <b-link v-if="data.item.name" :href="'https://twitter.com/search?q=' + data.item.name.replace('.eth', '')" v-b-popover.hover="'Search name in twitter.com'" target="_blank">
+                  <b-link v-if="data.item.name" :href="'https://twitter.com/search?q=' + data.item.name.replace(/\.eth.*$/, '')" v-b-popover.hover="'Search name in twitter.com'" target="_blank">
                     Twitter
                   </b-link>
                   <br />
-                  <b-link v-if="data.item.name" :href="'https://wikipedia.org/wiki/' + data.item.name.replace('.eth', '')" v-b-popover.hover="'Search name in wikipedia.org'" target="_blank">
+                  <b-link v-if="data.item.name" :href="'https://wikipedia.org/wiki/' + data.item.name.replace(/\.eth.*$/, '')" v-b-popover.hover="'Search name in wikipedia.org'" target="_blank">
                     Wikipedia
                   </b-link>
                   <br />
-                  <b-link v-if="data.item.name" :href="'https://en.wiktionary.org/wiki/' + data.item.name.replace('.eth', '')" v-b-popover.hover="'Search name in wiktionary.org'" target="_blank">
+                  <b-link v-if="data.item.name" :href="'https://en.wiktionary.org/wiki/' + data.item.name.replace(/\.eth.*$/, '')" v-b-popover.hover="'Search name in wiktionary.org'" target="_blank">
                     Wiktionary
                   </b-link>
                   <br />
-                  <b-link v-if="data.item.name" :href="'https://thesaurus.yourdictionary.com/' + data.item.name.replace('.eth', '')" v-b-popover.hover="'Search name in thesaurus.yourdictionary.com'" target="_blank">
+                  <b-link v-if="data.item.name" :href="'https://thesaurus.yourdictionary.com/' + data.item.name.replace(/\.eth.*$/, '')" v-b-popover.hover="'Search name in thesaurus.yourdictionary.com'" target="_blank">
                     Thesaurus
                   </b-link>
                 </b-popover>
@@ -650,7 +650,7 @@ const ENSSales = {
         const lengthTo = this.settings.lengthTo && parseInt(this.settings.lengthTo) >= 3 ? parseInt(this.settings.lengthTo) : null;
         for (const sale of this.sales) {
           let include = true;
-          const name = sale.name && sale.name.replace('.eth', '') || null;
+          const name = sale.name && sale.name.replace(/\.eth.*$/, '') || null;
           if (regex && !regex.test(name)) {
             include = false;
           }
@@ -879,7 +879,7 @@ const ENSSales = {
         rows.push([
           new Date(parseInt(result.timestamp) * 1000).toISOString().replace('T', ' ').replace('.000Z', ''),
           result.name,
-          result.name && result.name.replace(".eth", "").length || null,
+          result.name && result.name.replace(/\.eth.*$/, "").length || null,
           result.from,
           result.to,
           result.price,
@@ -1160,7 +1160,7 @@ const ensSalesModule = {
         let count = 0;
         for (const sale of salesFromDB) {
           let include = true;
-          const name = sale.name && sale.name.replace('.eth', '') || null;
+          const name = sale.name && sale.name.replace(/\.eth.*$/, '') || null;
           if (regex && !regex.test(name)) {
             include = false;
           }

@@ -1457,7 +1457,7 @@ const ensSearchModule = {
             console.log("error: " + e);
           });
         state.message = "Retrieved " + Object.keys(state.tempResults).length;
-        const namesFound = Object.keys(state.tempResults).map(name => name.replace('.eth', ''));
+        const namesFound = Object.keys(state.tempResults).map(name => name.replace(/\.eth.*$/, ''));
         const unregistered = batch.filter(name => !namesFound.includes(name));
         state.tempUnregistered.push(...unregistered);
       }
@@ -1540,7 +1540,7 @@ const ensSearchModule = {
         const searchForNames = options.search == null ? [] : options.search.split(/[, \t\n]+/)
           .map(name => name.toLowerCase().trim())
           .filter(name => !(name.length == 42 && name.substring(0, 2) == '0x'))
-          .map(name => name.replace('.eth', ''));
+          .map(name => name.replace(/\.eth.*$/, ''));
         generator = searchForNames[Symbol.iterator]();
       }
       // console.log( [...generator] );
