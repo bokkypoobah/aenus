@@ -216,7 +216,19 @@ const NFTs = {
 
               <!-- Collection information -->
               <b-card v-if="settings.tabIndex == 0" no-header no-body class="mt-1">
-                <b-table small fixed striped :items="transfers" head-variant="light">
+                <b-table small fixed striped :fields="transferFields" :items="transfers" head-variant="light">
+                  <template #cell(collection)="data">
+                    {{ data.item.from }}
+                  </template>
+                  <template #cell(from)="data">
+                    {{ data.item.from }}
+                  </template>
+                  <template #cell(to)="data">
+                    {{ data.item.to }}
+                  </template>
+                  <template #cell(txHash)="data">
+                    {{ data.item.txHash }}
+                  </template>
                 </b-table>
               </b-card>
 
@@ -434,6 +446,13 @@ const NFTs = {
         { value: 500, text: '500' },
         { value: 1000, text: '1k' },
         { value: 10000, text: '10k' },
+      ],
+
+      transferFields: [
+        { key: 'collection', label: 'Collection', thStyle: 'width: 20%;', sortable: true },
+        { key: 'from', label: 'From', thStyle: 'width: 20%;', sortable: true },
+        { key: 'to', label: 'To', thStyle: 'width: 20%;', sortable: true },
+        { key: 'txHash', label: 'Tx Hash', sortable: true, thStyle: 'width: 40%;' },
       ],
 
       collectionAttributeFields: [
