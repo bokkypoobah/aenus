@@ -323,6 +323,7 @@ const ENSSales = {
             { value: '^[\u09E6-\u09EF]*$', text: 'Bengali Numerals - ০, ১, ২, ৩, ৪, ৫, ৬, ৭, ৮, ৯' },
             { value: '^[〇一二三四五六七八九十百千万]*$', text: 'Chinese Numerals - 〇, 一, 二, 三, 四, 五, 六, 七, 八, 九, 十, 百, 千, 万' },
             { value: '^[\u17E0-\u17E9]*$', text: 'Khmer Numerals - ០, ១, ២, ៣, ៤, ៥, ៦, ៧, ៨, ៩' },
+            { value: '^[\u1810-\u17E9]*$', text: 'Mongolian Numerals - ᠐, ᠑, ᠒, ᠓, ᠔, ᠕, ᠖, ᠗, ᠘, ᠙' },
             { value: '^[영일이삼사오육칠팔구]*$', text: 'Sino-Korean Numerals - 영, 일, 이, 삼, 사, 오, 육, 칠, 팔, 구' },
             { value: '^[\u0E50-\u0E59]*$', text: 'Thai Numerals - ๐ to ๙' },
           ],
