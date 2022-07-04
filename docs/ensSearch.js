@@ -858,6 +858,12 @@ const ENSSearch = {
             { value: '^[0-9a-z]*$', text: '0 to 9, a to z' },
           ],
         },
+        {
+          label: 'Specials',
+          options: [
+            { value: '^[0-3][0-9][0-9]°$', text: '000° to 359° (will incorrectly include 360° to 399°)' },
+          ],
+        },
       ],
 
       lengthFromOptions: [
