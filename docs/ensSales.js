@@ -83,12 +83,11 @@ const ENSSales = {
               <div class="mt-1">
                 -
               </div>
-              <div class="mt-1 pr-1">
+              <div class="mt-1">
                 <b-form-select size="sm" v-model="settings.lengthTo" :options="lengthToOptions" v-b-popover.hover.top="'Length from'"></b-form-select>
               </div>
-              <div class="mt-1 flex-grow-1">
-              </div>
-              <div class="mt-1 pr-1" style="max-width: 150px;">
+              <div class="mt-2 pl-1">
+                <b-form-checkbox size="sm" v-model="settings.palindrome" value="true">Palindrome</b-form-checkbox>
               </div>
             </div>
 
@@ -631,7 +630,7 @@ const ENSSales = {
     },
     filteredSales() {
       let results;
-      if (this.settings.type == null && this.settings.lengthFrom == null && this.settings.lengthTo == null) {
+      if (this.settings.type == null && this.settings.lengthFrom == null && this.settings.lengthTo == null && !this.settings.palindrome) {
         results = this.sales;
       } else {
         results = [];
@@ -652,6 +651,16 @@ const ENSSales = {
           if (include && lengthTo != null) {
             if (name == null || name.length > lengthTo) {
               include = false;
+            }
+          }
+          if (include && this.settings.palindrome) {
+            if (name == null) {
+              include = false;
+            } else {
+              const reverse = name.split('').reverse().join('');
+              if (name !== reverse) {
+                include = false;
+              }
             }
           }
           if (include) {
