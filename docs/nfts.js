@@ -243,6 +243,15 @@ const NFTs = {
                       </b-link>
                     </b-popover>
                   </template>
+                  <template #cell(tokenId)="data">
+                    <span v-if="data.item.collection.toLowerCase() == '0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85'">
+                      <b-img :width="'100%'" :src="'https://metadata.ens.domains/mainnet/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + data.item.tokenId + '/image'">
+                      </b-img>
+                    </span>
+                    <span v-else>
+                      {{ data.item.tokenId }}
+                    </span>
+                  </template>
                   <template #cell(from)="data">
                     <b-button :id="'popover-target-from-' + data.item.from + '-' + data.index" variant="link" class="m-0 p-0">
                       {{ data.item.from.substring(0, 16) }}
@@ -516,9 +525,10 @@ const NFTs = {
       transfersFields: [
         { key: 'index', label: '#', thStyle: 'width: 5%;', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
         { key: 'collection', label: 'Collection', thStyle: 'width: 20%;', sortable: true },
+        { key: 'tokenId', label: 'Token Id', thStyle: 'width: 20%;', sortable: true },
         { key: 'from', label: 'From', thStyle: 'width: 20%;', sortable: true },
         { key: 'to', label: 'To', thStyle: 'width: 20%;', sortable: true },
-        { key: 'txHash', label: 'Tx Hash', sortable: true, thStyle: 'width: 35%;' },
+        { key: 'txHash', label: 'Tx Hash', sortable: true, thStyle: 'width: 15%;' },
       ],
 
       collectionAttributeFields: [
@@ -919,10 +929,11 @@ const nftsModule = {
           for (const event of [...eventsFrom, ...eventsTo]) {
             if (!event.removed) {
               const collection = event.address;
+              const tokenId = new BigNumber(event.topics[3].substring(2), 16).toFixed(0);
               const from = '0x' + event.topics[1].substring(26, 66);
               const to = '0x' + event.topics[2].substring(26, 66);
               const txHash = '0x' + event.transactionHash;
-              transfers.push({ collection, from, to, txHash });
+              transfers.push({ collection, tokenId, from, to, txHash });
             }
           }
           state.transfers = transfers;
