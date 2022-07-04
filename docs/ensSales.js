@@ -319,10 +319,10 @@ const ENSSales = {
           options: [
             { value: '^[0-9]*$', text: 'Latin - 0 to 9' },
             { value: '^[0-9a-fx]*$', text: 'Hexadecimal - 0 to 9, a to f, x' },
-            { value: '^[\u0660-\u0669]*$', text: 'Arabic - ٠ to ٩' },
-            { value: '^[\u09E6-\u09EF]*$', text: 'Bengali - ০, ১, ২, ৩, ৪, ৫, ৬, ৭, ৮, ৯' },
-            { value: '^[영일이삼사오육칠팔구]*$', text: 'Sino-Korean - 영, 일, 이, 삼, 사, 오, 육, 칠, 팔, 구' },
-            { value: '^[\u0E50-\u0E59]*$', text: 'Thai - ๐ to ๙' },
+            { value: '^[\u0660-\u0669]*$', text: 'Arabic Numerals - ٠ to ٩' },
+            { value: '^[\u09E6-\u09EF]*$', text: 'Bengali Numerals - ০, ১, ২, ৩, ৪, ৫, ৬, ৭, ৮, ৯' },
+            { value: '^[영일이삼사오육칠팔구]*$', text: 'Sino-Korean Numerals - 영, 일, 이, 삼, 사, 오, 육, 칠, 팔, 구' },
+            { value: '^[\u0E50-\u0E59]*$', text: 'Thai Numerals - ๐ to ๙' },
           ],
         },
         {
