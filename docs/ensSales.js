@@ -332,9 +332,12 @@ const ENSSales = {
             { value: '^[\u1946-\u194F]*$', text: 'Limbu Numerals - ᥆, ᥇, ᥈, ᥉, ᥊, ᥋, ᥌, ᥍, ᥎, ᥏' },
             { value: '^[\u0D66-\u0D6F]*$', text: 'Malayalam Numerals - ൦, ൧, ൨, ൩, ൪, ൫, ൬, ൭, ൮, ൯' },
             { value: '^[᠐᠑᠒᠓᠔᠕᠖᠗᠘᠙]*$', text: 'Mongolian Numerals - ᠐, ᠑, ᠒, ᠓, ᠔, ᠕, ᠖, ᠗, ᠘, ᠙' },
+            { value: '^[\u1040-\u1049]*$', text: 'Myanmar Numerals - ၀, ၁, ၂, ၃, ၄, ၅, ၆, ၇, ၈, ၉' },
+            /* { value: '^[\u19D0-\u19D9]*$', text: 'New Tai Lue Numerals - ᧐, ᧑, ᧒, ᧓, ᧔, ᧕, ᧖, ᧗, ᧘, ᧙' }, - Cannot register*/
             { value: '^[영일이삼사오육칠팔구]*$', text: 'Sino-Korean Numerals - 영, 일, 이, 삼, 사, 오, 육, 칠, 팔, 구' },
             { value: '^[\u0C66-\u0C6F]*$', text: 'Telugu Numerals - ౦, ౧, ౨, ౩, ౪, ౫, ౬, ౭, ౮, ౯' },
             { value: '^[\u0E50-\u0E59]*$', text: 'Thai Numerals - ๐ to ๙' },
+            { value: '^[\u0F20-\u0F29]*$', text: 'Tibetan Numerals - ༠, ༡, ༢, ༣, ༤, ༥, ༦, ༧, ༨, ༩' },
           ],
         },
         {
