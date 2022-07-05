@@ -4,7 +4,7 @@ const NFTs = {
       <b-card no-body no-header class="border-0">
         <b-card no-body class="p-0 mt-1">
           <b-tabs card align="left" no-body v-model="settings.tabIndex" active-tab-class="m-0 p-0">
-            <b-tab title="Transfers (WIP)" @click="updateURL('transfers');">
+            <b-tab disabled title="Transfers (WIP)" @click="updateURL('transfers');">
             </b-tab>
             <b-tab title="Collection" @click="updateURL('collection');">
             </b-tab>
@@ -911,7 +911,7 @@ const nftsModule = {
           state.sync.total = endBlockNumber - startBlockNumber;
           state.sync.inProgress = true;
           const transfers = [];
-          const accounts = state.filter.transfers.accounts.split(/[, \t\n]+/).map(s => '0x000000000000000000000000' + s.substring(2, 42).toLowerCase());
+          const accounts = state.filter.transfers && state.filter.transfers.accounts && state.filter.transfers.accounts.split(/[, \t\n]+/).map(s => '0x000000000000000000000000' + s.substring(2, 42).toLowerCase()) || [];
           console.log("accounts: " + JSON.stringify(accounts));
           // const batchSize = 25;
           let toBlock = endBlockNumber;
