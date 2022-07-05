@@ -320,7 +320,7 @@ const ENSSales = {
             { value: '^[0-9]*$', text: 'Latin Numerals - 0 to 9' },
             { value: '^[0-9a-fx]*$', text: 'Hexadecimal Numerals - 0 to 9, a to f, x' },
             { value: '^[\u0660-\u0669]*$', text: 'Arabic Numerals - ٠ to ٩' },
-            /* { value: '^[\u1B50-\u1B59]*$', text: 'Balinese Numerals - ᭐, ᭑, ᭒, ᭓, ᭔, ᭕, ᭖, ᭗, ᭘, ᭙' }, - Cannot register*/
+            /* { value: '^[\u1B50-\u1B59]*$', text: 'Balinese Numerals - ᭐, ᭑, ᭒, ᭓, ᭔, ᭕, ᭖, ᭗, ᭘, ᭙' }, - Cannot register */
             { value: '^[\u09E6-\u09EF]*$', text: 'Bengali Numerals - ০, ১, ২, ৩, ৪, ৫, ৬, ৭, ৮, ৯' },
             { value: '^[〇一二三四五六七八九十百千万]*$', text: 'Chinese Numerals - 〇, 一, 二, 三, 四, 五, 六, 七, 八, 九, 十, 百, 千, 万' },
             { value: '^[\u0966-\u096F]*$', text: 'Devanagari (Hindi) Numerals - ०, १, २, ३, ४, ५, ६, ७, ८, ९' },
@@ -333,7 +333,8 @@ const ENSSales = {
             { value: '^[\u0D66-\u0D6F]*$', text: 'Malayalam Numerals - ൦, ൧, ൨, ൩, ൪, ൫, ൬, ൭, ൮, ൯' },
             { value: '^[᠐᠑᠒᠓᠔᠕᠖᠗᠘᠙]*$', text: 'Mongolian Numerals - ᠐, ᠑, ᠒, ᠓, ᠔, ᠕, ᠖, ᠗, ᠘, ᠙' },
             { value: '^[\u1040-\u1049]*$', text: 'Myanmar Numerals - ၀, ၁, ၂, ၃, ၄, ၅, ၆, ၇, ၈, ၉' },
-            /* { value: '^[\u19D0-\u19D9]*$', text: 'New Tai Lue Numerals - ᧐, ᧑, ᧒, ᧓, ᧔, ᧕, ᧖, ᧗, ᧘, ᧙' }, - Cannot register*/
+            /* { value: '^[\u19D0-\u19D9]*$', text: 'New Tai Lue Numerals - ᧐, ᧑, ᧒, ᧓, ᧔, ᧕, ᧖, ᧗, ᧘, ᧙' }, - Cannot register */
+            /* { value: '^[𐒠𐒡𐒢𐒣𐒤𐒥𐒦𐒧𐒨𐒩]*$', text: 'Osmanya Numerals - 𐒠, 𐒡, 𐒢, 𐒣, 𐒤, 𐒥, 𐒦, 𐒧, 𐒨, 𐒩' }, - Cannot register */
             { value: '^[영일이삼사오육칠팔구]*$', text: 'Sino-Korean Numerals - 영, 일, 이, 삼, 사, 오, 육, 칠, 팔, 구' },
             { value: '^[\u0C66-\u0C6F]*$', text: 'Telugu Numerals - ౦, ౧, ౨, ౩, ౪, ౫, ౬, ౭, ౮, ౯' },
             { value: '^[\u0E50-\u0E59]*$', text: 'Thai Numerals - ๐ to ๙' },
