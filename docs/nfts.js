@@ -846,7 +846,7 @@ const nftsModule = {
         startBlockNumber: 4000000,
       },
       transfers: {
-        accounts: "0x000001f568875F378Bf6d170B790967FE429C81A 0x287F9b46dceA520D829c874b0AF01f4fbfeF9243", // TODO null,
+        accounts: null,
       },
       searchString: null,
       scanBlocks: 500,
