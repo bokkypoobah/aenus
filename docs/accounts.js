@@ -304,7 +304,11 @@ const Accounts = {
                   </template>
                   <template #cell(txHash)="data">
                     <b-link :href="'https://etherscan.io/tx/' + data.item.txHash" v-b-popover.hover="'View in etherscan.io'" target="_blank">
-                      {{ data.item.txHash.substring(0, 12) }}
+                      <div v-if="data.item.txHash in transactions">
+                        <b-badge variant="light" v-b-popover.hover.bottom="JSON.stringify(transactions[data.item.txHash].tx, null, 2)">tx</b-badge>
+                        <b-badge variant="light" v-b-popover.hover.bottom="JSON.stringify(transactions[data.item.txHash].txReceipt, null, 2)">txReceipt</b-badge>
+                        <b-badge variant="light" v-b-popover.hover.bottom="JSON.stringify(transactions[data.item.txHash].block, null, 2)">block</b-badge>
+                      </div>
                     </b-link>
                   </template>
                 </b-table>
@@ -571,6 +575,9 @@ const Accounts = {
     },
     sync() {
       return store.getters['accounts/sync'];
+    },
+    transactions() {
+      return store.getters['accounts/transactions'];
     },
     transfers() {
       return store.getters['accounts/transfers'];
@@ -884,6 +891,7 @@ const accountsModule = {
       completed: null,
     },
 
+    transactions: {},
     transfers: [],
     transfersCollectionContracts: {},
     collectionInfo: {},
@@ -896,6 +904,7 @@ const accountsModule = {
   getters: {
     filter: state => state.filter,
     sync: state => state.sync,
+    transactions: state => state.transactions,
     transfers: state => state.transfers,
     transfersCollectionContracts: state => state.transfersCollectionContracts,
     collectionInfo: state => state.collectionInfo,
@@ -946,6 +955,7 @@ const accountsModule = {
           // const batchSize = 25;
           const ensMap = {};
           const contracts = {};
+          const transactions = {};
           let toBlock = endBlockNumber;
           do {
             let batchSize;
@@ -1025,7 +1035,21 @@ const accountsModule = {
             state.sync.completed = endBlockNumber - toBlock;
           } while (toBlock > startBlockNumber && !state.halt);
           state.transfers = transfers;
-          console.log("txHashes: " + JSON.stringify(txHashes));
+          // console.log("txHashes: " + JSON.stringify(txHashes));
+          const txHashesToProcess = Object.keys(txHashes);
+          state.sync.total = txHashesToProcess.length;
+          state.sync.completed = 0;
+          for (const txHash of txHashesToProcess) {
+            // console.log("Processing: " + txHash);
+            const tx = await provider.getTransaction(txHash);
+            // console.log("tx: " + JSON.stringify(tx, null, 2));
+            const txReceipt = await provider.getTransactionReceipt(txHash);
+            // console.log("txReceipt: " + JSON.stringify(txReceipt, null, 2));
+            const block = await provider.getBlock(txReceipt.blockNumber);
+            // console.log("block: " + JSON.stringify(block, null, 2));
+            transactions[txHash] = { tx, txReceipt, block };
+            state.sync.completed = parseInt(state.sync.completed) + 1;
+          }
 
           let contractAddresses = Object.keys(contracts);
           const GETPRICEBATCHSIZE = 20;
@@ -1051,6 +1075,7 @@ const accountsModule = {
             await delay(DELAYINMILLIS);
           }
           state.transfersCollectionContracts = transfersCollectionContracts;
+          state.transactions = transactions;
 
           let addresses = Object.keys(ensMap);
           const ensReverseRecordsContract = new ethers.Contract(ENSREVERSERECORDSADDRESS, ENSREVERSERECORDSABI, provider);
