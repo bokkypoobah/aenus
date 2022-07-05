@@ -848,12 +848,12 @@ const accountsModule = {
         startBlockNumber: 4000000,
       },
       transfers: {
-        accounts: null,
+        accounts: "0x287F9b46dceA520D829c874b0AF01f4fbfeF9243", // TODO null,
       },
       searchString: null,
       scanBlocks: 500,
-      startBlockNumber: 15053226, // null,
-      endBlockNumber: 15072709, // null,
+      startBlockNumber: 14484994, // null,
+      endBlockNumber: 14591766, // null,
     },
     sync: {
       inProgress: false,
@@ -917,6 +917,7 @@ const accountsModule = {
           const accounts = state.filter.transfers.accounts.split(/[, \t\n]+/).map(s => '0x000000000000000000000000' + s.substring(2, 42).toLowerCase());
           console.log("accounts: " + JSON.stringify(accounts));
           // const batchSize = 25;
+          const ensMap = {};
           let toBlock = endBlockNumber;
           do {
             let batchSize;
@@ -934,8 +935,9 @@ const accountsModule = {
               address: null, // [NIXADDRESS, weth.address],
               fromBlock: fromBlock,
               toBlock: toBlock,
-              topics: [
-                '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef', // Transfer (index_topic_1 address from, index_topic_2 address to, index_topic_3 uint256 id)
+              topics: [[
+                  '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef', // Transfer (index_topic_1 address from, index_topic_2 address to, index_topic_3 uint256 id)
+                ],
                 accounts,
                 null,
               ],
@@ -961,9 +963,24 @@ const accountsModule = {
                 if (event.topics[3] === undefined) {
                   console.log("searchTransfers - event: " + JSON.stringify(event, null, 2));
                 }
-                const tokenId = new BigNumber(event.topics[3].substring(2), 16).toFixed(0);
+                // const tokenId = event.topics.length > 3 ? new BigNumber(event.topics[3].substring(2), 16).toFixed(0) : null;
+
+                let tokenId;
+                if (event.topics.length > 3) {
+                  tokenId = new BigNumber(event.topics[3].substring(2), 16).toFixed(0);
+                } else {
+                  tokenId = event.data != null ? new BigNumber(event.data.substring(2), 16).toFixed(0) : null;
+                }
+
                 const from = '0x' + event.topics[1].substring(26, 66);
                 const to = '0x' + event.topics[2].substring(26, 66);
+
+                for (const addy of [collection, from, to]) {
+                  if (!(addy in ensMap)) {
+                    ensMap[addy] = addy;
+                  }
+                }
+
                 const txHash = event.transactionHash;
                 transfers.push({ collection, tokenId, from, to, txHash });
               }
@@ -973,7 +990,30 @@ const accountsModule = {
             state.sync.completed = endBlockNumber - toBlock;
           } while (toBlock > startBlockNumber && !state.halt);
           state.transfers = transfers;
+          ensMap["0x000000000000000000000000000000000000dEaD".toLowerCase()] = "0x...dEaD";
+          console.log("ensMap: " + JSON.stringify(ensMap, null, 2));
+
+          let addresses = Object.keys(ensMap);
+          const ensReverseRecordsContract = new ethers.Contract(ENSREVERSERECORDSADDRESS, ENSREVERSERECORDSABI, provider);
+          const ENSOWNERBATCHSIZE = 200; // 500 fails occassionally
+          for (let i = 0; i < addresses.length; i += ENSOWNERBATCHSIZE) {
+          //   this.processing = "RETRIEVING LIVE ENS REVERSE RECORDS FROM THE ETHEREUM MAINNET: " + ethers.utils.commify(i) + " OF " + ethers.utils.commify(addresses.length);
+            const batch = addresses.slice(i, parseInt(i) + ENSOWNERBATCHSIZE);
+            const allnames = await ensReverseRecordsContract.getNames(batch);
+            console.log("allnames: " + JSON.stringify(allnames, null, 2));
+            // TODO: check for normalised. const validNames = allnames.filter((n) => normalize(n) === n );
+            for (let j = 0; j < batch.length; j++) {
+              const address = batch[j];
+              const name = allnames[j];
+              ensMap[address] = name != null && name.length > 0 ? name : address;
+              // const normalized = normalize(address);
+            }
+          }
+          console.log("ensMap: " + JSON.stringify(ensMap, null, 2));
+          // this.ensMap = ensMap;
+
         }
+
 
         if (false && syncMode == 'scanLatest') {
           const transfers = [];
