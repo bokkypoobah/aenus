@@ -329,6 +329,7 @@ const ENSSales = {
             { value: '^[\u0A66-\u0A6F]*$', text: 'Gurmukhi Numerals - ੦, ੧, ੨, ੩, ੪, ੫, ੬, ੭, ੮, ੯' },
             { value: '^[\u17E0-\u17E9]*$', text: 'Khmer Numerals - ០, ១, ២, ៣, ៤, ៥, ៦, ៧, ៨, ៩' },
             { value: '^[\u0ED0-\u0ED9]*$', text: 'Lao Numerals - ໐, ໑, ໒, ໓, ໔, ໕, ໖, ໗, ໘, ໙' },
+            { value: '^[\u1946-\u194F]*$', text: 'Limbu Numerals - ᥆, ᥇, ᥈, ᥉, ᥊, ᥋, ᥌, ᥍, ᥎, ᥏' },
             { value: '^[᠐᠑᠒᠓᠔᠕᠖᠗᠘᠙]*$', text: 'Mongolian Numerals - ᠐, ᠑, ᠒, ᠓, ᠔, ᠕, ᠖, ᠗, ᠘, ᠙' },
             { value: '^[영일이삼사오육칠팔구]*$', text: 'Sino-Korean Numerals - 영, 일, 이, 삼, 사, 오, 육, 칠, 팔, 구' },
             { value: '^[\u0C66-\u0C6F]*$', text: 'Telugu Numerals - ౦, ౧, ౨, ౩, ౪, ౫, ౬, ౭, ౮, ౯' },
