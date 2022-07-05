@@ -334,6 +334,7 @@ const ENSSales = {
             { value: '^[᠐᠑᠒᠓᠔᠕᠖᠗᠘᠙]*$', text: 'Mongolian Numerals - ᠐, ᠑, ᠒, ᠓, ᠔, ᠕, ᠖, ᠗, ᠘, ᠙' },
             { value: '^[\u1040-\u1049]*$', text: 'Myanmar Numerals - ၀, ၁, ၂, ၃, ၄, ၅, ၆, ၇, ၈, ၉' },
             /* { value: '^[\u19D0-\u19D9]*$', text: 'New Tai Lue Numerals - ᧐, ᧑, ᧒, ᧓, ᧔, ᧕, ᧖, ᧗, ᧘, ᧙' }, - Cannot register */
+            { value: '^[\u0B66-\u0B6F]*$', text: 'Oriya Numerals - ୦, ୧, ୨, ୩, ୪, ୫, ୬, ୭, ୮, ୯' },
             /* { value: '^[𐒠𐒡𐒢𐒣𐒤𐒥𐒦𐒧𐒨𐒩]*$', text: 'Osmanya Numerals - 𐒠, 𐒡, 𐒢, 𐒣, 𐒤, 𐒥, 𐒦, 𐒧, 𐒨, 𐒩' }, - Cannot register */
             { value: '^[영일이삼사오육칠팔구]*$', text: 'Sino-Korean Numerals - 영, 일, 이, 삼, 사, 오, 육, 칠, 팔, 구' },
             { value: '^[\u0C66-\u0C6F]*$', text: 'Telugu Numerals - ౦, ౧, ౨, ౩, ౪, ౫, ౬, ౭, ౮, ౯' },
