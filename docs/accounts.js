@@ -218,37 +218,37 @@ const Accounts = {
                 </b-card>
               </div>
 
-              <!-- Collection information -->
+              <!-- Transfers -->
               <b-card v-if="settings.tabIndex == 0" no-header no-body class="mt-1">
                 <b-table small fixed striped :fields="transfersFields" :items="transfers" head-variant="light">
                   <template #cell(index)="data">
                     {{ data.index + 1 }}
                   </template>
-                  <template #cell(collection)="data">
-                    <b-button :id="'popover-target-collection-' + data.item.collection + '-' + data.index" variant="link" class="m-0 p-0">
-                      {{ ensOrShortName(data.item.collection) }}
+                  <template #cell(contract)="data">
+                    <b-button :id="'popover-target-contract-' + data.item.contract + '-' + data.index" variant="link" class="m-0 p-0">
+                      {{ ensOrShortName(data.item.contract) }}
                     </b-button>
-                    <b-popover :target="'popover-target-collection-' + data.item.collection + '-' + data.index" placement="right">
-                      <template #title>{{ data.item.collection.substring(0, 16) }}</template>
-                      <b-link :href="'https://etherscan.io/address/' + data.item.collection + '#code'" v-b-popover.hover.bottom="'View in Etherscan.io'" target="_blank">
+                    <b-popover :target="'popover-target-contract-' + data.item.contract + '-' + data.index" placement="right">
+                      <template #title>{{ data.item.contract.substring(0, 16) }}</template>
+                      <b-link :href="'https://etherscan.io/address/' + data.item.contract + '#code'" v-b-popover.hover.bottom="'View in Etherscan.io'" target="_blank">
                         Etherscan - Contract Code
                       </b-link>
                       <br />
-                      <b-link :href="'https://etherscan.io/token/' + data.item.collection" v-b-popover.hover.bottom="'View in Etherscan.io'" target="_blank">
+                      <b-link :href="'https://etherscan.io/token/' + data.item.contract" v-b-popover.hover.bottom="'View in Etherscan.io'" target="_blank">
                         Etherscan - Transfers
                       </b-link>
                       <br />
-                      <b-link :href="'https://etherscan.io/token/' + data.item.collection + '#balances'" v-b-popover.hover.bottom="'View in Etherscan.io'" target="_blank">
+                      <b-link :href="'https://etherscan.io/token/' + data.item.contract + '#balances'" v-b-popover.hover.bottom="'View in Etherscan.io'" target="_blank">
                         Etherscan - Holders
                       </b-link>
                       <br />
-                      <b-link :href="'https://etherscan.io/token/tokenholderchart/' + data.item.collection" v-b-popover.hover.bottom="'View in Etherscan.io'" target="_blank">
+                      <b-link :href="'https://etherscan.io/token/tokenholderchart/' + data.item.contract" v-b-popover.hover.bottom="'View in Etherscan.io'" target="_blank">
                         Etherscan - Holders Chart
                       </b-link>
                     </b-popover>
                   </template>
                   <template #cell(tokenId)="data">
-                    <span v-if="data.item.collection.toLowerCase() == '0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85'">
+                    <span v-if="data.item.contract.toLowerCase() == '0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85'">
                       <b-img :width="'100%'" :src="'https://metadata.ens.domains/mainnet/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + data.item.tokenId + '/image'">
                       </b-img>
                     </span>
@@ -528,7 +528,7 @@ const Accounts = {
 
       transfersFields: [
         { key: 'index', label: '#', thStyle: 'width: 5%;', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
-        { key: 'collection', label: 'Collection', thStyle: 'width: 20%;', sortable: true },
+        { key: 'contract', label: 'Contract', thStyle: 'width: 20%;', sortable: true },
         { key: 'tokenId', label: 'Token Id', thStyle: 'width: 20%;', sortable: true },
         { key: 'from', label: 'From', thStyle: 'width: 20%;', sortable: true },
         { key: 'to', label: 'To', thStyle: 'width: 20%;', sortable: true },
@@ -975,7 +975,7 @@ const accountsModule = {
 
             for (const event of [...eventsFrom, ...eventsTo]) {
               if (!event.removed) {
-                const collection = event.address;
+                const contract = event.address;
                 if (event.topics[3] === undefined) {
                   console.log("searchTransfers - event: " + JSON.stringify(event, null, 2));
                 }
@@ -991,7 +991,7 @@ const accountsModule = {
                 const from = '0x' + event.topics[1].substring(26, 66);
                 const to = '0x' + event.topics[2].substring(26, 66);
 
-                for (const addy of [collection, from, to]) {
+                for (const addy of [contract, from, to]) {
                   const lowerAddy = addy.toLowerCase();
                   if (!(lowerAddy in ensMap)) {
                     ensMap[lowerAddy] = addy;
@@ -999,7 +999,7 @@ const accountsModule = {
                 }
 
                 const txHash = event.transactionHash;
-                transfers.push({ collection, tokenId, from, to, txHash });
+                transfers.push({ blockNumber: event.blockNumber, txIndex: event.transactionIndex, contract, tokenId, from, to, txHash, logIndex: event.logIndex });
               }
             }
 
@@ -1008,7 +1008,7 @@ const accountsModule = {
           } while (toBlock > startBlockNumber && !state.halt);
           state.transfers = transfers;
 
-          // console.log("ensMap: " + JSON.stringify(ensMap, null, 2));
+          console.log("transfers: " + JSON.stringify(transfers, null, 2));
 
           let addresses = Object.keys(ensMap);
           const ensReverseRecordsContract = new ethers.Contract(ENSREVERSERECORDSADDRESS, ENSREVERSERECORDSABI, provider);
@@ -1028,7 +1028,9 @@ const accountsModule = {
           }
           ensMap["0x0000000000000000000000000000000000000000".toLowerCase()] = "(null)";
           ensMap["0x000000000000000000000000000000000000dEaD".toLowerCase()] = "(dEaD)";
+          ensMap["0x00000000006c3852cbEf3e08E8dF289169EdE581".toLowerCase()] = "(OS:Seaport1.1)";
           ensMap["0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85".toLowerCase()] = "(ENS)";
+          ensMap["0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2".toLowerCase()] = "(WETH)";
           state.ensMap = ensMap;
           console.log("ensMap: " + JSON.stringify(ensMap, null, 2));
         }
