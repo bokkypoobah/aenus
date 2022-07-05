@@ -840,9 +840,13 @@ const ENSSearch = {
             { value: '^[0-9]*$', text: 'Latin Numerals - 0 to 9' },
             { value: '^[0-9a-fx]*$', text: 'Hexadecimal Numerals - 0 to 9, a to f, x' },
             { value: '^[\u0660-\u0669]*$', text: 'Arabic Numerals - ٠ to ٩' },
+            /* { value: '^[\u1B50-\u1B59]*$', text: 'Balinese Numerals - ᭐, ᭑, ᭒, ᭓, ᭔, ᭕, ᭖, ᭗, ᭘, ᭙' }, - Cannot register*/
             { value: '^[\u09E6-\u09EF]*$', text: 'Bengali Numerals - ০, ১, ২, ৩, ৪, ৫, ৬, ৭, ৮, ৯' },
             { value: '^[〇一二三四五六七八九十百千万]*$', text: 'Chinese Numerals - 〇, 一, 二, 三, 四, 五, 六, 七, 八, 九, 十, 百, 千, 万' },
             { value: '^[\u0966-\u096F]*$', text: 'Devanagari (Hindi) Numerals - ०, १, २, ३, ४, ५, ६, ७, ८, ९' },
+            { value: '^[\u1369-\u1371]*$', text: 'Ethiopic Numerals - ፩, ፪, ፫, ፬, ፭, ፮, ፯, ፰, ፱' },
+            { value: '^[\u0AE6-\u0AEF]*$', text: 'Gujarati Numerals - ૦, ૧, ૨, ૩, ૪, ૫, ૬, ૭, ૮, ૯' },
+            { value: '^[\u0A66-\u0A6F]*$', text: 'Gurmukhi Numerals - ੦, ੧, ੨, ੩, ੪, ੫, ੬, ੭, ੮, ੯' },
             { value: '^[\u17E0-\u17E9]*$', text: 'Khmer Numerals - ០, ១, ២, ៣, ៤, ៥, ៦, ៧, ៨, ៩' },
             { value: '^[᠐᠑᠒᠓᠔᠕᠖᠗᠘᠙]*$', text: 'Mongolian Numerals - ᠐, ᠑, ᠒, ᠓, ᠔, ᠕, ᠖, ᠗, ᠘, ᠙' },
             { value: '^[영일이삼사오육칠팔구]*$', text: 'Sino-Korean Numerals - 영, 일, 이, 삼, 사, 오, 육, 칠, 팔, 구' },
