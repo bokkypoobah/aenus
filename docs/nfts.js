@@ -886,7 +886,7 @@ const nftsModule = {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const block = await provider.getBlock("latest");
         const blockNumber = block.number;
-        const accounts = state.filter.transfers.accounts.split(/[, \t\n]+/).map(s => '0x000000000000000000000000' + s.substring(2, 42).toLowerCase());
+        const accounts = state.filter.transfers && state.filter.transfers.accounts && state.filter.transfers.accounts.split(/[, \t\n]+/).map(s => '0x000000000000000000000000' + s.substring(2, 42).toLowerCase()) || [];
         console.log("searchTransfers - accounts: " + JSON.stringify(accounts));
         if (filterUpdate != null) {
           console.log("searchTransfers - filter before: " + JSON.stringify(state.filter));
