@@ -330,6 +330,7 @@ const ENSSales = {
             { value: '^[0-9]{2}-[0-9]{2}$', text: 'NN-NN' },
             { value: '^[0-2][0-9]h[0-5][0-9]$', text: '24 hours - NNhNN (will incorrectly include 24hNN to 29hNN)' },
             { value: '^[0-3][0-9][0-9]°$', text: '000° to 359° (will incorrectly include 360° to 399°)' },
+            { value: '^[〇一二三四五六七八九]{3}$', text: '999ChineseClub Numerals - 〇, 一, 二, 三, 四, 五, 六, 七, 八, 九' },
           ],
         },
         {
