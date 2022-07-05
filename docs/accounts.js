@@ -226,7 +226,7 @@ const Accounts = {
                   </template>
                   <template #cell(collection)="data">
                     <b-button :id="'popover-target-collection-' + data.item.collection + '-' + data.index" variant="link" class="m-0 p-0">
-                      {{ data.item.collection.substring(0, 16) }}
+                      {{ ensOrShortName(data.item.collection) }}
                     </b-button>
                     <b-popover :target="'popover-target-collection-' + data.item.collection + '-' + data.index" placement="right">
                       <template #title>{{ data.item.collection.substring(0, 16) }}</template>
@@ -258,7 +258,7 @@ const Accounts = {
                   </template>
                   <template #cell(from)="data">
                     <b-button :id="'popover-target-from-' + data.item.from + '-' + data.index" variant="link" class="m-0 p-0">
-                      {{ data.item.from.substring(0, 16) }}
+                      {{ ensOrShortName(data.item.from) }}
                     </b-button>
                     <b-popover :target="'popover-target-from-' + data.item.from + '-' + data.index" placement="right">
                       <template #title>{{ data.item.from.substring(0, 16) }}</template>
@@ -281,7 +281,7 @@ const Accounts = {
                   </template>
                   <template #cell(to)="data">
                     <b-button :id="'popover-target-to-' + data.item.to + '-' + data.index" variant="link" class="m-0 p-0">
-                      {{ data.item.to.substring(0, 16) }}
+                      {{ ensOrShortName(data.item.to) }}
                     </b-button>
                     <b-popover :target="'popover-target-to-' + data.item.to + '-' + data.index" placement="right">
                       <template #title>{{ data.item.to.substring(0, 16) }}</template>
@@ -584,6 +584,9 @@ const Accounts = {
     mintMonitorCollections() {
       return store.getters['accounts/mintMonitorCollections'];
     },
+    ensMap() {
+      return store.getters['accounts/ensMap'];
+    },
     collectionTokensAttributesWithCounts() {
       const collator = { };
       for (const [tokenId, token] of Object.entries(this.collectionTokens)) {
@@ -692,6 +695,17 @@ const Accounts = {
     },
   },
   methods: {
+    ensOrShortName(address, length = 16) {
+      try {
+        let name = this.ensMap[address.toLowerCase()];
+        if (name != null) {
+          name = name.substring(0, length);
+        }
+        return name;
+      } catch (e) {
+        return address;
+      }
+    },
     getContractOrCollection(address) {
       if (this.mintMonitorCollections && (address in this.mintMonitorCollections)) {
         const collection = this.mintMonitorCollections[address];
@@ -866,6 +880,7 @@ const accountsModule = {
     collectionInfo: {},
     collectionTokens: {},
     mintMonitorCollections: {},
+    ensMap: {},
     halt: false,
     params: null,
   },
@@ -876,6 +891,7 @@ const accountsModule = {
     collectionInfo: state => state.collectionInfo,
     collectionTokens: state => state.collectionTokens,
     mintMonitorCollections: state => state.mintMonitorCollections,
+    ensMap: state => state.ensMap,
     params: state => state.params,
   },
   mutations: {
@@ -976,8 +992,9 @@ const accountsModule = {
                 const to = '0x' + event.topics[2].substring(26, 66);
 
                 for (const addy of [collection, from, to]) {
-                  if (!(addy in ensMap)) {
-                    ensMap[addy] = addy;
+                  const lowerAddy = addy.toLowerCase();
+                  if (!(lowerAddy in ensMap)) {
+                    ensMap[lowerAddy] = addy;
                   }
                 }
 
@@ -990,8 +1007,8 @@ const accountsModule = {
             state.sync.completed = endBlockNumber - toBlock;
           } while (toBlock > startBlockNumber && !state.halt);
           state.transfers = transfers;
-          ensMap["0x000000000000000000000000000000000000dEaD".toLowerCase()] = "0x...dEaD";
-          console.log("ensMap: " + JSON.stringify(ensMap, null, 2));
+
+          // console.log("ensMap: " + JSON.stringify(ensMap, null, 2));
 
           let addresses = Object.keys(ensMap);
           const ensReverseRecordsContract = new ethers.Contract(ENSREVERSERECORDSADDRESS, ENSREVERSERECORDSABI, provider);
@@ -1000,7 +1017,7 @@ const accountsModule = {
           //   this.processing = "RETRIEVING LIVE ENS REVERSE RECORDS FROM THE ETHEREUM MAINNET: " + ethers.utils.commify(i) + " OF " + ethers.utils.commify(addresses.length);
             const batch = addresses.slice(i, parseInt(i) + ENSOWNERBATCHSIZE);
             const allnames = await ensReverseRecordsContract.getNames(batch);
-            console.log("allnames: " + JSON.stringify(allnames, null, 2));
+            // console.log("allnames: " + JSON.stringify(allnames, null, 2));
             // TODO: check for normalised. const validNames = allnames.filter((n) => normalize(n) === n );
             for (let j = 0; j < batch.length; j++) {
               const address = batch[j];
@@ -1009,9 +1026,11 @@ const accountsModule = {
               // const normalized = normalize(address);
             }
           }
+          ensMap["0x0000000000000000000000000000000000000000".toLowerCase()] = "(null)";
+          ensMap["0x000000000000000000000000000000000000dEaD".toLowerCase()] = "(dEaD)";
+          ensMap["0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85".toLowerCase()] = "(ENS)";
+          state.ensMap = ensMap;
           console.log("ensMap: " + JSON.stringify(ensMap, null, 2));
-          // this.ensMap = ensMap;
-
         }
 
 
