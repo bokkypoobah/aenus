@@ -65,6 +65,7 @@ const store = new Vuex.Store({
     // nix: nixModule,
     // weth: wethModule,
     // admin: adminModule,
+    accounts: accountsModule,
     config: configModule,
     ensSearch: ensSearchModule,
     ensSales: ensSalesModule,
