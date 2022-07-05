@@ -315,6 +315,24 @@ const ENSSales = {
       typeOptions: [
         { value: null, text: '(all)' },
         {
+          label: 'Sets',
+          options: [
+            { value: '^[0-9]{3}$', text: '999Club - 0 to 9 - 3 digits' },
+            { value: '^[0-9]{4}$', text: '10kClub - 0 to 9 - 4 digits' },
+            { value: '^[0-9]{5}$', text: '100kClub - 0 to 9 - 5 digits' },
+            { value: '^([0-9])[0-9]\\1$', text: '3 Digit Palindrome' },
+            { value: '^([0-9])([0-9])\\2\\1$', text: '4 Digit Palindrome' },
+            { value: '^([0-9])([0-9])[0-9]\\2\\1$', text: '5 Digit Palindrome' },
+            { value: '^[a-z]{3}$', text: '3 Letters' },
+            { value: '^[a-z]{4}$', text: '4 Letters' },
+            { value: '^[a-z]{5}$', text: '5 Letters' },
+            { value: '^[0-9]-[0-9]$', text: 'N-N' },
+            { value: '^[0-9]{2}-[0-9]{2}$', text: 'NN-NN' },
+            { value: '^[0-2][0-9]h[0-5][0-9]$', text: '24 hours - NNhNN (will incorrectly include 24hNN to 29hNN)' },
+            { value: '^[0-3][0-9][0-9]°$', text: '000° to 359° (will incorrectly include 360° to 399°)' },
+          ],
+        },
+        {
           label: 'Numerals',
           options: [
             { value: '^[0-9]*$', text: 'Latin Numerals - 0 to 9' },
@@ -352,12 +370,6 @@ const ENSSales = {
           label: 'Alphanumerics',
           options: [
             { value: '^[0-9a-z]*$', text: '0 to 9, a to z' },
-          ],
-        },
-        {
-          label: 'Specials',
-          options: [
-            { value: '^[0-3][0-9][0-9]°$', text: '000° to 359° (will incorrectly include 360° to 399°)' },
           ],
         },
       ],

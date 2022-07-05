@@ -125,7 +125,7 @@ const Accounts = {
                     </b-progress-bar>
                   </b-progress>
                 </div>
-                <div v-if="settings.tabIndex == 1 || settings.tabIndex == 2" class="ml-0 mt-1">
+                <div v-if="settings.tabIndex == 0" class="ml-0 mt-1">
                   <b-button v-if="sync.inProgress" size="sm" @click="halt" variant="link" v-b-popover.hover.top="'Halt'"><b-icon-stop-fill shift-v="+1" font-scale="1.0"></b-icon-stop-fill></b-button>
                 </div>
 
@@ -940,6 +940,7 @@ const accountsModule = {
           state.sync.total = endBlockNumber - startBlockNumber;
           state.sync.inProgress = true;
           const transfers = [];
+          const txHashes = {};
           const accounts = state.filter.transfers.accounts.split(/[, \t\n]+/).map(s => '0x000000000000000000000000' + s.substring(2, 42).toLowerCase());
           console.log("accounts: " + JSON.stringify(accounts));
           // const batchSize = 25;
@@ -1001,9 +1002,13 @@ const accountsModule = {
 
                 const from = '0x' + event.topics[1].substring(26, 66);
                 const to = '0x' + event.topics[2].substring(26, 66);
+                const txHash = event.transactionHash;
 
                 if (!(contract in contracts)) {
                   contracts[contract] = true;
+                }
+                if (!(txHash in txHashes)) {
+                  txHashes[txHash] = true;
                 }
                 for (const addy of [contract, from, to]) {
                   const lowerAddy = addy.toLowerCase();
@@ -1012,7 +1017,6 @@ const accountsModule = {
                   }
                 }
 
-                const txHash = event.transactionHash;
                 transfers.push({ blockNumber: event.blockNumber, txIndex: event.transactionIndex, contract, tokenId, from, to, txHash, logIndex: event.logIndex });
               }
             }
@@ -1021,6 +1025,7 @@ const accountsModule = {
             state.sync.completed = endBlockNumber - toBlock;
           } while (toBlock > startBlockNumber && !state.halt);
           state.transfers = transfers;
+          console.log("txHashes: " + JSON.stringify(txHashes));
 
           let contractAddresses = Object.keys(contracts);
           const GETPRICEBATCHSIZE = 20;
