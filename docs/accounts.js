@@ -226,7 +226,7 @@ const Accounts = {
                   </template>
                   <template #cell(contract)="data">
                     <b-button :id="'popover-target-contract-' + data.item.contract + '-' + data.index" variant="link" class="m-0 p-0">
-                      {{ ensOrShortName(data.item.contract) }}
+                      {{ getShortName(data.item.contract) }}
                     </b-button>
                     <b-popover :target="'popover-target-contract-' + data.item.contract + '-' + data.index" placement="right">
                       <template #title>{{ data.item.contract.substring(0, 16) }}</template>
@@ -258,7 +258,7 @@ const Accounts = {
                   </template>
                   <template #cell(from)="data">
                     <b-button :id="'popover-target-from-' + data.item.from + '-' + data.index" variant="link" class="m-0 p-0">
-                      {{ ensOrShortName(data.item.from) }}
+                      {{ getShortName(data.item.from, 16) }}
                     </b-button>
                     <b-popover :target="'popover-target-from-' + data.item.from + '-' + data.index" placement="right">
                       <template #title>{{ data.item.from.substring(0, 16) }}</template>
@@ -281,7 +281,7 @@ const Accounts = {
                   </template>
                   <template #cell(to)="data">
                     <b-button :id="'popover-target-to-' + data.item.to + '-' + data.index" variant="link" class="m-0 p-0">
-                      {{ ensOrShortName(data.item.to) }}
+                      {{ getShortName(data.item.to, 16) }}
                     </b-button>
                     <b-popover :target="'popover-target-to-' + data.item.to + '-' + data.index" placement="right">
                       <template #title>{{ data.item.to.substring(0, 16) }}</template>
@@ -528,10 +528,10 @@ const Accounts = {
 
       transfersFields: [
         { key: 'index', label: '#', thStyle: 'width: 5%;', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
-        { key: 'contract', label: 'Contract', thStyle: 'width: 20%;', sortable: true },
-        { key: 'tokenId', label: 'Token Id', thStyle: 'width: 20%;', sortable: true },
-        { key: 'from', label: 'From', thStyle: 'width: 20%;', sortable: true },
-        { key: 'to', label: 'To', thStyle: 'width: 20%;', sortable: true },
+        { key: 'contract', label: 'Contract', thStyle: 'width: 35%;', sortable: true },
+        { key: 'tokenId', label: 'Token Id', thStyle: 'width: 15%;', sortable: true },
+        { key: 'from', label: 'From', thStyle: 'width: 15%;', sortable: true },
+        { key: 'to', label: 'To', thStyle: 'width: 15%;', sortable: true },
         { key: 'txHash', label: 'Tx Hash', sortable: true, thStyle: 'width: 15%;' },
       ],
 
@@ -574,6 +574,9 @@ const Accounts = {
     },
     transfers() {
       return store.getters['accounts/transfers'];
+    },
+    transfersCollectionContracts() {
+      return store.getters['accounts/transfersCollectionContracts'];
     },
     collectionInfo() {
       return store.getters['accounts/collectionInfo'];
@@ -695,7 +698,12 @@ const Accounts = {
     },
   },
   methods: {
-    ensOrShortName(address, length = 16) {
+    getShortName(address, length = 32) {
+      const addressLower = address.toLowerCase();
+      if (addressLower in this.transfersCollectionContracts) {
+        let collection = this.transfersCollectionContracts[addressLower];
+        return collection.name && collection.name.substring(0, length) || 'error';
+      }
       try {
         let name = this.ensMap[address.toLowerCase()];
         if (name != null) {
@@ -877,6 +885,7 @@ const accountsModule = {
     },
 
     transfers: [],
+    transfersCollectionContracts: {},
     collectionInfo: {},
     collectionTokens: {},
     mintMonitorCollections: {},
@@ -888,6 +897,7 @@ const accountsModule = {
     filter: state => state.filter,
     sync: state => state.sync,
     transfers: state => state.transfers,
+    transfersCollectionContracts: state => state.transfersCollectionContracts,
     collectionInfo: state => state.collectionInfo,
     collectionTokens: state => state.collectionTokens,
     mintMonitorCollections: state => state.mintMonitorCollections,
@@ -934,6 +944,7 @@ const accountsModule = {
           console.log("accounts: " + JSON.stringify(accounts));
           // const batchSize = 25;
           const ensMap = {};
+          const contracts = {};
           let toBlock = endBlockNumber;
           do {
             let batchSize;
@@ -976,10 +987,10 @@ const accountsModule = {
             for (const event of [...eventsFrom, ...eventsTo]) {
               if (!event.removed) {
                 const contract = event.address;
-                if (event.topics[3] === undefined) {
-                  console.log("searchTransfers - event: " + JSON.stringify(event, null, 2));
-                }
-                // const tokenId = event.topics.length > 3 ? new BigNumber(event.topics[3].substring(2), 16).toFixed(0) : null;
+                // ERC-20
+                // if (event.topics[3] === undefined) {
+                //   console.log("searchTransfers - event: " + JSON.stringify(event, null, 2));
+                // }
 
                 let tokenId;
                 if (event.topics.length > 3) {
@@ -991,6 +1002,9 @@ const accountsModule = {
                 const from = '0x' + event.topics[1].substring(26, 66);
                 const to = '0x' + event.topics[2].substring(26, 66);
 
+                if (!(contract in contracts)) {
+                  contracts[contract] = true;
+                }
                 for (const addy of [contract, from, to]) {
                   const lowerAddy = addy.toLowerCase();
                   if (!(lowerAddy in ensMap)) {
@@ -1008,7 +1022,32 @@ const accountsModule = {
           } while (toBlock > startBlockNumber && !state.halt);
           state.transfers = transfers;
 
-          console.log("transfers: " + JSON.stringify(transfers, null, 2));
+          let contractAddresses = Object.keys(contracts);
+          // console.log("contractAddresses: " + JSON.stringify(contractAddresses, null, 2));
+          const GETPRICEBATCHSIZE = 20;
+          records = 0;
+          const prices = {};
+          const DELAYINMILLIS = 1000;
+          const transfersCollectionContracts = {};
+          for (let i = 0; i < contractAddresses.length && !state.halt; i += GETPRICEBATCHSIZE) {
+            const batch = contractAddresses.slice(i, parseInt(i) + GETPRICEBATCHSIZE);
+            let url = "https://api.reservoir.tools/collections/v4?";
+            let separator = "";
+            for (let j = 0; j < batch.length; j++) {
+              url = url + separator + "contract=" + batch[j];
+              separator = "&";
+            }
+            url = url + separator + "sortBy=allTimeVolume&includeTopBid=false&limit=20";
+            // console.log("url: " + url);
+            const data = await fetch(url).then(response => response.json());
+          //   records = records + data.tokens.length;
+          //   state.message = "Retrieving prices " + records;
+            for (collection of data.collections) {
+              transfersCollectionContracts[collection.id.toLowerCase()] = collection;
+            }
+            await delay(DELAYINMILLIS);
+          }
+          state.transfersCollectionContracts = transfersCollectionContracts;
 
           let addresses = Object.keys(ensMap);
           const ensReverseRecordsContract = new ethers.Contract(ENSREVERSERECORDSADDRESS, ENSREVERSERECORDSABI, provider);
@@ -1028,11 +1067,12 @@ const accountsModule = {
           }
           ensMap["0x0000000000000000000000000000000000000000".toLowerCase()] = "(null)";
           ensMap["0x000000000000000000000000000000000000dEaD".toLowerCase()] = "(dEaD)";
-          ensMap["0x00000000006c3852cbEf3e08E8dF289169EdE581".toLowerCase()] = "(OS:Seaport1.1)";
+          ensMap["0x00000000006c3852cbEf3e08E8dF289169EdE581".toLowerCase()] = "(OpenSea:Seaport1.1)";
           ensMap["0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85".toLowerCase()] = "(ENS)";
+          ensMap["0x74312363e45DCaBA76c59ec49a7Aa8A65a67EeD3".toLowerCase()] = "(X2Y2:Exchange)";
           ensMap["0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2".toLowerCase()] = "(WETH)";
           state.ensMap = ensMap;
-          console.log("ensMap: " + JSON.stringify(ensMap, null, 2));
+          // console.log("ensMap: " + JSON.stringify(ensMap, null, 2));
         }
 
 
