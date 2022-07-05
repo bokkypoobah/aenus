@@ -850,8 +850,8 @@ const nftsModule = {
       },
       searchString: null,
       scanBlocks: 500,
-      startBlockNumber: 15053226, // null,
-      endBlockNumber: 15072709, // null,
+      startBlockNumber: null,
+      endBlockNumber: null,
     },
     sync: {
       inProgress: false,
