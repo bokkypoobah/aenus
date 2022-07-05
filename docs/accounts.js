@@ -258,10 +258,10 @@ const Accounts = {
                   </template>
                   <template #cell(from)="data">
                     <b-button :id="'popover-target-from-' + data.item.from + '-' + data.index" variant="link" class="m-0 p-0">
-                      {{ getShortName(data.item.from, 16) }}
+                      {{ getShortName(data.item.from, 22) }}
                     </b-button>
                     <b-popover :target="'popover-target-from-' + data.item.from + '-' + data.index" placement="right">
-                      <template #title>{{ data.item.from.substring(0, 16) }}</template>
+                      <template #title>{{ data.item.from.substring(0, 22) }}</template>
                       <b-link :href="'https://opensea.io/' + data.item.from" v-b-popover.hover.bottom="'View in opensea.io'" target="_blank">
                         OpenSea
                       </b-link>
@@ -1023,7 +1023,6 @@ const accountsModule = {
           state.transfers = transfers;
 
           let contractAddresses = Object.keys(contracts);
-          // console.log("contractAddresses: " + JSON.stringify(contractAddresses, null, 2));
           const GETPRICEBATCHSIZE = 20;
           records = 0;
           const prices = {};
@@ -1038,7 +1037,6 @@ const accountsModule = {
               separator = "&";
             }
             url = url + separator + "sortBy=allTimeVolume&includeTopBid=false&limit=20";
-            // console.log("url: " + url);
             const data = await fetch(url).then(response => response.json());
           //   records = records + data.tokens.length;
           //   state.message = "Retrieving prices " + records;
@@ -1073,57 +1071,6 @@ const accountsModule = {
           ensMap["0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2".toLowerCase()] = "(WETH)";
           state.ensMap = ensMap;
           // console.log("ensMap: " + JSON.stringify(ensMap, null, 2));
-        }
-
-
-        if (false && syncMode == 'scanLatest') {
-          const transfers = [];
-          const accounts = state.filter.transfers.accounts.split(/[, \t\n]+/).map(s => '0x000000000000000000000000' + s.substring(2, 42).toLowerCase());
-          console.log("accounts: " + JSON.stringify(accounts));
-          // const account = "0x287F9b46dceA520D829c874b0AF01f4fbfeF9243".toLowerCase();
-          const fromBlock = 15053226; // 00:00 Jul 01 2022
-          const toBlock = 15072709; // 00:00 Jul 04 2022
-          // console.log("fromBlock: " + fromBlock + ", toBlock: " + toBlock);
-          const filterFrom = {
-            address: null, // [NIXADDRESS, weth.address],
-            fromBlock: fromBlock,
-            toBlock: toBlock,
-            topics: [
-              '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef', // Transfer (index_topic_1 address from, index_topic_2 address to, index_topic_3 uint256 id)
-              // null, // '0x0000000000000000000000000000000000000000000000000000000000000000', // Null address
-              accounts, // '0x000000000000000000000000' + account.substring(2, 42),
-              null,
-            ],
-          };
-          const eventsFrom = await provider.getLogs(filterFrom);
-          console.log("monitorMints - eventsFrom: " + JSON.stringify(eventsFrom.slice(0, 1), null, 2));
-
-          const filterTo = {
-            address: null, // [NIXADDRESS, weth.address],
-            fromBlock: fromBlock,
-            toBlock: toBlock,
-            topics: [
-              '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef', // Transfer (index_topic_1 address from, index_topic_2 address to, index_topic_3 uint256 id)
-              // null, // '0x0000000000000000000000000000000000000000000000000000000000000000', // Null address
-              null,
-              accounts, // '0x000000000000000000000000' + account.substring(2, 42),
-            ],
-          };
-          const eventsTo = await provider.getLogs(filterTo);
-          console.log("monitorMints - eventsTo: " + JSON.stringify(eventsTo, null, 2));
-
-          for (const event of [...eventsFrom, ...eventsTo]) {
-            if (!event.removed) {
-              const collection = event.address;
-              const tokenId = new BigNumber(event.topics[3].substring(2), 16).toFixed(0);
-              const from = '0x' + event.topics[1].substring(26, 66);
-              const to = '0x' + event.topics[2].substring(26, 66);
-              const txHash = '0x' + event.transactionHash;
-              transfers.push({ collection, tokenId, from, to, txHash });
-            }
-          }
-          state.transfers = transfers;
-
         }
       }
       state.sync.inProgress = false;
