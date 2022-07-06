@@ -565,8 +565,11 @@ const Accounts = {
       transactionsFields: [
         { key: 'index', label: '#', thStyle: 'width: 5%;', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
         { key: 'timestamp', label: 'Timestamp', thStyle: 'width: 15%;', sortable: true },
-        { key: 'block', label: 'Block', thStyle: 'width: 10%;', sortable: true, thClass: 'text-right', tdClass: 'text-right'  },
-        { key: 'txHash', label: 'Tx Hash', sortable: true, thStyle: 'width: 70%;' },
+        { key: 'description', label: 'description', thStyle: 'width: 30%;', sortable: true },
+        { key: 'action', label: 'Action', thStyle: 'width: 10%;', sortable: true },
+        { key: 'valueType', label: 'Type', thStyle: 'width: 10%;', sortable: true },
+        { key: 'value', label: 'Value', thStyle: 'width: 15%;', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
+        { key: 'txHash', label: 'Tx Hash', sortable: true, thStyle: 'width: 15%;' },
       ],
 
       transfersFields: [
@@ -1111,7 +1114,15 @@ const accountsModule = {
               console.log("txReceipt: " + JSON.stringify(txReceipt, null, 2));
               console.log("block: " + JSON.stringify(block, null, 2));
             }
-            transactions[txHash] = { tx, txReceipt, block };
+            transactions[txHash] = {
+              tx,
+              txReceipt,
+              block,
+              action: "action",
+              valueType: "valueType",
+              value: "value",
+              description: "description",
+            };
             state.sync.completed = parseInt(state.sync.completed) + 1;
             if (state.halt) {
               break;
