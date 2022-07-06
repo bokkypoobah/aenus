@@ -219,105 +219,131 @@ const Accounts = {
               </div>
 
               <!-- Transfers -->
-              <b-card v-if="settings.tabIndex == 0" no-header no-body class="mt-1">
+              <b-card v-if="settings.tabIndex == 0" no-header no-body class="mt-1 border-0">
 
-                <!--
-                {{ filteredTransactions }}
-                -->
-                
-                <b-table small fixed striped :fields="transfersFields" :items="transfers" head-variant="light">
-                  <template #cell(index)="data">
-                    {{ data.index + 1 }}
-                  </template>
-                  <template #cell(contract)="data">
-                    <b-button :id="'popover-target-contract-' + data.item.contract + '-' + data.index" variant="link" class="m-0 p-0">
-                      {{ getShortName(data.item.contract) }}
-                    </b-button>
-                    <b-popover :target="'popover-target-contract-' + data.item.contract + '-' + data.index" placement="right">
-                      <template #title>{{ data.item.contract.substring(0, 16) }}</template>
-                      <b-link :href="'https://etherscan.io/address/' + data.item.contract + '#code'" v-b-popover.hover.bottom="'View in Etherscan.io'" target="_blank">
-                        Etherscan - Contract Code
-                      </b-link>
-                      <br />
-                      <b-link :href="'https://etherscan.io/token/' + data.item.contract" v-b-popover.hover.bottom="'View in Etherscan.io'" target="_blank">
-                        Etherscan - Transfers
-                      </b-link>
-                      <br />
-                      <b-link :href="'https://etherscan.io/token/' + data.item.contract + '#balances'" v-b-popover.hover.bottom="'View in Etherscan.io'" target="_blank">
-                        Etherscan - Holders
-                      </b-link>
-                      <br />
-                      <b-link :href="'https://etherscan.io/token/tokenholderchart/' + data.item.contract" v-b-popover.hover.bottom="'View in Etherscan.io'" target="_blank">
-                        Etherscan - Holders Chart
-                      </b-link>
-                    </b-popover>
-                  </template>
-                  <template #cell(tokenId)="data">
-                    <span v-if="data.item.contract.toLowerCase() == '0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85'">
-                      <b-img :width="'100%'" :src="'https://metadata.ens.domains/mainnet/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + data.item.tokenId + '/image'">
-                      </b-img>
-                    </span>
-                    <span v-else>
-                      {{ data.item.tokenId }}
-                    </span>
-                  </template>
-                  <template #cell(from)="data">
-                    <b-button :id="'popover-target-from-' + data.item.from + '-' + data.index" variant="link" class="m-0 p-0">
-                      {{ getShortName(data.item.from, 16) }}
-                    </b-button>
-                    <b-popover :target="'popover-target-from-' + data.item.from + '-' + data.index" placement="right">
-                      <template #title>{{ data.item.from.substring(0, 22) }}</template>
-                      <b-link :href="'https://opensea.io/' + data.item.from" v-b-popover.hover.bottom="'View in opensea.io'" target="_blank">
-                        OpenSea
-                      </b-link>
-                      <br />
-                      <b-link :href="'https://looksrare.org/accounts/' + data.item.from" v-b-popover.hover.bottom="'View in looksrare.org'" target="_blank">
-                        LooksRare
-                      </b-link>
-                      <br />
-                      <b-link :href="'https://x2y2.io/user/' + data.item.from + '/items'" v-b-popover.hover.bottom="'View in x2y2.io'" target="_blank">
-                        X2Y2
-                      </b-link>
-                      <br />
-                      <b-link :href="'https://etherscan.io/address/' + data.item.from" v-b-popover.hover.bottom="'View in etherscan.io'" target="_blank">
-                        EtherScan
-                      </b-link>
-                    </b-popover>
-                  </template>
-                  <template #cell(to)="data">
-                    <b-button :id="'popover-target-to-' + data.item.to + '-' + data.index" variant="link" class="m-0 p-0">
-                      {{ getShortName(data.item.to, 16) }}
-                    </b-button>
-                    <b-popover :target="'popover-target-to-' + data.item.to + '-' + data.index" placement="right">
-                      <template #title>{{ data.item.to.substring(0, 16) }}</template>
-                      <b-link :href="'https://opensea.io/' + data.item.to" v-b-popover.hover.bottom="'View in opensea.io'" target="_blank">
-                        OpenSea
-                      </b-link>
-                      <br />
-                      <b-link :href="'https://looksrare.org/accounts/' + data.item.to" v-b-popover.hover.bottom="'View in looksrare.org'" target="_blank">
-                        LooksRare
-                      </b-link>
-                      <br />
-                      <b-link :href="'https://x2y2.io/user/' + data.item.to + '/items'" v-b-popover.hover.bottom="'View in x2y2.io'" target="_blank">
-                        X2Y2
-                      </b-link>
-                      <br />
-                      <b-link :href="'https://etherscan.io/address/' + data.item.to" v-b-popover.hover.bottom="'View in etherscan.io'" target="_blank">
-                        EtherScan
-                      </b-link>
-                    </b-popover>
-                  </template>
-                  <template #cell(txHash)="data">
-                    <b-link :href="'https://etherscan.io/tx/' + data.item.txHash" v-b-popover.hover="'View in etherscan.io'" target="_blank">
-                      {{ data.item.txHash.substring(0, 10) }}
-                    </b-link>
-                    <font v-if="data.item.txHash in transactions" size="-1">
-                      <b-badge variant="light" v-b-popover.hover.bottom="JSON.stringify(transactions[data.item.txHash].tx, null, 2)">tx</b-badge>
-                      <b-badge variant="light" v-b-popover.hover.bottom="JSON.stringify(transactions[data.item.txHash].txReceipt, null, 2)">rcp</b-badge>
-                      <b-badge variant="light" v-b-popover.hover.bottom="JSON.stringify(transactions[data.item.txHash].block, null, 2)">blk</b-badge>
-                    </font>
-                  </template>
-                </b-table>
+                <b-card no-body header="Transactions">
+                  <b-card-body class="m-0 p-0">
+                    <b-table small fixed striped :fields="transactionsFields" :items="filteredTransactions" head-variant="light">
+                      <template #cell(index)="data">
+                        {{ data.index + 1 }}
+                      </template>
+                      <template #cell(timestamp)="data">
+                        {{ formatTimestamp(data.item.timestamp) }}
+                      </template>
+                      <template #cell(block)="data">
+                        {{ data.item.block }}
+                      </template>
+                      <template #cell(txHash)="data">
+                        <b-link :href="'https://etherscan.io/tx/' + data.item.txHash" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                          {{ data.item.txHash.substring(0, 10) }}
+                        </b-link>
+                        <font v-if="data.item.txHash in transactions" size="-1">
+                          <b-badge variant="light" v-b-popover.hover.bottom="JSON.stringify(transactions[data.item.txHash].tx, null, 2)">tx</b-badge>
+                          <b-badge variant="light" v-b-popover.hover.bottom="JSON.stringify(transactions[data.item.txHash].txReceipt, null, 2)">rcp</b-badge>
+                          <b-badge variant="light" v-b-popover.hover.bottom="JSON.stringify(transactions[data.item.txHash].block, null, 2)">blk</b-badge>
+                        </font>
+                      </template>
+                    </b-table>
+                  </b-card-body>
+                </b-card>
+
+                <b-card no-body header="Events" class="mt-1">
+                  <b-card-body class="m-0 p-0">
+                    <b-table small fixed striped :fields="transfersFields" :items="transfers" head-variant="light">
+                      <template #cell(index)="data">
+                        {{ data.index + 1 }}
+                      </template>
+                      <template #cell(contract)="data">
+                        <b-button :id="'popover-target-contract-' + data.item.contract + '-' + data.index" variant="link" class="m-0 p-0">
+                          {{ getShortName(data.item.contract) }}
+                        </b-button>
+                        <b-popover :target="'popover-target-contract-' + data.item.contract + '-' + data.index" placement="right">
+                          <template #title>{{ data.item.contract.substring(0, 16) }}</template>
+                          <b-link :href="'https://etherscan.io/address/' + data.item.contract + '#code'" v-b-popover.hover.bottom="'View in Etherscan.io'" target="_blank">
+                            Etherscan - Contract Code
+                          </b-link>
+                          <br />
+                          <b-link :href="'https://etherscan.io/token/' + data.item.contract" v-b-popover.hover.bottom="'View in Etherscan.io'" target="_blank">
+                            Etherscan - Transfers
+                          </b-link>
+                          <br />
+                          <b-link :href="'https://etherscan.io/token/' + data.item.contract + '#balances'" v-b-popover.hover.bottom="'View in Etherscan.io'" target="_blank">
+                            Etherscan - Holders
+                          </b-link>
+                          <br />
+                          <b-link :href="'https://etherscan.io/token/tokenholderchart/' + data.item.contract" v-b-popover.hover.bottom="'View in Etherscan.io'" target="_blank">
+                            Etherscan - Holders Chart
+                          </b-link>
+                        </b-popover>
+                      </template>
+                      <template #cell(tokenId)="data">
+                        <span v-if="data.item.contract.toLowerCase() == '0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85'">
+                          <b-img :width="'100%'" :src="'https://metadata.ens.domains/mainnet/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + data.item.tokenId + '/image'">
+                          </b-img>
+                        </span>
+                        <span v-else>
+                          {{ data.item.tokenId }}
+                        </span>
+                      </template>
+                      <template #cell(from)="data">
+                        <b-button :id="'popover-target-from-' + data.item.from + '-' + data.index" variant="link" class="m-0 p-0">
+                          {{ getShortName(data.item.from, 16) }}
+                        </b-button>
+                        <b-popover :target="'popover-target-from-' + data.item.from + '-' + data.index" placement="right">
+                          <template #title>{{ data.item.from.substring(0, 22) }}</template>
+                          <b-link :href="'https://opensea.io/' + data.item.from" v-b-popover.hover.bottom="'View in opensea.io'" target="_blank">
+                            OpenSea
+                          </b-link>
+                          <br />
+                          <b-link :href="'https://looksrare.org/accounts/' + data.item.from" v-b-popover.hover.bottom="'View in looksrare.org'" target="_blank">
+                            LooksRare
+                          </b-link>
+                          <br />
+                          <b-link :href="'https://x2y2.io/user/' + data.item.from + '/items'" v-b-popover.hover.bottom="'View in x2y2.io'" target="_blank">
+                            X2Y2
+                          </b-link>
+                          <br />
+                          <b-link :href="'https://etherscan.io/address/' + data.item.from" v-b-popover.hover.bottom="'View in etherscan.io'" target="_blank">
+                            EtherScan
+                          </b-link>
+                        </b-popover>
+                      </template>
+                      <template #cell(to)="data">
+                        <b-button :id="'popover-target-to-' + data.item.to + '-' + data.index" variant="link" class="m-0 p-0">
+                          {{ getShortName(data.item.to, 16) }}
+                        </b-button>
+                        <b-popover :target="'popover-target-to-' + data.item.to + '-' + data.index" placement="right">
+                          <template #title>{{ data.item.to.substring(0, 16) }}</template>
+                          <b-link :href="'https://opensea.io/' + data.item.to" v-b-popover.hover.bottom="'View in opensea.io'" target="_blank">
+                            OpenSea
+                          </b-link>
+                          <br />
+                          <b-link :href="'https://looksrare.org/accounts/' + data.item.to" v-b-popover.hover.bottom="'View in looksrare.org'" target="_blank">
+                            LooksRare
+                          </b-link>
+                          <br />
+                          <b-link :href="'https://x2y2.io/user/' + data.item.to + '/items'" v-b-popover.hover.bottom="'View in x2y2.io'" target="_blank">
+                            X2Y2
+                          </b-link>
+                          <br />
+                          <b-link :href="'https://etherscan.io/address/' + data.item.to" v-b-popover.hover.bottom="'View in etherscan.io'" target="_blank">
+                            EtherScan
+                          </b-link>
+                        </b-popover>
+                      </template>
+                      <template #cell(txHash)="data">
+                        <b-link :href="'https://etherscan.io/tx/' + data.item.txHash" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                          {{ data.item.txHash.substring(0, 10) }}
+                        </b-link>
+                        <font v-if="data.item.txHash in transactions" size="-1">
+                          <b-badge variant="light" v-b-popover.hover.bottom="JSON.stringify(transactions[data.item.txHash].tx, null, 2)">tx</b-badge>
+                          <b-badge variant="light" v-b-popover.hover.bottom="JSON.stringify(transactions[data.item.txHash].txReceipt, null, 2)">rcp</b-badge>
+                          <b-badge variant="light" v-b-popover.hover.bottom="JSON.stringify(transactions[data.item.txHash].block, null, 2)">blk</b-badge>
+                        </font>
+                      </template>
+                    </b-table>
+                  </b-card-body>
+                </b-card>
               </b-card>
 
               <!-- Collection -->
@@ -536,6 +562,13 @@ const Accounts = {
         { value: 10000, text: '10k' },
       ],
 
+      transactionsFields: [
+        { key: 'index', label: '#', thStyle: 'width: 5%;', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
+        { key: 'timestamp', label: 'Timestamp (UTC)', thStyle: 'width: 15%;', sortable: true },
+        { key: 'block', label: 'Block', thStyle: 'width: 10%;', sortable: true, thClass: 'text-right', tdClass: 'text-right'  },
+        { key: 'txHash', label: 'Tx Hash', sortable: true, thStyle: 'width: 70%;' },
+      ],
+
       transfersFields: [
         { key: 'index', label: '#', thStyle: 'width: 5%;', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
         { key: 'contract', label: 'Contract', thStyle: 'width: 30%;', sortable: true },
@@ -609,7 +642,7 @@ const Accounts = {
       for (const [txHash, tx] of Object.entries(this.transactions)) {
         console.log("filteredTransactions - tx: " + JSON.stringify(tx, null, 2));
         results.push({
-          tx: tx.tx.hash,
+          txHash: tx.tx.hash,
           block: tx.block.number,
           timestamp: tx.block.timestamp,
         });
@@ -724,6 +757,12 @@ const Accounts = {
     },
   },
   methods: {
+    formatTimestamp(ts) {
+      if (ts != null) {
+        return moment.unix(ts).utc().format("YYYY-MM-DD HH:mm:ss");
+      }
+      return null;
+    },
     getShortName(address, length = 32) {
       const addressLower = address.toLowerCase();
       if (addressLower in this.transfersCollectionContracts) {
@@ -1058,7 +1097,7 @@ const accountsModule = {
           const txHashesToProcess = Object.keys(txHashes);
           state.sync.total = txHashesToProcess.length;
           state.sync.completed = 0;
-          for (const txHash of txHashesToProcess) {
+          for (const txHash of txHashesToProcess.slice(0, 5)) {
             // console.log("Processing: " + txHash);
             const tx = await provider.getTransaction(txHash);
             // console.log("tx: " + JSON.stringify(tx, null, 2));
