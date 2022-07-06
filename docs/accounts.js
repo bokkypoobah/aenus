@@ -220,6 +220,11 @@ const Accounts = {
 
               <!-- Transfers -->
               <b-card v-if="settings.tabIndex == 0" no-header no-body class="mt-1">
+
+                <!--
+                {{ filteredTransactions }}
+                -->
+                
                 <b-table small fixed striped :fields="transfersFields" :items="transfers" head-variant="light">
                   <template #cell(index)="data">
                     {{ data.index + 1 }}
@@ -597,6 +602,19 @@ const Accounts = {
     },
     ensMap() {
       return store.getters['accounts/ensMap'];
+    },
+    filteredTransactions() {
+      const results = [];
+      console.log("filteredTransactions - this.transactions: " + JSON.stringify(this.transactions, null, 2));
+      for (const [txHash, tx] of Object.entries(this.transactions)) {
+        console.log("filteredTransactions - tx: " + JSON.stringify(tx, null, 2));
+        results.push({
+          tx: tx.tx.hash,
+          block: tx.block.number,
+          timestamp: tx.block.timestamp,
+        });
+      }
+      return results;
     },
     collectionTokensAttributesWithCounts() {
       const collator = { };
@@ -1053,6 +1071,14 @@ const accountsModule = {
           }
 
           let contractAddresses = Object.keys(contracts);
+          // const erc721Helper = new ethers.Contract(ERC721HELPERADDRESS, ERC721HELPERABI, provider);
+          // const tokenInfos = await erc721Helper.tokenInfo(contractAddresses);
+          // console.log("tokenInfos: " + JSON.stringify(tokenInfos, null, 2));
+          // for (let i = 0; i < tokenInfos[0].length; i++) {
+          //   console.log(i + ": " + tokenInfos[0][i] + " " + tokenInfos[1][i] + " " + tokenInfos[2][i]);
+          //   // console.log("tokenInfo: " + JSON.stringify(tokenInfo, null, 2));
+          // }
+
           const GETPRICEBATCHSIZE = 20;
           records = 0;
           const prices = {};
@@ -1076,6 +1102,7 @@ const accountsModule = {
             await delay(DELAYINMILLIS);
           }
           state.transfersCollectionContracts = transfersCollectionContracts;
+          // console.log("transfersCollectionContracts: " + JSON.stringify(transfersCollectionContracts, null, 2));
           state.transactions = transactions;
 
           let addresses = Object.keys(ensMap);
