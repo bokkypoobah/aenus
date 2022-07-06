@@ -648,6 +648,11 @@ const Accounts = {
           txHash: tx.tx.hash,
           block: tx.block.number,
           timestamp: tx.block.timestamp,
+          action: tx.action,
+          valueType: tx.valueType,
+          value: tx.value,
+          description: tx.description,
+          items: tx.items,
         });
       }
       return results;
@@ -1122,6 +1127,7 @@ const accountsModule = {
               valueType: "valueType",
               value: "value",
               description: "description",
+              items: [],
             };
             state.sync.completed = parseInt(state.sync.completed) + 1;
             if (state.halt) {

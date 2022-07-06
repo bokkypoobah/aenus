@@ -106,7 +106,7 @@ const ENSSales = {
               <div class="mt-1 flex-grow-1">
               </div>
               <div class="mt-1 pr-1" style="max-width: 150px;">
-                <b-button size="sm" @click="loadSales('clearCache')" variant="primary" v-b-popover.hover.bottom="'Reset application data'">Clear Local Cache</b-button>
+                <b-button size="sm" @click="loadSales('clearCache')" variant="primary" :disabled="sync.inProgress" v-b-popover.hover.bottom="'Reset application data'">Clear Local Cache</b-button>
               </div>
             </div>
 
