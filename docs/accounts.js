@@ -565,8 +565,8 @@ const Accounts = {
       transactionsFields: [
         { key: 'index', label: '#', thStyle: 'width: 5%;', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
         { key: 'timestamp', label: 'Timestamp', thStyle: 'width: 15%;', sortable: true },
-        { key: 'description', label: 'description', thStyle: 'width: 30%;', sortable: true },
-        { key: 'action', label: 'Action', thStyle: 'width: 10%;', sortable: true },
+        { key: 'description', label: 'Description', thStyle: 'width: 25%;', sortable: true },
+        { key: 'via', label: 'Via', thStyle: 'width: 15%;', sortable: true },
         { key: 'valueType', label: 'Type', thStyle: 'width: 10%;', sortable: true },
         { key: 'value', label: 'Value', thStyle: 'width: 15%;', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
         { key: 'txHash', label: 'Tx Hash', sortable: true, thStyle: 'width: 15%;' },
@@ -648,10 +648,10 @@ const Accounts = {
           txHash: tx.tx.hash,
           block: tx.block.number,
           timestamp: tx.block.timestamp,
-          action: tx.action,
+          description: tx.description,
+          via: tx.via,
           valueType: tx.valueType,
           value: tx.value,
-          description: tx.description,
           items: tx.items,
         });
       }
@@ -1123,10 +1123,10 @@ const accountsModule = {
               tx,
               txReceipt,
               block,
-              action: "action",
-              valueType: "valueType",
-              value: "value",
-              description: "description",
+              description: null,
+              via: null,
+              valueType: null,
+              value: null,
               items: [],
             };
             state.sync.completed = parseInt(state.sync.completed) + 1;
@@ -1150,13 +1150,46 @@ const accountsModule = {
           }
           // console.log("tokenContracts: " + JSON.stringify(tokenContracts, null, 2));
 
+          const markets = [
+            { address: "0x7f268357A8c2552623316e2562D90e642bB538E5", name: "Wyvern Exchange" },
+          ];
+
+          const marketsMap = {};
+          for (const market of markets) {
+            console.log("market: " + JSON.stringify(market, null, 2));
+            marketsMap[market.address.toLowerCase()] = market.name;
+          }
+          console.log("marketsMap: " + JSON.stringify(marketsMap, null, 2));
+
           for (const txHash of txHashesToProcess) {
+            const transaction = transactions[txHash];
+            const tx = transaction.tx;
             if (debug) {
               console.log("Processing: " + txHash);
-              console.log("tx: " + JSON.stringify(transactions[txHash].tx, null, 2));
-              console.log("txReceipt: " + JSON.stringify(transactions[txHash].txReceipt, null, 2));
+              console.log("tx: " + JSON.stringify(tx, null, 2));
+              console.log("txReceipt: " + JSON.stringify(transaction.txReceipt, null, 2));
               // console.log("block: " + JSON.stringify(transactions[txHash].block, null, 2));
             }
+
+            const to = transaction.tx.to.toLowerCase();
+            console.log("to: " + to);
+
+            // Exchange transaction
+            if (to in marketsMap) {
+              console.log("Exchange");
+              transactions[txHash].description = "Purchase NFT";
+              transactions[txHash].via = marketsMap[to];
+              transactions[txHash].valueType = "ETH";
+              transactions[txHash].value = tx.value && ethers.utils.formatEther(tx.value) || null;
+            }
+
+
+            // transactions[txHash].action = "New Action";
+            // action: "action",
+            // valueType: "valueType",
+            // value: tx.value && ethers.utils.formatEther(tx.value) || null,
+            // description: "description",
+            // items: [],
           }
 
 
