@@ -564,7 +564,7 @@ const Accounts = {
 
       transactionsFields: [
         { key: 'index', label: '#', thStyle: 'width: 5%;', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
-        { key: 'timestamp', label: 'Timestamp (UTC)', thStyle: 'width: 15%;', sortable: true },
+        { key: 'timestamp', label: 'Timestamp', thStyle: 'width: 15%;', sortable: true },
         { key: 'block', label: 'Block', thStyle: 'width: 10%;', sortable: true, thClass: 'text-right', tdClass: 'text-right'  },
         { key: 'txHash', label: 'Tx Hash', sortable: true, thStyle: 'width: 70%;' },
       ],
@@ -759,7 +759,7 @@ const Accounts = {
   methods: {
     formatTimestamp(ts) {
       if (ts != null) {
-        return moment.unix(ts).utc().format("YYYY-MM-DD HH:mm:ss");
+        return moment.unix(ts).format("YYYY-MM-DD HH:mm:ss");
       }
       return null;
     },
@@ -1097,7 +1097,7 @@ const accountsModule = {
           const txHashesToProcess = Object.keys(txHashes);
           state.sync.total = txHashesToProcess.length;
           state.sync.completed = 0;
-          for (const txHash of txHashesToProcess.slice(0, 5)) {
+          for (const txHash of txHashesToProcess) {
             // console.log("Processing: " + txHash);
             const tx = await provider.getTransaction(txHash);
             // console.log("tx: " + JSON.stringify(tx, null, 2));
