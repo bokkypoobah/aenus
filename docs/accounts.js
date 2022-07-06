@@ -258,7 +258,7 @@ const Accounts = {
                   </template>
                   <template #cell(from)="data">
                     <b-button :id="'popover-target-from-' + data.item.from + '-' + data.index" variant="link" class="m-0 p-0">
-                      {{ getShortName(data.item.from, 22) }}
+                      {{ getShortName(data.item.from, 16) }}
                     </b-button>
                     <b-popover :target="'popover-target-from-' + data.item.from + '-' + data.index" placement="right">
                       <template #title>{{ data.item.from.substring(0, 22) }}</template>
@@ -304,12 +304,13 @@ const Accounts = {
                   </template>
                   <template #cell(txHash)="data">
                     <b-link :href="'https://etherscan.io/tx/' + data.item.txHash" v-b-popover.hover="'View in etherscan.io'" target="_blank">
-                      <div v-if="data.item.txHash in transactions">
-                        <b-badge variant="light" v-b-popover.hover.bottom="JSON.stringify(transactions[data.item.txHash].tx, null, 2)">tx</b-badge>
-                        <b-badge variant="light" v-b-popover.hover.bottom="JSON.stringify(transactions[data.item.txHash].txReceipt, null, 2)">txReceipt</b-badge>
-                        <b-badge variant="light" v-b-popover.hover.bottom="JSON.stringify(transactions[data.item.txHash].block, null, 2)">block</b-badge>
-                      </div>
+                      {{ data.item.txHash.substring(0, 6) }}
                     </b-link>
+                    <div v-if="data.item.txHash in transactions">
+                      <b-badge variant="light" v-b-popover.hover.bottom="JSON.stringify(transactions[data.item.txHash].tx, null, 2)">tx</b-badge>
+                      <b-badge variant="light" v-b-popover.hover.bottom="JSON.stringify(transactions[data.item.txHash].txReceipt, null, 2)">rcp</b-badge>
+                      <b-badge variant="light" v-b-popover.hover.bottom="JSON.stringify(transactions[data.item.txHash].block, null, 2)">blk</b-badge>
+                    </div>
                   </template>
                 </b-table>
               </b-card>
