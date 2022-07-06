@@ -1106,7 +1106,7 @@ const accountsModule = {
           state.sync.total = txHashesToProcess.length;
           state.sync.completed = 0;
           // const debug = ["0xa537831867d1af2a566e55231b7468e29e6936bfc6aa13d78a4464450e95e514"]; // OS Wyvern tx
-          const debug = null; // ["0xf7c9cde4618c6de50e7a13a7e1b9769c7b06c4de7b7353312f45f07531f14a7f"];
+          const debug = null; // ["0xf59e8412897d3e25c3e4c0d75cf3354a88e30bbf12b0e02f40373ba09e270a8c"];
           txHashesToProcess = debug ? debug : txHashesToProcess;
           for (const txHash of txHashesToProcess) {
             if (debug) {
@@ -1165,15 +1165,39 @@ const accountsModule = {
           for (const txHash of txHashesToProcess) {
             const transaction = transactions[txHash];
             const tx = transaction.tx;
+            const txReceipt = transaction.txReceipt;
             if (debug) {
               console.log("Processing: " + txHash);
               console.log("tx: " + JSON.stringify(tx, null, 2));
-              console.log("txReceipt: " + JSON.stringify(transaction.txReceipt, null, 2));
+              console.log("txReceipt: " + JSON.stringify(txReceipt, null, 2));
               // console.log("block: " + JSON.stringify(transactions[txHash].block, null, 2));
             }
 
+            const from = transaction.tx.from.toLowerCase();
             const to = transaction.tx.to.toLowerCase();
             // console.log("to: " + to);
+
+            const transfers = [];
+            for (const event of txReceipt.logs) {
+              // console.log(JSON.stringify(event));
+              if (event.topics[0] == '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef') {
+                const from = '0x' + event.topics[1].substring(26, 66);
+                const to = event.topics[2] && ('0x' + event.topics[2].substring(26, 66)) || null;
+                let tokenId;
+                if (event.topics.length > 3) {
+                  tokenId = new BigNumber(event.topics[3].substring(2), 16).toFixed(0);
+                } else {
+                  tokenId = event.data != null ? new BigNumber(event.data.substring(2), 16).toFixed(0) : null;
+                }
+                transfers.push({
+                  contract: event.address,
+                  from,
+                  to,
+                  tokenId,
+                });
+              }
+            }
+            console.log("transfers: " + JSON.stringify(transfers));
 
             // Exchange transaction
             if (to in marketsMap) {
