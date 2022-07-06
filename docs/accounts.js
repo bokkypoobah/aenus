@@ -1105,7 +1105,7 @@ const accountsModule = {
           let txHashesToProcess = Object.keys(txHashes);
           state.sync.total = txHashesToProcess.length;
           state.sync.completed = 0;
-          const debug = null; ["0xa537831867d1af2a566e55231b7468e29e6936bfc6aa13d78a4464450e95e514"];
+          const debug = null; // ["0xa537831867d1af2a566e55231b7468e29e6936bfc6aa13d78a4464450e95e514"];
           txHashesToProcess = debug ? debug : txHashesToProcess;
           for (const txHash of txHashesToProcess) {
             if (debug) {
