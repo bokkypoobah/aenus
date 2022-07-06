@@ -638,9 +638,9 @@ const Accounts = {
     },
     filteredTransactions() {
       const results = [];
-      console.log("filteredTransactions - this.transactions: " + JSON.stringify(this.transactions, null, 2));
+      // console.log("filteredTransactions - this.transactions: " + JSON.stringify(this.transactions, null, 2));
       for (const [txHash, tx] of Object.entries(this.transactions)) {
-        console.log("filteredTransactions - tx: " + JSON.stringify(tx, null, 2));
+        // console.log("filteredTransactions - tx: " + JSON.stringify(tx, null, 2));
         results.push({
           txHash: tx.tx.hash,
           block: tx.block.number,
@@ -1094,29 +1094,54 @@ const accountsModule = {
           } while (toBlock > startBlockNumber && !state.halt);
           state.transfers = transfers;
           // console.log("txHashes: " + JSON.stringify(txHashes));
-          const txHashesToProcess = Object.keys(txHashes);
+          let txHashesToProcess = Object.keys(txHashes);
           state.sync.total = txHashesToProcess.length;
           state.sync.completed = 0;
+          const debug = null; ["0xa537831867d1af2a566e55231b7468e29e6936bfc6aa13d78a4464450e95e514"];
+          txHashesToProcess = debug ? debug : txHashesToProcess;
           for (const txHash of txHashesToProcess) {
-            // console.log("Processing: " + txHash);
+            if (debug) {
+              console.log("Processing: " + txHash);
+            }
             const tx = await provider.getTransaction(txHash);
-            // console.log("tx: " + JSON.stringify(tx, null, 2));
             const txReceipt = await provider.getTransactionReceipt(txHash);
-            // console.log("txReceipt: " + JSON.stringify(txReceipt, null, 2));
             const block = await provider.getBlock(txReceipt.blockNumber);
-            // console.log("block: " + JSON.stringify(block, null, 2));
+            if (false && debug) {
+              console.log("tx: " + JSON.stringify(tx, null, 2));
+              console.log("txReceipt: " + JSON.stringify(txReceipt, null, 2));
+              console.log("block: " + JSON.stringify(block, null, 2));
+            }
             transactions[txHash] = { tx, txReceipt, block };
             state.sync.completed = parseInt(state.sync.completed) + 1;
+            if (state.halt) {
+              break;
+            }
           }
 
           let contractAddresses = Object.keys(contracts);
-          // const erc721Helper = new ethers.Contract(ERC721HELPERADDRESS, ERC721HELPERABI, provider);
-          // const tokenInfos = await erc721Helper.tokenInfo(contractAddresses);
-          // console.log("tokenInfos: " + JSON.stringify(tokenInfos, null, 2));
-          // for (let i = 0; i < tokenInfos[0].length; i++) {
-          //   console.log(i + ": " + tokenInfos[0][i] + " " + tokenInfos[1][i] + " " + tokenInfos[2][i]);
-          //   // console.log("tokenInfo: " + JSON.stringify(tokenInfo, null, 2));
-          // }
+          const erc721Helper = new ethers.Contract(ERC721HELPERADDRESS, ERC721HELPERABI, provider);
+          const tokenInfos = await erc721Helper.tokenInfo(contractAddresses);
+          const tokenContracts = {};
+          for (let i = 0; i < tokenInfos[0].length; i++) {
+            const mask = ethers.BigNumber.from(tokenInfos[0][i]).toString();
+            if (mask > 0) {
+              const symbol = tokenInfos[1][i];
+              const name = tokenInfos[2][i];
+              const totalSupply = ethers.BigNumber.from(tokenInfos[3][i]).toString();
+              tokenContracts[contractAddresses[i].toLowerCase()] = { mask, symbol, name, totalSupply };
+            }
+          }
+          // console.log("tokenContracts: " + JSON.stringify(tokenContracts, null, 2));
+
+          for (const txHash of txHashesToProcess) {
+            if (debug) {
+              console.log("Processing: " + txHash);
+              console.log("tx: " + JSON.stringify(transactions[txHash].tx, null, 2));
+              console.log("txReceipt: " + JSON.stringify(transactions[txHash].txReceipt, null, 2));
+              // console.log("block: " + JSON.stringify(transactions[txHash].block, null, 2));
+            }
+          }
+
 
           const GETPRICEBATCHSIZE = 20;
           records = 0;
