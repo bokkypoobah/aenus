@@ -306,11 +306,11 @@ const Accounts = {
                     <b-link :href="'https://etherscan.io/tx/' + data.item.txHash" v-b-popover.hover="'View in etherscan.io'" target="_blank">
                       {{ data.item.txHash.substring(0, 6) }}
                     </b-link>
-                    <div v-if="data.item.txHash in transactions">
+                    <font v-if="data.item.txHash in transactions" size="-1">
                       <b-badge variant="light" v-b-popover.hover.bottom="JSON.stringify(transactions[data.item.txHash].tx, null, 2)">tx</b-badge>
                       <b-badge variant="light" v-b-popover.hover.bottom="JSON.stringify(transactions[data.item.txHash].txReceipt, null, 2)">rcp</b-badge>
                       <b-badge variant="light" v-b-popover.hover.bottom="JSON.stringify(transactions[data.item.txHash].block, null, 2)">blk</b-badge>
-                    </div>
+                    </font>
                   </template>
                 </b-table>
               </b-card>
@@ -533,11 +533,11 @@ const Accounts = {
 
       transfersFields: [
         { key: 'index', label: '#', thStyle: 'width: 5%;', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
-        { key: 'contract', label: 'Contract', thStyle: 'width: 35%;', sortable: true },
+        { key: 'contract', label: 'Contract', thStyle: 'width: 30%;', sortable: true },
         { key: 'tokenId', label: 'Token Id', thStyle: 'width: 15%;', sortable: true },
         { key: 'from', label: 'From', thStyle: 'width: 15%;', sortable: true },
         { key: 'to', label: 'To', thStyle: 'width: 15%;', sortable: true },
-        { key: 'txHash', label: 'Tx Hash', sortable: true, thStyle: 'width: 15%;' },
+        { key: 'txHash', label: 'Tx Hash', sortable: true, thStyle: 'width: 20%;' },
       ],
 
       collectionAttributeFields: [
