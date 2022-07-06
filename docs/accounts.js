@@ -1016,8 +1016,10 @@ const accountsModule = {
           state.sync.inProgress = true;
           const transfers = [];
           const txHashes = {};
-          const accounts = state.filter.transfers.accounts.split(/[, \t\n]+/).map(s => '0x000000000000000000000000' + s.substring(2, 42).toLowerCase());
+          const accounts = state.filter.transfers.accounts.split(/[, \t\n]+/).map(s => s.toLowerCase());
+          const accountsBytes32 = accounts.map(s => '0x000000000000000000000000' + s.substring(2, 42));
           console.log("accounts: " + JSON.stringify(accounts));
+          // console.log("accountsBytes32: " + JSON.stringify(accountsBytes32));
           // const batchSize = 25;
           const ensMap = {};
           const contracts = {};
@@ -1042,7 +1044,7 @@ const accountsModule = {
               topics: [[
                   '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef', // Transfer (index_topic_1 address from, index_topic_2 address to, index_topic_3 uint256 id)
                 ],
-                accounts,
+                accountsBytes32,
                 null,
               ],
             };
@@ -1055,7 +1057,7 @@ const accountsModule = {
               topics: [
                 '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef', // Transfer (index_topic_1 address from, index_topic_2 address to, index_topic_3 uint256 id)
                 null,
-                accounts,
+                accountsBytes32,
               ],
             };
             const eventsTo = await provider.getLogs(filterTo);
@@ -1105,8 +1107,9 @@ const accountsModule = {
           let txHashesToProcess = Object.keys(txHashes);
           state.sync.total = txHashesToProcess.length;
           state.sync.completed = 0;
+          const debug = null;
           // const debug = ["0xa537831867d1af2a566e55231b7468e29e6936bfc6aa13d78a4464450e95e514"]; // OS Wyvern tx
-          const debug = null; // ["0xf59e8412897d3e25c3e4c0d75cf3354a88e30bbf12b0e02f40373ba09e270a8c"];
+          // const debug = ["0xf59e8412897d3e25c3e4c0d75cf3354a88e30bbf12b0e02f40373ba09e270a8c"];
           txHashesToProcess = debug ? debug : txHashesToProcess;
           for (const txHash of txHashesToProcess) {
             if (debug) {
@@ -1128,7 +1131,7 @@ const accountsModule = {
               via: null,
               valueType: null,
               value: null,
-              items: [],
+              transfers: [],
             };
             state.sync.completed = parseInt(state.sync.completed) + 1;
             if (state.halt) {
@@ -1149,7 +1152,7 @@ const accountsModule = {
               tokenContracts[contractAddresses[i].toLowerCase()] = { mask, symbol, name, totalSupply };
             }
           }
-          // console.log("tokenContracts: " + JSON.stringify(tokenContracts, null, 2));
+          console.log("tokenContracts: " + JSON.stringify(tokenContracts, null, 2));
 
           const markets = [
             { address: "0x7f268357A8c2552623316e2562D90e642bB538E5", name: "Wyvern Exchange" },
@@ -1157,7 +1160,6 @@ const accountsModule = {
 
           const marketsMap = {};
           for (const market of markets) {
-            console.log("market: " + JSON.stringify(market, null, 2));
             marketsMap[market.address.toLowerCase()] = market.name;
           }
           console.log("marketsMap: " + JSON.stringify(marketsMap, null, 2));
@@ -1189,15 +1191,39 @@ const accountsModule = {
                 } else {
                   tokenId = event.data != null ? new BigNumber(event.data.substring(2), 16).toFixed(0) : null;
                 }
+                // const type = (from.substring(0, 50) == ADDRESS0.substring(0, 50)) ? "mint" : ((to.substring(0, 50) == ADDRESS0.substring(0, 50)) ? "burn" : "transfer");
+
+                let type;
+                if (from.substring(0, 50) == ADDRESS0.substring(0, 50)) {
+                  type = "mint";
+                } else if (to.substring(0, 50) == ADDRESS0.substring(0, 50)) {
+                  type = "burn";
+                } else {
+                  // console.log("from: " + from + ", to: " + to + ", accounts: " + JSON.stringify(accounts));
+                  if (accounts.includes(from)) {
+                    type = "sent";
+                  } else if (accounts.includes(to)) {
+                    type = "received";
+                  } else {
+                    type = "transfer";
+                  }
+                }
+
                 transfers.push({
+                  type,
                   contract: event.address,
                   from,
                   to,
                   tokenId,
+                  logIndex: event.logIndex,
                 });
               }
             }
+            transfers.sort((a, b) => {
+              return a.logIndex - b.logIndex;
+            });
             console.log("transfers: " + JSON.stringify(transfers));
+            transactions[txHash].transfers = transfers;
 
             // Exchange transaction
             if (to in marketsMap) {
