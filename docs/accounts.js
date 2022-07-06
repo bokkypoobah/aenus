@@ -1105,7 +1105,8 @@ const accountsModule = {
           let txHashesToProcess = Object.keys(txHashes);
           state.sync.total = txHashesToProcess.length;
           state.sync.completed = 0;
-          const debug = null; // ["0xa537831867d1af2a566e55231b7468e29e6936bfc6aa13d78a4464450e95e514"];
+          // const debug = ["0xa537831867d1af2a566e55231b7468e29e6936bfc6aa13d78a4464450e95e514"]; // OS Wyvern tx
+          const debug = null; // ["0xf7c9cde4618c6de50e7a13a7e1b9769c7b06c4de7b7353312f45f07531f14a7f"];
           txHashesToProcess = debug ? debug : txHashesToProcess;
           for (const txHash of txHashesToProcess) {
             if (debug) {
@@ -1172,16 +1173,19 @@ const accountsModule = {
             }
 
             const to = transaction.tx.to.toLowerCase();
-            console.log("to: " + to);
+            // console.log("to: " + to);
 
             // Exchange transaction
             if (to in marketsMap) {
-              console.log("Exchange");
               transactions[txHash].description = "Purchase NFT";
               transactions[txHash].via = marketsMap[to];
-              transactions[txHash].valueType = "ETH";
-              transactions[txHash].value = tx.value && ethers.utils.formatEther(tx.value) || null;
+            } else if (to in tokenContracts) {
+              // console.log("NFT: " + JSON.stringify(tokenContracts[to]));
+              transactions[txHash].description = "Mint '" + tokenContracts[to].symbol + "' '" + tokenContracts[to].name + "'";
+              transactions[txHash].via = null;
             }
+            transactions[txHash].valueType = "ETH";
+            transactions[txHash].value = tx.value && ethers.utils.formatEther(tx.value) || null;
 
 
             // transactions[txHash].action = "New Action";
