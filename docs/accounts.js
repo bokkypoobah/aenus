@@ -244,22 +244,31 @@ const Accounts = {
                         <b-row v-for="(transfer, transferIndex) in data.item.transfers" v-bind:key="transferIndex">
                           <b-col>
                             <div v-if="transfer.type == 'received'">
-                              Received from {{ getShortName(transfer.from, 16) }} {{ getShortName(transfer.contract, 16) + ':' + transfer.tokenId }}
+                              Received from {{ getShortName(transfer.from, 16) }}
                             </div>
                             <div v-else-if="transfer.type == 'sent'">
-                              Sent to {{ getShortName(transfer.to, 16) }} {{ getShortName(transfer.contract, 16) + ':' + transfer.tokenId }}
+                              Sent to {{ getShortName(transfer.to, 16) }}
                             </div>
                             <div v-else-if="transfer.type == 'mint'">
-                              Minted {{ getShortName(transfer.contract, 16) + ':' + transfer.tokenId }}
+                              Minted
                             </div>
                             <div v-else-if="transfer.type == 'burn'">
-                              Burnt {{ getShortName(transfer.contract, 16) + ':' + transfer.tokenId }}
+                              Burnt
                             </div>
                             <!--
                             <div v-else>
                               Unknown
                             </div>
                             -->
+                          </b-col>
+                          <b-col>
+                            <span v-if="transfer.contract.toLowerCase() == '0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85'">
+                              <b-img :width="'100%'" :src="'https://metadata.ens.domains/mainnet/0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85/' + transfer.tokenId + '/image'">
+                              </b-img>
+                            </span>
+                            <span v-else>
+                              {{ getShortName(transfer.contract, 16) + ':' + transfer.tokenId }}
+                            </span>
                           </b-col>
                         </b-row>
                       </template>
