@@ -22,6 +22,11 @@ const Accounts = {
                 <div v-if="settings.tabIndex == 0" class="mt-1" style="width: 150px;">
                   <b-form-input type="text" size="sm" :value="filter.transfers.accounts" @change="searchTransfers('filterUpdate', { transfers: { accounts: $event } })" :disabled="sync.inProgress" debounce="600" v-b-popover.hover.top="'List of accounts'" placeholder="🔍 0x12... ..."></b-form-input>
                 </div>
+                <!-- Min rows 2
+                <div v-if="settings.tabIndex == 0" class="mt-1" style="width: 150px;">
+                  <b-form-textarea size="sm" :value="filter.transfers.accounts" @change="searchTransfers('filterUpdate', { transfers: { accounts: $event } })" placeholder="🔍 0x12... ..." rows="1" max-rows="100"></b-form-textarea>
+                </div>
+                -->
                 <div v-if="settings.tabIndex == 1" class="mt-1">
                   <b-button size="sm" :pressed.sync="settings.collection.showFilter" variant="link" v-b-popover.hover.top="'Show collection filter'"><span v-if="settings.collection.showFilter"><b-icon-layout-sidebar-inset shift-v="+1" font-scale="1.0"></b-icon-layout-sidebar-inset></span><span v-else><b-icon-layout-sidebar shift-v="+1" font-scale="1.0"></b-icon-layout-sidebar></span></b-button>
                 </div>
