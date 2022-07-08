@@ -87,6 +87,11 @@ const Accounts = {
                     </b-dropdown-group>
                   </b-dropdown>
                 </div>
+                <!--
+                <div v-if="false" class="mt-1 pl-1">
+                  <b-button size="sm" @click="copyToClipboard('Lorem ipsum');" variant="primary">Test</b-button>
+                </div>
+                -->
                 <div v-if="settings.tabIndex == 1" class="mt-1 pl-1">
                   <b-button size="sm" @click="updateCollection('sync', {})" :disabled="sync.inProgress" variant="primary">Retrieve</b-button>
                 </div>
@@ -221,6 +226,10 @@ const Accounts = {
               <!-- Transfers -->
               <b-card v-if="settings.tabIndex == 0" no-header no-body class="mt-1 border-0">
 
+                <b-alert size="sm" :show="!powerOn || network.chainId != 1" variant="primary" class="m-0 my-1">
+                  Please connect to the Ethereum mainnet with a web3-enabled browser. Click the [Power] button on the top right.
+                </b-alert>
+
                 <b-card no-body header="Transactions">
                   <b-card-body class="m-0 p-0">
                     <b-table small fixed striped :fields="transactionsFields" :items="filteredTransactions" head-variant="light">
@@ -229,6 +238,28 @@ const Accounts = {
                       </template>
                       <template #cell(timestamp)="data">
                         {{ formatTimestamp(data.item.timestamp) }}
+                      </template>
+                      <template #cell(description)="data">
+                        <!-- {{ data.item.description }} -->
+                        <b-row v-for="(transfer, transferIndex) in data.item.transfers" v-bind:key="transferIndex">
+                          <b-col>
+                            <div v-if="transfer.type == 'received'">
+                              Received from {{ getShortName(transfer.from) }} {{ getShortName(transfer.contract) + ':' + transfer.tokenId }}
+                            </div>
+                            <div v-else-if="transfer.type == 'sent'">
+                              Sent to {{ getShortName(transfer.to) }} {{ getShortName(transfer.contract) + ':' + transfer.tokenId }}
+                            </div>
+                            <div v-else-if="transfer.type == 'mint'">
+                              Minted to {{ getShortName(transfer.to) }} {{ getShortName(transfer.contract) + ':' + transfer.tokenId }}
+                            </div>
+                            <div v-else-if="transfer.type == 'burn'">
+                              Burnt from {{ getShortName(transfer.from) }} {{ getShortName(transfer.contract) + ':' + transfer.tokenId }}
+                            </div>
+                            <div v-else>
+                              Unknown
+                            </div>
+                          </b-col>
+                        </b-row>
                       </template>
                       <template #cell(block)="data">
                         {{ data.item.block }}
@@ -565,9 +596,9 @@ const Accounts = {
       transactionsFields: [
         { key: 'index', label: '#', thStyle: 'width: 5%;', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
         { key: 'timestamp', label: 'Timestamp', thStyle: 'width: 15%;', sortable: true },
-        { key: 'description', label: 'Description', thStyle: 'width: 25%;', sortable: true },
-        { key: 'via', label: 'Via', thStyle: 'width: 15%;', sortable: true },
-        { key: 'valueType', label: 'Type', thStyle: 'width: 10%;', sortable: true },
+        { key: 'description', label: 'Description', thStyle: 'width: 35%;', sortable: true },
+        { key: 'via', label: 'Via', thStyle: 'width: 10%;', sortable: true },
+        { key: 'valueType', label: 'Type', thStyle: 'width: 5%;', sortable: true },
         { key: 'value', label: 'Value', thStyle: 'width: 15%;', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
         { key: 'txHash', label: 'Tx Hash', sortable: true, thStyle: 'width: 15%;' },
       ],
@@ -652,7 +683,7 @@ const Accounts = {
           via: tx.via,
           valueType: tx.valueType,
           value: tx.value,
-          items: tx.items,
+          transfers: tx.transfers,
         });
       }
       return results;
@@ -765,6 +796,26 @@ const Accounts = {
     },
   },
   methods: {
+    copyToClipboard(str) {
+      // https://github.com/30-seconds/30-seconds-of-code/blob/master/snippets/copyToClipboard.md
+      const el = document.createElement('textarea');
+      el.value = str;
+      el.setAttribute('readonly', '');
+      el.style.position = 'absolute';
+      el.style.left = '-9999px';
+      document.body.appendChild(el);
+      const selected =
+        document.getSelection().rangeCount > 0
+          ? document.getSelection().getRangeAt(0)
+          : false;
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      if (selected) {
+        document.getSelection().removeAllRanges();
+        document.getSelection().addRange(selected);
+      }
+    },
     formatTimestamp(ts) {
       if (ts != null) {
         return moment.unix(ts).format("YYYY-MM-DD HH:mm:ss");
