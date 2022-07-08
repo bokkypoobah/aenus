@@ -244,20 +244,22 @@ const Accounts = {
                         <b-row v-for="(transfer, transferIndex) in data.item.transfers" v-bind:key="transferIndex">
                           <b-col>
                             <div v-if="transfer.type == 'received'">
-                              Received from {{ getShortName(transfer.from) }} {{ getShortName(transfer.contract) + ':' + transfer.tokenId }}
+                              Received from {{ getShortName(transfer.from, 16) }} {{ getShortName(transfer.contract, 16) + ':' + transfer.tokenId }}
                             </div>
                             <div v-else-if="transfer.type == 'sent'">
-                              Sent to {{ getShortName(transfer.to) }} {{ getShortName(transfer.contract) + ':' + transfer.tokenId }}
+                              Sent to {{ getShortName(transfer.to, 16) }} {{ getShortName(transfer.contract, 16) + ':' + transfer.tokenId }}
                             </div>
                             <div v-else-if="transfer.type == 'mint'">
-                              Minted to {{ getShortName(transfer.to) }} {{ getShortName(transfer.contract) + ':' + transfer.tokenId }}
+                              Minted {{ getShortName(transfer.contract, 16) + ':' + transfer.tokenId }}
                             </div>
                             <div v-else-if="transfer.type == 'burn'">
-                              Burnt from {{ getShortName(transfer.from) }} {{ getShortName(transfer.contract) + ':' + transfer.tokenId }}
+                              Burnt {{ getShortName(transfer.contract, 16) + ':' + transfer.tokenId }}
                             </div>
+                            <!--
                             <div v-else>
                               Unknown
                             </div>
+                            -->
                           </b-col>
                         </b-row>
                       </template>
