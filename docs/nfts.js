@@ -51,6 +51,7 @@ const NFTs = {
                       <b-dropdown-item @click="filter.collection.address = '0x8479277aacff4663aa4241085a7e27934a0b0840'">Dec 30 Realms of Ether (wrapped)</b-dropdown-item>
                     </b-dropdown-group>
                     <b-dropdown-group header="2018 Vintage">
+                      <b-dropdown-item @click="filter.collection.address = '0x79986af15539de2db9a5086382daeda917a9cf0c'">Jan 22 CryptoFighters</b-dropdown-item>
                       <b-dropdown-item @click="filter.collection.address = '0x79986af15539de2db9a5086382daeda917a9cf0c'">Jun 05 Voxels (originally CryptoVoxels, not working)</b-dropdown-item>
                       <b-dropdown-item @click="filter.collection.address = '0xbfde6246df72d3ca86419628cac46a9d2b60393c'">Aug 02 Etheremon Adventure</b-dropdown-item>
                     </b-dropdown-group>
