@@ -454,44 +454,6 @@ const ipcsModule = {
     // --- updateCollection() ---
     async updateCollection(state, { syncMode, filterUpdate }) {
 
-      async function processSales(data) {
-        // const searchForNamesByTokenIds = data.sales
-        //   .map(sale => sale.token.tokenId)
-        //   .map(tokenId => "0x" + new BigNumber(tokenId, 10).toString(16));
-        // const namesByTokenIds = await fetchNamesByTokenIds(searchForNamesByTokenIds);
-        // const saleRecords = [];
-        // if (!state.sync.error) {
-        //   let count = 0;
-        //   const chainId = (store.getters['connection/network'] && store.getters['connection/network'].chainId) || 1;
-        //   for (const sale of data.sales) {
-        //     // if (count == 0) {
-        //     //   logInfo("ipcsModule", "mutations.loadSales().processSales() " + new Date(sale.timestamp * 1000).toLocaleString() + " " + (sale.token.name ? sale.token.name : "(null)") + ", price: " + sale.price + ", from: " + sale.from.substr(0, 10) + ", to: " + sale.to.substr(0, 10));
-        //     // }
-        //     const name = namesByTokenIds[sale.token.tokenId] ? namesByTokenIds[sale.token.tokenId] : sale.token.name;
-        //     saleRecords.push({
-        //       chainId: chainId,
-        //       contract: ENSADDRESS,
-        //       tokenId: sale.token.tokenId,
-        //       name: name,
-        //       from: sale.from,
-        //       to: sale.to,
-        //       price: sale.price,
-        //       timestamp: sale.timestamp,
-        //       tokenId: sale.token.tokenId,
-        //       txHash: sale.txHash,
-        //       data: sale,
-        //     });
-        //     count++;
-        //   }
-        //   await db0.sales.bulkPut(saleRecords).then (function() {
-        //   }).catch(function(error) {
-        //     console.log("error: " + error);
-        //   });
-        // }
-        // return saleRecords.length;
-        return data.tokens.length;
-      }
-
       // --- updateCollection() start ---
       logInfo("ipcsModule", "mutations.updateCollection() - syncMode: " + syncMode + ", filterUpdate: " + JSON.stringify(filterUpdate));
       if (window.ethereum) {
@@ -513,7 +475,7 @@ const ipcsModule = {
         const erc721Helper = new ethers.Contract(ERC721HELPERADDRESS, ERC721HELPERABI, provider);
 
         const startId = 1;
-        const endId = 12000; // TODO 12000;
+        const endId = 30; // TODO 12000;
         const batchSize = 250;
 
         let fromId = startId;
@@ -533,14 +495,10 @@ const ipcsModule = {
             const ipcId = parseInt(fromId) + i;
             tokenIds.push(ipcId);
           }
-          // console.log("tokenIds: " + JSON.stringify(tokenIds));
           const ownerData = await erc721Helper.ownersByTokenIds(IPCADDRESS, tokenIds);
-          // console.log("ownerData: " + JSON.stringify(ownerData));
-
 
           for (let i = 0; i < ipcData[0].length; i++) {
             const ipcId = parseInt(fromId) + i;
-            // console.log(ipcId + " " + ipcData[0][i] + " " + ipcData[1][i] + " " + ipcData[2][i] + " " + ipcData[3][i]);
             const owner = ownerData[0][i] && ownerData[1][i] || null;
             if (owner != null) {
               const lowerOwner = owner.toLowerCase();
@@ -558,20 +516,6 @@ const ipcsModule = {
               birth: parseInt(ipcData[4][i]),
             }
             const info = IPCLib.ipc_create_ipc_from_json(ipc);
-            // console.log("IPCLib.info: " + JSON.stringify(info, null, 2));
-            // const labelledInfo = IPCLib.ipc_create_label_ipc(ipc, IPCEnglish);
-            // console.log("IPCLib.labelledInfo: " + JSON.stringify(labelledInfo, null, 2));
-
-                // label_ipc.race = IPCLang.Race[ipc.race];
-                // label_ipc.subrace = IPCLang.Subrace[ipc.subrace];
-                // label_ipc.gender = IPCLang.Gender[ipc.gender];
-                // label_ipc.height = parseInt(ipc.height/12) + "'" + (ipc.height % 12) + "\"";
-                //
-                // label_ipc.skin_color = IPCLang.Color[ipc.skin_color];
-                // label_ipc.hair_color = IPCLang.Color[ipc.hair_color];
-                // label_ipc.eye_color = IPCLang.Color[ipc.eye_color];
-                // label_ipc.handedness = IPCLang.Handedness[ipc.handedness];
-
             const attributes = [];
             attributes.push({ trait_type: 'race', value: IPCEnglish.Race[info.race] });
             attributes.push({ trait_type: 'subrace', value: IPCEnglish.Subrace[info.subrace] });
@@ -586,17 +530,12 @@ const ipcsModule = {
           }
           fromId = toId;
         } while (toId < endId);
-        // console.log(JSON.stringify(collectionTokens, null, 0));
         state.collectionTokens = collectionTokens;
-        // console.log(JSON.stringify(ensMap, null, 0));
-
-        // console.log("IPCLib.IPCRGBA: " + JSON.stringify(IPCLib.IPCRGBA));
 
         let addresses = Object.keys(ensMap);
         const ensReverseRecordsContract = new ethers.Contract(ENSREVERSERECORDSADDRESS, ENSREVERSERECORDSABI, provider);
         const ENSOWNERBATCHSIZE = 200; // 500 fails occassionally
         for (let i = 0; i < addresses.length; i += ENSOWNERBATCHSIZE) {
-        //   this.processing = "RETRIEVING LIVE ENS REVERSE RECORDS FROM THE ETHEREUM MAINNET: " + ethers.utils.commify(i) + " OF " + ethers.utils.commify(addresses.length);
           const batch = addresses.slice(i, parseInt(i) + ENSOWNERBATCHSIZE);
           const allnames = await ensReverseRecordsContract.getNames(batch);
           // console.log("allnames: " + JSON.stringify(allnames, null, 2));
@@ -617,6 +556,27 @@ const ipcsModule = {
         ensMap["0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2".toLowerCase()] = "(WETH)";
         state.ensMap = ensMap;
         // console.log(JSON.stringify(ensMap, null, 0));
+
+        let totalRecords = 0;
+        let continuation = null;
+        // let tokens = {};
+        do {
+          let url = "https://api.reservoir.tools/tokens/bootstrap/v1?contract=" + IPCADDRESS +
+            "&limit=500" +
+            (continuation != null ? "&continuation=" + continuation : '');
+          logInfo("nftsModule", "mutations.updateCollection() - url: " + url);
+          const data = await fetch(url)
+            .then(handleErrors)
+            .then(response => response.json())
+            .catch(function(error) {
+               console.log("ERROR - updateCollection: " + error);
+               state.sync.error = true;
+               return [];
+            });
+          continuation = data.continuation;
+          console.log("Fetched: " + data.tokens.length);
+          // console.log(JSON.stringify(data, null, 2));
+        } while (continuation != null && !state.halt && !state.sync.error /* && totalRecords < 20 && totalRecords < state.sync.total*/);
 
         state.sync.inProgress = false;
       }
