@@ -14,6 +14,11 @@ const routes = [{
     name: 'CryptoPunks',
     props: true,
   }, {
+    path: '/ipcs/:tab?/:blocks?/:search?',
+    component: IPCs,
+    name: 'IPCs',
+    props: true,
+  }, {
     path: '/nfts/:tab?/:blocks?/:search?',
     component: NFTs,
     name: 'NFTs',
