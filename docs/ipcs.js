@@ -139,6 +139,7 @@ const IPCs = {
                         {{ data.item.name }}
                       </template>
                       <template #cell(details)="data">
+                        {{ data.item.price || 'No price'}}
                         <font size="-2">
                           <b-row v-for="(attribute, i) in data.item.attributes" v-bind:key="i" class="m-0 p-0">
                             <b-col cols="2" class="my-0 mx-1 py-0 px-1 text-right">{{ slugToTitle(attribute.trait_type) }}</b-col>
@@ -501,25 +502,28 @@ const ipcsModule = {
           continuation = data.continuation;
           if (data && data.tokens) {
             for (const token of data.tokens) {
-              prices[token.tokenId] = { tokenId: token.tokenId, price: token.price, validUntil: token.validUntil, source: token.source };
+              prices[token.tokenId] = { price: token.price, validUntil: token.validUntil, source: token.source };
             }
           }
           state.sync.completed = Object.keys(prices).length;
           state.sync.total = state.sync.completed;
         } while (continuation != null && !state.halt && !state.sync.error /* && totalRecords < 20 && totalRecords < state.sync.total*/);
-        console.log(JSON.stringify(prices, null, 2));
+        // console.log(JSON.stringify(prices, null, 2));
 
         const ipcHelper = new ethers.Contract(IPCHELPERADDRESS, IPCHELPERABI, provider);
         const erc721Helper = new ethers.Contract(ERC721HELPERADDRESS, ERC721HELPERABI, provider);
 
         const startId = 1;
-        const endId = 30; // TODO 12000;
+        const endId = 12000; // TODO 12000;
         const batchSize = 250;
 
         let fromId = startId;
         let toId;
         const collectionTokens = {};
         const ensMap = {};
+        state.sync.section = "Retrieving IPC data";
+        state.sync.total = endId - startId + 1;
+        state.sync.completed = 0;
         do {
           toId = parseInt(fromId) + batchSize;
           if (toId >= endId) {
@@ -552,6 +556,7 @@ const ipcsModule = {
               dna: ipcData[2][i],
               experience: parseInt(ipcData[3][i]),
               birth: parseInt(ipcData[4][i]),
+              price: prices[ipcId] || null,
             }
             const info = IPCLib.ipc_create_ipc_from_json(ipc);
             const attributes = [];
@@ -566,13 +571,18 @@ const ipcsModule = {
 
             collectionTokens[ipcId] = { ...ipc, info: info, attributes: attributes };
           }
+          state.sync.completed = Object.keys(collectionTokens).length;
           fromId = toId;
         } while (toId < endId);
         state.collectionTokens = collectionTokens;
 
         let addresses = Object.keys(ensMap);
+        state.sync.section = "Retrieving ENS names";
+        state.sync.total = addresses.length;
+        state.sync.completed = 0;
         const ensReverseRecordsContract = new ethers.Contract(ENSREVERSERECORDSADDRESS, ENSREVERSERECORDSABI, provider);
         const ENSOWNERBATCHSIZE = 200; // 500 fails occassionally
+        let totalRecords = 0;
         for (let i = 0; i < addresses.length; i += ENSOWNERBATCHSIZE) {
           const batch = addresses.slice(i, parseInt(i) + ENSOWNERBATCHSIZE);
           const allnames = await ensReverseRecordsContract.getNames(batch);
@@ -584,6 +594,8 @@ const ipcsModule = {
             ensMap[address] = name != null && name.length > 0 ? name : address;
             // const normalized = normalize(address);
           }
+          totalRecords = parseInt(totalRecords) + batch.length;
+          state.sync.completed = totalRecords;
         }
         ensMap["0x0000000000000000000000000000000000000000".toLowerCase()] = "(null)";
         ensMap["0x000000000000000000000000000000000000dEaD".toLowerCase()] = "(dEaD)";
