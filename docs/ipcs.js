@@ -69,7 +69,7 @@ const IPCs = {
                 <div class="mt-1 flex-grow-1">
                 </div>
                 <div class="mt-1 pr-1">
-                  <b-form-select size="sm" v-model="settings.collection.sortOption" :options="sortOptions" v-b-popover.hover.top="'Yeah. Sort'"></b-form-select>
+                  <b-form-select size="sm" v-model="settings.sortOption" :options="sortOptions" v-b-popover.hover.top="'Yeah. Sort'"></b-form-select>
                 </div>
                 <div class="mt-1 pr-1">
                   <font size="-2" v-b-popover.hover.top="'Blah'">{{ filteredSortedCollectionTokens.length }}</font>
@@ -176,9 +176,9 @@ const IPCs = {
       settings: {
         tabIndex: 50, // TODO: Delete?
         showFilter: true,
+        sortOption: 'priceasc', // TODO 'idasc',
         collection: {
           showInfo: false,
-          sortOption: 'idasc',
           pageSize: 100,
           currentPage: 1
         },
@@ -189,6 +189,11 @@ const IPCs = {
       sortOptions: [
         { value: 'idasc', text: '▲ Id' },
         { value: 'iddsc', text: '▼ Id' },
+        { value: 'priceasc', text: '▲ Price' },
+        { value: 'pricedsc', text: '▼ Price' },
+        { value: 'birthasc', text: '▲ Birth' },
+        { value: 'birthdsc', text: '▼ Birth' },
+        { value: 'random', text: 'Random' },
       ],
 
       pageSizes: [
@@ -292,10 +297,34 @@ const IPCs = {
     },
     filteredSortedCollectionTokens() {
       let results = this.filteredCollectionTokens;
-      if (this.settings.collection.sortOption == 'idasc') {
+
+      // { value: 'idasc', text: '▲ Id' },
+      // { value: 'iddsc', text: '▼ Id' },
+      // { value: 'priceasc', text: '▲ Price' },
+      // { value: 'pricedsc', text: '▼ Price' },
+      // { value: 'birthasc', text: '▲ Birth' },
+      // { value: 'birthdsc', text: '▼ Birth' },
+      // { value: 'random', text: 'Random' },
+
+
+      if (this.settings.sortOption == 'idasc') {
         results.sort((a, b) => a.token_id - b.token_id);
-      } else if (this.settings.collection.sortOption == 'iddsc') {
+      } else if (this.settings.sortOption == 'iddsc') {
         results.sort((a, b) => b.token_id - a.token_id);
+      } else if (this.settings.sortOption == 'priceasc') {
+        results.sort((a, b) => {
+          const pricea = a.price && a.price.price || null;
+          const priceb = b.price && b.price.price || null;
+          if (pricea == priceb) {
+            return a.token_id - b.token_id;
+          } else if (pricea != null && priceb == null) {
+            return -1;
+          } else if (pricea == null && priceb != null) {
+            return 1;
+          } else {
+            return pricea - priceb;
+          }
+        });
       }
       return results;
     },
