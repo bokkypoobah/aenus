@@ -587,11 +587,29 @@ const ipcsModule = {
             }
             const info = IPCLib.ipc_create_ipc_from_json(ipc);
             console.log("IPCLib.info: " + JSON.stringify(info, null, 2));
+            // const labelledInfo = IPCLib.ipc_create_label_ipc(ipc, IPCEnglish);
+            // console.log("IPCLib.labelledInfo: " + JSON.stringify(labelledInfo, null, 2));
+
+                // label_ipc.race = IPCLang.Race[ipc.race];
+                // label_ipc.subrace = IPCLang.Subrace[ipc.subrace];
+                // label_ipc.gender = IPCLang.Gender[ipc.gender];
+                // label_ipc.height = parseInt(ipc.height/12) + "'" + (ipc.height % 12) + "\"";
+                //
+                // label_ipc.skin_color = IPCLang.Color[ipc.skin_color];
+                // label_ipc.hair_color = IPCLang.Color[ipc.hair_color];
+                // label_ipc.eye_color = IPCLang.Color[ipc.eye_color];
+                // label_ipc.handedness = IPCLang.Handedness[ipc.handedness];
+
             const attributes = [];
-            attributes.push({ trait_type: 'race', value: IPCLib.IPCMap.race[info.race] })
-            attributes.push({ trait_type: 'subrace', value: IPCLib.IPCMap.subrace[info.subrace] })
-            attributes.push({ trait_type: 'gender', value: IPCLib.IPCMap.gender[info.gender] })
-            attributes.push({ trait_type: 'height', value: parseInt(info.height / 12) + '\'' + info.height % 12 + '\"' })
+            attributes.push({ trait_type: 'race', value: IPCEnglish.Race[info.race] });
+            attributes.push({ trait_type: 'subrace', value: IPCEnglish.Subrace[info.subrace] });
+            attributes.push({ trait_type: 'gender', value: IPCEnglish.Gender[info.gender] });
+            attributes.push({ trait_type: 'height', value: parseInt(info.height / 12) + '\'' + info.height % 12 + '\"' });
+            attributes.push({ trait_type: 'skin_color', value: IPCEnglish.Color[info.skin_color] });
+            attributes.push({ trait_type: 'hair_color', value: IPCEnglish.Color[info.hair_color] });
+            attributes.push({ trait_type: 'eye_color', value: IPCEnglish.Color[info.eye_color] });
+            attributes.push({ trait_type: 'handedness', value: IPCEnglish.Handedness[info.handedness] });
+
             collectionTokens[ipcId] = { ...ipc, info: info, attributes: attributes };
           }
           fromId = toId;

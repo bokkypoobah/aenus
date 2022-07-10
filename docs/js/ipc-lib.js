@@ -1005,7 +1005,7 @@ function ipc_create_label_ipc(ipc, IPCLang)
 
     label_ipc.token_id = ipc.token_id;
     label_ipc.name = ipc.name;
-    label_ipc.meta.sprite = ipc.meta.sprite;
+    // label_ipc.meta.sprite = ipc.meta.sprite;
 
     label_ipc.attribute_seed = ipc.attribute_seed;
     label_ipc.dna = ipc.dna;
@@ -1057,10 +1057,10 @@ function ipc_create_label_ipc(ipc, IPCLang)
             " " + label_ipc.token_id
     }
 
-    label_ipc.meta.sprite = ipc.meta.sprite;
-    label_ipc.meta.card = ipc.meta.card;
-    label_ipc.meta.canon = ipc.meta.canon;
-    label_ipc.meta.rumor = ipc.meta.rumor;
+    // label_ipc.meta.sprite = ipc.meta.sprite;
+    // label_ipc.meta.card = ipc.meta.card;
+    // label_ipc.meta.canon = ipc.meta.canon;
+    // label_ipc.meta.rumor = ipc.meta.rumor;
 
     return label_ipc;
 }
