@@ -55,7 +55,7 @@ const IPCs = {
                     </b-progress-bar>
                   </b-progress>
                 </div>
-                <div v-if="settings.tabIndex == 1 || settings.tabIndex == 2" class="ml-0 mt-1">
+                <div class="ml-0 mt-1">
                   <b-button v-if="sync.inProgress" size="sm" @click="halt" variant="link" v-b-popover.hover.top="'Halt'"><b-icon-stop-fill shift-v="+1" font-scale="1.0"></b-icon-stop-fill></b-button>
                 </div>
 
@@ -466,10 +466,10 @@ const ipcsModule = {
       logInfo("ipcsModule", "mutations.updateCollection() - syncMode: " + syncMode + ", filterUpdate: " + JSON.stringify(filterUpdate));
       if (window.ethereum) {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const ipcHelper = new ethers.Contract(IPCHELPERADDRESS, IPCHELPERABI, provider);
+        const erc721Helper = new ethers.Contract(ERC721HELPERADDRESS, ERC721HELPERABI, provider);
         const block = await provider.getBlock("latest");
         const blockNumber = block.number;
-
-        const contractsCollator = {};
 
         if (filterUpdate != null) {
           state.filter = { ...state.filter, ...filterUpdate };
@@ -481,15 +481,6 @@ const ipcsModule = {
         state.sync.total = 0;
         state.sync.error = false;
 
-        // sync: {
-        //   inProgress: false,
-        //   section: null,
-        //   completed: null,
-        //   total: null,
-        //   error: false,
-        // },
-
-
         // Retrieve prices
         let continuation = null;
         let prices = {};
@@ -497,7 +488,7 @@ const ipcsModule = {
           let url = "https://api.reservoir.tools/tokens/bootstrap/v1?contract=" + IPCADDRESS +
             "&limit=500" +
             (continuation != null ? "&continuation=" + continuation : '');
-          logInfo("nftsModule", "mutations.updateCollection() - url: " + url);
+          // logInfo("nftsModule", "mutations.updateCollection() - url: " + url);
           const data = await fetch(url)
             .then(handleErrors)
             .then(response => response.json())
@@ -514,16 +505,12 @@ const ipcsModule = {
           }
           state.sync.completed = Object.keys(prices).length;
           state.sync.total = state.sync.completed;
-        } while (continuation != null && !state.halt && !state.sync.error /* && totalRecords < 20 && totalRecords < state.sync.total*/);
-        // console.log(JSON.stringify(prices, null, 2));
+        } while (continuation != null && !state.halt && !state.sync.error);
 
-        const ipcHelper = new ethers.Contract(IPCHELPERADDRESS, IPCHELPERABI, provider);
-        const erc721Helper = new ethers.Contract(ERC721HELPERADDRESS, ERC721HELPERABI, provider);
-
+        // Retrieve IPC data from contracts and erc721 owner data
         const startId = 1;
-        const endId = 12000; // TODO 12000;
+        const endId = 12000;
         const batchSize = 250;
-
         let fromId = startId;
         let toId;
         const collectionTokens = {};
@@ -536,16 +523,13 @@ const ipcsModule = {
           if (toId >= endId) {
             toId = endId;
           }
-          console.log("fromId: " + fromId + ", toId: " + toId);
           const ipcData = await ipcHelper.getBulkIpc(fromId, parseInt(toId) + 1);
-
           const tokenIds = [];
           for (let i = 0; i < ipcData[0].length; i++) {
             const tokenId = parseInt(fromId) + i;
             tokenIds.push(tokenId);
           }
           const ownerData = await erc721Helper.ownersByTokenIds(IPCADDRESS, tokenIds);
-
           for (let i = 0; i < ipcData[0].length; i++) {
             const tokenId = parseInt(fromId) + i;
             const owner = ownerData[0][i] && ownerData[1][i] || null;
@@ -575,14 +559,14 @@ const ipcsModule = {
             attributes.push({ trait_type: 'hair-color', value: IPCEnglish.Color[info.hair_color] });
             attributes.push({ trait_type: 'eye-color', value: IPCEnglish.Color[info.eye_color] });
             attributes.push({ trait_type: 'handedness', value: IPCEnglish.Handedness[info.handedness] });
-
             collectionTokens[tokenId] = { ...ipc, info: info, attributes: attributes };
           }
           state.sync.completed = Object.keys(collectionTokens).length;
           fromId = toId;
-        } while (toId < endId);
+        } while (toId < endId && !state.halt);
         state.collectionTokens = collectionTokens;
 
+        // ENS data
         let addresses = Object.keys(ensMap);
         state.sync.section = "Retrieving ENS names";
         state.sync.total = addresses.length;
@@ -590,29 +574,32 @@ const ipcsModule = {
         const ensReverseRecordsContract = new ethers.Contract(ENSREVERSERECORDSADDRESS, ENSREVERSERECORDSABI, provider);
         const ENSOWNERBATCHSIZE = 200; // 500 fails occassionally
         let totalRecords = 0;
-        for (let i = 0; i < addresses.length; i += ENSOWNERBATCHSIZE) {
-          const batch = addresses.slice(i, parseInt(i) + ENSOWNERBATCHSIZE);
-          const allnames = await ensReverseRecordsContract.getNames(batch);
-          // console.log("allnames: " + JSON.stringify(allnames, null, 2));
-          // TODO: check for normalised. const validNames = allnames.filter((n) => normalize(n) === n );
-          for (let j = 0; j < batch.length; j++) {
-            const address = batch[j];
-            const name = allnames[j];
-            ensMap[address] = name != null && name.length > 0 ? name : address;
-            // const normalized = normalize(address);
+        if (!state.halt) {
+          for (let i = 0; i < addresses.length; i += ENSOWNERBATCHSIZE) {
+            const batch = addresses.slice(i, parseInt(i) + ENSOWNERBATCHSIZE);
+            const allnames = await ensReverseRecordsContract.getNames(batch);
+            // TODO: check for normalised. const validNames = allnames.filter((n) => normalize(n) === n );
+            for (let j = 0; j < batch.length; j++) {
+              const address = batch[j];
+              const name = allnames[j];
+              ensMap[address] = name != null && name.length > 0 ? name : address;
+              // const normalized = normalize(address);
+            }
+            totalRecords = parseInt(totalRecords) + batch.length;
+            state.sync.completed = totalRecords;
+            if (state.halt) {
+              break;
+            }
           }
-          totalRecords = parseInt(totalRecords) + batch.length;
-          state.sync.completed = totalRecords;
+          ensMap["0x0000000000000000000000000000000000000000".toLowerCase()] = "(null)";
+          ensMap["0x000000000000000000000000000000000000dEaD".toLowerCase()] = "(dEaD)";
+          ensMap["0x00000000006c3852cbEf3e08E8dF289169EdE581".toLowerCase()] = "(OpenSea:Seaport1.1)";
+          ensMap["0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85".toLowerCase()] = "(ENS)";
+          ensMap["0x60cd862c9C687A9dE49aecdC3A99b74A4fc54aB6".toLowerCase()] = "(MoonCatRescue)";
+          ensMap["0x74312363e45DCaBA76c59ec49a7Aa8A65a67EeD3".toLowerCase()] = "(X2Y2:Exchange)";
+          ensMap["0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2".toLowerCase()] = "(WETH)";
+          state.ensMap = ensMap;
         }
-        ensMap["0x0000000000000000000000000000000000000000".toLowerCase()] = "(null)";
-        ensMap["0x000000000000000000000000000000000000dEaD".toLowerCase()] = "(dEaD)";
-        ensMap["0x00000000006c3852cbEf3e08E8dF289169EdE581".toLowerCase()] = "(OpenSea:Seaport1.1)";
-        ensMap["0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85".toLowerCase()] = "(ENS)";
-        ensMap["0x60cd862c9C687A9dE49aecdC3A99b74A4fc54aB6".toLowerCase()] = "(MoonCatRescue)";
-        ensMap["0x74312363e45DCaBA76c59ec49a7Aa8A65a67EeD3".toLowerCase()] = "(X2Y2:Exchange)";
-        ensMap["0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2".toLowerCase()] = "(WETH)";
-        state.ensMap = ensMap;
-        // console.log(JSON.stringify(ensMap, null, 0));
 
         state.sync.inProgress = false;
       }
