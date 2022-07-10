@@ -41,6 +41,10 @@ const IPCs = {
                 <div class="mt-1 flex-grow-1">
                 </div>
 
+                <div v-if="sync.inProgress" class="mt-1 pr-1 text-right">
+                  <font size="-2" v-b-popover.hover.top="'Blah'">{{ sync.section }}</font>
+                </div>
+
                 <div class="mt-2" style="width: 200px;">
                   <b-progress v-if="sync.inProgress" height="1.5rem" :max="sync.total" :label="'((sync.completed/sync.total)*100).toFixed(2) + %'" show-progress :animated="sync.inProgress" :variant="sync.inProgress ? 'success' : 'secondary'" v-b-popover.hover.top="'Click on the Sync(ing) button to (un)pause'">
                     <b-progress-bar :value="sync.completed">
@@ -534,13 +538,13 @@ const ipcsModule = {
 
           const tokenIds = [];
           for (let i = 0; i < ipcData[0].length; i++) {
-            const ipcId = parseInt(fromId) + i;
-            tokenIds.push(ipcId);
+            const tokenId = parseInt(fromId) + i;
+            tokenIds.push(tokenId);
           }
           const ownerData = await erc721Helper.ownersByTokenIds(IPCADDRESS, tokenIds);
 
           for (let i = 0; i < ipcData[0].length; i++) {
-            const ipcId = parseInt(fromId) + i;
+            const tokenId = parseInt(fromId) + i;
             const owner = ownerData[0][i] && ownerData[1][i] || null;
             if (owner != null) {
               const lowerOwner = owner.toLowerCase();
@@ -549,14 +553,14 @@ const ipcsModule = {
               }
             }
             const ipc = {
-              token_id: ipcId,
+              token_id: tokenId,
               name: ipcData[0][i],
               owner: owner,
               attribute_seed: ipcData[1][i],
               dna: ipcData[2][i],
               experience: parseInt(ipcData[3][i]),
               birth: parseInt(ipcData[4][i]),
-              price: prices[ipcId] || null,
+              price: prices[tokenId] || null,
             }
             const info = IPCLib.ipc_create_ipc_from_json(ipc);
             const attributes = [];
@@ -569,7 +573,7 @@ const ipcsModule = {
             attributes.push({ trait_type: 'eye-color', value: IPCEnglish.Color[info.eye_color] });
             attributes.push({ trait_type: 'handedness', value: IPCEnglish.Handedness[info.handedness] });
 
-            collectionTokens[ipcId] = { ...ipc, info: info, attributes: attributes };
+            collectionTokens[tokenId] = { ...ipc, info: info, attributes: attributes };
           }
           state.sync.completed = Object.keys(collectionTokens).length;
           fromId = toId;
