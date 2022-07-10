@@ -600,6 +600,7 @@ const ipcsModule = {
             attributes.push({ trait_type: 'hair-color', value: IPCEnglish.Color[info.hair_color] });
             attributes.push({ trait_type: 'eye-color', value: IPCEnglish.Color[info.eye_color] });
             attributes.push({ trait_type: 'handedness', value: IPCEnglish.Handedness[info.handedness] });
+            attributes.push({ trait_type: 'vintage', value: moment.unix(ipcData[4][i]).format("YYYY") });
             collectionTokens[tokenId] = { ...ipc, info: info, attributes: attributes };
           }
           state.sync.completed = Object.keys(collectionTokens).length;
