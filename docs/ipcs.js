@@ -113,7 +113,7 @@ const IPCs = {
                   <template #cell(details)="data">
                     <font size="-2">
                       <b-row v-for="(attribute, i) in data.item.attributes" v-bind:key="i" class="m-0 p-0">
-                        <b-col cols="2" class="my-0 mx-1 py-0 px-1 text-right">{{ attribute.trait_type }}</b-col>
+                        <b-col cols="2" class="my-0 mx-1 py-0 px-1 text-right">{{ slugToTitle(attribute.trait_type) }}</b-col>
                         <b-col class="my-0 mx-1 py-0 px-1 "><b>{{ attribute.value }}</b></b-col>
                       </b-row>
                     </font>
@@ -364,6 +364,9 @@ const IPCs = {
       }
       return null;
     },
+    slugToTitle(slug) {
+      return slugToTitle(slug);
+    },
     getSortedTraitsForCollectionTokensAttributes(category) {
       const results = [];
       for (let attributeKey in this.collectionTokensAttributesWithCounts[category]) {
@@ -541,7 +544,7 @@ const ipcsModule = {
         const erc721Helper = new ethers.Contract(ERC721HELPERADDRESS, ERC721HELPERABI, provider);
 
         const startId = 1;
-        const endId = 1; // TODO 12000;
+        const endId = 1000; // TODO 12000;
         const batchSize = 250;
 
         let fromId = startId;
@@ -568,7 +571,7 @@ const ipcsModule = {
 
           for (let i = 0; i < ipcData[0].length; i++) {
             const ipcId = parseInt(fromId) + i;
-            console.log(ipcId + " " + ipcData[0][i] + " " + ipcData[1][i] + " " + ipcData[2][i] + " " + ipcData[3][i]);
+            // console.log(ipcId + " " + ipcData[0][i] + " " + ipcData[1][i] + " " + ipcData[2][i] + " " + ipcData[3][i]);
             const owner = ownerData[0][i] && ownerData[1][i] || null;
             if (owner != null) {
               const lowerOwner = owner.toLowerCase();
@@ -586,7 +589,7 @@ const ipcsModule = {
               birth: parseInt(ipcData[4][i]),
             }
             const info = IPCLib.ipc_create_ipc_from_json(ipc);
-            console.log("IPCLib.info: " + JSON.stringify(info, null, 2));
+            // console.log("IPCLib.info: " + JSON.stringify(info, null, 2));
             // const labelledInfo = IPCLib.ipc_create_label_ipc(ipc, IPCEnglish);
             // console.log("IPCLib.labelledInfo: " + JSON.stringify(labelledInfo, null, 2));
 
@@ -605,9 +608,9 @@ const ipcsModule = {
             attributes.push({ trait_type: 'subrace', value: IPCEnglish.Subrace[info.subrace] });
             attributes.push({ trait_type: 'gender', value: IPCEnglish.Gender[info.gender] });
             attributes.push({ trait_type: 'height', value: parseInt(info.height / 12) + '\'' + info.height % 12 + '\"' });
-            attributes.push({ trait_type: 'skin_color', value: IPCEnglish.Color[info.skin_color] });
-            attributes.push({ trait_type: 'hair_color', value: IPCEnglish.Color[info.hair_color] });
-            attributes.push({ trait_type: 'eye_color', value: IPCEnglish.Color[info.eye_color] });
+            attributes.push({ trait_type: 'skin-color', value: IPCEnglish.Color[info.skin_color] });
+            attributes.push({ trait_type: 'hair-color', value: IPCEnglish.Color[info.hair_color] });
+            attributes.push({ trait_type: 'eye-color', value: IPCEnglish.Color[info.eye_color] });
             attributes.push({ trait_type: 'handedness', value: IPCEnglish.Handedness[info.handedness] });
 
             collectionTokens[ipcId] = { ...ipc, info: info, attributes: attributes };

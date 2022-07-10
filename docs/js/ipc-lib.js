@@ -116,51 +116,6 @@ const IPCLeftHandPercentByRace = [ 0, 15, 15, 10, 15, 5 ];
 const IPCMalePercentByRace = [ 0, 50, 55, 75, 75, 5 ];
 const IPCBaseHeightByRace = [ 0, 71, 60, 46, 70, 5 ];
 
-const IPCMap = {
-  race: {
-    0: "Unknown",
-    1: "Elf",
-    2: "Human",
-    3: "Dwarf",
-    4: "Orc",
-  },
-  subrace: {
-    0: "Unknown Elf",
-    1: "Night Elf",
-    2: "Wood Elf",
-    3: "High Elf",
-    4: "Sun Elf",
-    5: "Dark Elf",
-
-    6: "Unknown Human",
-    7: "Mythical Human",
-    8: "Nordic Human",
-    9: "Eastern Human",
-    10: "Coastal Human",
-    11: "Southern Human",
-
-    12: "Unknown Dwarf",
-    13: "Quarry Dwarf",
-    14: "Mountain Dwarf",
-    15: "Lumber Dwarf",
-    16: "Hill Dwarf",
-    17: "Volcano Dwarf",
-
-    18: "Unknown Orc",
-    19: "Ash Orc",
-    20: "Sand Orc",
-    21: "Plains Orc",
-    22: "Swamp Orc",
-    23: "Blood Orc",
-  },
-  gender: {
-    0: "Unknown",
-    1: "Female",
-    2: "Male",
-    3: "Non-Binary",
-  },
-};
-
 // Race
 const IPC_UNKNOWN_RACE = 0;
 const IPC_ELF = 1;
@@ -951,7 +906,6 @@ function ipc_get_subrace_properties(subrace)
 
 function ipc_calculate_attributes(attribute_seed)
 {
-    console.log("ipc_calculate_attributes - attribute_seed: " + attribute_seed);
     let attribute_bytes = new Array();
 
     // Convert hex string to individual bytes.
@@ -1068,9 +1022,7 @@ function ipc_create_label_ipc(ipc, IPCLang)
 function ipc_create_ipc_from_json(json_ipc)
 {
     let dna_bytes = ipc_calculate_dna(json_ipc.dna);
-    console.log("dna_bytes: " + dna_bytes);
     let attribute_bytes = ipc_calculate_attributes(json_ipc.attribute_seed);
-    console.log("attribute_bytes: " + attribute_bytes);
 
     let ipc = new t_ipc();
 
@@ -1148,7 +1100,6 @@ const IPCLib =
     IPCMalePercentByRace: IPCMalePercentByRace,
     IPCBaseHeightByRace: IPCBaseHeightByRace,
 
-    IPCMap: IPCMap,
     // Race
     IPC_UNKNOWN_RACE: IPC_UNKNOWN_RACE,
     IPC_ELF: IPC_ELF,
