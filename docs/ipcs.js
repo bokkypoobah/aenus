@@ -360,6 +360,7 @@ const IPCs = {
       } else {
         Vue.set(this.collectionAttributeFilter[attribute], option, true);
       }
+      console.log("collectionFilterChange: " + JSON.stringify(this.collectionAttributeFilter));
     },
     updateURL(where) {
       this.$router.push('/ipcs/' + where);
