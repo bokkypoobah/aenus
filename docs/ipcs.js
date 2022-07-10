@@ -117,7 +117,23 @@ const IPCs = {
                   <b-card no-header no-body class="mt-1">
                     <b-table small fixed striped :fields="collectionTokensFields" :items="pagedFilteredCollectionTokens" head-variant="light">
                       <template #cell(token_id)="data">
-                        {{ data.item.token_id }}
+                        <b-button :id="'popover-target-' + data.item.token_id" variant="link" class="m-0 p-0">
+                          {{ data.item.token_id }}
+                        </b-button>
+                        <b-popover :target="'popover-target-' + data.item.token_id" placement="right">
+                          <template #title>{{ data.item.token_id }}</template>
+                          <b-link :href="'https://opensea.io/assets/ethereum/0x011c77fa577c500deedad364b8af9e8540b808c0/' + data.item.token_id" v-b-popover.hover.bottom="'View in opensea.io'" target="_blank">
+                            OpenSea
+                          </b-link>
+                          <br />
+                          <b-link :href="'https://looksrare.org/collections/0x011c77fa577c500deedad364b8af9e8540b808c0/' + data.item.token_id" v-b-popover.hover.bottom="'View in looksrare.org'" target="_blank">
+                            LooksRare
+                          </b-link>
+                          <br />
+                          <b-link :href="'https://x2y2.io/eth/0x011c77fa577c500deedad364b8af9e8540b808c0/' + data.item.token_id" v-b-popover.hover.bottom="'View in x2y2.io'" target="_blank">
+                            X2Y2
+                          </b-link>
+                        </b-popover>
                       </template>
                       <template #cell(owner)="data">
                         <b-button :id="'popover-target-owner-' + data.item.owner + '-' + data.index" variant="link" class="m-0 p-0">
