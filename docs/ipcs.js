@@ -481,6 +481,8 @@ const ipcsModule = {
         state.sync.total = 0;
         state.sync.error = false;
 
+        const debug = false;
+
         // Retrieve prices
         let continuation = null;
         let prices = {};
@@ -497,7 +499,7 @@ const ipcsModule = {
                state.sync.error = true;
                return [];
             });
-          continuation = data.continuation;
+          continuation = debug ? null : data.continuation;
           if (data && data.tokens) {
             for (const token of data.tokens) {
               prices[token.tokenId] = { price: token.price, validUntil: token.validUntil, source: token.source };
@@ -509,7 +511,7 @@ const ipcsModule = {
 
         // Retrieve IPC data from contracts and erc721 owner data
         const startId = 1;
-        const endId = 12000;
+        const endId = debug ? 25 : 12000;
         const batchSize = 250;
         let fromId = startId;
         let toId;
