@@ -73,10 +73,11 @@ const IPCs = {
                 <div class="mt-1 pl-1">
                   <b-form-select size="sm" v-model="settings.collection.pageSize" :options="pageSizes" v-b-popover.hover.top="'Page size'"></b-form-select>
                 </div>
-                <div v-if="settings.tabIndex == 2" class="mt-1 pl-1">
-                  <b-form-select size="sm" v-model="settings.activityMaxItems" :options="activityMaxItemsOptions" v-b-popover.hover.top="'Max items to display'"></b-form-select>
-                </div>
               </div>
+
+              <!--
+              {{ JSON.stringify(collectionTokensAttributesWithCounts) }}
+              -->
 
               <!-- Collection -->
               <b-card no-header no-body class="mt-1">
@@ -117,24 +118,7 @@ const IPCs = {
                         <b-col class="my-0 mx-1 py-0 px-1 "><b>{{ attribute.value }}</b></b-col>
                       </b-row>
                     </font>
-                    <!--
-                    {{ ipcMap.race[data.item.info.race] }}
-                    {{ JSON.stringify(ipcMap) }}
-                    <br />
-                    {{ JSON.stringify(data.item.info) }}
-                    -->
                   </template>
-                  <!--
-                  <template #cell(attribute_seed)="data">
-                    {{ data.item.attribute_seed }}
-                  </template>
-                  <template #cell(dna)="data">
-                    {{ data.item.dna }}
-                  </template>
-                  <template #cell(experience)="data">
-                    {{ data.item.experience }}
-                  </template>
-                  -->
                   <template #cell(birth)="data">
                     {{ formatTimestamp(data.item.birth) }}
                   </template>
@@ -156,7 +140,6 @@ const IPCs = {
 
       settings: {
         tabIndex: 50, // TODO: Delete?
-        activityMaxItems: 50,
         collection: {
           showInfo: false,
           showFilter: true,
@@ -167,7 +150,6 @@ const IPCs = {
       },
 
       collectionAttributeFilter: {},
-      dailyChartSelectedItems: [],
 
       sortOptions: [
         { value: 'idasc', text: '▲ Id' },
@@ -183,25 +165,6 @@ const IPCs = {
         { value: 10000, text: '10k' },
       ],
 
-      scanBlocksOptions: [
-        { value: 5, text: '5' },
-        { value: 10, text: '10' },
-        { value: 100, text: '100' },
-        { value: 500, text: '500' },
-        { value: 1000, text: '1k' },
-        { value: 5000, text: '5k' },
-        { value: 10000, text: '10k' },
-      ],
-
-      activityMaxItemsOptions: [
-        { value: 10, text: '10' },
-        { value: 50, text: '50' },
-        { value: 100, text: '100' },
-        { value: 500, text: '500' },
-        { value: 1000, text: '1k' },
-        { value: 10000, text: '10k' },
-      ],
-
       collectionTokensFields: [
         { key: 'token_id', label: '#', thStyle: 'width: 5%;', thClass: 'text-right', tdClass: 'text-right' },
         { key: 'owner', label: 'Owner', thStyle: 'width: 15%;'},
@@ -210,26 +173,10 @@ const IPCs = {
         { key: 'birth', label: 'Birth', thStyle: 'width: 15%;'},
       ],
 
-      transfersFields: [
-        { key: 'index', label: '#', thStyle: 'width: 5%;', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
-        { key: 'collection', label: 'Collection', thStyle: 'width: 20%;', sortable: true },
-        { key: 'tokenId', label: 'Token Id', thStyle: 'width: 20%;', sortable: true },
-        { key: 'from', label: 'From', thStyle: 'width: 20%;', sortable: true },
-        { key: 'to', label: 'To', thStyle: 'width: 20%;', sortable: true },
-        { key: 'txHash', label: 'Tx Hash', sortable: true, thStyle: 'width: 15%;' },
-      ],
-
       collectionAttributeFields: [
         { key: 'select', label: '', thStyle: 'width: 10%;' },
         { key: 'attributeOption', label: 'Attribute' /*, sortable: true*/ },
         { key: 'attributeTotal', label: 'Count', /*sortable: true,*/ thStyle: 'width: 30%;', thClass: 'text-right', tdClass: 'text-right' },
-      ],
-
-      mintMonitorCollectionsFields: [
-        { key: 'index', label: '#', thStyle: 'width: 5%;', thClass: 'text-right', tdClass: 'text-right' },
-        { key: 'contract', label: 'Contract', thStyle: 'width: 25%;', thClass: 'text-left', tdClass: 'text-left' },
-        { key: 'mints', label: 'Mints', thStyle: 'width: 5%;', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
-        { key: 'tokens', label: 'Tokens', thStyle: 'width: 65%;' },
       ],
 
     }
@@ -265,25 +212,23 @@ const IPCs = {
     ensMap() {
       return store.getters['ipcs/ensMap'];
     },
-    ipcMap() {
-      return IPCLib.IPCMap;
-    },
     collectionTokensAttributesWithCounts() {
       const collator = { };
       for (const [tokenId, token] of Object.entries(this.collectionTokens)) {
         for (let attribute of token.attributes) {
-            const key = attribute.key;
+            const trait_type = attribute.trait_type;
             const value = attribute.value;
-            if (!collator[key]) {
-              collator[key] = {};
+            if (!collator[trait_type]) {
+              collator[trait_type] = {};
             }
-            if (!collator[key][value]) {
-              collator[key][value] = [token.tokenId];
+            if (!collator[trait_type][value]) {
+              collator[trait_type][value] = [tokenId];
             } else {
-              collator[key][value].push(token.tokenId);
+              collator[trait_type][value].push(tokenId);
             }
         }
       }
+      console.log("collectionTokensAttributesWithCounts: " + JSON.stringify(collator, null, 2));
       return collator;
     },
     filteredCollectionTokens() {
@@ -544,7 +489,7 @@ const ipcsModule = {
         const erc721Helper = new ethers.Contract(ERC721HELPERADDRESS, ERC721HELPERABI, provider);
 
         const startId = 1;
-        const endId = 1000; // TODO 12000;
+        const endId = 10; // TODO 12000;
         const batchSize = 250;
 
         let fromId = startId;
