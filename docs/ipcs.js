@@ -78,15 +78,6 @@ const IPCs = {
                 </div>
               </div>
 
-              <!-- Collection information -->
-              <div v-if="settings.tabIndex == 1">
-                <b-card v-if="settings.collection.showInfo && collectionInfo != null" no-header no-body class="mt-1">
-                  <pre>
-{{ JSON.stringify(collectionInfo, null, 2) }}
-                  </pre>
-                </b-card>
-              </div>
-
               <!-- Collection -->
               <b-card no-header no-body class="mt-1">
                 <b-table small fixed striped :fields="collectionTokensFields" :items="pagedFilteredCollectionTokens" head-variant="light">
@@ -120,11 +111,18 @@ const IPCs = {
                     {{ data.item.name }}
                   </template>
                   <template #cell(details)="data">
+                    <font size="-2">
+                      <b-row v-for="(attribute, i) in data.item.attributes" v-bind:key="i" class="m-0 p-0">
+                        <b-col cols="2" class="my-0 mx-1 py-0 px-1 text-right">{{ attribute.trait_type }}</b-col>
+                        <b-col class="my-0 mx-1 py-0 px-1 "><b>{{ attribute.value }}</b></b-col>
+                      </b-row>
+                    </font>
+                    <!--
                     {{ ipcMap.race[data.item.info.race] }}
-
                     {{ JSON.stringify(ipcMap) }}
                     <br />
                     {{ JSON.stringify(data.item.info) }}
+                    -->
                   </template>
                   <!--
                   <template #cell(attribute_seed)="data">
@@ -589,10 +587,10 @@ const ipcsModule = {
             }
             const info = IPCLib.ipc_create_ipc_from_json(ipc);
             console.log("IPCLib.info: " + JSON.stringify(info, null, 2));
-            const traits = [];
-            traits.push({ trait_type: 'race', value: IPCLib.IPCMap.race[info.race] })
-            traits.push({ trait_type: 'subrace', value: IPCLib.IPCMap.subrace[info.subrace] })
-            collectionTokens[ipcId] = { ...ipc, info: info, traits: traits };
+            const attributes = [];
+            attributes.push({ trait_type: 'race', value: IPCLib.IPCMap.race[info.race] })
+            attributes.push({ trait_type: 'subrace', value: IPCLib.IPCMap.subrace[info.subrace] })
+            collectionTokens[ipcId] = { ...ipc, info: info, attributes: attributes };
           }
           fromId = toId;
         } while (toId < endId);
@@ -600,7 +598,7 @@ const ipcsModule = {
         state.collectionTokens = collectionTokens;
         // console.log(JSON.stringify(ensMap, null, 0));
 
-        console.log("IPCLib.IPCRGBA: " + JSON.stringify(IPCLib.IPCRGBA));
+        // console.log("IPCLib.IPCRGBA: " + JSON.stringify(IPCLib.IPCRGBA));
 
         let addresses = Object.keys(ensMap);
         const ensReverseRecordsContract = new ethers.Contract(ENSREVERSERECORDSADDRESS, ENSREVERSERECORDSABI, provider);
