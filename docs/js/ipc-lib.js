@@ -153,6 +153,12 @@ const IPCMap = {
     22: "Swamp Orc",
     23: "Blood Orc",
   },
+  gender: {
+    0: "Unknown",
+    1: "Female",
+    2: "Male",
+    3: "Non-Binary",
+  },
 };
 
 // Race
