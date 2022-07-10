@@ -143,6 +143,10 @@ const IPCs = {
                         </b-popover>
                       </template>
                       <template #cell(name)="data">
+                        <b-link :href="'http://myipc.io/' + data.item.token_id" v-b-popover.hover.bottom="'View in original website'" target="_blank">
+                          <b-avatar rounded size="7rem" :src="'http://myipc.io/sprites/' + data.item.token_id + '.gif'" style="background-color: #638596"></b-avatar>
+                        </b-link>
+                        <br />
                         {{ data.item.name }}
                         <div v-if="data.item.price" class="mt-2">
                           <font size="-1">
@@ -153,7 +157,7 @@ const IPCs = {
                       <template #cell(details)="data">
                         <font size="-2">
                           <b-row v-for="(attribute, i) in data.item.attributes" v-bind:key="i" class="m-0 p-0">
-                            <b-col cols="2" class="my-0 mx-1 py-0 px-1 text-right">{{ slugToTitle(attribute.trait_type) }}</b-col>
+                            <b-col cols="3" class="my-0 mx-1 py-0 px-1 text-right">{{ slugToTitle(attribute.trait_type) }}</b-col>
                             <b-col class="my-0 mx-1 py-0 px-1 "><b>{{ attribute.value }}</b></b-col>
                           </b-row>
                         </font>
@@ -551,7 +555,7 @@ const ipcsModule = {
         // Retrieve IPC data from contracts and erc721 owner data
         const startId = debug ? 2800 : 1;
         const endId = debug ? 3300 : 12000;
-        const batchSize = 250;
+        const batchSize = 200;
         let fromId = startId;
         let toId;
         const collectionTokens = {};
