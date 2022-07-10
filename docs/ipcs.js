@@ -164,10 +164,10 @@ const IPCs = {
                 <div v-if="settings.tabIndex == 1" class="mt-1 pr-1">
                   <font size="-2" v-b-popover.hover.top="'Blah'">{{ filteredSortedCollectionTokens.length }}</font>
                 </div>
-                <div v-if="settings.tabIndex == 1" class="mt-1 pr-1">
-                  <b-pagination size="sm" v-model="settings.collection.currentPage" :total-rows="filteredSortedCollectionTokens.length" :per-page="settings.collection.pageSize" style="height: 0;"></b-pagination>
+                <div class="mt-1 pr-1">
+                  <b-pagination size="sm" v-model="settings.collection.currentPage" :total-rows="filteredCollectionTokens.length" :per-page="settings.collection.pageSize" style="height: 0;"></b-pagination>
                 </div>
-                <div v-if="settings.tabIndex == 1" class="mt-1 pl-1">
+                <div class="mt-1 pl-1">
                   <b-form-select size="sm" v-model="settings.collection.pageSize" :options="pageSizes" v-b-popover.hover.top="'Page size'"></b-form-select>
                 </div>
                 <div v-if="settings.tabIndex == 2" class="mt-1 pl-1">
@@ -222,7 +222,7 @@ const IPCs = {
 
               <!-- Collection -->
               <b-card no-header no-body class="mt-1">
-                <b-table small fixed striped :items="filteredCollectionTokens" head-variant="light">
+                <b-table small fixed striped :items="pagedFilteredCollectionTokens" head-variant="light">
                   <template #cell(ipcId)="data">
                     {{ data.item.ipcId }}
                   </template>
@@ -242,7 +242,7 @@ const IPCs = {
                     {{ data.item.experience }}
                   </template>
                   <template #cell(timeOfBirth)="data">
-                    {{ data.item.timeOfBirth }}
+                    {{ formatTimestamp(data.item.timeOfBirth) }}
                   </template>
 
                 </b-table>
@@ -666,9 +666,9 @@ const IPCs = {
     filteredSortedCollectionTokens() {
       let results = this.filteredCollectionTokens;
       if (this.settings.collection.sortOption == 'idasc') {
-        results.sort((a, b) => a.tokenId - b.tokenId);
+        results.sort((a, b) => a.ipcId - b.ipcId);
       } else if (this.settings.collection.sortOption == 'iddsc') {
-        results.sort((a, b) => b.tokenId - a.tokenId);
+        results.sort((a, b) => b.ipcId - a.ipcId);
       }
       return results;
     },
@@ -740,6 +740,12 @@ const IPCs = {
       } catch (e) {
         return address.substring(0, length);
       }
+    },
+    formatTimestamp(ts) {
+      if (ts != null) {
+        return moment.unix(ts).format("YYYY-MM-DD HH:mm:ss");
+      }
+      return null;
     },
     getContractOrCollection(address) {
       if (this.mintMonitorCollections && (address in this.mintMonitorCollections)) {
@@ -1140,7 +1146,7 @@ const ipcsModule = {
         const erc721Helper = new ethers.Contract(ERC721HELPERADDRESS, ERC721HELPERABI, provider);
 
         const startId = 1;
-        const endId = 251; // Note: This is +1 TODO: 12001;
+        const endId = 1000; // 12000;
         const batchSize = 250;
 
         let fromId = startId;
@@ -1149,26 +1155,25 @@ const ipcsModule = {
         const ensMap = {};
         do {
           toId = parseInt(fromId) + batchSize;
-          if (toId > endId) {
+          if (toId >= endId) {
             toId = endId;
           }
           console.log("fromId: " + fromId + ", toId: " + toId);
-          const data = await ipcHelper.getBulkIpc(fromId, toId);
-          // console.log(JSON.stringify(data, null, 2));
-          // function getBulkIpc(uint from, uint to) external view returns(
-          // string[] memory names, bytes32[] memory attributeSeeds,
-          // bytes32[] memory dnas, uint128[] memory experiences,
-          // uint128[] memory timeOfBirths) {
+          const ipcData = await ipcHelper.getBulkIpc(fromId, parseInt(toId) + 1);
 
-          const tokenIds = generateRange(fromId, toId - 1, 1);
+          const tokenIds = [];
+          for (let i = 0; i < ipcData[0].length; i++) {
+            const ipcId = parseInt(fromId) + i;
+            tokenIds.push(ipcId);
+          }
           // console.log("tokenIds: " + JSON.stringify(tokenIds));
           const ownerData = await erc721Helper.ownersByTokenIds(IPCADDRESS, tokenIds);
           // console.log("ownerData: " + JSON.stringify(ownerData));
-          //  external view returns(bool[] memory successes, address[] memory owners) {
 
-          for (let i = 0; i < data[0].length; i++) {
-            // console.log(i + " " + data[0]);
+
+          for (let i = 0; i < ipcData[0].length; i++) {
             const ipcId = parseInt(fromId) + i;
+            // console.log(ipcId + " " + ipcData[0][i] + " " + ipcData[1][i] + " " + ipcData[2][i] + " " + ipcData[3][i]);
             const owner = ownerData[0][i] && ownerData[1][i] || null;
             if (owner != null) {
               const lowerOwner = owner.toLowerCase();
@@ -1178,12 +1183,12 @@ const ipcsModule = {
             }
             collectionTokens[ipcId] = {
               ipcId: ipcId,
-              name: data[0][i],
+              name: ipcData[0][i],
               owner: owner,
-              attributeSeed: data[1][i],
-              dna: data[2][i],
-              experience: parseInt(data[3][i]),
-              timeOfBirth: parseInt(data[4][i]),
+              attributeSeed: ipcData[1][i],
+              dna: ipcData[2][i],
+              experience: parseInt(ipcData[3][i]),
+              timeOfBirth: parseInt(ipcData[4][i]),
             }
           }
           fromId = toId;
