@@ -14,6 +14,9 @@ const IPCs = {
             </b-tab>
           </b-tabs>
           -->
+          <b-alert size="sm" :show="!powerOn || network.chainId != 1" variant="primary" class="m-0 my-1">
+            Please connect to the Ethereum mainnet with a web3-enabled browser. Click the [Power] button on the top right.
+          </b-alert>
 
           <b-card no-body no-header :img-src="settings.tabIndex == 1 && collectionInfo && collectionInfo.metadata && collectionInfo.metadata.bannerImageUrl || ''" img-top class="m-0 p-0 border-0">
 
