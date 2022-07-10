@@ -86,7 +86,7 @@ const IPCs = {
                 <!-- Collection Filter -->
                 <b-col v-if="settings.showFilter" cols="2" class="m-0 p-0 border-0">
                   <b-card no-header no-body class="m-0 p-0 border-0">
-                    <b-card-body class="m-0 p-1" style="flex-grow: 1; max-height: 1000px; overflow-y: auto;">
+                    <b-card-body class="m-0 p-1" style="flex-grow: 1; max-height: 2000px; overflow-y: auto;">
                       <div v-for="(attributeKey, attributeIndex) in Object.keys(collectionTokensAttributesWithCounts).sort()" v-bind:key="attributeIndex">
                         <b-card header-class="m-0 px-2 pt-2 pb-0" body-class="p-0" class="m-0 p-0 border-0">
                           <template #header>
@@ -605,6 +605,23 @@ const ipcsModule = {
             attributes.push({ trait_type: 'eye-color', value: IPCEnglish.Color[info.eye_color] });
             attributes.push({ trait_type: 'handedness', value: IPCEnglish.Handedness[info.handedness] });
             attributes.push({ trait_type: 'vintage', value: moment.unix(ipcData[4][i]).format("YYYY") });
+            attributes.push({ trait_type: 'strength', value: info.strength });
+            attributes.push({ trait_type: 'force', value: info.force });
+            attributes.push({ trait_type: 'sustain', value: info.sustain });
+            attributes.push({ trait_type: 'tolerance', value: info.tolerance });
+            attributes.push({ trait_type: 'dexterity', value: info.dexterity });
+            attributes.push({ trait_type: 'speed', value: info.speed });
+            attributes.push({ trait_type: 'precision', value: info.precision });
+            attributes.push({ trait_type: 'reaction', value: info.reaction });
+            attributes.push({ trait_type: 'intelligence', value: info.intelligence });
+            attributes.push({ trait_type: 'memory', value: info.memory });
+            attributes.push({ trait_type: 'processing', value: info.processing });
+            attributes.push({ trait_type: 'reasoning', value: info.reasoning });
+            attributes.push({ trait_type: 'constitution', value: info.constitution });
+            attributes.push({ trait_type: 'healing', value: info.healing });
+            attributes.push({ trait_type: 'fortitude', value: info.fortitude });
+            attributes.push({ trait_type: 'vitality', value: info.vitality });
+            attributes.push({ trait_type: 'luck', value: info.luck });
             collectionTokens[tokenId] = { ...ipc, info: info, attributes: attributes };
           }
           state.sync.completed = Object.keys(collectionTokens).length;
