@@ -1098,9 +1098,10 @@ const ipcsModule = {
         state.sync.inProgress = true;
 
         const ipcHelper = new ethers.Contract(IPCHELPERADDRESS, IPCHELPERABI, provider);
+        const erc721Helper = new ethers.Contract(ERC721HELPERADDRESS, ERC721HELPERABI, provider);
 
         const startId = 1;
-        const endId = 30; // TODO: 12000;
+        const endId = 31; // Note: This is +1 TODO: 12001;
         const batchSize = 10;
 
         let fromId = startId;
@@ -1119,12 +1120,19 @@ const ipcsModule = {
           // bytes32[] memory dnas, uint128[] memory experiences,
           // uint128[] memory timeOfBirths) {
 
+          const tokenIds = generateRange(fromId, toId - 1, 1);
+          console.log("tokenIds: " + JSON.stringify(tokenIds));
+          const ownerData = await erc721Helper.ownersByTokenIds(IPCADDRESS, tokenIds);
+          console.log("ownerData: " + JSON.stringify(ownerData));
+          //  external view returns(bool[] memory successes, address[] memory owners) {
+
           for (let i = 0; i < data[0].length; i++) {
             // console.log(i + " " + data[0]);
             const ipcId = parseInt(fromId) + i;
             collectionTokens[ipcId] = {
               ipcId: ipcId,
               name: data[0][i],
+              owner: ownerData[0][i] && ownerData[1][i] || null,
               attributeSeed: data[1][i],
               dna: data[2][i],
               experience: parseInt(data[3][i]),
