@@ -41,7 +41,7 @@ const IPCs = {
                 <div class="mt-1 flex-grow-1">
                 </div>
 
-                <div v-if="settings.tabIndex == 0 || settings.tabIndex == 1 || settings.tabIndex == 2" class="mt-2" style="width: 200px;">
+                <div class="mt-2" style="width: 200px;">
                   <b-progress v-if="sync.inProgress" height="1.5rem" :max="sync.total" :label="'((sync.completed/sync.total)*100).toFixed(2) + %'" show-progress :animated="sync.inProgress" :variant="sync.inProgress ? 'success' : 'secondary'" v-b-popover.hover.top="'Click on the Sync(ing) button to (un)pause'">
                     <b-progress-bar :value="sync.completed">
                       {{ sync.completed + '/' + sync.total + ' ' + ((sync.completed / sync.total) * 100).toFixed(0) + '%' }}
@@ -430,11 +430,11 @@ const ipcsModule = {
     },
     sync: {
       inProgress: false,
-      error: false,
-      total: null,
+      section: null,
       completed: null,
+      total: null,
+      error: false,
     },
-
     collectionInfo: {},
     collectionTokens: {},
     ensMap: {},
@@ -467,9 +467,47 @@ const ipcsModule = {
           state.filter = { ...state.filter, ...filterUpdate };
         }
 
-        state.sync.completed = 0;
-        state.sync.error = false;
         state.sync.inProgress = true;
+        state.sync.section = "Retrieving prices";
+        state.sync.completed = 0;
+        state.sync.total = 0;
+        state.sync.error = false;
+
+        // sync: {
+        //   inProgress: false,
+        //   section: null,
+        //   completed: null,
+        //   total: null,
+        //   error: false,
+        // },
+
+
+        // Retrieve prices
+        let continuation = null;
+        let prices = {};
+        do {
+          let url = "https://api.reservoir.tools/tokens/bootstrap/v1?contract=" + IPCADDRESS +
+            "&limit=500" +
+            (continuation != null ? "&continuation=" + continuation : '');
+          logInfo("nftsModule", "mutations.updateCollection() - url: " + url);
+          const data = await fetch(url)
+            .then(handleErrors)
+            .then(response => response.json())
+            .catch(function(error) {
+               console.log("ERROR - updateCollection: " + error);
+               state.sync.error = true;
+               return [];
+            });
+          continuation = data.continuation;
+          if (data && data.tokens) {
+            for (const token of data.tokens) {
+              prices[token.tokenId] = { tokenId: token.tokenId, price: token.price, validUntil: token.validUntil, source: token.source };
+            }
+          }
+          state.sync.completed = Object.keys(prices).length;
+          state.sync.total = state.sync.completed;
+        } while (continuation != null && !state.halt && !state.sync.error /* && totalRecords < 20 && totalRecords < state.sync.total*/);
+        console.log(JSON.stringify(prices, null, 2));
 
         const ipcHelper = new ethers.Contract(IPCHELPERADDRESS, IPCHELPERABI, provider);
         const erc721Helper = new ethers.Contract(ERC721HELPERADDRESS, ERC721HELPERABI, provider);
@@ -556,27 +594,6 @@ const ipcsModule = {
         ensMap["0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2".toLowerCase()] = "(WETH)";
         state.ensMap = ensMap;
         // console.log(JSON.stringify(ensMap, null, 0));
-
-        let totalRecords = 0;
-        let continuation = null;
-        // let tokens = {};
-        do {
-          let url = "https://api.reservoir.tools/tokens/bootstrap/v1?contract=" + IPCADDRESS +
-            "&limit=500" +
-            (continuation != null ? "&continuation=" + continuation : '');
-          logInfo("nftsModule", "mutations.updateCollection() - url: " + url);
-          const data = await fetch(url)
-            .then(handleErrors)
-            .then(response => response.json())
-            .catch(function(error) {
-               console.log("ERROR - updateCollection: " + error);
-               state.sync.error = true;
-               return [];
-            });
-          continuation = data.continuation;
-          console.log("Fetched: " + data.tokens.length);
-          // console.log(JSON.stringify(data, null, 2));
-        } while (continuation != null && !state.halt && !state.sync.error /* && totalRecords < 20 && totalRecords < state.sync.total*/);
 
         state.sync.inProgress = false;
       }
