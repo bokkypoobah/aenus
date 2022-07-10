@@ -275,7 +275,7 @@ const IPCs = {
       return store.getters['ipcs/ensMap'];
     },
     collectionTokensAttributesWithCounts() {
-      const collator = { };
+      const collator = {};
       for (const [tokenId, token] of Object.entries(this.collectionTokens)) {
         for (let attribute of token.attributes) {
             const trait_type = attribute.trait_type;
@@ -621,24 +621,24 @@ const ipcsModule = {
             attributes.push({ trait_type: 'eye-color', value: IPCEnglish.Color[info.eye_color] });
             attributes.push({ trait_type: 'handedness', value: IPCEnglish.Handedness[info.handedness] });
             attributes.push({ trait_type: 'vintage', value: moment.unix(ipcData[4][i]).format("YYYY") });
-            attributes.push({ trait_type: 'strength', value: info.strength });
-            attributes.push({ trait_type: 'force', value: info.force });
-            attributes.push({ trait_type: 'sustain', value: info.sustain });
-            attributes.push({ trait_type: 'tolerance', value: info.tolerance });
-            attributes.push({ trait_type: 'dexterity', value: info.dexterity });
-            attributes.push({ trait_type: 'speed', value: info.speed });
-            attributes.push({ trait_type: 'precision', value: info.precision });
-            attributes.push({ trait_type: 'reaction', value: info.reaction });
-            attributes.push({ trait_type: 'intelligence', value: info.intelligence });
-            attributes.push({ trait_type: 'memory', value: info.memory });
-            attributes.push({ trait_type: 'processing', value: info.processing });
-            attributes.push({ trait_type: 'reasoning', value: info.reasoning });
-            attributes.push({ trait_type: 'constitution', value: info.constitution });
-            attributes.push({ trait_type: 'healing', value: info.healing });
-            attributes.push({ trait_type: 'fortitude', value: info.fortitude });
-            attributes.push({ trait_type: 'vitality', value: info.vitality });
-            attributes.push({ trait_type: 'luck', value: info.luck });
-            collectionTokens[tokenId] = { ...ipc, info: info, attributes: attributes };
+            // attributes.push({ trait_type: 'strength', value: info.strength });
+            // attributes.push({ trait_type: 'force', value: info.force });
+            // attributes.push({ trait_type: 'sustain', value: info.sustain });
+            // attributes.push({ trait_type: 'tolerance', value: info.tolerance });
+            // attributes.push({ trait_type: 'dexterity', value: info.dexterity });
+            // attributes.push({ trait_type: 'speed', value: info.speed });
+            // attributes.push({ trait_type: 'precision', value: info.precision });
+            // attributes.push({ trait_type: 'reaction', value: info.reaction });
+            // attributes.push({ trait_type: 'intelligence', value: info.intelligence });
+            // attributes.push({ trait_type: 'memory', value: info.memory });
+            // attributes.push({ trait_type: 'processing', value: info.processing });
+            // attributes.push({ trait_type: 'reasoning', value: info.reasoning });
+            // attributes.push({ trait_type: 'constitution', value: info.constitution });
+            // attributes.push({ trait_type: 'healing', value: info.healing });
+            // attributes.push({ trait_type: 'fortitude', value: info.fortitude });
+            // attributes.push({ trait_type: 'vitality', value: info.vitality });
+            // attributes.push({ trait_type: 'luck', value: info.luck });
+            collectionTokens[tokenId] = { ...ipc, attributes: attributes };
           }
           state.sync.completed = Object.keys(collectionTokens).length;
           fromId = toId;
