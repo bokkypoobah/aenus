@@ -260,30 +260,26 @@ const IPCs = {
     },
     filteredCollectionTokens() {
       let results = [];
-      for (const [tokenId, token] of Object.entries(this.collectionTokens)) {
-        results.push(token);
+      if (Object.keys(this.collectionAttributeFilter) == 0) {
+        for (const [tokenId, token] of Object.entries(this.collectionTokens)) {
+          results.push(token);
+        }
+      } else {
+        let selectedTokenIds = [];
+        for (const [trait, value] of Object.entries(this.collectionAttributeFilter)) {
+          let thisTraitTokenIds = [];
+          for (const selectedValue of Object.keys(value)) {
+            const tokenIds = this.collectionTokensAttributesWithCounts[trait][selectedValue];
+            thisTraitTokenIds = [...thisTraitTokenIds, ...tokenIds];
+          }
+          if (selectedTokenIds.length == 0) {
+            selectedTokenIds = thisTraitTokenIds;
+          } else {
+            selectedTokenIds = selectedTokenIds.filter(tokenId => thisTraitTokenIds.includes(tokenId));
+          }
+        }
+        results = Object.values(selectedTokenIds).map(tokenId => this.collectionTokens[tokenId]);
       }
-
-      // if (Object.keys(this.collectionAttributeFilter) == 0) {
-      //   for (const [tokenId, token] of Object.entries(this.collectionTokens)) {
-      //     results.push(token);
-      //   }
-      // } else {
-      //   let selectedTokenIds = [];
-      //   for (const [trait, value] of Object.entries(this.collectionAttributeFilter)) {
-      //     let thisTraitTokenIds = [];
-      //     for (const selectedValue of Object.keys(value)) {
-      //       const tokenIds = this.collectionTokensAttributesWithCounts[trait][selectedValue];
-      //       thisTraitTokenIds = [...thisTraitTokenIds, ...tokenIds];
-      //     }
-      //     if (selectedTokenIds.length == 0) {
-      //       selectedTokenIds = thisTraitTokenIds;
-      //     } else {
-      //       selectedTokenIds = selectedTokenIds.filter(tokenId => thisTraitTokenIds.includes(tokenId));
-      //     }
-      //   }
-      //   results = Object.values(selectedTokenIds).map(tokenId => this.collectionTokens[tokenId]);
-      // }
       return results;
     },
     filteredSortedCollectionTokens() {
@@ -360,7 +356,7 @@ const IPCs = {
       } else {
         Vue.set(this.collectionAttributeFilter[attribute], option, true);
       }
-      console.log("collectionFilterChange: " + JSON.stringify(this.collectionAttributeFilter));
+      // console.log("collectionFilterChange: " + JSON.stringify(this.collectionAttributeFilter));
     },
     updateURL(where) {
       this.$router.push('/ipcs/' + where);
@@ -517,7 +513,7 @@ const ipcsModule = {
         const erc721Helper = new ethers.Contract(ERC721HELPERADDRESS, ERC721HELPERABI, provider);
 
         const startId = 1;
-        const endId = 10; // TODO 12000;
+        const endId = 12000; // TODO 12000;
         const batchSize = 250;
 
         let fromId = startId;
