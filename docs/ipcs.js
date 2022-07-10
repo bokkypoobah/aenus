@@ -3,6 +3,7 @@ const IPCs = {
     <div class="m-0 p-0">
       <b-card no-body no-header class="border-0">
         <b-card no-body class="p-0 mt-1">
+
           <!--
           <b-tabs card align="left" no-body v-model="settings.tabIndex" active-tab-class="m-0 p-0">
             <b-tab disabled title="Transfers (WIP)" @click="updateURL('transfers');">
@@ -218,6 +219,12 @@ const IPCs = {
                   </pre>
                 </b-card>
               </div>
+
+              <!-- Collection -->
+              <b-card no-header no-body class="mt-1">
+                <b-table small fixed striped :items="filteredCollectionTokens" head-variant="light">
+                </b-table>
+              </b-card>
 
               <!-- Collection information -->
               <b-card v-if="settings.tabIndex == 0" no-header no-body class="mt-1">
@@ -605,26 +612,30 @@ const IPCs = {
     },
     filteredCollectionTokens() {
       let results = [];
-      if (Object.keys(this.collectionAttributeFilter) == 0) {
-        for (const [tokenId, token] of Object.entries(this.collectionTokens)) {
-          results.push(token);
-        }
-      } else {
-        let selectedTokenIds = [];
-        for (const [trait, value] of Object.entries(this.collectionAttributeFilter)) {
-          let thisTraitTokenIds = [];
-          for (const selectedValue of Object.keys(value)) {
-            const tokenIds = this.collectionTokensAttributesWithCounts[trait][selectedValue];
-            thisTraitTokenIds = [...thisTraitTokenIds, ...tokenIds];
-          }
-          if (selectedTokenIds.length == 0) {
-            selectedTokenIds = thisTraitTokenIds;
-          } else {
-            selectedTokenIds = selectedTokenIds.filter(tokenId => thisTraitTokenIds.includes(tokenId));
-          }
-        }
-        results = Object.values(selectedTokenIds).map(tokenId => this.collectionTokens[tokenId]);
+      for (const [tokenId, token] of Object.entries(this.collectionTokens)) {
+        results.push(token);
       }
+
+      // if (Object.keys(this.collectionAttributeFilter) == 0) {
+      //   for (const [tokenId, token] of Object.entries(this.collectionTokens)) {
+      //     results.push(token);
+      //   }
+      // } else {
+      //   let selectedTokenIds = [];
+      //   for (const [trait, value] of Object.entries(this.collectionAttributeFilter)) {
+      //     let thisTraitTokenIds = [];
+      //     for (const selectedValue of Object.keys(value)) {
+      //       const tokenIds = this.collectionTokensAttributesWithCounts[trait][selectedValue];
+      //       thisTraitTokenIds = [...thisTraitTokenIds, ...tokenIds];
+      //     }
+      //     if (selectedTokenIds.length == 0) {
+      //       selectedTokenIds = thisTraitTokenIds;
+      //     } else {
+      //       selectedTokenIds = selectedTokenIds.filter(tokenId => thisTraitTokenIds.includes(tokenId));
+      //     }
+      //   }
+      //   results = Object.values(selectedTokenIds).map(tokenId => this.collectionTokens[tokenId]);
+      // }
       return results;
     },
     filteredSortedCollectionTokens() {
@@ -1094,7 +1105,7 @@ const ipcsModule = {
 
         let fromId = startId;
         let toId;
-        const collection = {};
+        const collectionTokens = {};
         do {
           toId = parseInt(fromId) + batchSize;
           if (toId > endId) {
@@ -1111,7 +1122,8 @@ const ipcsModule = {
           for (let i = 0; i < data[0].length; i++) {
             // console.log(i + " " + data[0]);
             const ipcId = parseInt(fromId) + i;
-            collection[ipcId] = {
+            collectionTokens[ipcId] = {
+              ipcId: ipcId,
               name: data[0][i],
               attributeSeed: data[1][i],
               dna: data[2][i],
@@ -1122,7 +1134,8 @@ const ipcsModule = {
 
           fromId = toId;
         } while (toId < endId);
-        console.log(JSON.stringify(collection, null, 0));
+        console.log(JSON.stringify(collectionTokens, null, 0));
+        state.collectionTokens = collectionTokens;
 
         if (false) {
         let url = "https://api.reservoir.tools/collection/v2?id=" + state.filter.collection.address;
