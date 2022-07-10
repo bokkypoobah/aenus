@@ -144,9 +144,13 @@ const IPCs = {
                       </template>
                       <template #cell(name)="data">
                         {{ data.item.name }}
+                        <div v-if="data.item.price" class="mt-2">
+                          <font size="-1">
+                            <b-badge variant="success" v-b-popover.hover.bottom="'On ' + data.item.price.source">{{ data.item.price.price }}</b-badge>
+                          </font>
+                        </div>
                       </template>
                       <template #cell(details)="data">
-                        {{ data.item.price || 'No price'}}
                         <font size="-2">
                           <b-row v-for="(attribute, i) in data.item.attributes" v-bind:key="i" class="m-0 p-0">
                             <b-col cols="2" class="my-0 mx-1 py-0 px-1 text-right">{{ slugToTitle(attribute.trait_type) }}</b-col>
@@ -191,8 +195,6 @@ const IPCs = {
         { value: 'iddsc', text: '▼ Id' },
         { value: 'priceasc', text: '▲ Price' },
         { value: 'pricedsc', text: '▼ Price' },
-        { value: 'birthasc', text: '▲ Birth' },
-        { value: 'birthdsc', text: '▼ Birth' },
         { value: 'random', text: 'Random' },
       ],
 
@@ -208,9 +210,9 @@ const IPCs = {
       collectionTokensFields: [
         { key: 'token_id', label: '#', thStyle: 'width: 5%;', thClass: 'text-right', tdClass: 'text-right' },
         { key: 'owner', label: 'Owner', thStyle: 'width: 15%;'},
-        { key: 'name', label: 'Name', thStyle: 'width: 15%;'},
-        { key: 'details', label: 'Details', thStyle: 'width: 50%;'},
-        { key: 'birth', label: 'Birth', thStyle: 'width: 15%;'},
+        { key: 'name', label: 'Name & Price', thStyle: 'width: 15%;'},
+        { key: 'details', label: 'Details', thStyle: 'width: 25%;'},
+        { key: 'birth', label: 'Birth', thStyle: 'width: 20%;'},
       ],
 
       collectionAttributeFields: [
@@ -297,16 +299,6 @@ const IPCs = {
     },
     filteredSortedCollectionTokens() {
       let results = this.filteredCollectionTokens;
-
-      // { value: 'idasc', text: '▲ Id' },
-      // { value: 'iddsc', text: '▼ Id' },
-      // { value: 'priceasc', text: '▲ Price' },
-      // { value: 'pricedsc', text: '▼ Price' },
-      // { value: 'birthasc', text: '▲ Birth' },
-      // { value: 'birthdsc', text: '▼ Birth' },
-      // { value: 'random', text: 'Random' },
-
-
       if (this.settings.sortOption == 'idasc') {
         results.sort((a, b) => a.token_id - b.token_id);
       } else if (this.settings.sortOption == 'iddsc') {
@@ -324,6 +316,24 @@ const IPCs = {
           } else {
             return pricea - priceb;
           }
+        });
+      } else if (this.settings.sortOption == 'pricedsc') {
+        results.sort((a, b) => {
+          const pricea = a.price && a.price.price || null;
+          const priceb = b.price && b.price.price || null;
+          if (pricea == priceb) {
+            return a.token_id - b.token_id;
+          } else if (pricea != null && priceb == null) {
+            return -1;
+          } else if (pricea == null && priceb != null) {
+            return 1;
+          } else {
+            return priceb - pricea;
+          }
+        });
+      } else {
+        results.sort(() => {
+          return Math.random() - 0.5;
         });
       }
       return results;
@@ -358,10 +368,10 @@ const IPCs = {
         if (name != null) {
           name = name.substring(0, length);
         }
-        return name;
       } catch (e) {
-        return address.substring(0, length);
+        //
       }
+      return address.substring(0, length);
     },
     formatTimestamp(ts) {
       if (ts != null) {
@@ -539,8 +549,8 @@ const ipcsModule = {
         } while (continuation != null && !state.halt && !state.sync.error);
 
         // Retrieve IPC data from contracts and erc721 owner data
-        const startId = 1;
-        const endId = debug ? 25 : 12000;
+        const startId = debug ? 2800 : 1;
+        const endId = debug ? 3300 : 12000;
         const batchSize = 250;
         let fromId = startId;
         let toId;
