@@ -124,6 +124,35 @@ const IPCMap = {
     3: "Dwarf",
     4: "Orc",
   },
+  subrace: {
+    0: "Unknown Elf",
+    1: "Night Elf",
+    2: "Wood Elf",
+    3: "High Elf",
+    4: "Sun Elf",
+    5: "Dark Elf",
+
+    6: "Unknown Human",
+    7: "Mythical Human",
+    8: "Nordic Human",
+    9: "Eastern Human",
+    10: "Coastal Human",
+    11: "Southern Human",
+
+    12: "Unknown Dwarf",
+    13: "Quarry Dwarf",
+    14: "Mountain Dwarf",
+    15: "Lumber Dwarf",
+    16: "Hill Dwarf",
+    17: "Volcano Dwarf",
+
+    18: "Unknown Orc",
+    19: "Ash Orc",
+    20: "Sand Orc",
+    21: "Plains Orc",
+    22: "Swamp Orc",
+    23: "Blood Orc",
+  },
 };
 
 // Race
@@ -1113,6 +1142,7 @@ const IPCLib =
     IPCMalePercentByRace: IPCMalePercentByRace,
     IPCBaseHeightByRace: IPCBaseHeightByRace,
 
+    IPCMap: IPCMap,
     // Race
     IPC_UNKNOWN_RACE: IPC_UNKNOWN_RACE,
     IPC_ELF: IPC_ELF,
