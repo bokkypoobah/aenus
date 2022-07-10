@@ -222,7 +222,7 @@ const IPCs = {
 
               <!-- Collection -->
               <b-card no-header no-body class="mt-1">
-                <b-table small fixed striped :items="pagedFilteredCollectionTokens" head-variant="light">
+                <b-table small fixed striped :fields="collectionTokensFields" :items="pagedFilteredCollectionTokens" head-variant="light">
                   <template #cell(token_id)="data">
                     {{ data.item.token_id }}
                   </template>
@@ -232,6 +232,10 @@ const IPCs = {
                   <template #cell(owner)="data">
                     {{ getShortName(data.item.owner) }}
                   </template>
+                  <template #cell(details)="data">
+                    {{ JSON.stringify(data.item.info) }}
+                  </template>
+                  <!--
                   <template #cell(attribute_seed)="data">
                     {{ data.item.attribute_seed }}
                   </template>
@@ -241,6 +245,7 @@ const IPCs = {
                   <template #cell(experience)="data">
                     {{ data.item.experience }}
                   </template>
+                  -->
                   <template #cell(birth)="data">
                     {{ formatTimestamp(data.item.birth) }}
                   </template>
@@ -554,6 +559,14 @@ const IPCs = {
         { value: 500, text: '500' },
         { value: 1000, text: '1k' },
         { value: 10000, text: '10k' },
+      ],
+
+      collectionTokensFields: [
+        { key: 'token_id', label: '#', thStyle: 'width: 5%;', thClass: 'text-right', tdClass: 'text-right' },
+        { key: 'owner', label: 'Owner', thStyle: 'width: 15%;'},
+        { key: 'name', label: 'Name', thStyle: 'width: 15%;'},
+        { key: 'details', label: 'Details', thStyle: 'width: 50%;'},
+        { key: 'birth', label: 'Birth', thStyle: 'width: 15%;'},
       ],
 
       transfersFields: [
@@ -1146,7 +1159,7 @@ const ipcsModule = {
         const erc721Helper = new ethers.Contract(ERC721HELPERADDRESS, ERC721HELPERABI, provider);
 
         const startId = 1;
-        const endId = 1; // 12000;
+        const endId = 1; // TODO 12000;
         const batchSize = 250;
 
         let fromId = startId;
@@ -1199,6 +1212,8 @@ const ipcsModule = {
         // console.log(JSON.stringify(collectionTokens, null, 0));
         state.collectionTokens = collectionTokens;
         // console.log(JSON.stringify(ensMap, null, 0));
+
+        console.log("IPCLib.IPCRGBA: " + JSON.stringify(IPCLib.IPCRGBA));
 
         let addresses = Object.keys(ensMap);
         const ensReverseRecordsContract = new ethers.Contract(ENSREVERSERECORDSADDRESS, ENSREVERSERECORDSABI, provider);

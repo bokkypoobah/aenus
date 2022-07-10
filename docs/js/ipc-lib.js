@@ -116,6 +116,16 @@ const IPCLeftHandPercentByRace = [ 0, 15, 15, 10, 15, 5 ];
 const IPCMalePercentByRace = [ 0, 50, 55, 75, 75, 5 ];
 const IPCBaseHeightByRace = [ 0, 71, 60, 46, 70, 5 ];
 
+const IPCMap = {
+  race: {
+    0: "Unknown",
+    1: "Elf",
+    2: "Human",
+    3: "Dwarf",
+    4: "Orc",
+  },
+};
+
 // Race
 const IPC_UNKNOWN_RACE = 0;
 const IPC_ELF = 1;
