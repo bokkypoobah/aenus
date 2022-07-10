@@ -158,10 +158,10 @@ const IPCs = {
 
                 <div class="mt-1 flex-grow-1">
                 </div>
-                <div v-if="settings.tabIndex == 1" class="mt-1 pr-1">
+                <div class="mt-1 pr-1">
                   <b-form-select size="sm" v-model="settings.collection.sortOption" :options="sortOptions" v-b-popover.hover.top="'Yeah. Sort'"></b-form-select>
                 </div>
-                <div v-if="settings.tabIndex == 1" class="mt-1 pr-1">
+                <div class="mt-1 pr-1">
                   <font size="-2" v-b-popover.hover.top="'Blah'">{{ filteredSortedCollectionTokens.length }}</font>
                 </div>
                 <div class="mt-1 pr-1">
@@ -223,8 +223,8 @@ const IPCs = {
               <!-- Collection -->
               <b-card no-header no-body class="mt-1">
                 <b-table small fixed striped :items="pagedFilteredCollectionTokens" head-variant="light">
-                  <template #cell(ipcId)="data">
-                    {{ data.item.ipcId }}
+                  <template #cell(token_id)="data">
+                    {{ data.item.token_id }}
                   </template>
                   <template #cell(name)="data">
                     {{ data.item.name }}
@@ -232,8 +232,8 @@ const IPCs = {
                   <template #cell(owner)="data">
                     {{ getShortName(data.item.owner) }}
                   </template>
-                  <template #cell(attributeSeed)="data">
-                    {{ data.item.attributeSeed }}
+                  <template #cell(attribute_seed)="data">
+                    {{ data.item.attribute_seed }}
                   </template>
                   <template #cell(dna)="data">
                     {{ data.item.dna }}
@@ -241,8 +241,8 @@ const IPCs = {
                   <template #cell(experience)="data">
                     {{ data.item.experience }}
                   </template>
-                  <template #cell(timeOfBirth)="data">
-                    {{ formatTimestamp(data.item.timeOfBirth) }}
+                  <template #cell(birth)="data">
+                    {{ formatTimestamp(data.item.birth) }}
                   </template>
 
                 </b-table>
@@ -666,9 +666,9 @@ const IPCs = {
     filteredSortedCollectionTokens() {
       let results = this.filteredCollectionTokens;
       if (this.settings.collection.sortOption == 'idasc') {
-        results.sort((a, b) => a.ipcId - b.ipcId);
+        results.sort((a, b) => a.token_id - b.token_id);
       } else if (this.settings.collection.sortOption == 'iddsc') {
-        results.sort((a, b) => b.ipcId - a.ipcId);
+        results.sort((a, b) => b.token_id - a.token_id);
       }
       return results;
     },
@@ -1182,21 +1182,17 @@ const ipcsModule = {
               }
             }
             const ipc = {
-              ipcId: ipcId, // TODO: Delete
-              id: ipcId,
               token_id: ipcId,
               name: ipcData[0][i],
               owner: owner,
-              attributeSeed: ipcData[1][i], // TODO: Delete
               attribute_seed: ipcData[1][i],
               dna: ipcData[2][i],
               experience: parseInt(ipcData[3][i]),
-              timeOfBirth: parseInt(ipcData[4][i]), // TODO: Delete
               birth: parseInt(ipcData[4][i]),
             }
-            collectionTokens[ipcId] = ipc;
             const info = IPCLib.ipc_create_ipc_from_json(ipc);
             console.log("IPCLib.info: " + JSON.stringify(info, null, 2));
+            collectionTokens[ipcId] = { ...ipc, info: info };
           }
           fromId = toId;
         } while (toId < endId);

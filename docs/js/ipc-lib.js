@@ -1029,7 +1029,7 @@ function ipc_create_ipc_from_json(json_ipc)
 
     let ipc = new t_ipc();
 
-    ipc.id = json_ipc.id;
+    // ipc.id = json_ipc.id;
     ipc.token_id = json_ipc.token_id;
     ipc.name = json_ipc.name;
     // ipc.meta.sprite = json_ipc.meta.sprite;
