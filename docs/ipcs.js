@@ -1146,7 +1146,7 @@ const ipcsModule = {
         const erc721Helper = new ethers.Contract(ERC721HELPERADDRESS, ERC721HELPERABI, provider);
 
         const startId = 1;
-        const endId = 1000; // 12000;
+        const endId = 1; // 12000;
         const batchSize = 250;
 
         let fromId = startId;
@@ -1173,7 +1173,7 @@ const ipcsModule = {
 
           for (let i = 0; i < ipcData[0].length; i++) {
             const ipcId = parseInt(fromId) + i;
-            // console.log(ipcId + " " + ipcData[0][i] + " " + ipcData[1][i] + " " + ipcData[2][i] + " " + ipcData[3][i]);
+            console.log(ipcId + " " + ipcData[0][i] + " " + ipcData[1][i] + " " + ipcData[2][i] + " " + ipcData[3][i]);
             const owner = ownerData[0][i] && ownerData[1][i] || null;
             if (owner != null) {
               const lowerOwner = owner.toLowerCase();
@@ -1181,15 +1181,22 @@ const ipcsModule = {
                 ensMap[lowerOwner] = owner;
               }
             }
-            collectionTokens[ipcId] = {
-              ipcId: ipcId,
+            const ipc = {
+              ipcId: ipcId, // TODO: Delete
+              id: ipcId,
+              token_id: ipcId,
               name: ipcData[0][i],
               owner: owner,
-              attributeSeed: ipcData[1][i],
+              attributeSeed: ipcData[1][i], // TODO: Delete
+              attribute_seed: ipcData[1][i],
               dna: ipcData[2][i],
               experience: parseInt(ipcData[3][i]),
-              timeOfBirth: parseInt(ipcData[4][i]),
+              timeOfBirth: parseInt(ipcData[4][i]), // TODO: Delete
+              birth: parseInt(ipcData[4][i]),
             }
+            collectionTokens[ipcId] = ipc;
+            const info = IPCLib.ipc_create_ipc_from_json(ipc);
+            console.log("IPCLib.info: " + JSON.stringify(info, null, 2));
           }
           fromId = toId;
         } while (toId < endId);
