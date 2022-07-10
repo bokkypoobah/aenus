@@ -223,6 +223,28 @@ const IPCs = {
               <!-- Collection -->
               <b-card no-header no-body class="mt-1">
                 <b-table small fixed striped :items="filteredCollectionTokens" head-variant="light">
+                  <template #cell(ipcId)="data">
+                    {{ data.item.ipcId }}
+                  </template>
+                  <template #cell(name)="data">
+                    {{ data.item.name }}
+                  </template>
+                  <template #cell(owner)="data">
+                    {{ getShortName(data.item.owner) }}
+                  </template>
+                  <template #cell(attributeSeed)="data">
+                    {{ data.item.attributeSeed }}
+                  </template>
+                  <template #cell(dna)="data">
+                    {{ data.item.dna }}
+                  </template>
+                  <template #cell(experience)="data">
+                    {{ data.item.experience }}
+                  </template>
+                  <template #cell(timeOfBirth)="data">
+                    {{ data.item.timeOfBirth }}
+                  </template>
+
                 </b-table>
               </b-card>
 
@@ -589,6 +611,9 @@ const IPCs = {
     collectionTokens() {
       return store.getters['ipcs/collectionTokens'];
     },
+    ensMap() {
+      return store.getters['ipcs/ensMap'];
+    },
     mintMonitorCollections() {
       return store.getters['ipcs/mintMonitorCollections'];
     },
@@ -704,6 +729,18 @@ const IPCs = {
     },
   },
   methods: {
+    getShortName(address, length = 32) {
+      const addressLower = address.toLowerCase();
+      try {
+        let name = this.ensMap[addressLower];
+        if (name != null) {
+          name = name.substring(0, length);
+        }
+        return name;
+      } catch (e) {
+        return address.substring(0, length);
+      }
+    },
     getContractOrCollection(address) {
       if (this.mintMonitorCollections && (address in this.mintMonitorCollections)) {
         const collection = this.mintMonitorCollections[address];
@@ -877,6 +914,7 @@ const ipcsModule = {
     transfers: [],
     collectionInfo: {},
     collectionTokens: {},
+    ensMap: {},
     mintMonitorCollections: {},
     halt: false,
     params: null,
@@ -887,6 +925,7 @@ const ipcsModule = {
     transfers: state => state.transfers,
     collectionInfo: state => state.collectionInfo,
     collectionTokens: state => state.collectionTokens,
+    ensMap: state => state.ensMap,
     mintMonitorCollections: state => state.mintMonitorCollections,
     params: state => state.params,
   },
@@ -1101,12 +1140,13 @@ const ipcsModule = {
         const erc721Helper = new ethers.Contract(ERC721HELPERADDRESS, ERC721HELPERABI, provider);
 
         const startId = 1;
-        const endId = 31; // Note: This is +1 TODO: 12001;
-        const batchSize = 10;
+        const endId = 251; // Note: This is +1 TODO: 12001;
+        const batchSize = 250;
 
         let fromId = startId;
         let toId;
         const collectionTokens = {};
+        const ensMap = {};
         do {
           toId = parseInt(fromId) + batchSize;
           if (toId > endId) {
@@ -1121,29 +1161,62 @@ const ipcsModule = {
           // uint128[] memory timeOfBirths) {
 
           const tokenIds = generateRange(fromId, toId - 1, 1);
-          console.log("tokenIds: " + JSON.stringify(tokenIds));
+          // console.log("tokenIds: " + JSON.stringify(tokenIds));
           const ownerData = await erc721Helper.ownersByTokenIds(IPCADDRESS, tokenIds);
-          console.log("ownerData: " + JSON.stringify(ownerData));
+          // console.log("ownerData: " + JSON.stringify(ownerData));
           //  external view returns(bool[] memory successes, address[] memory owners) {
 
           for (let i = 0; i < data[0].length; i++) {
             // console.log(i + " " + data[0]);
             const ipcId = parseInt(fromId) + i;
+            const owner = ownerData[0][i] && ownerData[1][i] || null;
+            if (owner != null) {
+              const lowerOwner = owner.toLowerCase();
+              if (!(lowerOwner in ensMap)) {
+                ensMap[lowerOwner] = owner;
+              }
+            }
             collectionTokens[ipcId] = {
               ipcId: ipcId,
               name: data[0][i],
-              owner: ownerData[0][i] && ownerData[1][i] || null,
+              owner: owner,
               attributeSeed: data[1][i],
               dna: data[2][i],
               experience: parseInt(data[3][i]),
               timeOfBirth: parseInt(data[4][i]),
             }
           }
-
           fromId = toId;
         } while (toId < endId);
-        console.log(JSON.stringify(collectionTokens, null, 0));
+        // console.log(JSON.stringify(collectionTokens, null, 0));
         state.collectionTokens = collectionTokens;
+        // console.log(JSON.stringify(ensMap, null, 0));
+
+        let addresses = Object.keys(ensMap);
+        const ensReverseRecordsContract = new ethers.Contract(ENSREVERSERECORDSADDRESS, ENSREVERSERECORDSABI, provider);
+        const ENSOWNERBATCHSIZE = 200; // 500 fails occassionally
+        for (let i = 0; i < addresses.length; i += ENSOWNERBATCHSIZE) {
+        //   this.processing = "RETRIEVING LIVE ENS REVERSE RECORDS FROM THE ETHEREUM MAINNET: " + ethers.utils.commify(i) + " OF " + ethers.utils.commify(addresses.length);
+          const batch = addresses.slice(i, parseInt(i) + ENSOWNERBATCHSIZE);
+          const allnames = await ensReverseRecordsContract.getNames(batch);
+          // console.log("allnames: " + JSON.stringify(allnames, null, 2));
+          // TODO: check for normalised. const validNames = allnames.filter((n) => normalize(n) === n );
+          for (let j = 0; j < batch.length; j++) {
+            const address = batch[j];
+            const name = allnames[j];
+            ensMap[address] = name != null && name.length > 0 ? name : address;
+            // const normalized = normalize(address);
+          }
+        }
+        ensMap["0x0000000000000000000000000000000000000000".toLowerCase()] = "(null)";
+        ensMap["0x000000000000000000000000000000000000dEaD".toLowerCase()] = "(dEaD)";
+        ensMap["0x00000000006c3852cbEf3e08E8dF289169EdE581".toLowerCase()] = "(OpenSea:Seaport1.1)";
+        ensMap["0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85".toLowerCase()] = "(ENS)";
+        ensMap["0x60cd862c9C687A9dE49aecdC3A99b74A4fc54aB6".toLowerCase()] = "(MoonCatRescue)";
+        ensMap["0x74312363e45DCaBA76c59ec49a7Aa8A65a67EeD3".toLowerCase()] = "(X2Y2:Exchange)";
+        ensMap["0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2".toLowerCase()] = "(WETH)";
+        state.ensMap = ensMap;
+        // console.log(JSON.stringify(ensMap, null, 0));
 
         if (false) {
         let url = "https://api.reservoir.tools/collection/v2?id=" + state.filter.collection.address;

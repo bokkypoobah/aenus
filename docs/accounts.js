@@ -851,7 +851,7 @@ const Accounts = {
         }
         return name;
       } catch (e) {
-        return address;
+        return address.substring(0, length);
       }
     },
     getContractOrCollection(address) {
