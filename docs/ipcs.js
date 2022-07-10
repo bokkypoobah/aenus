@@ -591,7 +591,7 @@ const ipcsModule = {
             attributes.push({ trait_type: 'race', value: IPCLib.IPCMap.race[info.race] })
             attributes.push({ trait_type: 'subrace', value: IPCLib.IPCMap.subrace[info.subrace] })
             attributes.push({ trait_type: 'gender', value: IPCLib.IPCMap.gender[info.gender] })
-            attributes.push({ trait_type: 'height', value: info.height })
+            attributes.push({ trait_type: 'height', value: parseInt(info.height / 12) + '\'' + info.height % 12 + '\"' })
             collectionTokens[ipcId] = { ...ipc, info: info, attributes: attributes };
           }
           fromId = toId;
