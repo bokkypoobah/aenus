@@ -255,7 +255,7 @@ const IPCs = {
             }
         }
       }
-      console.log("collectionTokensAttributesWithCounts: " + JSON.stringify(collator, null, 2));
+      // console.log("collectionTokensAttributesWithCounts: " + JSON.stringify(collator, null, 2));
       return collator;
     },
     filteredCollectionTokens() {
