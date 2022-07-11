@@ -30,9 +30,6 @@ const Accounts = {
                 <div v-if="settings.tabIndex == 1" class="mt-1">
                   <b-button size="sm" :pressed.sync="settings.collection.showFilter" variant="link" v-b-popover.hover.top="'Show collection filter'"><span v-if="settings.collection.showFilter"><b-icon-layout-sidebar-inset shift-v="+1" font-scale="1.0"></b-icon-layout-sidebar-inset></span><span v-else><b-icon-layout-sidebar shift-v="+1" font-scale="1.0"></b-icon-layout-sidebar></span></b-button>
                 </div>
-                <div v-if="settings.tabIndex == 1" class="mt-1" style="width: 380px;">
-                  <b-form-input type="text" size="sm" :value="filter.collection.address" @change="updateCollection('filterUpdate', { collection: { address: $event } })" :disabled="sync.inProgress" debounce="600" v-b-popover.hover.top="'Collection address'" placeholder="{ERC-721 address}"></b-form-input>
-                </div>
                 <div v-if="settings.tabIndex == 1" class="mt-1 pl-1">
                   <b-dropdown dropright size="sm" :disabled="sync.inProgress" variant="link" toggle-class="text-decoration-none" v-b-popover.hover.top="'Some vintage and higher total trading volume ERC-721 collections'">
                     <b-dropdown-group header="2015 Vintage">
@@ -97,12 +94,6 @@ const Accounts = {
                   <b-button size="sm" @click="copyToClipboard('Lorem ipsum');" variant="primary">Test</b-button>
                 </div>
                 -->
-                <div v-if="settings.tabIndex == 1" class="mt-1 pl-1">
-                  <b-button size="sm" @click="updateCollection('sync', {})" :disabled="sync.inProgress" variant="primary">Retrieve</b-button>
-                </div>
-                <div v-if="settings.tabIndex == 2" class="mt-1" style="max-width: 170px;">
-                  <b-form-input type="text" size="sm" :value="filter.searchString" @change="monitorMints('updateFilter', { searchString: $event })" debounce="600" v-b-popover.hover.top="'Search by collection symbol, name or address'" placeholder="🔍 {symbol|name|addy}"></b-form-input>
-                </div>
                 <div class="mt-1 flex-grow-1">
                 </div>
                 <div v-if="settings.tabIndex == 1" class="mt-1">
@@ -115,14 +106,8 @@ const Accounts = {
                 <div class="mt-1 flex-grow-1">
                 </div>
 
-                <div v-if="settings.tabIndex == 0 || settings.tabIndex == 2" class="mt-1 pl-1">
-                  <b-form-select size="sm" :value="filter.scanBlocks" :options="scanBlocksOptions" @change="monitorMints('filterUpdate', { scanBlocks: $event })" :disabled="sync.inProgress" v-b-popover.hover.top="'Number of blocks to scan'"></b-form-select>
-                </div>
                 <div v-if="settings.tabIndex == 0" class="mt-1 pl-1">
                   <b-button size="sm" @click="searchTransfers('scanLatest', {})" :disabled="sync.inProgress || !powerOn || network.chainId != 1" variant="primary">{{ 'Search Latest ' + filter.scanBlocks + ' Blocks' }}</b-button>
-                </div>
-                <div v-if="settings.tabIndex == 2" class="mt-1 pl-1">
-                  <b-button size="sm" @click="monitorMints('scanLatest', {})" :disabled="sync.inProgress || !powerOn || network.chainId != 1" variant="primary" style="min-width: 80px; ">{{ 'Scan Latest ' + filter.scanBlocks + ' Blocks' }}</b-button>
                 </div>
 
                 <div class="mt-1 flex-grow-1">
@@ -156,9 +141,6 @@ const Accounts = {
                 </div>
                 <div v-if="settings.tabIndex == 0" class="mt-1 pl-1">
                   <b-button size="sm" @click="searchTransfers('scan', {})" :disabled="sync.inProgress || !powerOn || network.chainId != 1 || filter.startBlockNumber == null || filter.endBlockNumber == null" variant="primary" style="min-width: 80px; ">Search</b-button>
-                </div>
-                <div v-if="settings.tabIndex == 2" class="mt-1 pl-1">
-                  <b-button size="sm" @click="monitorMints('scan', {})" :disabled="sync.inProgress || !powerOn || network.chainId != 1 || filter.startBlockNumber == null || filter.endBlockNumber == null" variant="primary" style="min-width: 80px; ">Scan</b-button>
                 </div>
                 <div v-if="settings.tabIndex == 2" class="mt-2 pl-1">
                   <b-link size="sm" :to="getURL" v-b-popover.hover.top="'Share this link for the same search'" ><font size="-1">Share</font></b-link>
@@ -485,13 +467,6 @@ const Accounts = {
         { key: 'attributeTotal', label: 'Count', /*sortable: true,*/ thStyle: 'width: 30%;', thClass: 'text-right', tdClass: 'text-right' },
       ],
 
-      mintMonitorCollectionsFields: [
-        { key: 'index', label: '#', thStyle: 'width: 5%;', thClass: 'text-right', tdClass: 'text-right' },
-        { key: 'contract', label: 'Contract', thStyle: 'width: 25%;', thClass: 'text-left', tdClass: 'text-left' },
-        { key: 'mints', label: 'Mints', thStyle: 'width: 5%;', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
-        { key: 'tokens', label: 'Tokens', thStyle: 'width: 65%;' },
-      ],
-
     }
   },
   computed: {
@@ -530,9 +505,6 @@ const Accounts = {
     },
     collectionTokens() {
       return store.getters['accounts/collectionTokens'];
-    },
-    mintMonitorCollections() {
-      return store.getters['accounts/mintMonitorCollections'];
     },
     ensMap() {
       return store.getters['accounts/ensMap'];
@@ -609,40 +581,6 @@ const Accounts = {
     pagedFilteredCollectionTokens() {
       return this.filteredSortedCollectionTokens.slice((this.settings.collection.currentPage - 1) * this.settings.collection.pageSize, this.settings.collection.currentPage * this.settings.collection.pageSize);
     },
-    mintMonitorCollectionsData() {
-      const searchStrings = this.filter.searchString && this.filter.searchString.length > 0 && this.filter.searchString.split(/[, \t\n]+/).map(s => s.toLowerCase().trim()) || null;
-      const results = [];
-      for (const [contract, collection] of Object.entries(this.mintMonitorCollections)) {
-        let include = true;
-        const symbol = collection.symbol.toLowerCase();
-        const name = collection.name.toLowerCase();
-        if (searchStrings != null) {
-          let found = false;
-          for (searchString of searchStrings) {
-            if (contract.includes(searchString) || symbol.includes(searchString) || name.includes(searchString)) {
-              found = true;
-              break;
-            }
-          }
-          if (!found) {
-            include = false;
-          }
-        }
-        if (include) {
-          results.push({ contract, collection, mints: collection.transfers && collection.transfers.length || null, transfers: collection.transfers });
-        }
-      }
-      results.sort((a, b) => {
-        if (a.mints == b.mints) {
-          const namea = this.collections && this.collections[a.contract].name || '';
-          const nameb = this.collections && this.collections[b.contract].name || '';
-          return ('' + namea).localeCompare(nameb);
-        } else {
-          return b.mints - a.mints;
-        }
-      });
-      return results;
-    },
     getURL() {
       let url = '/accounts/mintmonitor/';
       const startBlockNumber = this.filter.startBlockNumber && parseInt(this.filter.startBlockNumber.toString().replace(/,/g, '')) || null;
@@ -704,13 +642,6 @@ const Accounts = {
       } catch (e) {
         return address.substring(0, length);
       }
-    },
-    getContractOrCollection(address) {
-      if (this.mintMonitorCollections && (address in this.mintMonitorCollections)) {
-        const collection = this.mintMonitorCollections[address];
-        return collection.symbol + ' - ' + collection.name + (collection.totalSupply > 0 ? (' (' + collection.totalSupply + ')') : '');
-      }
-      return address.substring(0, 12);
     },
     getSortedTraitsForCollectionTokensAttributes(category) {
       const results = [];
@@ -791,12 +722,6 @@ const Accounts = {
     },
     async searchTransfers(syncMode, filterUpdate) {
       store.dispatch('accounts/searchTransfers', { syncMode, filterUpdate });
-    },
-    async updateCollection(syncMode, filterUpdate) {
-      store.dispatch('accounts/updateCollection', { syncMode, filterUpdate });
-    },
-    async monitorMints(syncMode, filterUpdate) {
-      store.dispatch('accounts/monitorMints', { syncMode, filterUpdate });
     },
     async halt() {
       store.dispatch('accounts/halt');
@@ -880,7 +805,6 @@ const accountsModule = {
     transfersCollectionContracts: {},
     collectionInfo: {},
     collectionTokens: {},
-    mintMonitorCollections: {},
     ensMap: {},
     halt: false,
     params: null,
@@ -893,7 +817,6 @@ const accountsModule = {
     transfersCollectionContracts: state => state.transfersCollectionContracts,
     collectionInfo: state => state.collectionInfo,
     collectionTokens: state => state.collectionTokens,
-    mintMonitorCollections: state => state.mintMonitorCollections,
     ensMap: state => state.ensMap,
     params: state => state.params,
   },
@@ -928,13 +851,14 @@ const accountsModule = {
         }
         console.log("searchTransfers - startBlockNumber: " + startBlockNumber + ", endBlockNumber: " + endBlockNumber);
 
-        const debug = null;
-        // const debug = ["0xa537831867d1af2a566e55231b7468e29e6936bfc6aa13d78a4464450e95e514"]; // OS Wyvern tx
-        // const debug = ["0xf59e8412897d3e25c3e4c0d75cf3354a88e30bbf12b0e02f40373ba09e270a8c"]; // MoonCats unwrap(uint256 _tokenId)
-        // const debug = ["0x85a48ee39f63ebb61763bbe428a286092ebf88e2ecdcc32e2ce28b535132dc5c"]; // MoonCats batchWrap(uint256[] _rescueOrders)
-        // const debug = ["0x3801ef7981577abb32a5426c0470a28aaecac379eef773b70ca85227fc507361"]; // MoonCats batchReWrap(uint256[] _rescueOrders, uint256[] _oldTokenIds)
-        // const debug = ["0xd3b7f8caf380a4e7179246fa4ea529c77bc1298c33328b8909a8c770885a993f"]; // ENS registerWithConfig(string name, address owner, uint256 duration, bytes32 secret, address resolver, address addr)
-        // const debug = ["0x32ca6cd120b55364567793bb51e9f2ff362bf559c0298a01e959538909d992b6"]; // ENS registerWithConfig(string name, address owner, uint256 duration, bytes32 secret, address resolver, address addr)
+        let debug = null;
+        // debug = ["0xa537831867d1af2a566e55231b7468e29e6936bfc6aa13d78a4464450e95e514"]; // OS Wyvern tx
+        // debug = ["0xf59e8412897d3e25c3e4c0d75cf3354a88e30bbf12b0e02f40373ba09e270a8c"]; // MoonCats unwrap(uint256 _tokenId)
+        // debug = ["0x85a48ee39f63ebb61763bbe428a286092ebf88e2ecdcc32e2ce28b535132dc5c"]; // MoonCats batchWrap(uint256[] _rescueOrders)
+        // debug = ["0x3801ef7981577abb32a5426c0470a28aaecac379eef773b70ca85227fc507361"]; // MoonCats batchReWrap(uint256[] _rescueOrders, uint256[] _oldTokenIds)
+        // debug = ["0xd3b7f8caf380a4e7179246fa4ea529c77bc1298c33328b8909a8c770885a993f"]; // ENS registerWithConfig(string name, address owner, uint256 duration, bytes32 secret, address resolver, address addr)
+        // debug = ["0x32ca6cd120b55364567793bb51e9f2ff362bf559c0298a01e959538909d992b6"]; // OpenSea SeaPort 1.1 fulfillBasicOrder()
+        // debug = ["0x7522bef2c13d82d5e294154ec85c0f44887b44076e010fdd6f82adb483e1068e"]; // LooksRare
 
 
         if (startBlockNumber != null && startBlockNumber <= endBlockNumber) {
@@ -1098,7 +1022,7 @@ const accountsModule = {
               console.log("txReceipt: " + JSON.stringify(txReceipt).substring(0, 50));
               // console.log("block: " + JSON.stringify(transactions[txHash].block, null, 2));
             }
-            const parsedTx = parseTx(tx, txReceipt, block);
+            const parsedTx = parseTx(tx, txReceipt, block, provider);
             console.log("parsedTx: " + JSON.stringify(parsedTx, null, 2));
 
             const from = transaction.tx.from.toLowerCase();
@@ -1152,6 +1076,7 @@ const accountsModule = {
             // transactions[txHash].transfers = transfers;
 
             transactions[txHash].description = parsedTx.description;
+            transactions[txHash].via = parsedTx.via;
             // Exchange transaction
             // if (to in marketsMap) {
             //   transactions[txHash].via = marketsMap[to];

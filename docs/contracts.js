@@ -38,6 +38,8 @@ const CONTRACTS = [
 
 ];
 
+// IPC https://www.immortalplayercharacters.com/_files/ugd/a489bf_04271df71e5c4b188d8c66d4448a5c86.pdf
+
 
 //   <b-dropdown-group header="2015 Vintage
 //     '0x4b1705c75fde41e35e454ddd14e5d0a0eac06280' Oct 19 Etheria v0.9 (wrapped, image not working)</b-dropdown-item>
