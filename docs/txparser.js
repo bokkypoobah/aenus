@@ -26,6 +26,7 @@ function parseTx(tx, txReceipt, block, provider) {
       }
       const address = event.address;
       if (event.topics.length > 3) {
+        const tokenId = new BigNumber(event.topics[3].substring(2), 16).toFixed(0);
         if (from == ADDRESS0) {
           mintEvents.push({ address, from: null, to, tokenId });
         } else if (to == ADDRESS0) {
@@ -34,7 +35,8 @@ function parseTx(tx, txReceipt, block, provider) {
           transferEvents.push({ address, from, to, tokenId });
         }
       } else {
-        erc20Transfers.push({ address, from, to, tokenId });
+        const tokens = event.data != null ? new BigNumber(event.data.substring(2), 16).toFixed(0) : null;
+        erc20Transfers.push({ address, from, to, tokens });
       }
     }
   }
@@ -56,6 +58,23 @@ function parseTx(tx, txReceipt, block, provider) {
       description = "Registered ENS '" + name + "' for " + moment.duration(duration, "seconds").humanize();
     } else {
       description = "?Registered ENS: " + (mintTokenIds.length > 0 && mintTokenIds[0] || '?Huh?');
+    }
+    for (const event of txReceipt.logs) {
+      if (event.address == _ENSREGISTRARCONTROLLERADDRESS) {
+        const logData = iface.parseLog(event);
+        console.log("logData.eventFragment.name: " + logData.eventFragment.name);
+        for (let i in logData.eventFragment.inputs) {
+          const inp = logData.eventFragment.inputs[i];
+          console.log("  " + i + " " + inp.name + " " + inp.type + " " + logData.args[i]);
+        }
+      // } else if (event.topics[0] == '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef' && event.topics.length > 3) {
+      //   const txData = erc721Interface.parseLog(event);
+      //   console.log("txData.eventFragment.name: " + txData.eventFragment.name);
+      //   for (let i in txData.eventFragment.inputs) {
+      //     const inp = txData.eventFragment.inputs[i];
+      //     console.log("  " + i + " " + inp.name + " " + inp.type + " " + txData.args[i]);
+      //   }
+      }
     }
 
   } else if (tx.to == _WETHADDRESS) {
@@ -179,7 +198,19 @@ function parseTx(tx, txReceipt, block, provider) {
     }
   }
   if (description == null) {
-    description = "TODO: Burnt: " + JSON.stringify(burnTokenIds) + "; Minted: " + JSON.stringify(mintTokenIds) + "; Transferred: " + JSON.stringify(transferTokenIds);
+    description = "To parse - ";
+    if (burnTokenIds.length > 0) {
+      description = description + " burnt " + JSON.stringify(burnTokenIds);
+    }
+    if (mintTokenIds.length > 0) {
+      description = description + " minted " + JSON.stringify(mintTokenIds);
+    }
+    if (transferTokenIds.length > 0) {
+      description = description + " transferred " + JSON.stringify(transferTokenIds);
+    }
+    if (erc20Transfers.length > 0) {
+      description = description + " ERC20Transfers " + JSON.stringify(erc20Transfers);
+    }
   }
   return { description, via, mintEvents, burnEvents, transferEvents, erc20Transfers };
 }
