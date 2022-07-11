@@ -31,10 +31,13 @@ function parseTx(tx, txReceipt, block) {
   if (tx.to == '0xc3f733ca98E0daD0386979Eb96fb1722A1A05E69') {
     // unwrap(uint256 _tokenId)
     if (tx.data.substring(0, 10) == '0xde0e9a3e') {
-      description = "Unwrapped Official MoonCat Wrapper: " + (burnTokenIds.length > 0 && burnTokenIds[0] || '?Huh?');
+      description = "Unwrapped OfficialMoonCatWrapper: " + (burnTokenIds.length > 0 && burnTokenIds[0] || '?Huh?');
+    // batchWrap(uint256[] _rescueOrders)
+    } else if (tx.data.substring(0, 10) == '0x440230d4') {
+        description = "Wrap OfficialMoonCatWrapper " + JSON.stringify(mintTokenIds);
     // batchReWrap(uint256[] _rescueOrders, uint256[] _oldTokenIds)
     } else if (tx.data.substring(0, 10) == '0x697b91e0') {
-      description = "Unwrapped Unofficial MoonCat Wrapper " + JSON.stringify(burnTokenIds) + " to Official MoonCat Wrapper " + JSON.stringify(mintTokenIds);
+      description = "Unwrapped UnofficialMoonCatWrapper " + JSON.stringify(burnTokenIds) + " to Wrap OfficialMoonCatWrapper " + JSON.stringify(mintTokenIds);
     }
   }
   if (description == null) {

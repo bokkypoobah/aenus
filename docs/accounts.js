@@ -245,7 +245,8 @@ const Accounts = {
                         {{ formatTimestamp(data.item.timestamp) }}
                       </template>
                       <template #cell(description)="data">
-                        <!-- {{ data.item.description }} -->
+                        {{ data.item.description }}
+                        <!--
                         <b-row v-for="(transfer, transferIndex) in data.item.transfers" v-bind:key="transferIndex">
                           <b-col>
                             <div v-if="transfer.type == 'received'">
@@ -260,11 +261,9 @@ const Accounts = {
                             <div v-else-if="transfer.type == 'burn'">
                               Burnt
                             </div>
-                            <!--
                             <div v-else>
                               Unknown
                             </div>
-                            -->
                           </b-col>
                           <b-col>
                             <span v-if="transfer.contract.toLowerCase() == '0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85'">
@@ -276,6 +275,7 @@ const Accounts = {
                             </span>
                           </b-col>
                         </b-row>
+                        -->
                       </template>
                       <template #cell(block)="data">
                         {{ data.item.block }}
@@ -928,10 +928,12 @@ const accountsModule = {
         }
         console.log("searchTransfers - startBlockNumber: " + startBlockNumber + ", endBlockNumber: " + endBlockNumber);
 
-        // const debug = null;
+        const debug = null;
         // const debug = ["0xa537831867d1af2a566e55231b7468e29e6936bfc6aa13d78a4464450e95e514"]; // OS Wyvern tx
-        const debug = ["0xf59e8412897d3e25c3e4c0d75cf3354a88e30bbf12b0e02f40373ba09e270a8c"]; // MoonCats unwrap(uint256 _tokenId)
+        // const debug = ["0xf59e8412897d3e25c3e4c0d75cf3354a88e30bbf12b0e02f40373ba09e270a8c"]; // MoonCats unwrap(uint256 _tokenId)
+        // const debug = ["0x85a48ee39f63ebb61763bbe428a286092ebf88e2ecdcc32e2ce28b535132dc5c"]; // MoonCats batchWrap(uint256[] _rescueOrders)
         // const debug = ["0x3801ef7981577abb32a5426c0470a28aaecac379eef773b70ca85227fc507361"]; // MoonCats batchReWrap(uint256[] _rescueOrders, uint256[] _oldTokenIds)
+
 
 
         if (startBlockNumber != null && startBlockNumber <= endBlockNumber) {
@@ -1091,73 +1093,72 @@ const accountsModule = {
             const tx = transaction.tx;
             const txReceipt = transaction.txReceipt;
             if (debug) {
-              // console.log("Processing: " + txHash);
               console.log("tx: " + JSON.stringify(tx).substring(0, 50));
               console.log("txReceipt: " + JSON.stringify(txReceipt).substring(0, 50));
               // console.log("block: " + JSON.stringify(transactions[txHash].block, null, 2));
-              const txData = parseTx(tx, txReceipt, block);
-              console.log("txData: " + JSON.stringify(txData, null, 2));
             }
+            const parsedTx = parseTx(tx, txReceipt, block);
+            console.log("parsedTx: " + JSON.stringify(parsedTx, null, 2));
 
             const from = transaction.tx.from.toLowerCase();
             const to = transaction.tx.to.toLowerCase();
             // console.log("to: " + to);
 
-            const transfers = [];
-            for (const event of txReceipt.logs) {
-              // console.log(JSON.stringify(event));
-              if (event.topics[0] == '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef') {
-                const from = '0x' + event.topics[1].substring(26, 66);
-                const to = event.topics[2] && ('0x' + event.topics[2].substring(26, 66)) || null;
-                let tokenId;
-                if (event.topics.length > 3) {
-                  tokenId = new BigNumber(event.topics[3].substring(2), 16).toFixed(0);
-                } else {
-                  tokenId = event.data != null ? new BigNumber(event.data.substring(2), 16).toFixed(0) : null;
-                }
-                // const type = (from.substring(0, 50) == ADDRESS0.substring(0, 50)) ? "mint" : ((to.substring(0, 50) == ADDRESS0.substring(0, 50)) ? "burn" : "transfer");
+            // const transfers = [];
+            // for (const event of txReceipt.logs) {
+            //   // console.log(JSON.stringify(event));
+            //   if (event.topics[0] == '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef') {
+            //     const from = '0x' + event.topics[1].substring(26, 66);
+            //     const to = event.topics[2] && ('0x' + event.topics[2].substring(26, 66)) || null;
+            //     let tokenId;
+            //     if (event.topics.length > 3) {
+            //       tokenId = new BigNumber(event.topics[3].substring(2), 16).toFixed(0);
+            //     } else {
+            //       tokenId = event.data != null ? new BigNumber(event.data.substring(2), 16).toFixed(0) : null;
+            //     }
+            //     // const type = (from.substring(0, 50) == ADDRESS0.substring(0, 50)) ? "mint" : ((to.substring(0, 50) == ADDRESS0.substring(0, 50)) ? "burn" : "transfer");
+            //
+            //     let type;
+            //     if (from.substring(0, 50) == ADDRESS0.substring(0, 50)) {
+            //       type = "mint";
+            //     } else if (to.substring(0, 50) == ADDRESS0.substring(0, 50)) {
+            //       type = "burn";
+            //     } else {
+            //       // console.log("from: " + from + ", to: " + to + ", accounts: " + JSON.stringify(accounts));
+            //       if (accounts.includes(from)) {
+            //         type = "sent";
+            //       } else if (accounts.includes(to)) {
+            //         type = "received";
+            //       } else {
+            //         type = "transfer";
+            //       }
+            //     }
+            //
+            //     transfers.push({
+            //       type,
+            //       contract: event.address,
+            //       from,
+            //       to,
+            //       tokenId,
+            //       logIndex: event.logIndex,
+            //     });
+            //   }
+            // }
+            // transfers.sort((a, b) => {
+            //   return a.logIndex - b.logIndex;
+            // });
+            // // console.log("transfers: " + JSON.stringify(transfers));
+            // transactions[txHash].transfers = transfers;
 
-                let type;
-                if (from.substring(0, 50) == ADDRESS0.substring(0, 50)) {
-                  type = "mint";
-                } else if (to.substring(0, 50) == ADDRESS0.substring(0, 50)) {
-                  type = "burn";
-                } else {
-                  // console.log("from: " + from + ", to: " + to + ", accounts: " + JSON.stringify(accounts));
-                  if (accounts.includes(from)) {
-                    type = "sent";
-                  } else if (accounts.includes(to)) {
-                    type = "received";
-                  } else {
-                    type = "transfer";
-                  }
-                }
-
-                transfers.push({
-                  type,
-                  contract: event.address,
-                  from,
-                  to,
-                  tokenId,
-                  logIndex: event.logIndex,
-                });
-              }
-            }
-            transfers.sort((a, b) => {
-              return a.logIndex - b.logIndex;
-            });
-            // console.log("transfers: " + JSON.stringify(transfers));
-            transactions[txHash].transfers = transfers;
-
+            transactions[txHash].description = parsedTx.description;
             // Exchange transaction
-            if (to in marketsMap) {
-              transactions[txHash].description = "Purchase NFT";
-              transactions[txHash].via = marketsMap[to];
-            } else if (to in tokenContracts) {
-              // console.log("NFT: " + JSON.stringify(tokenContracts[to]));
-              transactions[txHash].description = "Mint '" + tokenContracts[to].symbol + "' '" + tokenContracts[to].name + "'";
-              transactions[txHash].via = null;
-            }
+            // if (to in marketsMap) {
+            //   transactions[txHash].via = marketsMap[to];
+            // } else if (to in tokenContracts) {
+            //   // console.log("NFT: " + JSON.stringify(tokenContracts[to]));
+            //   transactions[txHash].description = "Mint '" + tokenContracts[to].symbol + "' '" + tokenContracts[to].name + "'";
+            //   transactions[txHash].via = null;
+            // }
             transactions[txHash].valueType = "ETH";
             transactions[txHash].value = tx.value && ethers.utils.formatEther(tx.value) || null;
 
