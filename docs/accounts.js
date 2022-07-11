@@ -930,7 +930,9 @@ const accountsModule = {
 
         // const debug = null;
         // const debug = ["0xa537831867d1af2a566e55231b7468e29e6936bfc6aa13d78a4464450e95e514"]; // OS Wyvern tx
-        const debug = ["0xf59e8412897d3e25c3e4c0d75cf3354a88e30bbf12b0e02f40373ba09e270a8c"];
+        const debug = ["0xf59e8412897d3e25c3e4c0d75cf3354a88e30bbf12b0e02f40373ba09e270a8c"]; // MoonCats unwrap(uint256 _tokenId)
+        // const debug = ["0x3801ef7981577abb32a5426c0470a28aaecac379eef773b70ca85227fc507361"]; // MoonCats batchReWrap(uint256[] _rescueOrders, uint256[] _oldTokenIds)
+
 
         if (startBlockNumber != null && startBlockNumber <= endBlockNumber) {
           state.sync.completed = 0;

@@ -1,19 +1,44 @@
 function parseTx(tx, txReceipt, block) {
   console.log("tx.to: " + tx.to);
-  if (tx.to == '0xc3f733ca98E0daD0386979Eb96fb1722A1A05E69') {
-    console.log("MoonCats");
-    console.log("tx: " + JSON.stringify(tx, 2, null));
-    console.log("txReceipt.logs: " + JSON.stringify(txReceipt.logs, 2, null));
+  let description = null;
+  const mintEvents = [];
+  const burnEvents = [];
+  const transferEvents = [];
 
-    // Deacclimate 0xde0e9a3e0000000000000000000000000000000000000000000000000000000000006154
-    if (tx.data.substring(0, 10) == '0xde0e9a3e') {
-      const event = txReceipt.logs.filter((e) => e.topics[0] == '0x4b4049773a7d189d0bf28d9bb55a7af4d94a6c02c074922614bfae9dae388886');
-      console.log("Deacclimate: " + JSON.stringify(event));
-      const tokenId = event && event.length > 0 && new BigNumber(event[0].data.substring(2), 16).toFixed(0) || null;
-      console.log("tokenId: " + tokenId);
+  for (const event of txReceipt.logs) {
+    if (event.topics[0] == '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef') {
+      const from = '0x' + event.topics[1].substring(26, 66);
+      const to = '0x' + event.topics[2].substring(26, 66);
+      let tokenId;
+      if (event.topics.length > 3) {
+        tokenId = new BigNumber(event.topics[3].substring(2), 16).toFixed(0);
+      } else {
+        tokenId = event.data != null ? new BigNumber(event.data.substring(2), 16).toFixed(0) : null;
+      }
+      if (from == ADDRESS0) {
+        mintEvents.push({ from: null, to, tokenId });
+      } else if (to == ADDRESS0) {
+        burnEvents.push({ from, to: null, tokenId });
+      } else {
+        transferEvents.push({ from, to, tokenId });
+      }
     }
-
-
   }
-  return { hello: "Hello" };
+  const mintTokenIds = mintEvents.map((e) => parseInt(e.tokenId));
+  const burnTokenIds = burnEvents.map((e) => parseInt(e.tokenId));
+  const transferTokenIds = transferEvents.map((e) => parseInt(e.tokenId));
+
+  if (tx.to == '0xc3f733ca98E0daD0386979Eb96fb1722A1A05E69') {
+    // unwrap(uint256 _tokenId)
+    if (tx.data.substring(0, 10) == '0xde0e9a3e') {
+      description = "Unwrapped Official MoonCat Wrapper: " + (burnTokenIds.length > 0 && burnTokenIds[0] || '?Huh?');
+    // batchReWrap(uint256[] _rescueOrders, uint256[] _oldTokenIds)
+    } else if (tx.data.substring(0, 10) == '0x697b91e0') {
+      description = "Unwrapped Unofficial MoonCat Wrapper " + JSON.stringify(burnTokenIds) + " to Official MoonCat Wrapper " + JSON.stringify(mintTokenIds);
+    }
+  }
+  if (description == null) {
+    description = "Burnt: " + JSON.stringify(burnTokenIds) + "; Minted: " + JSON.stringify(mintTokenIds) + "; Transferred: " + JSON.stringify(transferTokenIds);
+  }
+  return { description, mintEvents, burnEvents, transferEvents };
 }
