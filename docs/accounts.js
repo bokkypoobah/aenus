@@ -1077,6 +1077,10 @@ const accountsModule = {
         }
         console.log("searchTransfers - startBlockNumber: " + startBlockNumber + ", endBlockNumber: " + endBlockNumber);
 
+        // const debug = null;
+        // const debug = ["0xa537831867d1af2a566e55231b7468e29e6936bfc6aa13d78a4464450e95e514"]; // OS Wyvern tx
+        const debug = ["0xf59e8412897d3e25c3e4c0d75cf3354a88e30bbf12b0e02f40373ba09e270a8c"];
+
         if (startBlockNumber != null && startBlockNumber <= endBlockNumber) {
           state.sync.completed = 0;
           state.sync.total = endBlockNumber - startBlockNumber;
@@ -1170,13 +1174,11 @@ const accountsModule = {
             state.sync.completed = endBlockNumber - toBlock;
           } while (toBlock > startBlockNumber && !state.halt);
           state.transfers = transfers;
+
           // console.log("txHashes: " + JSON.stringify(txHashes));
           let txHashesToProcess = Object.keys(txHashes);
           state.sync.total = txHashesToProcess.length;
           state.sync.completed = 0;
-          const debug = null;
-          // const debug = ["0xa537831867d1af2a566e55231b7468e29e6936bfc6aa13d78a4464450e95e514"]; // OS Wyvern tx
-          // const debug = ["0xf59e8412897d3e25c3e4c0d75cf3354a88e30bbf12b0e02f40373ba09e270a8c"];
           txHashesToProcess = debug ? debug : txHashesToProcess;
           for (const txHash of txHashesToProcess) {
             if (debug) {
@@ -1186,9 +1188,9 @@ const accountsModule = {
             const txReceipt = await provider.getTransactionReceipt(txHash);
             const block = await provider.getBlock(txReceipt.blockNumber);
             if (false && debug) {
-              console.log("tx: " + JSON.stringify(tx, null, 2));
-              console.log("txReceipt: " + JSON.stringify(txReceipt, null, 2));
-              console.log("block: " + JSON.stringify(block, null, 2));
+              console.log("tx: " + JSON.stringify(tx).substring(0, 50));
+              console.log("txReceipt: " + JSON.stringify(txReceipt).substring(0, 50));
+              // console.log("block: " + JSON.stringify(block, null, 2));
             }
             transactions[txHash] = {
               tx,
@@ -1219,7 +1221,7 @@ const accountsModule = {
               tokenContracts[contractAddresses[i].toLowerCase()] = { mask, symbol, name, totalSupply };
             }
           }
-          console.log("tokenContracts: " + JSON.stringify(tokenContracts, null, 2));
+          // console.log("tokenContracts: " + JSON.stringify(tokenContracts, null, 2));
 
           const markets = [
             { address: "0x7f268357A8c2552623316e2562D90e642bB538E5", name: "Wyvern Exchange" },
@@ -1229,17 +1231,19 @@ const accountsModule = {
           for (const market of markets) {
             marketsMap[market.address.toLowerCase()] = market.name;
           }
-          console.log("marketsMap: " + JSON.stringify(marketsMap, null, 2));
+          // console.log("marketsMap: " + JSON.stringify(marketsMap, null, 2));
 
           for (const txHash of txHashesToProcess) {
             const transaction = transactions[txHash];
             const tx = transaction.tx;
             const txReceipt = transaction.txReceipt;
             if (debug) {
-              console.log("Processing: " + txHash);
-              console.log("tx: " + JSON.stringify(tx, null, 2));
-              console.log("txReceipt: " + JSON.stringify(txReceipt, null, 2));
+              // console.log("Processing: " + txHash);
+              console.log("tx: " + JSON.stringify(tx).substring(0, 50));
+              console.log("txReceipt: " + JSON.stringify(txReceipt).substring(0, 50));
               // console.log("block: " + JSON.stringify(transactions[txHash].block, null, 2));
+              const txData = parseTx(tx, txReceipt, block);
+              console.log("txData: " + JSON.stringify(txData, null, 2));
             }
 
             const from = transaction.tx.from.toLowerCase();
@@ -1289,7 +1293,7 @@ const accountsModule = {
             transfers.sort((a, b) => {
               return a.logIndex - b.logIndex;
             });
-            console.log("transfers: " + JSON.stringify(transfers));
+            // console.log("transfers: " + JSON.stringify(transfers));
             transactions[txHash].transfers = transfers;
 
             // Exchange transaction
