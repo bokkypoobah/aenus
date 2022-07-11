@@ -858,7 +858,10 @@ const accountsModule = {
         // debug = ["0x3801ef7981577abb32a5426c0470a28aaecac379eef773b70ca85227fc507361"]; // MoonCats batchReWrap(uint256[] _rescueOrders, uint256[] _oldTokenIds)
         // debug = ["0xd3b7f8caf380a4e7179246fa4ea529c77bc1298c33328b8909a8c770885a993f"]; // ENS registerWithConfig(string name, address owner, uint256 duration, bytes32 secret, address resolver, address addr)
         // debug = ["0x32ca6cd120b55364567793bb51e9f2ff362bf559c0298a01e959538909d992b6"]; // OpenSea SeaPort 1.1 fulfillBasicOrder()
-        // debug = ["0x7522bef2c13d82d5e294154ec85c0f44887b44076e010fdd6f82adb483e1068e"]; // LooksRare
+        // debug = ["0x7522bef2c13d82d5e294154ec85c0f44887b44076e010fdd6f82adb483e1068e"]; // LooksRare Meebit
+        // debug = ["0x6d898e34c9547ded9b24951ee53d18de84ad375542ee3e268a08d50db1fe50e2"]; // WETH Wrap
+        // debug = ["0x367481e4f1d0224c34b89c4ac5f2f05edfd73a8f2736dc9d1a8c755adafcb308"]; // WETH Unwrap
+        // debug = ["0x66df1c53a341bae5276ab7034275bde2324bc304a85e58c8ef4d41e8e51aeb60"]; // OpenSea Wyvern
 
 
         if (startBlockNumber != null && startBlockNumber <= endBlockNumber) {
