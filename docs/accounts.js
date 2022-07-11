@@ -934,6 +934,7 @@ const accountsModule = {
         // const debug = ["0x85a48ee39f63ebb61763bbe428a286092ebf88e2ecdcc32e2ce28b535132dc5c"]; // MoonCats batchWrap(uint256[] _rescueOrders)
         // const debug = ["0x3801ef7981577abb32a5426c0470a28aaecac379eef773b70ca85227fc507361"]; // MoonCats batchReWrap(uint256[] _rescueOrders, uint256[] _oldTokenIds)
         // const debug = ["0xd3b7f8caf380a4e7179246fa4ea529c77bc1298c33328b8909a8c770885a993f"]; // ENS registerWithConfig(string name, address owner, uint256 duration, bytes32 secret, address resolver, address addr)
+        // const debug = ["0x32ca6cd120b55364567793bb51e9f2ff362bf559c0298a01e959538909d992b6"]; // ENS registerWithConfig(string name, address owner, uint256 duration, bytes32 secret, address resolver, address addr)
 
 
         if (startBlockNumber != null && startBlockNumber <= endBlockNumber) {
@@ -1027,7 +1028,7 @@ const accountsModule = {
 
             toBlock -= batchSize;
             state.sync.completed = endBlockNumber - toBlock;
-          } while (toBlock > startBlockNumber && !state.halt);
+          } while (toBlock > startBlockNumber && !state.halt && !debug);
           state.transfers = transfers;
 
           // console.log("txHashes: " + JSON.stringify(txHashes));
