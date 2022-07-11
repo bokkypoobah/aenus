@@ -43,7 +43,12 @@ function parseTx(tx, txReceipt, block) {
 
     if (decodedData.functionFragment.name == "registerWithConfig") {
       const name = decodedData.args[0];
-      description = "Registered ENS '" + name + "'";
+      const owner = decodedData.args[1];
+      const duration = parseInt(decodedData.args[2]);
+
+// Function: registerWithConfig(string name, address owner, uint256 duration, bytes32 secret, address resolver, address addr)
+
+      description = "Registered ENS '" + name + "' for " + moment.duration(duration, "seconds").humanize();
     } else {
       description = "?Registered ENS: " + (mintTokenIds.length > 0 && mintTokenIds[0] || '?Huh?');
     }
@@ -62,7 +67,7 @@ function parseTx(tx, txReceipt, block) {
     }
   }
   if (description == null) {
-    description = "Burnt: " + JSON.stringify(burnTokenIds) + "; Minted: " + JSON.stringify(mintTokenIds) + "; Transferred: " + JSON.stringify(transferTokenIds);
+    description = "TODO: Burnt: " + JSON.stringify(burnTokenIds) + "; Minted: " + JSON.stringify(mintTokenIds) + "; Transferred: " + JSON.stringify(transferTokenIds);
   }
   return { description, mintEvents, burnEvents, transferEvents };
 }
