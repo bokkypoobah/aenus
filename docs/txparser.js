@@ -1,6 +1,62 @@
 
+let _interfaces = null;
 
 function parseTx(tx, txReceipt, block, provider) {
+
+  if (_interfaces == null) {
+    _interfaces = {};
+    for (const [address, data] of Object.entries(_CONTRACTS)) {
+      // console.log(address + " => " + JSON.stringify(data));
+      _interfaces[address] = new ethers.utils.Interface(data.abi);
+    }
+  }
+  // console.log(JSON.stringify(Object.keys(_interfaces), null, 2));
+  // console.log(JSON.stringify(_interfaces, null, 2));
+
+  const contractInterface = tx.to && _interfaces[tx.to] || null;
+  if (contractInterface) {
+    console.log("Supported contract: " + tx.to + " " + _CONTRACTS[tx.to].name);
+    let decodedData = contractInterface.parseTransaction({ data: tx.data, value: tx.value });
+    console.log("decodedData.functionFragment.name: " + decodedData.functionFragment.name);
+    for (let i in decodedData.functionFragment.inputs) {
+      const c = decodedData.functionFragment.inputs[i];
+      console.log("  " + i + " " + c.name + " " + c.type + " " + decodedData.args[0][i]);
+    }
+
+    // // struct TradeDetails {
+    // //     uint256 marketId;
+    // //     uint256 value;
+    // //     bytes tradeData;
+    // // }
+    // if (decodedData.functionFragment.name == "batchBuyWithETH") {
+    //   const abi = ["function batchBuyWithETH(tuple(uint256 marketId, uint256 value, bytes tradeData)[] memory)"];
+    //   const ifc = new ethers.utils.Interface(abi);
+    //   let decodedData1 = ifc.parseTransaction({ data: tx.data, value: tx.value });
+    //   console.log("decodedData1.functionFragment.name: " + decodedData1.functionFragment.name);
+    //   for (let i in decodedData1.functionFragment.inputs) {
+    //     const c = decodedData1.functionFragment.inputs[i];
+    //     console.log("  " + i + " " + c.name + " " + c.type + " " + decodedData1.args[0][i]);
+    //   }
+    // }
+
+
+    // if (decodedData.functionFragment.name == "registerWithConfig") {
+    //   const name = decodedData.args[0];
+    //   const owner = decodedData.args[1];
+    //   const duration = parseInt(decodedData.args[2]);
+    //   description = "Registered ENS '" + name + "' for " + moment.duration(duration, "seconds").humanize();
+    // } else {
+    //   description = "?Registered ENS: " + (mintTokenIds.length > 0 && mintTokenIds[0] || '?Huh?');
+    // }
+
+  } else {
+    console.log("Unsupported contract: " + tx.to);
+  }
+
+
+
+
+
   let ERC721TRANSFERABI = ["event Transfer(address indexed from, address indexed to, uint256 indexed id)"];
   let erc721Interface = new ethers.utils.Interface(ERC721TRANSFERABI);
   let wethInterface = new ethers.utils.Interface(_WETHABI);
@@ -190,7 +246,7 @@ function parseTx(tx, txReceipt, block, provider) {
     const iface = new ethers.utils.Interface(_GEMSWAP2ABI);
     const x2y2Iface = new ethers.utils.Interface(_X2Y2ABI);
     let decodedData = iface.parseTransaction({ data: tx.data, value: tx.value });
-    console.log("decodedData - function: " + decodedData.functionFragment.name);
+    // console.log("decodedData - function: " + decodedData.functionFragment.name);
     for (let i in decodedData.functionFragment.inputs[0].components) {
       const c = decodedData.functionFragment.inputs[0].components[i];
       console.log("  " + i + " " + c.name + " " + c.type + " " + decodedData.args[0][i]);
@@ -198,23 +254,23 @@ function parseTx(tx, txReceipt, block, provider) {
     for (const event of txReceipt.logs) {
       if (event.address == _GEMSWAP2ADDRESS) {
         const logData = iface.parseLog(event);
-        console.log("logData.eventFragment.name: " + logData.eventFragment.name);
+        // console.log("logData.eventFragment.name: " + logData.eventFragment.name);
         for (let i in logData.eventFragment.inputs) {
           const inp = logData.eventFragment.inputs[i];
           console.log("  " + i + " " + inp.name + " " + inp.type + " " + logData.args[i]);
         }
       } else if (event.address == _X2Y2ADDRESS) {
-        console.log("X2Y2 event: " + JSON.stringify(event));
+        // console.log("X2Y2 event: " + JSON.stringify(event));
         const txData = x2y2Iface.parseLog(event);
-        console.log("txData: " + JSON.stringify(txData));
+        // console.log("txData: " + JSON.stringify(txData));
 
       } else if (event.address == _WETHADDRESS) {
-        console.log("WETH event: " + JSON.stringify(event));
+        // console.log("WETH event: " + JSON.stringify(event));
         const txData = wethInterface.parseLog(event);
-        console.log("txData: " + JSON.stringify(txData));
+        // console.log("txData: " + JSON.stringify(txData));
 
       } else if (event.topics[0] == '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef' && event.topics.length > 3) {
-        console.log("event: " + JSON.stringify(event));
+        // console.log("event: " + JSON.stringify(event));
         const txData = erc721Interface.parseLog(event);
         console.log("txData.eventFragment.name: " + txData.eventFragment.name);
         for (let i in txData.eventFragment.inputs) {
@@ -222,7 +278,7 @@ function parseTx(tx, txReceipt, block, provider) {
           console.log("  " + i + " " + inp.name + " " + inp.type + " " + txData.args[i]);
         }
       } else {
-        console.log("Unprocessed event: " + JSON.stringify(event));
+        // console.log("Unprocessed event: " + JSON.stringify(event));
       }
     }
 
