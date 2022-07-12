@@ -24,7 +24,7 @@ const routes = [{
     name: 'NFTs',
     props: true,
   }, {
-    path: '/accounts/:blocks?/:accountsOrTxs?',
+    path: '/accounts/:accountsOrTxs?/:blocks?',
     component: Accounts,
     name: 'Accounts',
     props: true,

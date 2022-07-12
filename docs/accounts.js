@@ -48,7 +48,7 @@ const Accounts = {
                 </div>
 
                 <div class="mt-1 pl-1">
-                  <b-form-select size="sm" :value="filter.scanBlocks" :options="scanBlocksOptions" @change="monitorMints('filterUpdate', { scanBlocks: $event })" :disabled="sync.inProgress" v-b-popover.hover.top="'Number of blocks to scan'"></b-form-select>
+                  <b-form-select size="sm" :value="filter.scanBlocks" :options="scanBlocksOptions" @change="searchTransfers('filterUpdate', { scanBlocks: $event })" :disabled="sync.inProgress" v-b-popover.hover.top="'Number of blocks to scan'"></b-form-select>
                 </div>
                 <div v-if="settings.tabIndex == 0" class="mt-1 pl-1">
                   <b-button size="sm" @click="searchTransfers('scanLatest', {})" :disabled="sync.inProgress || !powerOn || network.chainId != 1" variant="primary">{{ 'Search Latest ' + filter.scanBlocks + ' Blocks' }}</b-button>
@@ -325,7 +325,7 @@ const Accounts = {
       </b-card>
     </div>
   `,
-  props: ['blocks', 'accountsOrTxs'],
+  props: ['accountsOrTxs', 'blocks'],
   data: function() {
     return {
       count: 0,
@@ -685,41 +685,25 @@ const Accounts = {
     logDebug("Accounts", "beforeDestroy()");
   },
   mounted() {
-    logInfo("Accounts", "mounted() $route: " + JSON.stringify(this.$route.params) + ", props['blocks']: " + this.blocks + ", props['accountsOrTxs']: " + this.accountsOrTxs);
+    logInfo("Accounts", "mounted() $route: " + JSON.stringify(this.$route.params) + ", props['accountsOrTxs']: " + this.accountsOrTxs + ", props['blocks']: " + this.blocks);
     if (this.accountsOrTxs != null) {
       const filterUpdate = {
         accountsOrTxs: this.accountsOrTxs,
       };
+      let syncMode = "mounted";
+      if (this.blocks != null) {
+        if (new RegExp('^[0-9]{1,6}$').test(this.blocks)) {
+          filterUpdate['scanBlocks'] = this.blocks;
+          syncMode = "mountedLatest";
+        } else if (new RegExp('^[0-9,]+\s*\-\s*[0-9,]+$').test(this.blocks)) {
+          filterUpdate['startBlockNumber'] = this.blocks.replace(/\s*\-.*$/, '');
+          filterUpdate['endBlockNumber'] = this.blocks.replace(/^.*\-\s*/, '');
+        }
+      }
       setTimeout(function() {
-        store.dispatch('accounts/searchTransfers', { syncMode: 'mounted', filterUpdate });
-      }, 1000);
+        store.dispatch('accounts/searchTransfers', { syncMode, filterUpdate });
+      }, 500);
     }
-    // if (this.tab == "transfers") {
-    //   this.settings.tabIndex = 0;
-    // } else if (this.tab == "collection") {
-    //   this.settings.tabIndex = 1;
-    // } else if (this.tab == "mintmonitor") {
-    //   this.settings.tabIndex = 2;
-    //   let startBlockNumber = null;
-    //   let endBlockNumber = null;
-    //   if (this.blocks != null) {
-    //     if (new RegExp('^[0-9,]+$').test(this.blocks)) {
-    //       startBlockNumber = this.blocks;
-    //       endBlockNumber = this.blocks;
-    //     } else if (new RegExp('^[0-9,]+\s*\-\s*[0-9,]+$').test(this.blocks)) {
-    //       startBlockNumber = this.blocks.replace(/\s*\-.*$/, '');
-    //       endBlockNumber = this.blocks.replace(/^.*\-\s*/, '');
-    //     }
-    //     const filterUpdate = {
-    //       startBlockNumber: ethers.utils.commify(parseInt(startBlockNumber)),
-    //       endBlockNumber: ethers.utils.commify(parseInt(endBlockNumber)),
-    //       accountsOrTxs: this.search,
-    //     };
-    //     setTimeout(function() {
-    //       store.dispatch('accounts/monitorMints', { syncMode: 'scan', filterUpdate });
-    //     }, 1000);
-    //   }
-    // }
     this.reschedule = true;
     logDebug("Accounts", "Calling timeoutCallback()");
     this.timeoutCallback();
@@ -737,10 +721,7 @@ const accountsModule = {
         address: null, // "0x31385d3520bced94f77aae104b406994d8f2168c",
         startBlockNumber: 4000000,
       },
-      // transfers: {
-      //   accounts: "0x287F9b46dceA520D829c874b0AF01f4fbfeF9243", // TODO null,
-      // },
-      accountsOrTxs: "0x287F9b46dceA520D829c874b0AF01f4fbfeF9243", // TODO null
+      accountsOrTxs: null,
       scanBlocks: 10000,
       startBlockNumber: 14484994, // null,
       endBlockNumber: 14591766, // null,
@@ -783,7 +764,7 @@ const accountsModule = {
         const block = await provider.getBlock("latest");
         const blockNumber = block.number;
 
-        const accounts = state.filter.transfers && state.filter.accountsOrTxs && state.filter.accountsOrTxs.split(/[, \t\n]+/).map(s => '0x000000000000000000000000' + s.substring(2, 42).toLowerCase()) || [];
+        // const accounts = state.filter.transfers && state.filter.accountsOrTxs && state.filter.accountsOrTxs.split(/[, \t\n]+/).map(s => '0x000000000000000000000000' + s.substring(2, 42).toLowerCase()) || [];
         // console.log("searchTransfers - accounts: " + JSON.stringify(accounts));
         if (filterUpdate != null) {
           // console.log("searchTransfers - filter before: " + JSON.stringify(state.filter));
@@ -813,10 +794,10 @@ const accountsModule = {
           // Add tx hashes from event scraping
           let startBlockNumber = null;
           let endBlockNumber = null;
-          if (syncMode == 'scan') {
+          if (syncMode == 'scan' || syncMode == 'mounted') {
             startBlockNumber = parseInt(state.filter.startBlockNumber.toString().replace(/,/g, ''));
             endBlockNumber = parseInt(state.filter.endBlockNumber.toString().replace(/,/g, ''));
-          } else if (syncMode == 'scanLatest' || syncMode == 'mounted') {
+          } else if (syncMode == 'scanLatest' || syncMode == 'mountedLatest') {
             startBlockNumber = blockNumber - state.filter.scanBlocks;
             endBlockNumber = blockNumber;
             state.filter.startBlockNumber = ethers.utils.commify(startBlockNumber);
@@ -905,7 +886,7 @@ const accountsModule = {
 
             toBlock -= batchSize;
             state.sync.completed = endBlockNumber - toBlock;
-          } while (toBlock > startBlockNumber && !state.halt && !debug);
+          } while (toBlock > startBlockNumber && !state.halt);
           state.transfers = transfers;
         }
 
