@@ -20,7 +20,7 @@ const Accounts = {
               <!-- Main Toolbar -->
               <div class="d-flex flex-wrap m-0 p-0">
                 <div v-if="settings.tabIndex == 0" class="mt-1" style="width: 150px;">
-                  <b-form-input type="text" size="sm" :value="filter.accountsOrTxs" @change="searchTransfers('filterUpdate', { transfers: { accounts: $event } })" :disabled="sync.inProgress" debounce="600" v-b-popover.hover.top="'List of accounts'" placeholder="🔍 0x12... ..."></b-form-input>
+                  <b-form-input type="text" size="sm" :value="filter.accountsOrTxs" @change="searchTransfers('filterUpdate', { accountsOrTxs: $event })" :disabled="sync.inProgress" debounce="600" v-b-popover.hover.top="'List of accounts'" placeholder="🔍 0x12... ..."></b-form-input>
                 </div>
                 <!-- Min rows 2
                 <div v-if="settings.tabIndex == 0" class="mt-1" style="width: 150px;">

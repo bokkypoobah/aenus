@@ -53,10 +53,6 @@ function parseTx(tx, txReceipt, block, provider) {
     console.log("Unsupported contract: " + tx.to);
   }
 
-
-
-
-
   let ERC721TRANSFERABI = ["event Transfer(address indexed from, address indexed to, uint256 indexed id)"];
   let erc721Interface = new ethers.utils.Interface(ERC721TRANSFERABI);
   let wethInterface = new ethers.utils.Interface(_WETHABI);
@@ -67,7 +63,10 @@ function parseTx(tx, txReceipt, block, provider) {
   const transferEvents = [];
   const erc20Transfers = [];
   const msgValue = ethers.utils.formatEther(tx.value);
-  // console.log("tx: " + JSON.stringify(tx, null, 0));
+  const gasUsed = txReceipt.gasUsed.toString();
+  console.log("gasUsed: " + gasUsed);
+  console.log("tx: " + JSON.stringify(tx, null, 0));
+  console.log("txReceipt: " + JSON.stringify(txReceipt, null, 0));
   console.log("from: " + tx.from + ", to: " + tx.to + ", msgValue: " + JSON.stringify(msgValue));
 
   for (const event of txReceipt.logs) {
