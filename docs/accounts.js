@@ -919,6 +919,92 @@ const accountsModule = {
               break;
             }
           }
+
+          for (const txHash of _txHashesToProcess) {
+            const transaction = transactions[txHash];
+            const tx = transaction.tx;
+            const txReceipt = transaction.txReceipt;
+            // if (debug) {
+              // console.log("tx: " + JSON.stringify(tx).substring(0, 50));
+              // console.log("txReceipt: " + JSON.stringify(txReceipt).substring(0, 50));
+              // console.log("block: " + JSON.stringify(transactions[txHash].block, null, 2));
+            // }
+            const parsedTx = parseTx(tx, txReceipt, block, provider);
+            console.log("parsedTx: " + JSON.stringify(parsedTx, null, 2));
+
+            const from = transaction.tx.from.toLowerCase();
+            const to = transaction.tx.to.toLowerCase();
+            // console.log("to: " + to);
+
+            // const transfers = [];
+            // for (const event of txReceipt.logs) {
+            //   // console.log(JSON.stringify(event));
+            //   if (event.topics[0] == '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef') {
+            //     const from = '0x' + event.topics[1].substring(26, 66);
+            //     const to = event.topics[2] && ('0x' + event.topics[2].substring(26, 66)) || null;
+            //     let tokenId;
+            //     if (event.topics.length > 3) {
+            //       tokenId = new BigNumber(event.topics[3].substring(2), 16).toFixed(0);
+            //     } else {
+            //       tokenId = event.data != null ? new BigNumber(event.data.substring(2), 16).toFixed(0) : null;
+            //     }
+            //     // const type = (from.substring(0, 50) == ADDRESS0.substring(0, 50)) ? "mint" : ((to.substring(0, 50) == ADDRESS0.substring(0, 50)) ? "burn" : "transfer");
+            //
+            //     let type;
+            //     if (from.substring(0, 50) == ADDRESS0.substring(0, 50)) {
+            //       type = "mint";
+            //     } else if (to.substring(0, 50) == ADDRESS0.substring(0, 50)) {
+            //       type = "burn";
+            //     } else {
+            //       // console.log("from: " + from + ", to: " + to + ", accounts: " + JSON.stringify(accounts));
+            //       if (accounts.includes(from)) {
+            //         type = "sent";
+            //       } else if (accounts.includes(to)) {
+            //         type = "received";
+            //       } else {
+            //         type = "transfer";
+            //       }
+            //     }
+            //
+            //     transfers.push({
+            //       type,
+            //       contract: event.address,
+            //       from,
+            //       to,
+            //       tokenId,
+            //       logIndex: event.logIndex,
+            //     });
+            //   }
+            // }
+            // transfers.sort((a, b) => {
+            //   return a.logIndex - b.logIndex;
+            // });
+            // // console.log("transfers: " + JSON.stringify(transfers));
+            // transactions[txHash].transfers = transfers;
+
+            transactions[txHash].description = parsedTx.description;
+            transactions[txHash].via = parsedTx.via;
+            // Exchange transaction
+            // if (to in marketsMap) {
+            //   transactions[txHash].via = marketsMap[to];
+            // } else if (to in tokenContracts) {
+            //   // console.log("NFT: " + JSON.stringify(tokenContracts[to]));
+            //   transactions[txHash].description = "Mint '" + tokenContracts[to].symbol + "' '" + tokenContracts[to].name + "'";
+            //   transactions[txHash].via = null;
+            // }
+            transactions[txHash].valueType = "ETH";
+            transactions[txHash].value = tx.value && ethers.utils.formatEther(tx.value) || null;
+
+
+            // transactions[txHash].action = "New Action";
+            // action: "action",
+            // valueType: "valueType",
+            // value: tx.value && ethers.utils.formatEther(tx.value) || null,
+            // description: "description",
+            // items: [],
+          }
+
+          state.transactions = transactions;
         }
 
 
