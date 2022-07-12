@@ -863,6 +863,7 @@ const accountsModule = {
         // debug = ["0x6d898e34c9547ded9b24951ee53d18de84ad375542ee3e268a08d50db1fe50e2"]; // WETH Wrap
         // debug = ["0x367481e4f1d0224c34b89c4ac5f2f05edfd73a8f2736dc9d1a8c755adafcb308"]; // WETH Unwrap
         // debug = ["0x66df1c53a341bae5276ab7034275bde2324bc304a85e58c8ef4d41e8e51aeb60"]; // OpenSea Wyvern
+        // debug = ["0x59e3ba75f605b75489ca10e7c448fbd0d1776280549746490e5e14a142d2b97a"]; // Gem: Gemswap 2 - OpenSea and X2Y2
 
 
         if (startBlockNumber != null && startBlockNumber <= endBlockNumber) {
