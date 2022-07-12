@@ -20,74 +20,15 @@ const Accounts = {
               <!-- Main Toolbar -->
               <div class="d-flex flex-wrap m-0 p-0">
                 <div v-if="settings.tabIndex == 0" class="mt-1" style="width: 150px;">
-                  <b-form-input type="text" size="sm" :value="filter.transfers.accounts" @change="searchTransfers('filterUpdate', { transfers: { accounts: $event } })" :disabled="sync.inProgress" debounce="600" v-b-popover.hover.top="'List of accounts'" placeholder="🔍 0x12... ..."></b-form-input>
+                  <b-form-input type="text" size="sm" :value="filter.accountsOrTxs" @change="searchTransfers('filterUpdate', { transfers: { accounts: $event } })" :disabled="sync.inProgress" debounce="600" v-b-popover.hover.top="'List of accounts'" placeholder="🔍 0x12... ..."></b-form-input>
                 </div>
                 <!-- Min rows 2
                 <div v-if="settings.tabIndex == 0" class="mt-1" style="width: 150px;">
-                  <b-form-textarea size="sm" :value="filter.transfers.accounts" @change="searchTransfers('filterUpdate', { transfers: { accounts: $event } })" placeholder="🔍 0x12... ..." rows="1" max-rows="100"></b-form-textarea>
+                  <b-form-textarea size="sm" :value="filter.accountsOrTxs" @change="searchTransfers('filterUpdate', { transfers: { accounts: $event } })" placeholder="🔍 0x12... ..." rows="1" max-rows="100"></b-form-textarea>
                 </div>
                 -->
                 <div v-if="settings.tabIndex == 1" class="mt-1">
                   <b-button size="sm" :pressed.sync="settings.collection.showFilter" variant="link" v-b-popover.hover.top="'Show collection filter'"><span v-if="settings.collection.showFilter"><b-icon-layout-sidebar-inset shift-v="+1" font-scale="1.0"></b-icon-layout-sidebar-inset></span><span v-else><b-icon-layout-sidebar shift-v="+1" font-scale="1.0"></b-icon-layout-sidebar></span></b-button>
-                </div>
-                <div v-if="settings.tabIndex == 1" class="mt-1 pl-1">
-                  <b-dropdown dropright size="sm" :disabled="sync.inProgress" variant="link" toggle-class="text-decoration-none" v-b-popover.hover.top="'Some vintage and higher total trading volume ERC-721 collections'">
-                    <b-dropdown-group header="2015 Vintage">
-                      <b-dropdown-item @click="filter.collection.address = '0x4b1705c75fde41e35e454ddd14e5d0a0eac06280'">Oct 19 Etheria v0.9 (wrapped, image not working)</b-dropdown-item>
-                      <b-dropdown-item @click="filter.collection.address = '0x629a493a94b611138d4bee231f94f5c08ab6570a'">Oct 22 Etheria v1.0 (wrapped, image not working)</b-dropdown-item>
-                      <b-dropdown-item @click="filter.collection.address = '0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85'">Apr 26 ENS (new Jan 30 2020)</b-dropdown-item>
-                    </b-dropdown-group>
-                    <b-dropdown-group header="2016 Vintage">
-                      <b-dropdown-item @click="filter.collection.address = '0x050dc61dFB867E0fE3Cf2948362b6c0F3fAF790b'">Nov 17 PixelMap (wrapped)</b-dropdown-item>
-                    </b-dropdown-group>
-                    <b-dropdown-group header="2017 Vintage">
-                      <b-dropdown-item @click="filter.collection.address = '0x282bdd42f4eb70e7a9d9f40c8fea0825b7f68c5d'">Jun 09 CryptoPunks V1 (wrapped)</b-dropdown-item>
-                      <b-dropdown-item @click="filter.collection.address = '0xb7f7f6c52f2e2fdb1963eab30438024864c313f6'">Jun 22 CryptoPunks V2 (wrapped)</b-dropdown-item>
-                      <b-dropdown-item @click="filter.collection.address = '0xc3f733ca98e0dad0386979eb96fb1722a1a05e69'">Aug 09 MoonCats (wrapped, official)</b-dropdown-item>
-                      <b-dropdown-item @click="filter.collection.address = '0x7c40c393dc0f283f318791d746d894ddd3693572'">Aug 09 Wrapped MoonCatsRescue - Unofficial (wrapped)</b-dropdown-item>
-                      <b-dropdown-item @click="filter.collection.address = '0x7bb952ab78b28a62b1525aca54a71e7aa6177645'">Aug 27 Thousand Ether Homepage (wrapped)</b-dropdown-item>
-                      <b-dropdown-item @click="filter.collection.address = '0x80f1ed6a1ac694317dc5719db099a440627d1ea7'">Aug 29 IKB Cachet de Garantie (wrapped)</b-dropdown-item>
-                      <b-dropdown-item @click="filter.collection.address = '0x5F53f9f5DcF76757f7CbF35C2e47164C65b9b5eD'">Oct 05 Wrapped Historic DADA (wrapped, dyor)</b-dropdown-item>
-                      <b-dropdown-item @click="filter.collection.address = '0x34d77a17038491a2a9eaa6e690b7c7cd39fc8392'">Oct 05 Dada Collectible (wrapped, dyor)</b-dropdown-item>
-                      <b-dropdown-item @click="filter.collection.address = '0xe81175546f554ca6ceb63b142f27de7557c5bf62'">Oct 20 Lunar Moon Plots (wrapped)</b-dropdown-item>
-                      <b-dropdown-item @click="filter.collection.address = '0x06012c8cf97BEaD5deAe237070F9587f8E7A266d'">Nov 23 CryptoKitties (large data set, not working)</b-dropdown-item>
-                      <b-dropdown-item @click="filter.collection.address = '0xd0e7bc3f1efc5f098534bce73589835b8273b9a0'">Dec 24 Wrapped CryptoCats Official</b-dropdown-item>
-                      <b-dropdown-item @click="filter.collection.address = '0x8479277aacff4663aa4241085a7e27934a0b0840'">Dec 30 Realms of Ether (wrapped)</b-dropdown-item>
-                    </b-dropdown-group>
-                    <b-dropdown-group header="2018 Vintage">
-                      <b-dropdown-item @click="filter.collection.address = '0x79986af15539de2db9a5086382daeda917a9cf0c'">Jun 05 Voxels (originally CryptoVoxels, not working)</b-dropdown-item>
-                      <b-dropdown-item @click="filter.collection.address = '0xbfde6246df72d3ca86419628cac46a9d2b60393c'">Aug 02 Etheremon Adventure</b-dropdown-item>
-                    </b-dropdown-group>
-                    <b-dropdown-group header="2019 Vintage">
-                      <b-dropdown-item @click="filter.collection.address = '0xd4e4078ca3495de5b1d4db434bebc5a986197782'">Apr 05 Autoglyph</b-dropdown-item>
-                    </b-dropdown-group>
-                    <b-dropdown-group header="2020 Vintage">
-                    </b-dropdown-group>
-                    <b-dropdown-group header="2021 Vintage">
-                      <b-dropdown-item @click="filter.collection.address = '0xc2c747e0f7004f9e8817db2ca4997657a7746928'">Jan 28 Hashmasks</b-dropdown-item>
-                      <b-dropdown-item @click="filter.collection.address = '0x31385d3520bced94f77aae104b406994d8f2168c'">Mar 07 BASTARD GAN PUNKS V2</b-dropdown-item>
-                      <b-dropdown-item @click="filter.collection.address = '0x97ca7fe0b0288f5eb85f386fed876618fb9b8ab8'">Mar 17 Ether Cards Founder</b-dropdown-item>
-                      <b-dropdown-item @click="filter.collection.address = '0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d'">Apr 22 Bored Ape Yacht Club</b-dropdown-item>
-                      <b-dropdown-item @click="filter.collection.address = '0x7bd29408f11d2bfc23c34f18275bbf23bb716bc7'">May 03 Meebits</b-dropdown-item>
-                      <b-dropdown-item @click="filter.collection.address = '0xba30e5f9bb24caa003e9f2f0497ad287fdf95623'">Jun 18 Bored Ape Kennel Club</b-dropdown-item>
-                      <b-dropdown-item @click="filter.collection.address = '0x1a92f7381b9f03921564a437210bb9396471050c'">Jun 27 Cool Cats NFT</b-dropdown-item>
-                      <b-dropdown-item @click="filter.collection.address = '0xbd3531da5cf5857e7cfaa92426877b022e612cf8'">Jul 22 Pudgy Penguins</b-dropdown-item>
-                      <b-dropdown-item @click="filter.collection.address = '0x42069abfe407c60cf4ae4112bedead391dba1cdb'">Jul 28 CryptoDickButts</b-dropdown-item>
-                      <b-dropdown-item @click="filter.collection.address = '0x60e4d786628fea6478f785a6d7e704777c86a7c6'">Aug 28 Mutant Ape Yacht Club</b-dropdown-item>
-                      <b-dropdown-item @click="filter.collection.address = '0x1cb1a5e65610aeff2551a50f76a87a7d3fb649c6'">Sep 08 CrypToadz</b-dropdown-item>
-                      <b-dropdown-item @click="filter.collection.address = '0x1a2f71468f656e97c2f86541e57189f59951efe7'">Oct 07 Cryptomories</b-dropdown-item>
-                      <b-dropdown-item @click="filter.collection.address = '0x8a90cab2b38dba80c64b7734e58ee1db38b8992e'">Oct 16 Doodles</b-dropdown-item>
-                      <b-dropdown-item @click="filter.collection.address = '0xe0fa9fb0e30ca86513642112bee1cbbaa2a0580d'">Oct 18 The Greats by Wolfgang Beltracchi</b-dropdown-item>
-                      <b-dropdown-item @click="filter.collection.address = '0x79fcdef22feed20eddacbb2587640e45491b757f'">Nov 29 mfers</b-dropdown-item>
-                    </b-dropdown-group>
-                    <b-dropdown-group header="2022">
-                      <b-dropdown-item @click="filter.collection.address = '0xed5af388653567af2f388e6224dc7c4b3241c544'">Jan 10 Azuki</b-dropdown-item>
-                      <b-dropdown-item @click="filter.collection.address = '0xf1bdfc38b0089097f050141d21f5e8a3cb0ec8fc'">Jan 28 CryptoTitVags</b-dropdown-item>
-                      <b-dropdown-item @click="filter.collection.address = '0x45bC849a53a3531648EE7E27dD09FCaa23Ca5ff9'">Mar 25 PepeMfers Official</b-dropdown-item>
-                      <b-dropdown-item @click="filter.collection.address = '0x23581767a106ae21c074b2276d25e5c3e136a68b'">Apr 15 Moonbirds</b-dropdown-item>
-                      <b-dropdown-item @click="filter.collection.address = '0x34d85c9cdeb23fa97cb08333b511ac86e1c4e258'">Apr 28 Otherdeed for Otherside</b-dropdown-item>
-                    </b-dropdown-group>
-                  </b-dropdown>
                 </div>
                 <!--
                 <div v-if="false" class="mt-1 pl-1">
@@ -106,6 +47,9 @@ const Accounts = {
                 <div class="mt-1 flex-grow-1">
                 </div>
 
+                <div class="mt-1 pl-1">
+                  <b-form-select size="sm" :value="filter.scanBlocks" :options="scanBlocksOptions" @change="monitorMints('filterUpdate', { scanBlocks: $event })" :disabled="sync.inProgress" v-b-popover.hover.top="'Number of blocks to scan'"></b-form-select>
+                </div>
                 <div v-if="settings.tabIndex == 0" class="mt-1 pl-1">
                   <b-button size="sm" @click="searchTransfers('scanLatest', {})" :disabled="sync.inProgress || !powerOn || network.chainId != 1" variant="primary">{{ 'Search Latest ' + filter.scanBlocks + ' Blocks' }}</b-button>
                 </div>
@@ -113,7 +57,7 @@ const Accounts = {
                 <div class="mt-1 flex-grow-1">
                 </div>
 
-                <div v-if="settings.tabIndex == 0 || settings.tabIndex == 1 || settings.tabIndex == 2" class="mt-2" style="width: 200px;">
+                <div class="mt-2" style="width: 200px;">
                   <b-progress v-if="sync.inProgress" height="1.5rem" :max="sync.total" :label="'((sync.completed/sync.total)*100).toFixed(2) + %'" show-progress :animated="sync.inProgress" :variant="sync.inProgress ? 'success' : 'secondary'" v-b-popover.hover.top="'Click on the Sync(ing) button to (un)pause'">
                     <b-progress-bar :value="sync.completed">
                       {{ sync.completed + '/' + sync.total + ' ' + ((sync.completed / sync.total) * 100).toFixed(0) + '%' }}
@@ -381,7 +325,7 @@ const Accounts = {
       </b-card>
     </div>
   `,
-  props: ['tab', 'blocks', 'search'],
+  props: ['blocks', 'accountsOrTxs'],
   data: function() {
     return {
       count: 0,
@@ -594,8 +538,8 @@ const Accounts = {
       } else {
         url = url + '/';
       }
-      if (this.filter.searchString != null && this.filter.searchString.length > 0) {
-        url = url + this.filter.searchString;
+      if (this.filter.accountsOrTxs != null && this.filter.accountsOrTxs.length > 0) {
+        url = url + this.filter.accountsOrTxs;
       }
       return url;
     },
@@ -741,33 +685,41 @@ const Accounts = {
     logDebug("Accounts", "beforeDestroy()");
   },
   mounted() {
-    logInfo("Accounts", "mounted() $route: " + JSON.stringify(this.$route.params) + ", props['tab']: " + this.tab + ", props['blocks']: " + this.blocks + ", props['search']: " + this.search);
-    if (this.tab == "transfers") {
-      this.settings.tabIndex = 0;
-    } else if (this.tab == "collection") {
-      this.settings.tabIndex = 1;
-    } else if (this.tab == "mintmonitor") {
-      this.settings.tabIndex = 2;
-      let startBlockNumber = null;
-      let endBlockNumber = null;
-      if (this.blocks != null) {
-        if (new RegExp('^[0-9,]+$').test(this.blocks)) {
-          startBlockNumber = this.blocks;
-          endBlockNumber = this.blocks;
-        } else if (new RegExp('^[0-9,]+\s*\-\s*[0-9,]+$').test(this.blocks)) {
-          startBlockNumber = this.blocks.replace(/\s*\-.*$/, '');
-          endBlockNumber = this.blocks.replace(/^.*\-\s*/, '');
-        }
-        const filterUpdate = {
-          startBlockNumber: ethers.utils.commify(parseInt(startBlockNumber)),
-          endBlockNumber: ethers.utils.commify(parseInt(endBlockNumber)),
-          searchString: this.search,
-        };
-        setTimeout(function() {
-          store.dispatch('accounts/monitorMints', { syncMode: 'scan', filterUpdate });
-        }, 1000);
-      }
+    logInfo("Accounts", "mounted() $route: " + JSON.stringify(this.$route.params) + ", props['blocks']: " + this.blocks + ", props['accountsOrTxs']: " + this.accountsOrTxs);
+    if (this.accountsOrTxs != null) {
+      const filterUpdate = {
+        accountsOrTxs: this.accountsOrTxs,
+      };
+      setTimeout(function() {
+        store.dispatch('accounts/searchTransfers', { syncMode: 'mounted', filterUpdate });
+      }, 1000);
     }
+    // if (this.tab == "transfers") {
+    //   this.settings.tabIndex = 0;
+    // } else if (this.tab == "collection") {
+    //   this.settings.tabIndex = 1;
+    // } else if (this.tab == "mintmonitor") {
+    //   this.settings.tabIndex = 2;
+    //   let startBlockNumber = null;
+    //   let endBlockNumber = null;
+    //   if (this.blocks != null) {
+    //     if (new RegExp('^[0-9,]+$').test(this.blocks)) {
+    //       startBlockNumber = this.blocks;
+    //       endBlockNumber = this.blocks;
+    //     } else if (new RegExp('^[0-9,]+\s*\-\s*[0-9,]+$').test(this.blocks)) {
+    //       startBlockNumber = this.blocks.replace(/\s*\-.*$/, '');
+    //       endBlockNumber = this.blocks.replace(/^.*\-\s*/, '');
+    //     }
+    //     const filterUpdate = {
+    //       startBlockNumber: ethers.utils.commify(parseInt(startBlockNumber)),
+    //       endBlockNumber: ethers.utils.commify(parseInt(endBlockNumber)),
+    //       accountsOrTxs: this.search,
+    //     };
+    //     setTimeout(function() {
+    //       store.dispatch('accounts/monitorMints', { syncMode: 'scan', filterUpdate });
+    //     }, 1000);
+    //   }
+    // }
     this.reschedule = true;
     logDebug("Accounts", "Calling timeoutCallback()");
     this.timeoutCallback();
@@ -785,11 +737,11 @@ const accountsModule = {
         address: null, // "0x31385d3520bced94f77aae104b406994d8f2168c",
         startBlockNumber: 4000000,
       },
-      transfers: {
-        accounts: "0x287F9b46dceA520D829c874b0AF01f4fbfeF9243", // TODO null,
-      },
-      searchString: null,
-      scanBlocks: 500,
+      // transfers: {
+      //   accounts: "0x287F9b46dceA520D829c874b0AF01f4fbfeF9243", // TODO null,
+      // },
+      accountsOrTxs: "0x287F9b46dceA520D829c874b0AF01f4fbfeF9243", // TODO null
+      scanBlocks: 10000,
       startBlockNumber: 14484994, // null,
       endBlockNumber: 14591766, // null,
     },
@@ -830,57 +782,51 @@ const accountsModule = {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const block = await provider.getBlock("latest");
         const blockNumber = block.number;
-        console.log("state.filter: " + JSON.stringify(state.filter, null, 2));
-        const accounts = state.filter.transfers && state.filter.transfers.accounts && state.filter.transfers.accounts.split(/[, \t\n]+/).map(s => '0x000000000000000000000000' + s.substring(2, 42).toLowerCase()) || [];
-        console.log("searchTransfers - accounts: " + JSON.stringify(accounts));
+
+        const accounts = state.filter.transfers && state.filter.accountsOrTxs && state.filter.accountsOrTxs.split(/[, \t\n]+/).map(s => '0x000000000000000000000000' + s.substring(2, 42).toLowerCase()) || [];
+        // console.log("searchTransfers - accounts: " + JSON.stringify(accounts));
         if (filterUpdate != null) {
-          console.log("searchTransfers - filter before: " + JSON.stringify(state.filter));
+          // console.log("searchTransfers - filter before: " + JSON.stringify(state.filter));
           state.filter = { ...state.filter, ...filterUpdate };
-          console.log("searchTransfers - filter after: " + JSON.stringify(state.filter));
+          // console.log("searchTransfers - filter after: " + JSON.stringify(state.filter));
         }
-        let startBlockNumber = null;
-        let endBlockNumber = null;
-        if (syncMode == 'scan') {
-          startBlockNumber = parseInt(state.filter.startBlockNumber.toString().replace(/,/g, ''));
-          endBlockNumber = parseInt(state.filter.endBlockNumber.toString().replace(/,/g, ''));
-        } else if (syncMode == 'scanLatest') {
-          startBlockNumber = blockNumber - state.filter.scanBlocks;
-          endBlockNumber = blockNumber;
-          state.filter.startBlockNumber = ethers.utils.commify(startBlockNumber);
-          state.filter.endBlockNumber = ethers.utils.commify(endBlockNumber);
+
+        // console.log("searchTransfers - filter.accountsOrTxs: " + JSON.stringify(state.filter.accountsOrTxs));
+        const _accounts = state.filter.accountsOrTxs && state.filter.accountsOrTxs.split(/[, \t\n]+/).filter(name => name.length == 42 && name.substring(0, 2) == '0x') || [];
+        console.log("searchTransfers - _accounts: " + JSON.stringify(_accounts));
+        const _txs = state.filter.accountsOrTxs && state.filter.accountsOrTxs.split(/[, \t\n]+/).filter(name => name.length == 66 && name.substring(0, 2) == '0x') || [];
+        console.log("searchTransfers - _txs: " + JSON.stringify(_txs));
+
+        let _txHashesToProcess = [..._txs];
+        const transfers = [];
+        const txHashes = {};
+        for (const txHash of _txs) {
+          if (!(txHash in txHashes)) {
+            txHashes[txHash] = true;
+          }
         }
-        console.log("searchTransfers - startBlockNumber: " + startBlockNumber + ", endBlockNumber: " + endBlockNumber);
-
-        let debug = null;
-        // debug = ["0xa537831867d1af2a566e55231b7468e29e6936bfc6aa13d78a4464450e95e514"]; // OS Wyvern tx
-        // debug = ["0xf59e8412897d3e25c3e4c0d75cf3354a88e30bbf12b0e02f40373ba09e270a8c"]; // MoonCats unwrap(uint256 _tokenId)
-        // debug = ["0x85a48ee39f63ebb61763bbe428a286092ebf88e2ecdcc32e2ce28b535132dc5c"]; // MoonCats batchWrap(uint256[] _rescueOrders)
-        // debug = ["0x3801ef7981577abb32a5426c0470a28aaecac379eef773b70ca85227fc507361"]; // MoonCats batchReWrap(uint256[] _rescueOrders, uint256[] _oldTokenIds)
-        // debug = ["0xd3b7f8caf380a4e7179246fa4ea529c77bc1298c33328b8909a8c770885a993f"]; // ENS registerWithConfig(string name, address owner, uint256 duration, bytes32 secret, address resolver, address addr)
-        // debug = ["0x32ca6cd120b55364567793bb51e9f2ff362bf559c0298a01e959538909d992b6"]; // OpenSea SeaPort 1.1 ETH purchase fulfillBasicOrder()
-        // debug = ["0x1ba1bb6ec3d89c0165db1fa3905ad587c8d995daec8aa2ed90d3ae4df7a68904"]; // OpenSea SeaPort 1.1 WETH accept
-        // debug = ["0x7522bef2c13d82d5e294154ec85c0f44887b44076e010fdd6f82adb483e1068e"]; // LooksRare Meebit
-        // debug = ["0x6d898e34c9547ded9b24951ee53d18de84ad375542ee3e268a08d50db1fe50e2"]; // WETH Wrap
-        // debug = ["0x367481e4f1d0224c34b89c4ac5f2f05edfd73a8f2736dc9d1a8c755adafcb308"]; // WETH Unwrap
-        // debug = ["0x66df1c53a341bae5276ab7034275bde2324bc304a85e58c8ef4d41e8e51aeb60"]; // OpenSea Wyvern
-        // debug = ["0x36e7f316034fe9b8b19819900f2eb0e120ecf61c26d58da0a80165c35d5e586e"]; // Gem: Gemswap 2 - OpenSea and LooksRare
-        // debug = ["0x59e3ba75f605b75489ca10e7c448fbd0d1776280549746490e5e14a142d2b97a"]; // Gem: Gemswap 2 - OpenSea and X2Y2
-
-
-        if (startBlockNumber != null && startBlockNumber <= endBlockNumber) {
+        const ensMap = {};
+        const contracts = {};
+        const transactions = {};
+        if (_accounts.length > 0) {
+          console.log("Process _accounts: " + JSON.stringify(_accounts));
+          // Add tx hashes from event scraping
+          let startBlockNumber = null;
+          let endBlockNumber = null;
+          if (syncMode == 'scan') {
+            startBlockNumber = parseInt(state.filter.startBlockNumber.toString().replace(/,/g, ''));
+            endBlockNumber = parseInt(state.filter.endBlockNumber.toString().replace(/,/g, ''));
+          } else if (syncMode == 'scanLatest' || syncMode == 'mounted') {
+            startBlockNumber = blockNumber - state.filter.scanBlocks;
+            endBlockNumber = blockNumber;
+            state.filter.startBlockNumber = ethers.utils.commify(startBlockNumber);
+            state.filter.endBlockNumber = ethers.utils.commify(endBlockNumber);
+          }
+          const accountsBytes32 = _accounts.map(s => '0x000000000000000000000000' + s.substring(2, 42));
+          // console.log("accountsBytes32: " + JSON.stringify(accountsBytes32));
           state.sync.completed = 0;
           state.sync.total = endBlockNumber - startBlockNumber;
           state.sync.inProgress = true;
-          const transfers = [];
-          const txHashes = {};
-          const accounts = state.filter.transfers.accounts.split(/[, \t\n]+/).map(s => s.toLowerCase());
-          const accountsBytes32 = accounts.map(s => '0x000000000000000000000000' + s.substring(2, 42));
-          console.log("accounts: " + JSON.stringify(accounts));
-          // console.log("accountsBytes32: " + JSON.stringify(accountsBytes32));
-          // const batchSize = 25;
-          const ensMap = {};
-          const contracts = {};
-          const transactions = {};
           let toBlock = endBlockNumber;
           do {
             let batchSize;
@@ -894,6 +840,7 @@ const accountsModule = {
             if (fromBlock < startBlockNumber) {
               fromBlock = startBlockNumber;
             }
+            console.log("Process _accounts - startBlockNumber: " + startBlockNumber + ", endBlockNumber: " + endBlockNumber);
             const filterFrom = {
               address: null, // [NIXADDRESS, weth.address],
               fromBlock: fromBlock,
@@ -960,6 +907,163 @@ const accountsModule = {
             state.sync.completed = endBlockNumber - toBlock;
           } while (toBlock > startBlockNumber && !state.halt && !debug);
           state.transfers = transfers;
+        }
+
+        _txHashesToProcess = Object.keys(txHashes);
+        if (_txHashesToProcess.length > 0) {
+          console.log("Process _txHashesToProcess: " + JSON.stringify(_txHashesToProcess));
+          state.sync.total = _txHashesToProcess.length;
+          state.sync.completed = 0;
+          // _txHashesToProcess = debug ? debug : _txHashesToProcess;
+          for (const txHash of _txHashesToProcess) {
+            console.log("Retrieving: " + txHash);
+            const tx = await provider.getTransaction(txHash);
+            const txReceipt = await provider.getTransactionReceipt(txHash);
+            const block = await provider.getBlock(txReceipt.blockNumber);
+            // console.log("tx: " + JSON.stringify(tx).substring(0, 50));
+            // console.log("txReceipt: " + JSON.stringify(txReceipt).substring(0, 50));
+            // console.log("block: " + JSON.stringify(block, null, 2));
+            transactions[txHash] = {
+              tx,
+              txReceipt,
+              block,
+              description: null,
+              via: null,
+              valueType: null,
+              value: null,
+              transfers: [],
+            };
+            state.sync.completed = parseInt(state.sync.completed) + 1;
+            if (state.halt) {
+              break;
+            }
+          }
+        }
+
+
+
+        let startBlockNumber = null;
+        let endBlockNumber = null;
+        if (syncMode == 'scan') {
+          startBlockNumber = parseInt(state.filter.startBlockNumber.toString().replace(/,/g, ''));
+          endBlockNumber = parseInt(state.filter.endBlockNumber.toString().replace(/,/g, ''));
+        } else if (syncMode == 'scanLatest' || syncMode == 'xmounted') {
+          startBlockNumber = blockNumber - state.filter.scanBlocks;
+          endBlockNumber = blockNumber;
+          state.filter.startBlockNumber = ethers.utils.commify(startBlockNumber);
+          state.filter.endBlockNumber = ethers.utils.commify(endBlockNumber);
+        }
+        // console.log("searchTransfers - startBlockNumber: " + startBlockNumber + ", endBlockNumber: " + endBlockNumber);
+
+        let debug = null;
+        // debug = ["0xa537831867d1af2a566e55231b7468e29e6936bfc6aa13d78a4464450e95e514"]; // OS Wyvern tx
+        // debug = ["0xf59e8412897d3e25c3e4c0d75cf3354a88e30bbf12b0e02f40373ba09e270a8c"]; // MoonCats unwrap(uint256 _tokenId)
+        // debug = ["0x85a48ee39f63ebb61763bbe428a286092ebf88e2ecdcc32e2ce28b535132dc5c"]; // MoonCats batchWrap(uint256[] _rescueOrders)
+        // debug = ["0x3801ef7981577abb32a5426c0470a28aaecac379eef773b70ca85227fc507361"]; // MoonCats batchReWrap(uint256[] _rescueOrders, uint256[] _oldTokenIds)
+        // debug = ["0xd3b7f8caf380a4e7179246fa4ea529c77bc1298c33328b8909a8c770885a993f"]; // ENS registerWithConfig(string name, address owner, uint256 duration, bytes32 secret, address resolver, address addr)
+        // debug = ["0x32ca6cd120b55364567793bb51e9f2ff362bf559c0298a01e959538909d992b6"]; // OpenSea SeaPort 1.1 ETH purchase fulfillBasicOrder()
+        // debug = ["0x1ba1bb6ec3d89c0165db1fa3905ad587c8d995daec8aa2ed90d3ae4df7a68904"]; // OpenSea SeaPort 1.1 WETH accept
+        // debug = ["0x7522bef2c13d82d5e294154ec85c0f44887b44076e010fdd6f82adb483e1068e"]; // LooksRare Meebit
+        // debug = ["0x6d898e34c9547ded9b24951ee53d18de84ad375542ee3e268a08d50db1fe50e2"]; // WETH Wrap
+        // debug = ["0x367481e4f1d0224c34b89c4ac5f2f05edfd73a8f2736dc9d1a8c755adafcb308"]; // WETH Unwrap
+        // debug = ["0x66df1c53a341bae5276ab7034275bde2324bc304a85e58c8ef4d41e8e51aeb60"]; // OpenSea Wyvern
+        // debug = ["0x36e7f316034fe9b8b19819900f2eb0e120ecf61c26d58da0a80165c35d5e586e"]; // Gem: Gemswap 2 - OpenSea and LooksRare
+        // debug = ["0x59e3ba75f605b75489ca10e7c448fbd0d1776280549746490e5e14a142d2b97a"]; // Gem: Gemswap 2 - OpenSea and X2Y2
+
+
+        if (false && startBlockNumber != null && startBlockNumber <= endBlockNumber) {
+          state.sync.completed = 0;
+          state.sync.total = endBlockNumber - startBlockNumber;
+          state.sync.inProgress = true;
+          const transfers = [];
+          const txHashes = {};
+          const accounts = state.filter.accountsOrTxs.split(/[, \t\n]+/).map(s => s.toLowerCase());
+          // const accountsBytes32 = accounts.map(s => '0x000000000000000000000000' + s.substring(2, 42));
+          // console.log("accounts: " + JSON.stringify(accounts));
+          // console.log("accountsBytes32: " + JSON.stringify(accountsBytes32));
+          // const batchSize = 25;
+          // const ensMap = {};
+          // const contracts = {};
+          // const transactions = {};
+          // let toBlock = endBlockNumber;
+          // do {
+          //   let batchSize;
+          //   // Aug 1 2021
+          //   if (toBlock < 12936340) {
+          //     batchSize = 250000;
+          //   } else {
+          //     batchSize = 25000;
+          //   }
+          //   let fromBlock = toBlock - batchSize;
+          //   if (fromBlock < startBlockNumber) {
+          //     fromBlock = startBlockNumber;
+          //   }
+          //   const filterFrom = {
+          //     address: null, // [NIXADDRESS, weth.address],
+          //     fromBlock: fromBlock,
+          //     toBlock: toBlock,
+          //     topics: [[
+          //         '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef', // Transfer (index_topic_1 address from, index_topic_2 address to, index_topic_3 uint256 id)
+          //       ],
+          //       accountsBytes32,
+          //       null,
+          //     ],
+          //   };
+          //   const eventsFrom = await provider.getLogs(filterFrom);
+          //   // console.log("searchTransfers - eventsFrom: " + JSON.stringify(eventsFrom.slice(0, 1), null, 2));
+          //   const filterTo = {
+          //     address: null, // [NIXADDRESS, weth.address],
+          //     fromBlock: fromBlock,
+          //     toBlock: toBlock,
+          //     topics: [
+          //       '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef', // Transfer (index_topic_1 address from, index_topic_2 address to, index_topic_3 uint256 id)
+          //       null,
+          //       accountsBytes32,
+          //     ],
+          //   };
+          //   const eventsTo = await provider.getLogs(filterTo);
+          //   // console.log("searchTransfers - eventsTo: " + JSON.stringify(eventsTo, null, 2));
+          //
+          //   for (const event of [...eventsFrom, ...eventsTo]) {
+          //     if (!event.removed) {
+          //       const contract = event.address;
+          //       // ERC-20
+          //       // if (event.topics[3] === undefined) {
+          //       //   console.log("searchTransfers - event: " + JSON.stringify(event, null, 2));
+          //       // }
+          //
+          //       let tokenId;
+          //       if (event.topics.length > 3) {
+          //         tokenId = new BigNumber(event.topics[3].substring(2), 16).toFixed(0);
+          //       } else {
+          //         tokenId = event.data != null ? new BigNumber(event.data.substring(2), 16).toFixed(0) : null;
+          //       }
+          //
+          //       const from = '0x' + event.topics[1].substring(26, 66);
+          //       const to = '0x' + event.topics[2].substring(26, 66);
+          //       const txHash = event.transactionHash;
+          //
+          //       if (!(contract in contracts)) {
+          //         contracts[contract] = true;
+          //       }
+          //       if (!(txHash in txHashes)) {
+          //         txHashes[txHash] = true;
+          //       }
+          //       for (const addy of [contract, from, to]) {
+          //         const lowerAddy = addy.toLowerCase();
+          //         if (!(lowerAddy in ensMap)) {
+          //           ensMap[lowerAddy] = addy;
+          //         }
+          //       }
+          //
+          //       transfers.push({ blockNumber: event.blockNumber, txIndex: event.transactionIndex, contract, tokenId, from, to, txHash, logIndex: event.logIndex });
+          //     }
+          //   }
+          //
+          //   toBlock -= batchSize;
+          //   state.sync.completed = endBlockNumber - toBlock;
+          // } while (toBlock > startBlockNumber && !state.halt && !debug);
+          // state.transfers = transfers;
 
           // console.log("txHashes: " + JSON.stringify(txHashes));
           let txHashesToProcess = Object.keys(txHashes);
