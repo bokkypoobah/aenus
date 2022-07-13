@@ -174,7 +174,7 @@ const Accounts = {
                       </template>
                       <template #cell(description)="data">
                         <span v-if="data.item.to == '0x283Af0B28c62C092C9727F1Ee09c02CA627EB7F5'">
-                          {{ getShortName(data.item.sender) + ' '  + data.item.description + ' ' + data.item.additionalData.name + ' for ' + data.item.additionalData.duration }}
+                          {{ getShortName(data.item.sender) + ' '  + data.item.description + ' ' + data.item.additionalData.name + ' for ' + data.item.additionalData.duration + ' ETH ' + formatETH(data.item.additionalData.registrationCost) }}
                         </span>
                         <span v-else>
                           {{ getShortName(data.item.sender) + ' '  + data.item.description }}
