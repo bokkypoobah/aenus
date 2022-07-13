@@ -18,9 +18,10 @@ function parseTx(tx, txReceipt, block, provider) {
     console.log("Supported contract: " + tx.to + " " + _CONTRACTS[tx.to].name);
     let decodedData = contractInterface.parseTransaction({ data: tx.data, value: tx.value });
     console.log("decodedData.functionFragment.name: " + decodedData.functionFragment.name);
+    // console.log("decodedData: " + JSON.stringify(decodedData, null, 2));
     for (let i in decodedData.functionFragment.inputs) {
       const c = decodedData.functionFragment.inputs[i];
-      console.log("  " + i + " " + c.name + " " + c.type + " " + decodedData.args[0][i]);
+      console.log("  " + i + " " + c.name + " " + c.type + " " + decodedData.args[i]);
     }
 
     // // struct TradeDetails {
@@ -58,17 +59,24 @@ function parseTx(tx, txReceipt, block, provider) {
   let wethInterface = new ethers.utils.Interface(_WETHABI);
   let description = null;
   let via = null;
+  const transfers = [];
   const mintEvents = [];
   const burnEvents = [];
   const transferEvents = [];
   const erc20Transfers = [];
-  const msgValue = ethers.utils.formatEther(tx.value);
-  const gasUsed = txReceipt.gasUsed.toString();
-  console.log("gasUsed: " + gasUsed);
-  console.log("tx: " + JSON.stringify(tx, null, 0));
-  console.log("txReceipt: " + JSON.stringify(txReceipt, null, 0));
-  console.log("from: " + tx.from + ", to: " + tx.to + ", msgValue: " + JSON.stringify(msgValue));
+  const msgValue = tx.value;
+  const gasUsed = ethers.BigNumber.from(txReceipt.gasUsed);
+  // console.log("txReceipt: " + JSON.stringify(txReceipt, null, 0));
+  const effectiveGasPrice = ethers.BigNumber.from(txReceipt.effectiveGasPrice);
+  const txFee = new BigNumber(gasUsed.mul(effectiveGasPrice)).toFixed(0);
+  // console.log("gasUsed: " + gasUsed + ", effectiveGasPrice: " + effectiveGasPrice + ", txFee: " + txFee);
+  // console.log("tx: " + JSON.stringify(tx, null, 0));
+  // console.log("txReceipt: " + JSON.stringify(txReceipt, null, 0));
+  // console.log("from: " + tx.from + ", to: " + tx.to + ", msgValue: " + ethers.utils.formatEther(msgValue));
 
+  if (msgValue != 0) {
+    transfers.push({ type: "value", asset: "eth", logIndex: null, from: tx.from, to: tx.to, tokens: ethers.BigNumber.from(msgValue).toString() });
+  }
   for (const event of txReceipt.logs) {
     if (event.topics[0] == '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef') {
       const from = '0x' + event.topics[1].substring(26, 66);
@@ -89,18 +97,44 @@ function parseTx(tx, txReceipt, block, provider) {
         } else {
           transferEvents.push({ address, from, to, tokenId });
         }
+        transfers.push({ type: "erc721", asset: address, from, to, tokenId });
       } else {
         const tokens = event.data != null ? new BigNumber(event.data.substring(2), 16).toFixed(0) : null;
         erc20Transfers.push({ address, from, to, tokens });
+        transfers.push({ type: "erc20", logIndex: null, asset: address, from, to, tokens });
       }
+    // WETH Deposit
+    } else if (event.topics[0] == '0xe1fffcc4923d04b559f4d29a8bfc6cda04eb5b0d3c460751c2402c5c5cc9109c') {
+      console.log("WETH Deposit");
+      const to = '0x' + event.topics[1].substring(26, 66);
+      const tokens = event.data != null ? new BigNumber(event.data.substring(2), 16).toFixed(0) : null;
+      transfers.push({ type: "weth", logIndex: event.logIndex, asset: event.address, from: null, to, tokens });
+    // WETH Withdrawal
+    } else if (event.topics[0] == '0x7fcf532c15f0a6db0bd6d0e038bea71d30d808c7d98cb3bf7268a95bf5081b65') {
+      console.log("WETH Withdrawal");
+      const from = '0x' + event.topics[1].substring(26, 66);
+      const tokens = event.data != null ? new BigNumber(event.data.substring(2), 16).toFixed(0) : null;
+      transfers.push({ type: "weth", logIndex: event.logIndex, asset: event.address, from, to: null, tokens });
+    // ERC20 Approval (index_topic_1 address src, index_topic_2 address guy, uint256 wad)
+    } else if (event.topics[0] == '0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925') {
+      console.log("ERC20 Approval event: " + JSON.stringify(event));
+      const tokenOwner = '0x' + event.topics[1].substring(26, 66);
+      const spender = '0x' + event.topics[2].substring(26, 66);
+      const tokens = event.data != null ? new BigNumber(event.data.substring(2), 16).toFixed(0) : null;
+      transfers.push({ type: "approval", logIndex: event.logIndex, asset: event.address, from: tokenOwner, to: spender, tokens });
+    } else {
+      console.log("Unknown event: " + JSON.stringify(event));
     }
   }
+  transfers.push({ type: "txFee", logIndex: null, asset: "eth", from: tx.from, to: null, tokens: txFee });
   // console.log("mintEvents: " + JSON.stringify(mintEvents));
   // console.log("burnEvents: " + JSON.stringify(burnEvents));
   // console.log("transferEvents: " + JSON.stringify(transferEvents));
   const mintTokenIds = mintEvents.map((e) => parseInt(e.tokenId));
   const burnTokenIds = burnEvents.map((e) => parseInt(e.tokenId));
   const transferTokenIds = transferEvents.map((e) => parseInt(e.tokenId));
+
+
 
   // ETHRegistrarController
   if (tx.to == _ENSREGISTRARCONTROLLERADDRESS) {
@@ -309,7 +343,7 @@ function parseTx(tx, txReceipt, block, provider) {
       description = description + " ERC20Transfers " + JSON.stringify(erc20Transfers);
     }
   }
-  return { description, via, mintEvents, burnEvents, transferEvents, erc20Transfers };
+  return { description, via, transfers, mintEvents, burnEvents, transferEvents, erc20Transfers };
 }
 
 const _CONTRACTS = {

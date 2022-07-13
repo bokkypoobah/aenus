@@ -11,6 +11,11 @@ const Accounts = {
             </b-tab>
             <b-tab title="Mint Monitor" @click="updateURL('mintmonitor');">
             </b-tab>
+            Tx View
+            # Sender Sent Received Via Tx/Timestamp
+
+            Account View
+            # Sent Received Balance Tx/Timestamp
             -->
           </b-tabs>
 
@@ -75,13 +80,13 @@ const Accounts = {
                   <b-button size="sm" :pressed.sync="settings.periodSelector.displayToolbar" variant="link" v-b-popover.hover.top="'Select by UTC date & time'"><span v-if="settings.periodSelector.displayToolbar"><b-icon-calendar3-fill shift-v="+1" font-scale="1.0"></b-icon-calendar3-fill></span><span v-else><b-icon-calendar3 shift-v="+1" font-scale="1.0"></b-icon-calendar3></span></b-button>
                 </div>
                 <div v-if="settings.tabIndex == 0 || settings.tabIndex == 2" class="mt-1" style="max-width: 100px;">
-                  <b-form-input type="text" size="sm" :value="filter.startBlockNumber" :disabled="sync.inProgress" @change="monitorMints('filterUpdate', { startBlockNumber: $event })" debounce="600" v-b-popover.hover.top="'Search from block number'" placeholder="from"></b-form-input>
+                  <b-form-input type="text" size="sm" :value="filter.startBlockNumber" :disabled="sync.inProgress" @change="searchTransfers('filterUpdate', { startBlockNumber: $event })" debounce="600" v-b-popover.hover.top="'Search from block number'" placeholder="from"></b-form-input>
                 </div>
                 <div v-if="settings.tabIndex == 0 || settings.tabIndex == 2" class="mt-1">
                   -
                 </div>
                 <div v-if="settings.tabIndex == 0 || settings.tabIndex == 2" class="mt-1" style="max-width: 100px;">
-                  <b-form-input type="text" size="sm" :value="filter.endBlockNumber" :disabled="sync.inProgress" @change="monitorMints('filterUpdate', { endBlockNumber: $event })" debounce="600" v-b-popover.hover.top="'Search to block number'" placeholder="to"></b-form-input>
+                  <b-form-input type="text" size="sm" :value="filter.endBlockNumber" :disabled="sync.inProgress" @change="searchTransfers('filterUpdate', { endBlockNumber: $event })" debounce="600" v-b-popover.hover.top="'Search to block number'" placeholder="to"></b-form-input>
                 </div>
                 <div v-if="settings.tabIndex == 0" class="mt-1 pl-1">
                   <b-button size="sm" @click="searchTransfers('scan', {})" :disabled="sync.inProgress || !powerOn || network.chainId != 1 || filter.startBlockNumber == null || filter.endBlockNumber == null" variant="primary" style="min-width: 80px; ">Search</b-button>
@@ -167,12 +172,45 @@ const Accounts = {
                       <template #cell(index)="data">
                         {{ data.index + 1 }}
                       </template>
-                      <template #cell(timestamp)="data">
-                        {{ formatTimestamp(data.item.timestamp) }}
+                      <template #cell(sender)="data">
+                        {{ getShortName(data.item.sender) }}
                       </template>
                       <template #cell(description)="data">
                         {{ data.item.description }}
+                      </template>
+                      <template #cell(transfers)="data">
+                        <font size="-2">
+                          <b-table small fixed striped :fields="transactionsTransferFields" :items="data.item.transfers" head-variant="light">
+                            <template #cell(index)="data">
+                              {{ data.index + 1 }}
+                            </template>
+                            <template #cell(type)="data">
+                              {{ data.item.type }}
+                            </template>
+                            <template #cell(from)="data">
+                              {{ getShortName(data.item.from, 12) }}
+                            </template>
+                            <template #cell(to)="data">
+                              {{ getShortName(data.item.to, 12) }}
+                            </template>
+                            <template #cell(tokens)="data">
+                              <span v-if="data.item.asset == 'eth'">
+                              {{ 'ETH ' + formatETH(data.item.tokens) }}
+                              </span>
+                              <span v-else-if="data.item.asset == '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'">
+                              {{ 'WETH ' + formatETH(data.item.tokens) }}
+                              </span>
+                              <span v-else>
+                                {{ getShortName(data.item.asset, 12) + ': ' + data.item.tokens }}
+                              </span>
+                            </template>
+                          </b-table>
+                        </font>
                         <!--
+                        {{ JSON.stringify(data.item.transfers) }}
+                        {{ formatTimestamp(data.item.timestamp) }}
+                        {{ data.item.valueType }}
+                        {{ data.item.value }}
                         <b-row v-for="(transfer, transferIndex) in data.item.transfers" v-bind:key="transferIndex">
                           <b-col>
                             <div v-if="transfer.type == 'received'">
@@ -388,12 +426,20 @@ const Accounts = {
 
       transactionsFields: [
         { key: 'index', label: '#', thStyle: 'width: 5%;', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
-        { key: 'timestamp', label: 'Timestamp', thStyle: 'width: 15%;', sortable: true },
-        { key: 'description', label: 'Description', thStyle: 'width: 35%;', sortable: true },
+        { key: 'sender', label: 'Sender', thStyle: 'width: 15%;', sortable: true },
+        { key: 'description', label: 'Description', thStyle: 'width: 25%;', sortable: true },
+        { key: 'transfers', label: 'Transfers', thStyle: 'width: 30%;', sortable: true },
         { key: 'via', label: 'Via', thStyle: 'width: 10%;', sortable: true },
-        { key: 'valueType', label: 'Type', thStyle: 'width: 5%;', sortable: true },
-        { key: 'value', label: 'Value', thStyle: 'width: 15%;', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
+        // { key: 'valueType', label: 'Type', thStyle: 'width: 5%;', sortable: true },
+        // { key: 'value', label: 'Value', thStyle: 'width: 15%;', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
         { key: 'txHash', label: 'Tx Hash', sortable: true, thStyle: 'width: 15%;' },
+      ],
+      transactionsTransferFields: [
+        { key: 'index', label: '#', thStyle: 'width: 5%;', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
+        { key: 'type', label: 'Type', thStyle: 'width: 20%;', sortable: true },
+        { key: 'from', label: 'From', thStyle: 'width: 25%;', sortable: true },
+        { key: 'to', label: 'To', thStyle: 'width: 25%;', sortable: true },
+        { key: 'tokens', label: 'Tokens', thStyle: 'width: 25%;', sortable: true },
       ],
 
       transfersFields: [
@@ -459,6 +505,7 @@ const Accounts = {
       for (const [txHash, tx] of Object.entries(this.transactions)) {
         // console.log("filteredTransactions - tx: " + JSON.stringify(tx, null, 2));
         results.push({
+          sender: tx.tx.from,
           txHash: tx.tx.hash,
           block: tx.block.number,
           timestamp: tx.block.timestamp,
@@ -571,21 +618,37 @@ const Accounts = {
       }
       return null;
     },
-    getShortName(address, length = 32) {
-      const addressLower = address.toLowerCase();
-      if (addressLower in this.transfersCollectionContracts) {
-        let collection = this.transfersCollectionContracts[addressLower];
-        return collection.name && collection.name.substring(0, length) || 'error';
-      }
-      try {
-        let name = this.ensMap[address.toLowerCase()];
-        if (name != null) {
-          name = name.substring(0, length);
+    formatETH(e) {
+      if (e == '115792089237316195423570985008687907853269984665640564039457584007913129639935') {
+        return '∞';
+      } else {
+        try {
+          return e ? ethers.utils.commify(ethers.utils.formatEther(e)) : null;
+        } catch (err) {
         }
-        return name;
-      } catch (e) {
-        return address.substring(0, length);
+        return e.toFixed(9);
       }
+    },
+    getShortName(address, length = 16) {
+      // const addressLower = address; // .toLowerCase();
+      // if (addressLower in this.transfersCollectionContracts) {
+      //   let collection = this.transfersCollectionContracts[addressLower];
+      //   return collection.name && collection.name.substring(0, length) || 'error';
+      // }
+      if (address != null) {
+        try {
+          let name = this.ensMap[address.toLowerCase()];
+          if (name != null) {
+            name = name.substring(0, length);
+          } else {
+            name = address.substring(0, length);
+          }
+          return name;
+        } catch (e) {
+          return address.substring(0, length);
+        }
+      }
+      return null;
     },
     getSortedTraitsForCollectionTokensAttributes(category) {
       const results = [];
@@ -641,7 +704,7 @@ const Accounts = {
         }).then(handleErrors)
           .then(response => response.json());
         if (data && data.data && data.data.blocks && data.data.blocks.length == 1) {
-          store.dispatch('accounts/monitorMints', { syncMode: 'updateFilter', filterUpdate: { startBlockNumber: ethers.utils.commify(data.data.blocks[0].number) } });
+          store.dispatch('accounts/searchTransfers', { syncMode: 'updateFilter', filterUpdate: { startBlockNumber: ethers.utils.commify(data.data.blocks[0].number) } });
         }
       }
       if ((field == 'dateTo' || field == 'timeTo') && mm.dateTo != null && mm.timeTo != null) {
@@ -660,7 +723,7 @@ const Accounts = {
         }).then(handleErrors)
           .then(response => response.json());
         if (data && data.data && data.data.blocks && data.data.blocks.length == 1) {
-          store.dispatch('accounts/monitorMints', { syncMode: 'updateFilter', filterUpdate: { endBlockNumber: ethers.utils.commify(data.data.blocks[0].number) } });
+          store.dispatch('accounts/searchTransfers', { syncMode: 'updateFilter', filterUpdate: { endBlockNumber: ethers.utils.commify(data.data.blocks[0].number) } });
         }
       }
     },
@@ -922,6 +985,8 @@ const accountsModule = {
 
           for (const txHash of _txHashesToProcess) {
             const transaction = transactions[txHash];
+            if (transaction) {
+
             const tx = transaction.tx;
             const txReceipt = transaction.txReceipt;
             // if (debug) {
@@ -980,7 +1045,7 @@ const accountsModule = {
             //   return a.logIndex - b.logIndex;
             // });
             // // console.log("transfers: " + JSON.stringify(transfers));
-            // transactions[txHash].transfers = transfers;
+            transactions[txHash].transfers = parsedTx.transfers;
 
             transactions[txHash].description = parsedTx.description;
             transactions[txHash].via = parsedTx.via;
@@ -1002,6 +1067,7 @@ const accountsModule = {
             // value: tx.value && ethers.utils.formatEther(tx.value) || null,
             // description: "description",
             // items: [],
+          }
           }
 
           state.transactions = transactions;
