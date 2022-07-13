@@ -208,10 +208,10 @@ const Accounts = {
                               {{ 'WETH ' + formatETH(datax.item.tokens) }}
                               </span>
                               <span v-else-if="datax.item.asset == '0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85'">
-                              {{ 'ENS ' + data.item.additionalData.name }}
+                              {{ 'ENS ' + (('name' in data.item.additionalData) ? data.item.additionalData.name : datax.item.tokenId) }}
                               </span>
                               <span v-else>
-                                {{ getShortName(datax.item.asset) + ': ' + datax.item.tokens }}
+                                {{ getShortName(datax.item.asset) + ': ' + (('tokens' in datax.item) ? datax.item.tokens : datax.item.tokenId) }}
                               </span>
                             </template>
                           </b-table>
@@ -525,7 +525,7 @@ const Accounts = {
           additionalData: tx.additionalData,
         });
       }
-      // console.log("filteredTransactions - results: " + JSON.stringify(results, null, 2));
+      console.log("filteredTransactions - results: " + JSON.stringify(results, null, 2));
       return results;
     },
     collectionTokensAttributesWithCounts() {
