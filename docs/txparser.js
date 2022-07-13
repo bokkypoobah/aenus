@@ -58,6 +58,7 @@ function parseTx(tx, txReceipt, block, provider) {
   let erc721Interface = new ethers.utils.Interface(ERC721TRANSFERABI);
   let wethInterface = new ethers.utils.Interface(_WETHABI);
   let description = null;
+  let additionalData = {};
   let via = null;
   const transfers = [];
   const mintEvents = [];
@@ -120,13 +121,12 @@ function parseTx(tx, txReceipt, block, provider) {
       console.log("ERC20 Approval event: " + JSON.stringify(event));
       const tokenOwner = '0x' + event.topics[1].substring(26, 66);
       const spender = '0x' + event.topics[2].substring(26, 66);
-      const tokens = event.data != null ? new BigNumber(event.data.substring(2), 16).toFixed(0) : null;
+      const tokens = event.data != null && event.data != '0x' && new BigNumber(event.data.substring(2), 16).toFixed(0) || null;
       transfers.push({ type: "approval", logIndex: event.logIndex, asset: event.address, from: tokenOwner, to: spender, tokens });
     } else {
       console.log("Unknown event: " + JSON.stringify(event));
     }
   }
-  transfers.push({ type: "fee", logIndex: null, asset: "eth", from: tx.from, to: null, tokens: txFee });
   // console.log("mintEvents: " + JSON.stringify(mintEvents));
   // console.log("burnEvents: " + JSON.stringify(burnEvents));
   // console.log("transferEvents: " + JSON.stringify(transferEvents));
@@ -134,19 +134,20 @@ function parseTx(tx, txReceipt, block, provider) {
   const burnTokenIds = burnEvents.map((e) => parseInt(e.tokenId));
   const transferTokenIds = transferEvents.map((e) => parseInt(e.tokenId));
 
-
-
+  if (gasUsed == 21000) {
+    description = "transferred ETH";
   // ETHRegistrarController
-  if (tx.to == _ENSREGISTRARCONTROLLERADDRESS) {
+  } else if (tx.to == _ENSREGISTRARCONTROLLERADDRESS) {
     const iface = new ethers.utils.Interface(_ENSREGISTRARCONTROLLERABI);
     let decodedData = iface.parseTransaction({ data: tx.data, value: tx.value });
     if (decodedData.functionFragment.name == "registerWithConfig") {
       const name = decodedData.args[0];
       const owner = decodedData.args[1];
       const duration = parseInt(decodedData.args[2]);
-      description = "Registered ENS '" + name + "' for " + moment.duration(duration, "seconds").humanize();
+      additionalData = { ...additionalData, name, owner, duration: moment.duration(duration, "seconds").humanize() };
+      description = "registered ENS";
     } else {
-      description = "?Registered ENS: " + (mintTokenIds.length > 0 && mintTokenIds[0] || '?Huh?');
+      description = "?registered ENS: " + (mintTokenIds.length > 0 && mintTokenIds[0] || '?Huh?');
     }
     for (const event of txReceipt.logs) {
       if (event.address == _ENSREGISTRARCONTROLLERADDRESS) {
@@ -155,6 +156,15 @@ function parseTx(tx, txReceipt, block, provider) {
         for (let i in logData.eventFragment.inputs) {
           const inp = logData.eventFragment.inputs[i];
           console.log("  " + i + " " + inp.name + " " + inp.type + " " + logData.args[i]);
+          if (inp.name == 'cost') {
+            const registrationCost = ethers.BigNumber.from(logData.args[i]);
+            // console.log("txReceipt: " + JSON.stringify(txReceipt, null, 0));
+            // const effectiveGasPrice = ethers.BigNumber.from(txReceipt.effectiveGasPrice);
+            const refund = ethers.BigNumber.from(msgValue).sub(registrationCost);
+            additionalData.registrationCost = registrationCost.toString();
+            additionalData.refund = refund.toString();
+            transfers.push({ type: "refund", asset: "eth", logIndex: null, from: tx.to, to: tx.from, tokens: refund.toString() });
+          }
         }
       // } else if (event.topics[0] == '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef' && event.topics.length > 3) {
       //   const txData = erc721Interface.parseLog(event);
@@ -343,7 +353,8 @@ function parseTx(tx, txReceipt, block, provider) {
     //   description = description + " ERC20Transfers " + JSON.stringify(erc20Transfers);
     // }
   }
-  return { description, via, transfers, mintEvents, burnEvents, transferEvents, erc20Transfers };
+  transfers.push({ type: "fee", logIndex: null, asset: "eth", from: tx.from, to: null, tokens: txFee });
+  return { description, via, transfers, additionalData, mintEvents, burnEvents, transferEvents, erc20Transfers };
 }
 
 const _CONTRACTS = {

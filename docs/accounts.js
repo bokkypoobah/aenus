@@ -25,7 +25,7 @@ const Accounts = {
               <!-- Main Toolbar -->
               <div class="d-flex flex-wrap m-0 p-0">
                 <div v-if="settings.tabIndex == 0" class="mt-1" style="width: 150px;">
-                  <b-form-input type="text" size="sm" :value="filter.accountsOrTxs" @change="searchTransfers('filterUpdate', { accountsOrTxs: $event })" :disabled="sync.inProgress" debounce="600" v-b-popover.hover.top="'List of accounts'" placeholder="🔍 0x12... ..."></b-form-input>
+                  <b-form-input type="text" size="sm" :value="filter.accountsOrTxs" @change="searchTransfers('filterUpdate', { accountsOrTxs: $event })" :disabled="sync.inProgress" debounce="600" v-b-popover.hover.top="'One or more accounts or transactions. Connected account will be used otherwise'" placeholder="🔍 0x12... ..."></b-form-input>
                 </div>
                 <!-- Min rows 2
                 <div v-if="settings.tabIndex == 0" class="mt-1" style="width: 150px;">
@@ -173,7 +173,12 @@ const Accounts = {
                         {{ data.index + 1 }}
                       </template>
                       <template #cell(description)="data">
-                        {{ getShortName(data.item.sender) + ' '  + data.item.description }}
+                        <span v-if="data.item.to == '0x283Af0B28c62C092C9727F1Ee09c02CA627EB7F5'">
+                          {{ getShortName(data.item.sender) + ' '  + data.item.description + ' ' + data.item.additionalData.name + ' for ' + data.item.additionalData.duration }}
+                        </span>
+                        <span v-else>
+                          {{ getShortName(data.item.sender) + ' '  + data.item.description }}
+                        </span>
                       </template>
                       <template #cell(transfers)="data">
                         <font size="-2">
@@ -190,15 +195,18 @@ const Accounts = {
                             <template #cell(to)="data">
                               {{ getShortName(data.item.to, 12) }}
                             </template>
-                            <template #cell(tokens)="data">
-                              <span v-if="data.item.asset == 'eth'">
-                              {{ 'ETH ' + formatETH(data.item.tokens) }}
+                            <template #cell(tokens)="datax">
+                              <span v-if="datax.item.asset == 'eth'">
+                              {{ 'ETH ' + formatETH(datax.item.tokens) }}
                               </span>
-                              <span v-else-if="data.item.asset == '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'">
-                              {{ 'WETH ' + formatETH(data.item.tokens) }}
+                              <span v-else-if="datax.item.asset == '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'">
+                              {{ 'WETH ' + formatETH(datax.item.tokens) }}
+                              </span>
+                              <span v-else-if="datax.item.asset == '0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85'">
+                              {{ 'ENS ' + data.item.additionalData.name }}
                               </span>
                               <span v-else>
-                                {{ getShortName(data.item.asset, 12) + ': ' + data.item.tokens }}
+                                {{ getShortName(datax.item.asset) + ': ' + datax.item.tokens }}
                               </span>
                             </template>
                           </b-table>
@@ -423,9 +431,9 @@ const Accounts = {
 
       transactionsFields: [
         { key: 'index', label: '#', thStyle: 'width: 5%;', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
-        { key: 'description', label: 'Description', thStyle: 'width: 25%;', sortable: true },
+        { key: 'description', label: 'Description', thStyle: 'width: 35%;', sortable: true },
         { key: 'transfers', label: 'Transfers', thStyle: 'width: 45%;', sortable: true },
-        { key: 'via', label: 'Via', thStyle: 'width: 10%;', sortable: true },
+        // { key: 'via', label: 'Via', thStyle: 'width: 10%;', sortable: true },
         // { key: 'valueType', label: 'Type', thStyle: 'width: 5%;', sortable: true },
         // { key: 'value', label: 'Value', thStyle: 'width: 15%;', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
         { key: 'txHash', label: 'Tx Hash', sortable: true, thStyle: 'width: 15%;' },
@@ -433,9 +441,9 @@ const Accounts = {
       transactionsTransferFields: [
         { key: 'index', label: '#', thStyle: 'width: 5%;', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
         { key: 'type', label: 'Type', thStyle: 'width: 20%;', sortable: true },
-        { key: 'from', label: 'From', thStyle: 'width: 25%;', sortable: true },
-        { key: 'to', label: 'To', thStyle: 'width: 25%;', sortable: true },
-        { key: 'tokens', label: 'Tokens', thStyle: 'width: 25%;', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
+        { key: 'from', label: 'From', thStyle: 'width: 20%;', sortable: true },
+        { key: 'to', label: 'To', thStyle: 'width: 20%;', sortable: true },
+        { key: 'tokens', label: 'Tokens', thStyle: 'width: 35%;', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
       ],
 
       transfersFields: [
@@ -497,11 +505,10 @@ const Accounts = {
     },
     filteredTransactions() {
       const results = [];
-      // console.log("filteredTransactions - this.transactions: " + JSON.stringify(this.transactions, null, 2));
       for (const [txHash, tx] of Object.entries(this.transactions)) {
-        // console.log("filteredTransactions - tx: " + JSON.stringify(tx, null, 2));
         results.push({
           sender: tx.tx.from,
+          to: tx.tx.to,
           txHash: tx.tx.hash,
           block: tx.block.number,
           timestamp: tx.block.timestamp,
@@ -510,8 +517,10 @@ const Accounts = {
           valueType: tx.valueType,
           value: tx.value,
           transfers: tx.transfers,
+          additionalData: tx.additionalData,
         });
       }
+      // console.log("filteredTransactions - results: " + JSON.stringify(results, null, 2));
       return results;
     },
     collectionTokensAttributesWithCounts() {
@@ -832,10 +841,14 @@ const accountsModule = {
         }
 
         // console.log("searchTransfers - filter.accountsOrTxs: " + JSON.stringify(state.filter.accountsOrTxs));
-        const _accounts = state.filter.accountsOrTxs && state.filter.accountsOrTxs.split(/[, \t\n]+/).filter(name => name.length == 42 && name.substring(0, 2) == '0x') || [];
+        let _accounts = state.filter.accountsOrTxs && state.filter.accountsOrTxs.split(/[, \t\n]+/).filter(name => name.length == 42 && name.substring(0, 2) == '0x') || [];
         console.log("searchTransfers - _accounts: " + JSON.stringify(_accounts));
         const _txs = state.filter.accountsOrTxs && state.filter.accountsOrTxs.split(/[, \t\n]+/).filter(name => name.length == 66 && name.substring(0, 2) == '0x') || [];
         console.log("searchTransfers - _txs: " + JSON.stringify(_txs));
+        if (_accounts.length == 0 && _txs.length == 0) {
+          _accounts = [ store.getters['connection/coinbase'] ];
+          state.filter.accountsOrTxs = store.getters['connection/coinbase'];
+        }
 
         let _txHashesToProcess = [..._txs];
         const transfers = [];
@@ -972,6 +985,7 @@ const accountsModule = {
               valueType: null,
               value: null,
               transfers: [],
+              additionalData: {},
             };
             state.sync.completed = parseInt(state.sync.completed) + 1;
             if (state.halt) {
@@ -1042,6 +1056,7 @@ const accountsModule = {
             // });
             // // console.log("transfers: " + JSON.stringify(transfers));
             transactions[txHash].transfers = parsedTx.transfers;
+            transactions[txHash].additionalData = parsedTx.additionalData;
 
             transactions[txHash].description = parsedTx.description;
             transactions[txHash].via = parsedTx.via;
