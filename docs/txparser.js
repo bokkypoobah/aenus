@@ -1,7 +1,11 @@
 
 let _interfaces = null;
 
-function parseTx(tx, txReceipt, block, provider) {
+function parseTx(transaction, provider) {
+
+  const tx = transaction.tx;
+  const txReceipt = transaction.txReceipt;
+  const block = transaction.block;
 
   if (_interfaces == null) {
     _interfaces = {};
@@ -58,7 +62,7 @@ function parseTx(tx, txReceipt, block, provider) {
   let erc721Interface = new ethers.utils.Interface(ERC721TRANSFERABI);
   let wethInterface = new ethers.utils.Interface(_WETHABI);
   let description = null;
-  let additionalData = {};
+  let additionalData = { ...transaction.additionalData };
   let via = null;
   const transfers = [];
   const mintEvents = [];
@@ -140,12 +144,15 @@ function parseTx(tx, txReceipt, block, provider) {
   } else if (tx.to == _ENSREGISTRARCONTROLLERADDRESS) {
     const iface = new ethers.utils.Interface(_ENSREGISTRARCONTROLLERABI);
     let decodedData = iface.parseTransaction({ data: tx.data, value: tx.value });
+    console.log("decodedData.functionFragment.name: " + decodedData.functionFragment.name);
     if (decodedData.functionFragment.name == "registerWithConfig") {
       const name = decodedData.args[0];
       const owner = decodedData.args[1];
       const duration = parseInt(decodedData.args[2]);
       additionalData = { ...additionalData, name, owner, duration: moment.duration(duration, "seconds").humanize() };
       description = "registered ENS";
+    } else if (decodedData.functionFragment.name == "commit") {
+      description = "committed to register ENS";
     } else {
       description = "?registered ENS: " + (mintTokenIds.length > 0 && mintTokenIds[0] || '?Huh?');
     }

@@ -174,7 +174,12 @@ const Accounts = {
                       </template>
                       <template #cell(description)="data">
                         <span v-if="data.item.to == '0x283Af0B28c62C092C9727F1Ee09c02CA627EB7F5'">
-                          {{ getShortName(data.item.sender) + ' '  + data.item.description + ' ' + data.item.additionalData.name + ' for ' + data.item.additionalData.duration + ' ETH ' + formatETH(data.item.additionalData.registrationCost) }}
+                          <span v-if="data.item.description.substring(0, 6) == 'commit'">
+                            {{ getShortName(data.item.sender) + ' '  + data.item.description + ' ' + data.item.additionalData.name }}
+                          </span>
+                          <span v-else>
+                            {{ getShortName(data.item.sender) + ' '  + data.item.description + ' ' + data.item.additionalData.name + ' for ' + data.item.additionalData.duration + ' costing ETH ' + formatETH(data.item.additionalData.registrationCost) }}
+                          </span>
                         </span>
                         <span v-else>
                           {{ getShortName(data.item.sender) + ' '  + data.item.description }}
@@ -430,12 +435,12 @@ const Accounts = {
       ],
 
       transactionsFields: [
-        { key: 'index', label: '#', thStyle: 'width: 5%;', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
-        { key: 'description', label: 'Description', thStyle: 'width: 35%;', sortable: true },
-        { key: 'transfers', label: 'Transfers', thStyle: 'width: 45%;', sortable: true },
+        { key: 'index', label: '#', thStyle: 'width: 5%;', thClass: 'text-right', tdClass: 'text-right' },
+        { key: 'description', label: 'Description', thStyle: 'width: 35%;' },
+        { key: 'transfers', label: 'Transfers', thStyle: 'width: 45%;' },
         // { key: 'via', label: 'Via', thStyle: 'width: 10%;', sortable: true },
         // { key: 'valueType', label: 'Type', thStyle: 'width: 5%;', sortable: true },
-        // { key: 'value', label: 'Value', thStyle: 'width: 15%;', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
+        // { key: 'value', label: 'Value', thStyle: 'width: 15%;', thClass: 'text-right', tdClass: 'text-right' },
         { key: 'txHash', label: 'Tx Hash', sortable: true, thStyle: 'width: 15%;' },
       ],
       transactionsTransferFields: [
@@ -965,6 +970,7 @@ const accountsModule = {
         _txHashesToProcess = Object.keys(txHashes);
         if (_txHashesToProcess.length > 0) {
           console.log("Process _txHashesToProcess: " + JSON.stringify(_txHashesToProcess));
+          state.sync.inProgress = true;
           state.sync.total = _txHashesToProcess.length;
           state.sync.completed = 0;
           // _txHashesToProcess = debug ? debug : _txHashesToProcess;
@@ -976,6 +982,55 @@ const accountsModule = {
             // console.log("tx: " + JSON.stringify(tx).substring(0, 50));
             // console.log("txReceipt: " + JSON.stringify(txReceipt).substring(0, 50));
             // console.log("block: " + JSON.stringify(block, null, 2));
+
+            // ENS Search for commit transaction
+            if (tx.to == _ENSREGISTRARCONTROLLERADDRESS) {
+              console.log("ENS Lookback");
+              const iface = new ethers.utils.Interface(_ENSREGISTRARCONTROLLERABI);
+              let decodedData = iface.parseTransaction({ data: tx.data, value: tx.value });
+              if (decodedData.functionFragment.name == "registerWithConfig") {
+                const name = decodedData.args[0];
+                const owner = decodedData.args[1];
+                const duration = parseInt(decodedData.args[2]);
+                const secret = decodedData.args[3];
+                const resolver = decodedData.args[4];
+                const addr = decodedData.args[5];
+                console.log("ENS Lookback: " + name + ", owner: " + owner + ", duration: " + duration + ", secret: " + secret + ", resolver: " + resolver + ", addr: " + addr);
+                const ensRegistrarController = new ethers.Contract(_ENSREGISTRARCONTROLLERADDRESS, _ENSREGISTRARCONTROLLERABI, provider);
+                const commitment = await ensRegistrarController. makeCommitmentWithConfig(name, owner, secret, resolver, addr);
+                // console.log("commitment: " + commitment);
+                let found = false;
+                for (let searchBlock = txReceipt.blockNumber; searchBlock > txReceipt.blockNumber - 50 && !found; searchBlock--) {
+                  console.log("searchBlock: " + searchBlock);
+                  const block = await provider.getBlockWithTransactions(searchBlock);
+                  for (const searchTx of block.transactions) {
+                    if (searchTx.from == tx.from) {
+                      console.log(searchBlock + " " + JSON.stringify(searchTx));
+                      if (searchTx.data == '0xf14fcbc8' + commitment.substring(2, 66)) {
+                        console.log("Found: " + searchTx.hash);
+                        found = true;
+                        const tx1 = await provider.getTransaction(searchTx.hash);
+                        const txReceipt1 = await provider.getTransactionReceipt(searchTx.hash);
+                        const block1 = await provider.getBlock(txReceipt1.blockNumber);
+                        transactions[searchTx.hash] = {
+                          tx: tx1,
+                          txReceipt: txReceipt1,
+                          block: block1,
+                          description: null,
+                          via: null,
+                          valueType: null,
+                          value: null,
+                          transfers: [],
+                          additionalData: { name, owner, duration, secret, resolver, addr },
+                        };
+                        break;
+                      }
+                    }
+                  }
+                }
+              }
+            }
+
             transactions[txHash] = {
               tx,
               txReceipt,
@@ -993,6 +1048,7 @@ const accountsModule = {
             }
           }
 
+          _txHashesToProcess = Object.keys(transactions);
           for (const txHash of _txHashesToProcess) {
             const transaction = transactions[txHash];
             if (transaction) {
@@ -1004,7 +1060,7 @@ const accountsModule = {
               // console.log("txReceipt: " + JSON.stringify(txReceipt).substring(0, 50));
               // console.log("block: " + JSON.stringify(transactions[txHash].block, null, 2));
             // }
-            const parsedTx = parseTx(tx, txReceipt, block, provider);
+            const parsedTx = parseTx(transaction, provider);
             console.log("parsedTx: " + JSON.stringify(parsedTx, null, 2));
 
             const from = transaction.tx.from.toLowerCase();
