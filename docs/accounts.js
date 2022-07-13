@@ -172,11 +172,8 @@ const Accounts = {
                       <template #cell(index)="data">
                         {{ data.index + 1 }}
                       </template>
-                      <template #cell(sender)="data">
-                        {{ getShortName(data.item.sender) }}
-                      </template>
                       <template #cell(description)="data">
-                        {{ data.item.description }}
+                        {{ getShortName(data.item.sender) + ' '  + data.item.description }}
                       </template>
                       <template #cell(transfers)="data">
                         <font size="-2">
@@ -208,7 +205,6 @@ const Accounts = {
                         </font>
                         <!--
                         {{ JSON.stringify(data.item.transfers) }}
-                        {{ formatTimestamp(data.item.timestamp) }}
                         {{ data.item.valueType }}
                         {{ data.item.value }}
                         <b-row v-for="(transfer, transferIndex) in data.item.transfers" v-bind:key="transferIndex">
@@ -245,6 +241,7 @@ const Accounts = {
                         {{ data.item.block }}
                       </template>
                       <template #cell(txHash)="data">
+                        {{ formatTimestamp(data.item.timestamp) }}
                         <b-link :href="'https://etherscan.io/tx/' + data.item.txHash" v-b-popover.hover="'View in etherscan.io'" target="_blank">
                           {{ data.item.txHash.substring(0, 10) }}
                         </b-link>
@@ -426,9 +423,8 @@ const Accounts = {
 
       transactionsFields: [
         { key: 'index', label: '#', thStyle: 'width: 5%;', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
-        { key: 'sender', label: 'Sender', thStyle: 'width: 15%;', sortable: true },
         { key: 'description', label: 'Description', thStyle: 'width: 25%;', sortable: true },
-        { key: 'transfers', label: 'Transfers', thStyle: 'width: 30%;', sortable: true },
+        { key: 'transfers', label: 'Transfers', thStyle: 'width: 45%;', sortable: true },
         { key: 'via', label: 'Via', thStyle: 'width: 10%;', sortable: true },
         // { key: 'valueType', label: 'Type', thStyle: 'width: 5%;', sortable: true },
         // { key: 'value', label: 'Value', thStyle: 'width: 15%;', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
@@ -439,7 +435,7 @@ const Accounts = {
         { key: 'type', label: 'Type', thStyle: 'width: 20%;', sortable: true },
         { key: 'from', label: 'From', thStyle: 'width: 25%;', sortable: true },
         { key: 'to', label: 'To', thStyle: 'width: 25%;', sortable: true },
-        { key: 'tokens', label: 'Tokens', thStyle: 'width: 25%;', sortable: true },
+        { key: 'tokens', label: 'Tokens', thStyle: 'width: 25%;', sortable: true, thClass: 'text-right', tdClass: 'text-right' },
       ],
 
       transfersFields: [

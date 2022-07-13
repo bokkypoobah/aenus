@@ -126,7 +126,7 @@ function parseTx(tx, txReceipt, block, provider) {
       console.log("Unknown event: " + JSON.stringify(event));
     }
   }
-  transfers.push({ type: "txFee", logIndex: null, asset: "eth", from: tx.from, to: null, tokens: txFee });
+  transfers.push({ type: "fee", logIndex: null, asset: "eth", from: tx.from, to: null, tokens: txFee });
   // console.log("mintEvents: " + JSON.stringify(mintEvents));
   // console.log("burnEvents: " + JSON.stringify(burnEvents));
   // console.log("transferEvents: " + JSON.stringify(transferEvents));
@@ -330,18 +330,18 @@ function parseTx(tx, txReceipt, block, provider) {
   }
   if (description == null) {
     description = "To parse - ";
-    if (burnTokenIds.length > 0) {
-      description = description + " burnt " + JSON.stringify(burnTokenIds);
-    }
-    if (mintTokenIds.length > 0) {
-      description = description + " minted " + JSON.stringify(mintTokenIds);
-    }
-    if (transferTokenIds.length > 0) {
-      description = description + " transferred " + JSON.stringify(transferTokenIds);
-    }
-    if (erc20Transfers.length > 0) {
-      description = description + " ERC20Transfers " + JSON.stringify(erc20Transfers);
-    }
+    // if (burnTokenIds.length > 0) {
+    //   description = description + " burnt " + JSON.stringify(burnTokenIds);
+    // }
+    // if (mintTokenIds.length > 0) {
+    //   description = description + " minted " + JSON.stringify(mintTokenIds);
+    // }
+    // if (transferTokenIds.length > 0) {
+    //   description = description + " transferred " + JSON.stringify(transferTokenIds);
+    // }
+    // if (erc20Transfers.length > 0) {
+    //   description = description + " ERC20Transfers " + JSON.stringify(erc20Transfers);
+    // }
   }
   return { description, via, transfers, mintEvents, burnEvents, transferEvents, erc20Transfers };
 }
