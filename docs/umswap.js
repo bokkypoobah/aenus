@@ -28,8 +28,8 @@ const Umswap = {
                     UmswapFactory:
                   </b-col>
                   <b-col>
-                    <b-link :href="'https://etherscan.io/address/' + umswapFactoryAddress + '#code'" v-b-popover.hover.bottom="'View in Etherscan.io'" target="_blank">
-                      {{ umswapFactoryAddress }}
+                    <b-link :href="'https://etherscan.io/address/' + umswapFactory.address + '#code'" v-b-popover.hover.bottom="'View in Etherscan.io'" target="_blank">
+                      {{ umswapFactory.address }}
                     </b-link>
                   </b-col>
                 </b-row>
@@ -281,9 +281,6 @@ const Umswap = {
     network() {
       return store.getters['connection/network'];
     },
-    umswapFactoryAddress() {
-      return UMSWAPFACTORYADDRESS;
-    },
     config() {
       return store.getters['umswap/config'];
     },
@@ -292,6 +289,9 @@ const Umswap = {
     },
     sync() {
       return store.getters['umswap/sync'];
+    },
+    umswapFactory() {
+      return store.getters['umswap/umswapFactory'];
     },
     collectionInfo() {
       return store.getters['umswap/collectionInfo'];
@@ -530,6 +530,10 @@ const umswapModule = {
       total: null,
       error: false,
     },
+    umswapFactory: {
+      address: UMSWAPFACTORYADDRESS,
+      umswapsLength: null,
+    },
     collectionInfo: {},
     collectionTokens: {},
     ensMap: {},
@@ -539,6 +543,7 @@ const umswapModule = {
   getters: {
     filter: state => state.filter,
     sync: state => state.sync,
+    umswapFactory: state => state.umswapFactory,
     collectionInfo: state => state.collectionInfo,
     collectionTokens: state => state.collectionTokens,
     ensMap: state => state.ensMap,
@@ -553,7 +558,7 @@ const umswapModule = {
       logInfo("umswapModule", "mutations.updateCollection() - syncMode: " + syncMode + ", filterUpdate: " + JSON.stringify(filterUpdate));
       if (window.ethereum) {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const ipcHelper = new ethers.Contract(IPCHELPERADDRESS, IPCHELPERABI, provider);
+        const umswapFactory = new ethers.Contract(UMSWAPFACTORYADDRESS, UMSWAPFACTORYABI, provider);
         const erc721Helper = new ethers.Contract(ERC721HELPERADDRESS, ERC721HELPERABI, provider);
         const block = await provider.getBlock("latest");
         const blockNumber = block.number;
@@ -570,143 +575,147 @@ const umswapModule = {
 
         const debug = false;
 
-        // Retrieve prices
-        let continuation = null;
-        let prices = {};
-        do {
-          let url = "https://api.reservoir.tools/tokens/bootstrap/v1?contract=" + IPCADDRESS +
-            "&limit=500" +
-            (continuation != null ? "&continuation=" + continuation : '');
-          // logInfo("nftsModule", "mutations.updateCollection() - url: " + url);
-          const data = await fetch(url)
-            .then(handleErrors)
-            .then(response => response.json())
-            .catch(function(error) {
-               console.log("ERROR - updateCollection: " + error);
-               state.sync.error = true;
-               return [];
-            });
-          continuation = debug ? null : data.continuation;
-          if (data && data.tokens) {
-            for (const token of data.tokens) {
-              prices[token.tokenId] = { price: token.price, validUntil: token.validUntil, source: token.source };
-            }
-          }
-          state.sync.completed = Object.keys(prices).length;
-          state.sync.total = state.sync.completed;
-        } while (continuation != null && !state.halt && !state.sync.error);
+        const umswapsLength = await umswapFactory.getUmswapsLength();
+        console.log("umswapsLength: " + umswapsLength);
+        state.umswapFactory.umswapsLength = umswapsLength;
 
-        // Retrieve IPC data from contracts and erc721 owner data
-        const startId = debug ? 2800 : 1;
-        const endId = debug ? 3300 : 12000;
-        const batchSize = 200;
-        let fromId = startId;
-        let toId;
-        const collectionTokens = {};
-        const ensMap = {};
-        state.sync.section = "Retrieving IPC data";
-        state.sync.total = endId - startId + 1;
-        state.sync.completed = 0;
-        do {
-          toId = parseInt(fromId) + batchSize;
-          if (toId >= endId) {
-            toId = endId;
-          }
-          const ipcData = await ipcHelper.getBulkIpc(fromId, parseInt(toId) + 1);
-          const tokenIds = [];
-          for (let i = 0; i < ipcData[0].length; i++) {
-            const tokenId = parseInt(fromId) + i;
-            tokenIds.push(tokenId);
-          }
-          const ownerData = await erc721Helper.ownersByTokenIds(IPCADDRESS, tokenIds);
-          for (let i = 0; i < ipcData[0].length; i++) {
-            const tokenId = parseInt(fromId) + i;
-            const owner = ownerData[0][i] && ownerData[1][i] || null;
-            if (owner != null) {
-              const lowerOwner = owner.toLowerCase();
-              if (!(lowerOwner in ensMap)) {
-                ensMap[lowerOwner] = owner;
-              }
-            }
-            const ipc = {
-              token_id: tokenId,
-              name: ipcData[0][i],
-              owner: owner,
-              attribute_seed: ipcData[1][i],
-              dna: ipcData[2][i],
-              experience: parseInt(ipcData[3][i]),
-              birth: parseInt(ipcData[4][i]),
-              price: prices[tokenId] || null,
-            }
-            const info = IPCLib.ipc_create_ipc_from_json(ipc);
-            const attributes = [];
-            attributes.push({ trait_type: 'race', value: IPCEnglish.Race[info.race] });
-            attributes.push({ trait_type: 'subrace', value: IPCEnglish.Subrace[info.subrace] });
-            attributes.push({ trait_type: 'gender', value: IPCEnglish.Gender[info.gender] });
-            attributes.push({ trait_type: 'height', value: parseInt(info.height / 12) + '\'' + info.height % 12 + '\"' });
-            attributes.push({ trait_type: 'skin-color', value: IPCEnglish.Color[info.skin_color] });
-            attributes.push({ trait_type: 'hair-color', value: IPCEnglish.Color[info.hair_color] });
-            attributes.push({ trait_type: 'eye-color', value: IPCEnglish.Color[info.eye_color] });
-            attributes.push({ trait_type: 'handedness', value: IPCEnglish.Handedness[info.handedness] });
-            attributes.push({ trait_type: 'vintage', value: moment.unix(ipcData[4][i]).format("YYYY") });
-            // attributes.push({ trait_type: 'strength', value: info.strength });
-            // attributes.push({ trait_type: 'force', value: info.force });
-            // attributes.push({ trait_type: 'sustain', value: info.sustain });
-            // attributes.push({ trait_type: 'tolerance', value: info.tolerance });
-            // attributes.push({ trait_type: 'dexterity', value: info.dexterity });
-            // attributes.push({ trait_type: 'speed', value: info.speed });
-            // attributes.push({ trait_type: 'precision', value: info.precision });
-            // attributes.push({ trait_type: 'reaction', value: info.reaction });
-            // attributes.push({ trait_type: 'intelligence', value: info.intelligence });
-            // attributes.push({ trait_type: 'memory', value: info.memory });
-            // attributes.push({ trait_type: 'processing', value: info.processing });
-            // attributes.push({ trait_type: 'reasoning', value: info.reasoning });
-            // attributes.push({ trait_type: 'constitution', value: info.constitution });
-            // attributes.push({ trait_type: 'healing', value: info.healing });
-            // attributes.push({ trait_type: 'fortitude', value: info.fortitude });
-            // attributes.push({ trait_type: 'vitality', value: info.vitality });
-            // attributes.push({ trait_type: 'luck', value: info.luck });
-            collectionTokens[tokenId] = { ...ipc, attributes: attributes };
-          }
-          state.sync.completed = Object.keys(collectionTokens).length;
-          fromId = toId;
-        } while (toId < endId && !state.halt);
-        state.collectionTokens = collectionTokens;
+        // // Retrieve prices
+        // let continuation = null;
+        // let prices = {};
+        // do {
+        //   let url = "https://api.reservoir.tools/tokens/bootstrap/v1?contract=" + IPCADDRESS +
+        //     "&limit=500" +
+        //     (continuation != null ? "&continuation=" + continuation : '');
+        //   // logInfo("nftsModule", "mutations.updateCollection() - url: " + url);
+        //   const data = await fetch(url)
+        //     .then(handleErrors)
+        //     .then(response => response.json())
+        //     .catch(function(error) {
+        //        console.log("ERROR - updateCollection: " + error);
+        //        state.sync.error = true;
+        //        return [];
+        //     });
+        //   continuation = debug ? null : data.continuation;
+        //   if (data && data.tokens) {
+        //     for (const token of data.tokens) {
+        //       prices[token.tokenId] = { price: token.price, validUntil: token.validUntil, source: token.source };
+        //     }
+        //   }
+        //   state.sync.completed = Object.keys(prices).length;
+        //   state.sync.total = state.sync.completed;
+        // } while (continuation != null && !state.halt && !state.sync.error);
 
-        // ENS data
-        let addresses = Object.keys(ensMap);
-        state.sync.section = "Retrieving ENS names";
-        state.sync.total = addresses.length;
-        state.sync.completed = 0;
-        const ensReverseRecordsContract = new ethers.Contract(ENSREVERSERECORDSADDRESS, ENSREVERSERECORDSABI, provider);
-        const ENSOWNERBATCHSIZE = 200; // 500 fails occassionally
-        let totalRecords = 0;
-        if (!state.halt) {
-          for (let i = 0; i < addresses.length; i += ENSOWNERBATCHSIZE) {
-            const batch = addresses.slice(i, parseInt(i) + ENSOWNERBATCHSIZE);
-            const allnames = await ensReverseRecordsContract.getNames(batch);
-            // TODO: check for normalised. const validNames = allnames.filter((n) => normalize(n) === n );
-            for (let j = 0; j < batch.length; j++) {
-              const address = batch[j];
-              const name = allnames[j];
-              ensMap[address] = name != null && name.length > 0 ? name : address;
-              // const normalized = normalize(address);
-            }
-            totalRecords = parseInt(totalRecords) + batch.length;
-            state.sync.completed = totalRecords;
-            if (state.halt) {
-              break;
-            }
-          }
-          ensMap["0x0000000000000000000000000000000000000000".toLowerCase()] = "(null)";
-          ensMap["0x000000000000000000000000000000000000dEaD".toLowerCase()] = "(dEaD)";
-          ensMap["0x00000000006c3852cbEf3e08E8dF289169EdE581".toLowerCase()] = "(OpenSea:Seaport1.1)";
-          ensMap["0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85".toLowerCase()] = "(ENS)";
-          ensMap["0x60cd862c9C687A9dE49aecdC3A99b74A4fc54aB6".toLowerCase()] = "(MoonCatRescue)";
-          ensMap["0x74312363e45DCaBA76c59ec49a7Aa8A65a67EeD3".toLowerCase()] = "(X2Y2:Exchange)";
-          ensMap["0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2".toLowerCase()] = "(WETH)";
-          state.ensMap = ensMap;
-        }
+        // // Retrieve IPC data from contracts and erc721 owner data
+        // const startId = debug ? 2800 : 1;
+        // const endId = debug ? 3300 : 12000;
+        // const batchSize = 200;
+        // let fromId = startId;
+        // let toId;
+        // const collectionTokens = {};
+        // const ensMap = {};
+        // state.sync.section = "Retrieving IPC data";
+        // state.sync.total = endId - startId + 1;
+        // state.sync.completed = 0;
+        // do {
+        //   toId = parseInt(fromId) + batchSize;
+        //   if (toId >= endId) {
+        //     toId = endId;
+        //   }
+        //   const ipcData = await ipcHelper.getBulkIpc(fromId, parseInt(toId) + 1);
+        //   const tokenIds = [];
+        //   for (let i = 0; i < ipcData[0].length; i++) {
+        //     const tokenId = parseInt(fromId) + i;
+        //     tokenIds.push(tokenId);
+        //   }
+        //   const ownerData = await erc721Helper.ownersByTokenIds(IPCADDRESS, tokenIds);
+        //   for (let i = 0; i < ipcData[0].length; i++) {
+        //     const tokenId = parseInt(fromId) + i;
+        //     const owner = ownerData[0][i] && ownerData[1][i] || null;
+        //     if (owner != null) {
+        //       const lowerOwner = owner.toLowerCase();
+        //       if (!(lowerOwner in ensMap)) {
+        //         ensMap[lowerOwner] = owner;
+        //       }
+        //     }
+        //     const ipc = {
+        //       token_id: tokenId,
+        //       name: ipcData[0][i],
+        //       owner: owner,
+        //       attribute_seed: ipcData[1][i],
+        //       dna: ipcData[2][i],
+        //       experience: parseInt(ipcData[3][i]),
+        //       birth: parseInt(ipcData[4][i]),
+        //       price: prices[tokenId] || null,
+        //     }
+        //     const info = IPCLib.ipc_create_ipc_from_json(ipc);
+        //     const attributes = [];
+        //     attributes.push({ trait_type: 'race', value: IPCEnglish.Race[info.race] });
+        //     attributes.push({ trait_type: 'subrace', value: IPCEnglish.Subrace[info.subrace] });
+        //     attributes.push({ trait_type: 'gender', value: IPCEnglish.Gender[info.gender] });
+        //     attributes.push({ trait_type: 'height', value: parseInt(info.height / 12) + '\'' + info.height % 12 + '\"' });
+        //     attributes.push({ trait_type: 'skin-color', value: IPCEnglish.Color[info.skin_color] });
+        //     attributes.push({ trait_type: 'hair-color', value: IPCEnglish.Color[info.hair_color] });
+        //     attributes.push({ trait_type: 'eye-color', value: IPCEnglish.Color[info.eye_color] });
+        //     attributes.push({ trait_type: 'handedness', value: IPCEnglish.Handedness[info.handedness] });
+        //     attributes.push({ trait_type: 'vintage', value: moment.unix(ipcData[4][i]).format("YYYY") });
+        //     // attributes.push({ trait_type: 'strength', value: info.strength });
+        //     // attributes.push({ trait_type: 'force', value: info.force });
+        //     // attributes.push({ trait_type: 'sustain', value: info.sustain });
+        //     // attributes.push({ trait_type: 'tolerance', value: info.tolerance });
+        //     // attributes.push({ trait_type: 'dexterity', value: info.dexterity });
+        //     // attributes.push({ trait_type: 'speed', value: info.speed });
+        //     // attributes.push({ trait_type: 'precision', value: info.precision });
+        //     // attributes.push({ trait_type: 'reaction', value: info.reaction });
+        //     // attributes.push({ trait_type: 'intelligence', value: info.intelligence });
+        //     // attributes.push({ trait_type: 'memory', value: info.memory });
+        //     // attributes.push({ trait_type: 'processing', value: info.processing });
+        //     // attributes.push({ trait_type: 'reasoning', value: info.reasoning });
+        //     // attributes.push({ trait_type: 'constitution', value: info.constitution });
+        //     // attributes.push({ trait_type: 'healing', value: info.healing });
+        //     // attributes.push({ trait_type: 'fortitude', value: info.fortitude });
+        //     // attributes.push({ trait_type: 'vitality', value: info.vitality });
+        //     // attributes.push({ trait_type: 'luck', value: info.luck });
+        //     collectionTokens[tokenId] = { ...ipc, attributes: attributes };
+        //   }
+        //   state.sync.completed = Object.keys(collectionTokens).length;
+        //   fromId = toId;
+        // } while (toId < endId && !state.halt);
+        // state.collectionTokens = collectionTokens;
+
+        // // ENS data
+        // let addresses = Object.keys(ensMap);
+        // state.sync.section = "Retrieving ENS names";
+        // state.sync.total = addresses.length;
+        // state.sync.completed = 0;
+        // const ensReverseRecordsContract = new ethers.Contract(ENSREVERSERECORDSADDRESS, ENSREVERSERECORDSABI, provider);
+        // const ENSOWNERBATCHSIZE = 200; // 500 fails occassionally
+        // let totalRecords = 0;
+        // if (!state.halt) {
+        //   for (let i = 0; i < addresses.length; i += ENSOWNERBATCHSIZE) {
+        //     const batch = addresses.slice(i, parseInt(i) + ENSOWNERBATCHSIZE);
+        //     const allnames = await ensReverseRecordsContract.getNames(batch);
+        //     // TODO: check for normalised. const validNames = allnames.filter((n) => normalize(n) === n );
+        //     for (let j = 0; j < batch.length; j++) {
+        //       const address = batch[j];
+        //       const name = allnames[j];
+        //       ensMap[address] = name != null && name.length > 0 ? name : address;
+        //       // const normalized = normalize(address);
+        //     }
+        //     totalRecords = parseInt(totalRecords) + batch.length;
+        //     state.sync.completed = totalRecords;
+        //     if (state.halt) {
+        //       break;
+        //     }
+        //   }
+        //   ensMap["0x0000000000000000000000000000000000000000".toLowerCase()] = "(null)";
+        //   ensMap["0x000000000000000000000000000000000000dEaD".toLowerCase()] = "(dEaD)";
+        //   ensMap["0x00000000006c3852cbEf3e08E8dF289169EdE581".toLowerCase()] = "(OpenSea:Seaport1.1)";
+        //   ensMap["0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85".toLowerCase()] = "(ENS)";
+        //   ensMap["0x60cd862c9C687A9dE49aecdC3A99b74A4fc54aB6".toLowerCase()] = "(MoonCatRescue)";
+        //   ensMap["0x74312363e45DCaBA76c59ec49a7Aa8A65a67EeD3".toLowerCase()] = "(X2Y2:Exchange)";
+        //   ensMap["0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2".toLowerCase()] = "(WETH)";
+        //   state.ensMap = ensMap;
+        // }
 
         state.sync.inProgress = false;
       }
