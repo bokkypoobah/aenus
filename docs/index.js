@@ -73,6 +73,7 @@ const store = new Vuex.Store({
     ipcs: ipcsModule,
     nfts: nftsModule,
     transactions: transactionsModule,
+    umswap: umswapModule,
     // collections: collectionsModule,
   }
 });

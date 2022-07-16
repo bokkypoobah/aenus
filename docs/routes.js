@@ -24,6 +24,11 @@ const routes = [{
     name: 'NFTs',
     props: true,
   }, {
+    path: '/umswap/:tab?/:blocks?/:search?',
+    component: Umswap,
+    name: 'Umswap',
+    props: true,
+  }, {
     path: '/accounts/:accountsOrTxs?/:blocks?',
     component: Accounts,
     name: 'Accounts',
