@@ -30,7 +30,7 @@ const PixelMap = {
                   <b-form-input type="text" size="sm" :value="filter.collection.address" @change="updateCollection('filterUpdate', { collection: { address: $event } })" :disabled="sync.inProgress" debounce="600" v-b-popover.hover.top="'Collection address'" placeholder="{ERC-721 address}"></b-form-input>
                 </div>
                 <div class="mt-1 pl-1">
-                  <b-button size="sm" @click="updateCollection('sync', {})" :disabled="sync.inProgress" variant="primary">Sync IPC Collection</b-button>
+                  <b-button size="sm" @click="updateCollection('sync', {})" :disabled="sync.inProgress" variant="primary">Sync PixelMap Collection</b-button>
                 </div>
                 <div class="mt-1 flex-grow-1">
                 </div>
@@ -116,21 +116,21 @@ const PixelMap = {
                   <!-- Collection -->
                   <b-card no-header no-body class="mt-1">
                     <b-table small fixed striped :fields="collectionTokensFields" :items="pagedFilteredCollectionTokens" head-variant="light">
-                      <template #cell(token_id)="data">
-                        <b-button :id="'popover-target-' + data.item.token_id" variant="link" class="m-0 p-0">
-                          {{ data.item.token_id }}
+                      <template #cell(tokenId)="data">
+                        <b-button :id="'popover-target-' + data.item.tokenId" variant="link" class="m-0 p-0">
+                          {{ data.item.tokenId }}
                         </b-button>
-                        <b-popover :target="'popover-target-' + data.item.token_id" placement="right">
-                          <template #title>{{ data.item.token_id }}</template>
-                          <b-link :href="'https://opensea.io/assets/ethereum/0x011c77fa577c500deedad364b8af9e8540b808c0/' + data.item.token_id" v-b-popover.hover.bottom="'View in opensea.io'" target="_blank">
+                        <b-popover :target="'popover-target-' + data.item.tokenId" placement="right">
+                          <template #title>{{ data.item.tokenId }}</template>
+                          <b-link :href="'https://opensea.io/assets/ethereum/0x011c77fa577c500deedad364b8af9e8540b808c0/' + data.item.tokenId" v-b-popover.hover.bottom="'View in opensea.io'" target="_blank">
                             OpenSea
                           </b-link>
                           <br />
-                          <b-link :href="'https://looksrare.org/collections/0x011c77fa577c500deedad364b8af9e8540b808c0/' + data.item.token_id" v-b-popover.hover.bottom="'View in looksrare.org'" target="_blank">
+                          <b-link :href="'https://looksrare.org/collections/0x011c77fa577c500deedad364b8af9e8540b808c0/' + data.item.tokenId" v-b-popover.hover.bottom="'View in looksrare.org'" target="_blank">
                             LooksRare
                           </b-link>
                           <br />
-                          <b-link :href="'https://x2y2.io/eth/0x011c77fa577c500deedad364b8af9e8540b808c0/' + data.item.token_id" v-b-popover.hover.bottom="'View in x2y2.io'" target="_blank">
+                          <b-link :href="'https://x2y2.io/eth/0x011c77fa577c500deedad364b8af9e8540b808c0/' + data.item.tokenId" v-b-popover.hover.bottom="'View in x2y2.io'" target="_blank">
                             X2Y2
                           </b-link>
                         </b-popover>
@@ -158,28 +158,14 @@ const PixelMap = {
                           </b-link>
                         </b-popover>
                       </template>
-                      <template #cell(name)="data">
-                        <b-link :href="'http://myipc.io/' + data.item.token_id" v-b-popover.hover.bottom="'View in original website'" target="_blank">
-                          <b-avatar rounded size="7rem" :src="'http://myipc.io/sprites/' + data.item.token_id + '.gif'" style="background-color: #638596"></b-avatar>
-                        </b-link>
-                        <br />
-                        {{ data.item.name }}
-                        <div v-if="data.item.price" class="mt-2">
-                          <font size="-1">
-                            <b-badge variant="success" v-b-popover.hover.bottom="'On ' + data.item.price.source">{{ data.item.price.price }}</b-badge>
-                          </font>
-                        </div>
+                      <template #cell(image)="data">
+                        {{ data.item.image }}
                       </template>
-                      <template #cell(details)="data">
-                        <font size="-2">
-                          <b-row v-for="(attribute, i) in data.item.attributes" v-bind:key="i" class="m-0 p-0">
-                            <b-col cols="3" class="my-0 mx-1 py-0 px-1 text-right">{{ slugToTitle(attribute.trait_type) }}</b-col>
-                            <b-col class="my-0 mx-1 py-0 px-1 "><b>{{ attribute.value }}</b></b-col>
-                          </b-row>
-                        </font>
+                      <template #cell(url)="data">
+                        {{ data.item.url }}
                       </template>
-                      <template #cell(birth)="data">
-                        {{ formatTimestamp(data.item.birth) }}
+                      <template #cell(price)="data">
+                        {{ data.item.price }}
                       </template>
                     </b-table>
                   </b-card>
@@ -228,11 +214,11 @@ const PixelMap = {
       ],
 
       collectionTokensFields: [
-        { key: 'token_id', label: '#', thStyle: 'width: 5%;', thClass: 'text-right', tdClass: 'text-right' },
-        { key: 'owner', label: 'Owner', thStyle: 'width: 15%;'},
-        { key: 'name', label: 'Name & Price', thStyle: 'width: 15%;'},
-        { key: 'details', label: 'Details', thStyle: 'width: 25%;'},
-        { key: 'birth', label: 'Birth', thStyle: 'width: 20%;'},
+        { key: 'tokenId', label: '#', thStyle: 'width: 5%;', thClass: 'text-right', tdClass: 'text-right' },
+        { key: 'owner', label: 'Owner', thStyle: 'width: 15%;' },
+        { key: 'image', label: 'Image', thStyle: 'width: 15%;' },
+        { key: 'url', label: 'URL', thStyle: 'width: 25%;' },
+        { key: 'price', label: 'Price', thStyle: 'width: 20%;', thClass: 'text-right', tdClass: 'text-right' },
       ],
 
       collectionAttributeFields: [
@@ -276,86 +262,86 @@ const PixelMap = {
     },
     collectionTokensAttributesWithCounts() {
       const collator = {};
-      for (const [tokenId, token] of Object.entries(this.collectionTokens)) {
-        for (let attribute of token.attributes) {
-            const trait_type = attribute.trait_type;
-            const value = attribute.value;
-            if (!collator[trait_type]) {
-              collator[trait_type] = {};
-            }
-            if (!collator[trait_type][value]) {
-              collator[trait_type][value] = [tokenId];
-            } else {
-              collator[trait_type][value].push(tokenId);
-            }
-        }
-      }
+      // for (const [tokenId, token] of Object.entries(this.collectionTokens)) {
+      //   for (let attribute of token.attributes) {
+      //       const trait_type = attribute.trait_type;
+      //       const value = attribute.value;
+      //       if (!collator[trait_type]) {
+      //         collator[trait_type] = {};
+      //       }
+      //       if (!collator[trait_type][value]) {
+      //         collator[trait_type][value] = [tokenId];
+      //       } else {
+      //         collator[trait_type][value].push(tokenId);
+      //       }
+      //   }
+      // }
       // console.log("collectionTokensAttributesWithCounts: " + JSON.stringify(collator, null, 2));
       return collator;
     },
     filteredCollectionTokens() {
       let results = [];
-      if (Object.keys(this.collectionAttributeFilter) == 0) {
+      // if (Object.keys(this.collectionAttributeFilter) == 0) {
         for (const [tokenId, token] of Object.entries(this.collectionTokens)) {
           results.push(token);
         }
-      } else {
-        let selectedTokenIds = [];
-        for (const [trait, value] of Object.entries(this.collectionAttributeFilter)) {
-          let thisTraitTokenIds = [];
-          for (const selectedValue of Object.keys(value)) {
-            const tokenIds = this.collectionTokensAttributesWithCounts[trait][selectedValue];
-            thisTraitTokenIds = [...thisTraitTokenIds, ...tokenIds];
-          }
-          if (selectedTokenIds.length == 0) {
-            selectedTokenIds = thisTraitTokenIds;
-          } else {
-            selectedTokenIds = selectedTokenIds.filter(tokenId => thisTraitTokenIds.includes(tokenId));
-          }
-        }
-        results = Object.values(selectedTokenIds).map(tokenId => this.collectionTokens[tokenId]);
-      }
+      // } else {
+      //   let selectedTokenIds = [];
+      //   for (const [trait, value] of Object.entries(this.collectionAttributeFilter)) {
+      //     let thisTraitTokenIds = [];
+      //     for (const selectedValue of Object.keys(value)) {
+      //       const tokenIds = this.collectionTokensAttributesWithCounts[trait][selectedValue];
+      //       thisTraitTokenIds = [...thisTraitTokenIds, ...tokenIds];
+      //     }
+      //     if (selectedTokenIds.length == 0) {
+      //       selectedTokenIds = thisTraitTokenIds;
+      //     } else {
+      //       selectedTokenIds = selectedTokenIds.filter(tokenId => thisTraitTokenIds.includes(tokenId));
+      //     }
+      //   }
+      //   results = Object.values(selectedTokenIds).map(tokenId => this.collectionTokens[tokenId]);
+      // }
       return results;
     },
     filteredSortedCollectionTokens() {
       let results = this.filteredCollectionTokens;
-      if (this.settings.sortOption == 'idasc') {
-        results.sort((a, b) => a.token_id - b.token_id);
-      } else if (this.settings.sortOption == 'iddsc') {
-        results.sort((a, b) => b.token_id - a.token_id);
-      } else if (this.settings.sortOption == 'priceasc') {
-        results.sort((a, b) => {
-          const pricea = a.price && a.price.price || null;
-          const priceb = b.price && b.price.price || null;
-          if (pricea == priceb) {
-            return a.token_id - b.token_id;
-          } else if (pricea != null && priceb == null) {
-            return -1;
-          } else if (pricea == null && priceb != null) {
-            return 1;
-          } else {
-            return pricea - priceb;
-          }
-        });
-      } else if (this.settings.sortOption == 'pricedsc') {
-        results.sort((a, b) => {
-          const pricea = a.price && a.price.price || null;
-          const priceb = b.price && b.price.price || null;
-          if (pricea == priceb) {
-            return a.token_id - b.token_id;
-          } else if (pricea != null && priceb == null) {
-            return -1;
-          } else if (pricea == null && priceb != null) {
-            return 1;
-          } else {
-            return priceb - pricea;
-          }
-        });
-      } else {
-        results.sort(() => {
-          return Math.random() - 0.5;
-        });
-      }
+      // if (this.settings.sortOption == 'idasc') {
+      //   results.sort((a, b) => a.tokenId - b.tokenId);
+      // } else if (this.settings.sortOption == 'iddsc') {
+      //   results.sort((a, b) => b.tokenId - a.tokenId);
+      // } else if (this.settings.sortOption == 'priceasc') {
+      //   results.sort((a, b) => {
+      //     const pricea = a.price && a.price.price || null;
+      //     const priceb = b.price && b.price.price || null;
+      //     if (pricea == priceb) {
+      //       return a.tokenId - b.tokenId;
+      //     } else if (pricea != null && priceb == null) {
+      //       return -1;
+      //     } else if (pricea == null && priceb != null) {
+      //       return 1;
+      //     } else {
+      //       return pricea - priceb;
+      //     }
+      //   });
+      // } else if (this.settings.sortOption == 'pricedsc') {
+      //   results.sort((a, b) => {
+      //     const pricea = a.price && a.price.price || null;
+      //     const priceb = b.price && b.price.price || null;
+      //     if (pricea == priceb) {
+      //       return a.tokenId - b.tokenId;
+      //     } else if (pricea != null && priceb == null) {
+      //       return -1;
+      //     } else if (pricea == null && priceb != null) {
+      //       return 1;
+      //     } else {
+      //       return priceb - pricea;
+      //     }
+      //   });
+      // } else {
+      //   results.sort(() => {
+      //     return Math.random() - 0.5;
+      //   });
+      // }
       return results;
     },
     pagedFilteredCollectionTokens() {
@@ -525,6 +511,61 @@ const pixelMapModule = {
       logInfo("pixelMapModule", "mutations.updateCollection() - syncMode: " + syncMode + ", filterUpdate: " + JSON.stringify(filterUpdate));
       if (window.ethereum) {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const pixelMapHelper = new ethers.Contract(PIXELMAPHELPERADDRESS, PIXELMAPHELPERABI, provider);
+        const erc721Helper = new ethers.Contract(ERC721HELPERADDRESS, ERC721HELPERABI, provider);
+        const block = await provider.getBlock("latest");
+        const blockNumber = block.number;
+
+        if (filterUpdate != null) {
+          state.filter = { ...state.filter, ...filterUpdate };
+        }
+
+        state.sync.inProgress = true;
+        state.sync.section = "Retrieving prices";
+        state.sync.completed = 0;
+        state.sync.total = 0;
+        state.sync.error = false;
+
+        const debug = false;
+
+        const scanFrom = 0;
+        const scanTo = 20; // TODO 3970;
+        const scanBatchSize = 250;
+        var searchTokenIds = generateRange(parseInt(scanFrom), (parseInt(scanTo) - 1), 1);
+        state.sync.section = "Retrieving PixelMap data";
+        state.sync.total = scanTo - scanFrom + 1;
+        state.sync.completed = 0;
+        const collectionTokens = {};
+        const ensMap = {};
+        for (let i = 0; i < searchTokenIds.length; i += scanBatchSize) {
+          const batch = searchTokenIds.slice(i, parseInt(i) + scanBatchSize);
+          const tileData = await pixelMapHelper.getTiles(batch);
+          for (let j = 0; j < tileData[0].length; j++) {
+            collectionTokens[batch[j]] = {
+              tokenId: parseInt(batch[j]),
+              owner: tileData[0][j],
+              image: tileData[1][j],
+              url: tileData[2][j],
+              price: tileData[3][j],
+            };
+          }
+          state.sync.completed = Object.keys(collectionTokens).length;
+        }
+        console.log(JSON.stringify(collectionTokens, null, 2));
+        state.collectionTokens = collectionTokens;
+
+        state.sync.inProgress = false;
+      }
+    },
+
+
+    // --- updateCollection() ---
+    async updateCollectionOld(state, { syncMode, filterUpdate }) {
+
+      // --- updateCollection() start ---
+      logInfo("pixelMapModule", "mutations.updateCollection() - syncMode: " + syncMode + ", filterUpdate: " + JSON.stringify(filterUpdate));
+      if (window.ethereum) {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
         const ipcHelper = new ethers.Contract(IPCHELPERADDRESS, IPCHELPERABI, provider);
         const erc721Helper = new ethers.Contract(ERC721HELPERADDRESS, ERC721HELPERABI, provider);
         const block = await provider.getBlock("latest");
@@ -601,7 +642,7 @@ const pixelMapModule = {
               }
             }
             const ipc = {
-              token_id: tokenId,
+              tokenId: tokenId,
               name: ipcData[0][i],
               owner: owner,
               attribute_seed: ipcData[1][i],
@@ -621,23 +662,6 @@ const pixelMapModule = {
             attributes.push({ trait_type: 'eye-color', value: IPCEnglish.Color[info.eye_color] });
             attributes.push({ trait_type: 'handedness', value: IPCEnglish.Handedness[info.handedness] });
             attributes.push({ trait_type: 'vintage', value: moment.unix(ipcData[4][i]).format("YYYY") });
-            // attributes.push({ trait_type: 'strength', value: info.strength });
-            // attributes.push({ trait_type: 'force', value: info.force });
-            // attributes.push({ trait_type: 'sustain', value: info.sustain });
-            // attributes.push({ trait_type: 'tolerance', value: info.tolerance });
-            // attributes.push({ trait_type: 'dexterity', value: info.dexterity });
-            // attributes.push({ trait_type: 'speed', value: info.speed });
-            // attributes.push({ trait_type: 'precision', value: info.precision });
-            // attributes.push({ trait_type: 'reaction', value: info.reaction });
-            // attributes.push({ trait_type: 'intelligence', value: info.intelligence });
-            // attributes.push({ trait_type: 'memory', value: info.memory });
-            // attributes.push({ trait_type: 'processing', value: info.processing });
-            // attributes.push({ trait_type: 'reasoning', value: info.reasoning });
-            // attributes.push({ trait_type: 'constitution', value: info.constitution });
-            // attributes.push({ trait_type: 'healing', value: info.healing });
-            // attributes.push({ trait_type: 'fortitude', value: info.fortitude });
-            // attributes.push({ trait_type: 'vitality', value: info.vitality });
-            // attributes.push({ trait_type: 'luck', value: info.luck });
             collectionTokens[tokenId] = { ...ipc, attributes: attributes };
           }
           state.sync.completed = Object.keys(collectionTokens).length;
