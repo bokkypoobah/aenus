@@ -72,6 +72,7 @@ const store = new Vuex.Store({
     cryptoPunks: cryptoPunksModule,
     ipcs: ipcsModule,
     nfts: nftsModule,
+    pixelMap: pixelMapModule,
     transactions: transactionsModule,
     umswap: umswapModule,
     // collections: collectionsModule,

@@ -19,6 +19,11 @@ const routes = [{
     name: 'IPCs',
     props: true,
   }, {
+    path: '/pixelmap/:tab?/:blocks?/:search?',
+    component: PixelMap,
+    name: 'PixelMap',
+    props: true,
+  }, {
     path: '/nfts/:tab?/:blocks?/:search?',
     component: NFTs,
     name: 'NFTs',
