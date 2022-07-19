@@ -23,9 +23,11 @@ const PixelMap = {
             <b-card-body class="m-0 p-1">
               <!-- Main Toolbar -->
               <div class="d-flex flex-wrap m-0 p-0">
+                <!--
                 <div class="mt-1">
                   <b-button size="sm" :pressed.sync="settings.showFilter" variant="link" v-b-popover.hover.top="'Show collection filter'"><span v-if="settings.showFilter"><b-icon-layout-sidebar-inset shift-v="+1" font-scale="1.0"></b-icon-layout-sidebar-inset></span><span v-else><b-icon-layout-sidebar shift-v="+1" font-scale="1.0"></b-icon-layout-sidebar></span></b-button>
                 </div>
+                -->
                 <div v-if="settings.tabIndex == 1" class="mt-1" style="width: 380px;">
                   <b-form-input type="text" size="sm" :value="filter.collection.address" @change="updateCollection('filterUpdate', { collection: { address: $event } })" :disabled="sync.inProgress" debounce="600" v-b-popover.hover.top="'Collection address'" placeholder="{ERC-721 address}"></b-form-input>
                 </div>
