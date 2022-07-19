@@ -167,7 +167,12 @@ const PixelMap = {
                         {{ data.item.url }}
                       </template>
                       <template #cell(price)="data">
-                        {{ data.item.price }}
+                        <div v-if="data.item.price" class="mt-2">
+                          <font size="-1">
+                            <b-badge variant="success" v-b-popover.hover.bottom="'On ' + data.item.price.source">{{ data.item.price.price }}</b-badge>
+                          </font>
+                        </div>
+                        <!-- {{ data.item.price }} -->
                       </template>
                     </b-table>
                   </b-card>
@@ -308,31 +313,35 @@ const PixelMap = {
     filteredSortedCollectionTokens() {
       let results = this.filteredCollectionTokens;
       if (this.settings.sortOption == 'idasc') {
-        results.sort((a, b) => a.tokenId - b.tokenId);
+        results.sort((a, b) => a.token_id - b.token_id);
       } else if (this.settings.sortOption == 'iddsc') {
-        results.sort((a, b) => b.tokenId - a.tokenId);
+        results.sort((a, b) => b.token_id - a.token_id);
       } else if (this.settings.sortOption == 'priceasc') {
         results.sort((a, b) => {
-          if (a.price == b.price) {
-            return a.tokenId - b.tokenId;
-          } else if (a.price != null && b.price == null) {
+          const pricea = a.price && a.price.price || null;
+          const priceb = b.price && b.price.price || null;
+          if (pricea == priceb) {
+            return a.token_id - b.token_id;
+          } else if (pricea != null && priceb == null) {
             return -1;
-          } else if (a.price == null && b.price != null) {
+          } else if (pricea == null && priceb != null) {
             return 1;
           } else {
-            return a.price - b.price;
+            return pricea - priceb;
           }
         });
       } else if (this.settings.sortOption == 'pricedsc') {
         results.sort((a, b) => {
-          if (a.price == b.price) {
-            return a.tokenId - b.tokenId;
-          } else if (a.price != null && b.price == null) {
+          const pricea = a.price && a.price.price || null;
+          const priceb = b.price && b.price.price || null;
+          if (pricea == priceb) {
+            return a.token_id - b.token_id;
+          } else if (pricea != null && priceb == null) {
             return -1;
-          } else if (a.price == null && b.price != null) {
+          } else if (pricea == null && priceb != null) {
             return 1;
           } else {
-            return b.price - a.price;
+            return priceb - pricea;
           }
         });
       } else {
@@ -526,6 +535,33 @@ const pixelMapModule = {
 
         const debug = false;
 
+        // Retrieve prices
+        let continuation = null;
+        let prices = {};
+        do {
+          let url = "https://api.reservoir.tools/tokens/bootstrap/v1?contract=" + "0x050dc61dFB867E0fE3Cf2948362b6c0F3fAF790b" +
+            "&limit=500" +
+            (continuation != null ? "&continuation=" + continuation : '');
+          // logInfo("nftsModule", "mutations.updateCollection() - url: " + url);
+          const data = await fetch(url)
+            .then(handleErrors)
+            .then(response => response.json())
+            .catch(function(error) {
+               console.log("ERROR - updateCollection: " + error);
+               state.sync.error = true;
+               return [];
+            });
+          continuation = debug ? null : data.continuation;
+          if (data && data.tokens) {
+            for (const token of data.tokens) {
+              prices[token.tokenId] = { price: token.price, validUntil: token.validUntil, source: token.source };
+            }
+          }
+          state.sync.completed = Object.keys(prices).length;
+          state.sync.total = state.sync.completed;
+        } while (continuation != null && !state.halt && !state.sync.error);
+        // console.log(JSON.stringify(prices, null, 2));
+
         const scanFrom = debug ? 300 : 0;
         const scanTo = debug ? 500 : 3970;
         const scanBatchSize = 250;
@@ -535,16 +571,29 @@ const pixelMapModule = {
         state.sync.completed = 0;
         const collectionTokens = {};
         const ensMap = {};
-        for (let i = 0; i < searchTokenIds.length; i += scanBatchSize) {
+        for (let i = 0; i < searchTokenIds.length && !state.halt; i += scanBatchSize) {
           const batch = searchTokenIds.slice(i, parseInt(i) + scanBatchSize);
           const tileData = await pixelMapHelper.getTiles(batch);
           for (let j = 0; j < tileData[0].length; j++) {
+            let price = {
+              price: null,
+              validUntil: null,
+              source: null,
+            };
+            if (tileData[3][j] != 0) {
+              price = { price: ethers.utils.formatEther(tileData[3][j]), validUntil: null, source: "PixelMap" };
+            } else {
+              if (batch[j] in prices) {
+                const p = prices[batch[j]];
+                price = { price: p.price, validUntil: p.validUntil, source: p.source };
+              }
+            }
             collectionTokens[batch[j]] = {
               tokenId: parseInt(batch[j]),
               owner: tileData[0][j],
               image: tileData[1][j],
               url: tileData[2][j],
-              price: tileData[3][j] == 0 ? null : ethers.utils.formatEther(tileData[3][j]),
+              price: price,
             };
           }
           state.sync.completed = Object.keys(collectionTokens).length;
