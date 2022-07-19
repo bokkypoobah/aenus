@@ -159,7 +159,9 @@ const PixelMap = {
                         </b-popover>
                       </template>
                       <template #cell(image)="data">
-                        {{ data.item.image }}
+                        <div v-b-popover.hover.bottom="data.item.image">
+                          {{ data.item.image.substring(0, 30) + (data.item.image.length > 30 ? '...' : '') }}
+                        </div>
                       </template>
                       <template #cell(url)="data">
                         {{ data.item.url }}
@@ -185,7 +187,7 @@ const PixelMap = {
 
       settings: {
         tabIndex: 50, // TODO: Delete?
-        showFilter: true,
+        showFilter: false,
         sortOption: 'priceasc', // TODO 'idasc',
         collection: {
           showInfo: false,
