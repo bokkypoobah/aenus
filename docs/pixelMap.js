@@ -122,15 +122,19 @@ const PixelMap = {
                         </b-button>
                         <b-popover :target="'popover-target-' + data.item.tokenId" placement="right">
                           <template #title>{{ data.item.tokenId }}</template>
-                          <b-link :href="'https://opensea.io/assets/ethereum/0x011c77fa577c500deedad364b8af9e8540b808c0/' + data.item.tokenId" v-b-popover.hover.bottom="'View in opensea.io'" target="_blank">
+                          <b-link :href="'https://pixelmap.io/'" v-b-popover.hover.bottom="'View in PixelMap.io'" target="_blank">
+                            PixelMap
+                          </b-link>
+                          <br />
+                          <b-link v-if="data.item.price && data.item.price.source == 'OpenSea'" :href="'https://opensea.io/assets/ethereum/0x050dc61dfb867e0fe3cf2948362b6c0f3faf790b/' + data.item.tokenId" v-b-popover.hover.bottom="'View in opensea.io'" target="_blank">
                             OpenSea
                           </b-link>
                           <br />
-                          <b-link :href="'https://looksrare.org/collections/0x011c77fa577c500deedad364b8af9e8540b808c0/' + data.item.tokenId" v-b-popover.hover.bottom="'View in looksrare.org'" target="_blank">
+                          <b-link v-if="data.item.price && data.item.price.source == 'LooksRare'" :href="'https://looksrare.org/collections/0x050dc61dfb867e0fe3cf2948362b6c0f3faf790b/' + data.item.tokenId" v-b-popover.hover.bottom="'View in looksrare.org'" target="_blank">
                             LooksRare
                           </b-link>
                           <br />
-                          <b-link :href="'https://x2y2.io/eth/0x011c77fa577c500deedad364b8af9e8540b808c0/' + data.item.tokenId" v-b-popover.hover.bottom="'View in x2y2.io'" target="_blank">
+                          <b-link v-if="data.item.price && data.item.price.source == 'X2Y2'" :href="'https://x2y2.io/eth/0x050dc61dfb867e0fe3cf2948362b6c0f3faf790b/' + data.item.tokenId" v-b-popover.hover.bottom="'View in x2y2.io'" target="_blank">
                             X2Y2
                           </b-link>
                         </b-popover>
