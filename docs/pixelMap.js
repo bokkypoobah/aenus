@@ -313,15 +313,15 @@ const PixelMap = {
     filteredSortedCollectionTokens() {
       let results = this.filteredCollectionTokens;
       if (this.settings.sortOption == 'idasc') {
-        results.sort((a, b) => a.token_id - b.token_id);
+        results.sort((a, b) => a.tokenId - b.tokenId);
       } else if (this.settings.sortOption == 'iddsc') {
-        results.sort((a, b) => b.token_id - a.token_id);
+        results.sort((a, b) => b.tokenId - a.tokenId);
       } else if (this.settings.sortOption == 'priceasc') {
         results.sort((a, b) => {
           const pricea = a.price && a.price.price || null;
           const priceb = b.price && b.price.price || null;
           if (pricea == priceb) {
-            return a.token_id - b.token_id;
+            return a.tokenId - b.tokenId;
           } else if (pricea != null && priceb == null) {
             return -1;
           } else if (pricea == null && priceb != null) {
@@ -335,7 +335,7 @@ const PixelMap = {
           const pricea = a.price && a.price.price || null;
           const priceb = b.price && b.price.price || null;
           if (pricea == priceb) {
-            return a.token_id - b.token_id;
+            return a.tokenId - b.tokenId;
           } else if (pricea != null && priceb == null) {
             return -1;
           } else if (pricea == null && priceb != null) {
