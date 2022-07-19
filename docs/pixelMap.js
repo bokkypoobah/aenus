@@ -159,9 +159,9 @@ const PixelMap = {
                         </b-popover>
                       </template>
                       <template #cell(image)="data">
-                        <div v-b-popover.hover.bottom="data.item.image">
-                          {{ data.item.image.substring(0, 30) + (data.item.image.length > 30 ? '...' : '') }}
-                        </div>
+                        <!-- <b-link :href="'http://myipc.io/' + data.item.tokenId" v-b-popover.hover.bottom="'View in original website'" target="_blank"> -->
+                        <b-avatar rounded size="7rem" :src="'https://pixelmap.art/' + data.item.tokenId + '/latest.png'" style="background-color: #638596"></b-avatar>
+                        <!-- </b-link> -->
                       </template>
                       <template #cell(url)="data">
                         {{ data.item.url }}
