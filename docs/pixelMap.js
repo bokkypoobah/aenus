@@ -307,43 +307,39 @@ const PixelMap = {
     },
     filteredSortedCollectionTokens() {
       let results = this.filteredCollectionTokens;
-      // if (this.settings.sortOption == 'idasc') {
-      //   results.sort((a, b) => a.tokenId - b.tokenId);
-      // } else if (this.settings.sortOption == 'iddsc') {
-      //   results.sort((a, b) => b.tokenId - a.tokenId);
-      // } else if (this.settings.sortOption == 'priceasc') {
-      //   results.sort((a, b) => {
-      //     const pricea = a.price && a.price.price || null;
-      //     const priceb = b.price && b.price.price || null;
-      //     if (pricea == priceb) {
-      //       return a.tokenId - b.tokenId;
-      //     } else if (pricea != null && priceb == null) {
-      //       return -1;
-      //     } else if (pricea == null && priceb != null) {
-      //       return 1;
-      //     } else {
-      //       return pricea - priceb;
-      //     }
-      //   });
-      // } else if (this.settings.sortOption == 'pricedsc') {
-      //   results.sort((a, b) => {
-      //     const pricea = a.price && a.price.price || null;
-      //     const priceb = b.price && b.price.price || null;
-      //     if (pricea == priceb) {
-      //       return a.tokenId - b.tokenId;
-      //     } else if (pricea != null && priceb == null) {
-      //       return -1;
-      //     } else if (pricea == null && priceb != null) {
-      //       return 1;
-      //     } else {
-      //       return priceb - pricea;
-      //     }
-      //   });
-      // } else {
-      //   results.sort(() => {
-      //     return Math.random() - 0.5;
-      //   });
-      // }
+      if (this.settings.sortOption == 'idasc') {
+        results.sort((a, b) => a.tokenId - b.tokenId);
+      } else if (this.settings.sortOption == 'iddsc') {
+        results.sort((a, b) => b.tokenId - a.tokenId);
+      } else if (this.settings.sortOption == 'priceasc') {
+        results.sort((a, b) => {
+          if (a.price == b.price) {
+            return a.tokenId - b.tokenId;
+          } else if (a.price != null && b.price == null) {
+            return -1;
+          } else if (a.price == null && b.price != null) {
+            return 1;
+          } else {
+            return a.price - b.price;
+          }
+        });
+      } else if (this.settings.sortOption == 'pricedsc') {
+        results.sort((a, b) => {
+          if (a.price == b.price) {
+            return a.tokenId - b.tokenId;
+          } else if (a.price != null && b.price == null) {
+            return -1;
+          } else if (a.price == null && b.price != null) {
+            return 1;
+          } else {
+            return b.price - a.price;
+          }
+        });
+      } else {
+        results.sort(() => {
+          return Math.random() - 0.5;
+        });
+      }
       return results;
     },
     pagedFilteredCollectionTokens() {
@@ -530,8 +526,8 @@ const pixelMapModule = {
 
         const debug = false;
 
-        const scanFrom = 0;
-        const scanTo = 20; // TODO 3970;
+        const scanFrom = debug ? 300 : 0;
+        const scanTo = debug ? 500 : 3970;
         const scanBatchSize = 250;
         var searchTokenIds = generateRange(parseInt(scanFrom), (parseInt(scanTo) - 1), 1);
         state.sync.section = "Retrieving PixelMap data";
@@ -548,12 +544,12 @@ const pixelMapModule = {
               owner: tileData[0][j],
               image: tileData[1][j],
               url: tileData[2][j],
-              price: tileData[3][j],
+              price: tileData[3][j] == 0 ? null : ethers.utils.formatEther(tileData[3][j]),
             };
           }
           state.sync.completed = Object.keys(collectionTokens).length;
         }
-        console.log(JSON.stringify(collectionTokens, null, 2));
+        // console.log(JSON.stringify(collectionTokens, null, 2));
         state.collectionTokens = collectionTokens;
 
         state.sync.inProgress = false;
