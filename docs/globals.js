@@ -46,11 +46,6 @@ const ENSSUBGRAPHNAMEQUERY = `
           labelhash
           name
         }
-        subdomains {
-          labelName
-          labelhash
-          name
-        }
         owner {
           id
         }
@@ -101,11 +96,6 @@ const ENSSUBGRAPHNAMECONTAINSQUERY = `
           labelhash
           name
         }
-        subdomains {
-          labelName
-          labelhash
-          name
-        }
         owner {
           id
         }
@@ -140,11 +130,6 @@ const ENSSUBGRAPHNAMESTARTSWITHQUERY = `
           id
         }
         parent {
-          labelName
-          labelhash
-          name
-        }
-        subdomains {
           labelName
           labelhash
           name
@@ -187,11 +172,6 @@ const ENSSUBGRAPHNAMEENDSWITHQUERY = `
           labelhash
           name
         }
-        subdomains {
-          labelName
-          labelhash
-          name
-        }
         owner {
           id
         }
@@ -227,11 +207,6 @@ const ENSSUBGRAPHOWNEDQUERY = `
             id
           }
           parent {
-            labelName
-            labelhash
-            name
-          }
-          subdomains {
             labelName
             labelhash
             name
@@ -283,11 +258,6 @@ const ENSSUBGRAPHBBYTOKENIDSQUERY = `
           id
         }
         parent {
-          labelName
-          labelhash
-          name
-        }
-        subdomains {
           labelName
           labelhash
           name
