@@ -47,23 +47,25 @@ const Umswap = {
                 <b-card header="New Umswap" class="mt-1" style="min-width: 36rem; max-width: 36rem;">
                   <b-card-text>
 
-                    <b-form-group label-cols="4" label-size="sm" label-align="right" label="Collection:" class="m-0 p-0">
-                      <b-form-input type="text" size="sm" @change="recalculate('searchTokenId')" v-model.trim="settings.searchTokenId" debounce="600" placeholder="0x1234..." class="mb-2"></b-form-input>
+                    <b-form-group label-cols="4" label-size="sm" label-align="right" label="Collection:" class="mx-0 my-1 p-0">
+                      <b-form-input type="text" size="sm" @change="recalculate('searchTokenId')" v-model.trim="settings.searchTokenId" debounce="600" placeholder="0x1234..."></b-form-input>
                     </b-form-group>
-                    <b-form-group label-cols="4" label-size="sm" label-align="right" label="Name:" class="m-0 p-0">
-                      <b-form-input type="text" size="sm" @change="recalculate('searchTokenId')" v-model.trim="settings.searchTokenId" debounce="600" placeholder="{up to 48 alphanums with spaces}" class="mb-2"></b-form-input>
+                    <b-form-group label-cols="4" label-size="sm" label-align="right" label="Name:" class="mx-0 my-1 p-0">
+                      <b-form-input type="text" size="sm" @change="recalculate('searchTokenId')" v-model.trim="settings.searchTokenId" debounce="600" placeholder="{up to 48 alphanums with spaces}"></b-form-input>
                     </b-form-group>
-                    <b-form-group label-cols="4" label-size="sm" label-align="right" label="TokenIds:" class="m-0 p-0">
+                    <b-form-group label-cols="4" label-size="sm" label-align="right" label="TokenIds:" class="mx-0 my-1 p-0">
                       <b-form-textarea size="sm" v-model.trim="settings.searchTokenId" placeholder="1 2-5 10\n15\n20 30 555 ..." rows="3" max-rows="100"></b-form-textarea>
+                    </b-form-group>
+                    <b-form-group label-cols="4" label-size="sm" label-align="right" label="Tip:" class="mx-0 my-1 p-0">
+                      <b-form-input type="text" size="sm" @change="recalculate('searchTokenId')" v-model.trim="settings.searchTokenId" debounce="600" placeholder="e.g. 0.0001 "></b-form-input>
                     </b-form-group>
 
                     <!--
-                    <b-form-input type="text" size="sm" @change="recalculate('searchTokenId')" v-model.trim="settings.searchTokenId" debounce="600" placeholder="1 2-5 10 15 ..." class="mb-2"></b-form-input>
-                    -->
-
+                    <b-form-input type="text" size="sm" @change="recalculate('searchTokenId')" v-model.trim="settings.searchTokenId" debounce="600" placeholder="1 2-5 10 15 ..."></b-form-input>
                     <b-form-input type="text" size="sm" @change="recalculate('searchAccount')" v-model.trim="settings.searchAccount" debounce="600" placeholder="🔍 ENS1, ADDY2, ..." class="mb-2"></b-form-input>
                     <b-form-input type="text" size="sm" @change="recalculate('searchLyrics')" v-model.trim="settings.searchLyrics" debounce="600" placeholder="🔍 LYRICS" class="mb-2"></b-form-input>
                     <b-form-checkbox @change="recalculate('searchForSaleOnly')" v-model.trim="settings.searchForSaleOnly" debounce="600">For Sale Only (coming)</b-form-checkbox>
+                    -->
                   </b-card-text>
                 </b-card>
               </b-card>
