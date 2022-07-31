@@ -562,6 +562,7 @@ const umswapModule = {
       address: UMSWAPFACTORYADDRESS,
       umswapsLength: null,
     },
+    messages: [],
     collectionInfo: {},
     collectionTokens: {},
     ensMap: {},
@@ -572,6 +573,7 @@ const umswapModule = {
     filter: state => state.filter,
     sync: state => state.sync,
     umswapFactory: state => state.umswapFactory,
+    messages: state => state.messages,
     collectionInfo: state => state.collectionInfo,
     collectionTokens: state => state.collectionTokens,
     ensMap: state => state.ensMap,
@@ -606,6 +608,42 @@ const umswapModule = {
         const umswapsLength = await umswapFactory.getUmswapsLength();
         console.log("umswapsLength: " + umswapsLength);
         state.umswapFactory.umswapsLength = umswapsLength;
+
+        // TODO: Batch sync, persist and incremental updates
+        const fromBlock = UMSWAPFACTORYDEPLOYMENTBLOCK;
+        const toBlock = blockNumber;
+        const filter = {
+          address: UMSWAPFACTORYADDRESS,
+          fromBlock: fromBlock,
+          toBlock: toBlock,
+          topics: null,
+        };
+        const events = await provider.getLogs(filter);
+        const logs = [];
+        for (const event of events) {
+          const logData = umswapFactory.interface.parseLog(event);
+          // console.log("logData: " + JSON.stringify(logData));
+          // console.log("logData.eventFragment.name: " + logData.eventFragment.name);
+          const item = { name: logData.eventFragment.name };
+          for (let i in logData.eventFragment.inputs) {
+            const inp = logData.eventFragment.inputs[i];
+            console.log("  " + i + " " + inp.name + " " + inp.type + " " + logData.args[i]);
+            // parameters.push({ name: inp.name, type: inp.type, value: logData.args[i] });
+            item[inp.name] = {
+              type: inp.type,
+              value: logData.args[i],
+            }
+          }
+          logs.push(item);
+          // console.log("parameters: " + JSON.stringify(parameters, null, 2));
+          // logs.push({
+          //   name: logData.eventFragment.name,
+          //   parameters: parameters,
+          // })
+          // const from = logData.eventFragment.inputs.filter(x => x.name == 'from').map(x => x.type).join();
+          // console.log("from: " + JSON.stringify(from));
+        }
+        console.log("logs: " + JSON.stringify(logs, null, 2));
 
         // // Retrieve prices
         // let continuation = null;
