@@ -18,11 +18,6 @@ var networks = {
   "-1" : {
     "id": "-1",
     "name": "Network Unknown",
-    "nixAddress": null,
-    "nixHelperAddress": null,
-    "wethAddress": null,
-    "royaltyEngineAddress": null,
-    "erc721HelperAddress": null,
     "explorer": "",
     "opensea": "(none)",
     "faucets": {}
@@ -30,11 +25,6 @@ var networks = {
   "1" : {
     "id": "1",
     "name": "Ethereum Mainnet",
-    "nixAddress": "0xFF0000ffe3475C081E541a1baAbc5DB7eA6e0353",
-    "nixHelperAddress": "0x76f910c835b5a06CD465657f1a71153e2B6B2C0B",
-    "wethAddress": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-    "royaltyEngineAddress": "0x0385603ab55642cb4Dd5De3aE9e306809991804f",
-    "erc721HelperAddress": "0x1CB0bA2E867549Aa7485a91dD90C454C2121b975",
     "explorer": "https://etherscan.io/",
     "opensea": "https://opensea.io/",
     "faucets": {}
@@ -42,11 +32,6 @@ var networks = {
   "2" : {
     "id": "2",
     "name": "Morden Testnet (deprecated)",
-    "nixAddress": null,
-    "nixHelperAddress": null,
-    "wethAddress": null,
-    "royaltyEngineAddress": null,
-    "erc721HelperAddress": null,
     "explorer": "https://morden.etherscan.io/",
     "opensea": "(none)",
     "faucets": {}
@@ -54,11 +39,6 @@ var networks = {
   "3" : {
     "id": "3",
     "name": "Ropsten Testnet",
-    "nixAddress": null,
-    "nixHelperAddress": null,
-    "wethAddress": null,
-    "royaltyEngineAddress": null,
-    "erc721HelperAddress": null,
     "explorer": "https://ropsten.etherscan.io/",
     "opensea": "(none)",
     "faucets": { "faucet.metamask.io": "https://faucet.metamask.io/" }
@@ -66,11 +46,6 @@ var networks = {
   "4" : {
     "id": "4",
     "name": "Rinkeby Testnet",
-    "nixAddress": "0xFF0000ffe3475C081E541a1baAbc5DB7eA6e0353",
-    "nixHelperAddress": "0x76f910c835b5a06CD465657f1a71153e2B6B2C0B",
-    "wethAddress": "0xD0000DE5A8A759EAD912F89d2E6f1ae59063a61A",
-    "royaltyEngineAddress": "0x8d17687ea9a6bb6efA24ec11DcFab01661b2ddcd",
-    "erc721HelperAddress": "0x1CB0bA2E867549Aa7485a91dD90C454C2121b975",
     "explorer": "https://rinkeby.etherscan.io/",
     "opensea": "https://testnets.opensea.io/",
     "faucets": { "faucet.metamask.io": "https://faucet.metamask.io/", "faucet.rinkeby.io": "https://faucet.rinkeby.io/" }
@@ -78,11 +53,6 @@ var networks = {
   "42" : {
     "id": "42",
     "name": "Kovan Testnet",
-    "nixAddress": null,
-    "nixHelperAddress": null,
-    "wethAddress": null,
-    "royaltyEngineAddress": null,
-    "erc721HelperAddress": null,
     "explorer": "https://kovan.etherscan.io/",
     "opensea": "(none)",
     "faucets": { "faucet.kovan.network": "https://faucet.kovan.network/", "github.com/kovan-testnet": "https://github.com/kovan-testnet/faucet" }
@@ -90,11 +60,6 @@ var networks = {
   "5" : {
     "id": "5",
     "name": "Görli Testnet",
-    "nixAddress": null,
-    "nixHelperAddress": null,
-    "wethAddress": null,
-    "royaltyEngineAddress": null,
-    "erc721HelperAddress": null,
     "explorer": "https://goerli.etherscan.io/",
     "opensea": "(none)",
     "faucets": { "faucet.goerli.mudit.blog": "https://faucet.goerli.mudit.blog/", "goerli-faucet.slock.it": "https://goerli-faucet.slock.it/" }
@@ -102,11 +67,6 @@ var networks = {
   "1337" : {
     "id": "1337",
     "name": "Geth Devnet",
-    "nixAddress": null,
-    "nixHelperAddress": null,
-    "wethAddress": null,
-    "royaltyEngineAddress": null,
-    "erc721HelperAddress": null,
     "explorer": "(none)",
     "opensea": "(none)",
     "faucets": {}
@@ -114,11 +74,6 @@ var networks = {
   "4447" : {
     "id": "4447",
     "name": "Truffle Devnet",
-    "nixAddress": null,
-    "nixHelperAddress": null,
-    "wethAddress": null,
-    "royaltyEngineAddress": null,
-    "erc721HelperAddress": null,
     "explorer": "(none)",
     "opensea": "(none)",
     "faucets": {}
@@ -126,11 +81,6 @@ var networks = {
   "5777" : {
     "id": "5777",
     "name": "Ganache Devnet",
-    "nixAddress": null,
-    "nixHelperAddress": null,
-    "wethAddress": null,
-    "royaltyEngineAddress": null,
-    "erc721HelperAddress": null,
     "explorer": "(none)",
     "opensea": "(none)",
     "faucets": {}
