@@ -18,7 +18,7 @@ const Umswap = {
             Please connect to the Ethereum mainnet with a web3-enabled browser. Click the [Power] button on the top right.
           </b-alert>
           <b-alert size="sm" :show="powerOn && network.chainId == 1" dismissible variant="danger" class="m-1">
-            Warning. This is v0.8.8 experimental
+            Warning - Umswap v0.8.8 testing! Please use low value wallets when interacting on this site, initially. There is a <b-link :href="'https://twitter.com/BokkyPooBah/status/1553875661248270337'" target="_blank">OG 2017 MoonCat bug bounty</b-link> on the unaudited contracts.
           </b-alert>
 
           <b-card no-body no-header :img-src="settings.tabIndex == 1 && collectionInfo && collectionInfo.metadata && collectionInfo.metadata.bannerImageUrl || ''" img-top class="m-0 p-0 border-0">
