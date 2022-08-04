@@ -73,10 +73,10 @@ const Umswap = {
                 <b-card header="Send Message" class="mt-2" body-class="m-1 p-1" style="min-width: 36rem; max-width: 36rem;">
                   <b-card-text>
                     <b-form-group label-cols="3" label-size="sm" label-align="right" label="To" class="mx-0 my-1 p-0">
-                      <b-form-input size="sm" v-model.trim="message.to" placeholder="0x1234... or blank for none"></b-form-input>
+                      <b-form-input size="sm" v-model.trim="message.to" placeholder="0x1234... or blank for address(0)"></b-form-input>
                     </b-form-group>
                     <b-form-group label-cols="3" label-size="sm" label-align="right" label="Umswap" class="mx-0 my-1 p-0">
-                      <b-form-input size="sm" v-model.trim="message.umswap" placeholder="0x3456... or blank for none"></b-form-input>
+                      <b-form-input size="sm" v-model.trim="message.umswap" placeholder="0x3456... or blank for address(0)"></b-form-input>
                     </b-form-group>
                     <b-form-group label-cols="3" label-size="sm" label-align="right" label="Topic" class="mx-0 my-1 p-0">
                       <b-form-input size="sm" v-model.trim="message.topic" placeholder="Optional, 0 to 48 characters"></b-form-input>
@@ -85,7 +85,7 @@ const Umswap = {
                       <b-form-input size="sm" v-model.trim="message.text" placeholder="Mandatory, 1 to 280 characters"></b-form-input>
                     </b-form-group>
                     <b-form-group label-cols="3" label-size="sm" label-align="right" label="Tip" class="mx-0 my-1 p-0">
-                      <b-form-input size="sm" v-model.trim="message.tip" placeholder="In ETH, optional. e.g. 0.0001 or blank"></b-form-input>
+                      <b-form-input size="sm" v-model.trim="message.tip" placeholder="In ETH, optional. e.g. 0.0001 or blank for none"></b-form-input>
                     </b-form-group>
                     <b-form-group label-cols="3" label-size="sm" label="" class="mx-0 my-1 p-0">
                       <b-button size="sm" @click="sendMessage" :disabled="message.text == null" variant="warning">Send</b-button>
@@ -577,7 +577,10 @@ const Umswap = {
         });
     },
     async sendMessage() {
-      // console.log("sendMessage");
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const umswapFactory = new ethers.Contract(UMSWAPFACTORYADDRESS, UMSWAPFACTORYABI, provider);
+      const umswapFactoryWithSigner = umswapFactory.connect(provider.getSigner());
+      const from = await provider.getSigner().getAddress();
       const to = this.message.to == null || this.message.to.trim().length == 0 ? ADDRESS0 : this.message.to.trim();
       const umswap = this.message.umswap == null || this.message.umswap.trim().length == 0 ? ADDRESS0 : this.message.umswap.trim();
       const topic = this.message.topic == null || this.message.topic.trim().length == 0 ? "" : this.message.topic.trim();
@@ -585,8 +588,6 @@ const Umswap = {
       const integrator = ADDRESS0;
       const tip = this.message.tip == null || this.message.tip.trim().length == 0 ? 0 : ethers.utils.parseEther(this.message.tip);
       const h = this.$createElement;
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const from = await provider.getSigner().getAddress();
       const messageVNode = h('div', { class: ['confirm-modal'] }, [
         h('b-row', {
           }, [
@@ -600,7 +601,7 @@ const Umswap = {
         ),
         h('b-row', {
           }, [
-            h('b-col', { class: ['text-right'], props: { cols: 3 } }, 'Contract:'),
+            h('b-col', { class: ['text-right'], props: { cols: 3 } }, 'To Contract:'),
             h('b-col',
               [
                 h('a', { class: ['blah'], attrs: { 'href': 'https://etherscan.io/address/' + UMSWAPFACTORYADDRESS + '#code', 'target': '_blank' } }, UMSWAPFACTORYADDRESS),
@@ -611,12 +612,13 @@ const Umswap = {
         h('b-row', {
           }, [
             h('b-col', { class: ['text-right'], props: { cols: 3 } }, 'Function:'),
-            h('b-col', 'sendMessage(to, umswap, topic, text, integrator)'),
+            h('b-col', 'sendMessage('),
           ]
         ),
         h('b-row', {
           }, [
-            h('b-col', { class: ['text-right'], props: { cols: 3 } }, 'to:'),
+            h('b-col', { class: ['text-right'], props: { cols: 3 } }, ''),
+            h('b-col', { class: ['text-right'], props: { cols: 2 } }, 'to:'),
             h('b-col',
               [
                 h('a', { class: ['blah'], attrs: { 'href': 'https://etherscan.io/address/' + to, 'target': '_blank' } }, to),
@@ -626,7 +628,8 @@ const Umswap = {
         ),
         h('b-row', {
           }, [
-            h('b-col', { class: ['text-right'], props: { cols: 3 } }, 'umswap:'),
+            h('b-col', { class: ['text-right'], props: { cols: 3 } }, ''),
+            h('b-col', { class: ['text-right'], props: { cols: 2 } }, 'umswap:'),
             h('b-col',
               [
                 h('a', { class: ['blah'], attrs: { 'href': 'https://etherscan.io/address/' + umswap, 'target': '_blank' } }, umswap),
@@ -636,24 +639,33 @@ const Umswap = {
         ),
         h('b-row', {
           }, [
-            h('b-col', { class: ['text-right'], props: { cols: 3 } }, 'topic:'),
+            h('b-col', { class: ['text-right'], props: { cols: 3 } }, ''),
+            h('b-col', { class: ['text-right'], props: { cols: 2 } }, 'topic:'),
             h('b-col', topic),
           ]
         ),
         h('b-row', {
           }, [
-            h('b-col', { class: ['text-right'], props: { cols: 3 } }, 'text:'),
+            h('b-col', { class: ['text-right'], props: { cols: 3 } }, ''),
+            h('b-col', { class: ['text-right'], props: { cols: 2 } }, 'text:'),
             h('b-col', text),
           ]
         ),
         h('b-row', {
           }, [
-            h('b-col', { class: ['text-right'], props: { cols: 3 } }, 'integrator:'),
+            h('b-col', { class: ['text-right'], props: { cols: 3 } }, ''),
+            h('b-col', { class: ['text-right'], props: { cols: 2 } }, 'integrator:'),
             h('b-col',
               [
                 h('a', { class: ['blah'], attrs: { 'href': 'https://etherscan.io/address/' + integrator, 'target': '_blank' } }, integrator),
               ]
             ),
+          ]
+        ),
+        h('b-row', {
+          }, [
+            h('b-col', { class: ['text-right'], props: { cols: 3 } }, ''),
+            h('b-col', ')'),
           ]
         ),
         h('b-row', {
@@ -664,7 +676,7 @@ const Umswap = {
         ),
       ])
       this.$bvModal.msgBoxConfirm([messageVNode], {
-        title: 'Send Message Transaction',
+        title: 'Send Transaction',
         size: 'lg',
         buttonSize: 'sm',
         centered: true,
@@ -672,11 +684,8 @@ const Umswap = {
         okTitle: 'Confirm',
         cancelTitle: 'Cancel',
       }).then( async value1 => {
-        console.log("value1: " + value1);
         if (value1) {
           event.preventDefault();
-          const umswapFactory = new ethers.Contract(UMSWAPFACTORYADDRESS, UMSWAPFACTORYABI, provider);
-          const umswapFactoryWithSigner = umswapFactory.connect(provider.getSigner());
           try {
             const tx = await umswapFactoryWithSigner.sendMessage(to, umswap, topic, text, integrator, { value: tip });
           //   this.order.txMessage.addOrder = tx.hash;
