@@ -46,7 +46,7 @@ const Umswap = {
                 <!--
                   function newUmswap(IERC721Partial collection, string calldata name, uint[] calldata tokenIds, address integrator) public payable reentrancyGuard
                 -->
-                <b-card header="New Umswap" class="mt-2" body-class="m-1 p-1" style="min-width: 36rem; max-width: 36rem;">
+                <b-card header="New Umswap" class="mt-2" body-class="m-1 p-1" style="min-width: 48rem; max-width: 48rem;">
                   <b-card-text>
                     <b-form-group label-cols="3" label-size="sm" label-align="right" label="Collection:" class="mx-0 my-1 p-0">
                       <b-form-input type="text" size="sm" v-model.trim="umswap.collection" placeholder="0x1234..."></b-form-input>
@@ -63,13 +63,20 @@ const Umswap = {
                     <b-form-group label-cols="3" label-size="sm" label="" class="mx-0 my-1 p-0">
                       <b-button size="sm" @click="newUmswap" :disabled="umswap.collection == null || umswap.name == null" variant="warning">Create</b-button>
                     </b-form-group>
+                    <b-form-group label-cols="3" label-size="sm" label="" class="mx-0 my-1 p-0">
+                      <div v-if="umswap.txHash">
+                        <b-link :href="'https://etherscan.io/tx/' + umswap.txHash" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                          {{ umswap.txHash }}
+                        </b-link>
+                      </div>
+                      <div v-if="umswap.error">
+                        {{ umswap.error }}
+                      </div>
+                    </b-form-group>
                   </b-card-text>
                 </b-card>
 
-                <!--
-                  // function sendMessage(address to, Umswap umswap, string calldata topic, string calldata text, address integrator) public payable reentrancyGuard
-                  -->
-                <b-card header="Send Message" class="mt-2" body-class="m-1 p-1" style="min-width: 36rem; max-width: 36rem;">
+                <b-card header="Send Message" class="mt-2" body-class="m-1 p-1" style="min-width: 48rem; max-width: 48rem;">
                   <b-card-text>
                     <b-form-group label-cols="3" label-size="sm" label-align="right" label="To" class="mx-0 my-1 p-0">
                       <b-form-input size="sm" v-model.trim="message.to" placeholder="0x1234... or blank for address(0)"></b-form-input>
@@ -88,6 +95,16 @@ const Umswap = {
                     </b-form-group>
                     <b-form-group label-cols="3" label-size="sm" label="" class="mx-0 my-1 p-0">
                       <b-button size="sm" @click="sendMessage" :disabled="message.text == null" variant="warning">Send</b-button>
+                    </b-form-group>
+                    <b-form-group label-cols="3" label-size="sm" label="" class="mx-0 my-1 p-0">
+                      <div v-if="message.txHash">
+                        <b-link :href="'https://etherscan.io/tx/' + message.txHash" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                          {{ message.txHash }}
+                        </b-link>
+                      </div>
+                      <div v-if="message.error">
+                        {{ message.error }}
+                      </div>
                     </b-form-group>
                   </b-card-text>
                 </b-card>
@@ -286,6 +303,8 @@ const Umswap = {
         name: "Testing", // null,
         tokenIds: "1 2 23 3 4 5 6 7 8 9 1000 200 34", // null,
         tip: null,
+        txHash: null,
+        error: null,
       },
 
       message: {
@@ -294,6 +313,8 @@ const Umswap = {
         topic: null,
         text: null,
         tip: null,
+        txHash: null,
+        error: null,
       },
 
       collectionAttributeFilter: {},
@@ -520,7 +541,8 @@ const Umswap = {
       this.$router.push('/umswap/' + where);
     },
     async newUmswap() {
-      console.log("newUmswap");
+      this.umswap.txHash = null;
+      this.umswap.error = null;
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const umswapFactory = new ethers.Contract(UMSWAPFACTORYADDRESS, UMSWAPFACTORYABI, provider);
       const umswapFactoryWithSigner = umswapFactory.connect(provider.getSigner());
@@ -617,23 +639,25 @@ const Umswap = {
         okTitle: 'Confirm',
         cancelTitle: 'Cancel',
       }).then( async value1 => {
-        console.log("value1: " + value1);
         if (value1) {
           event.preventDefault();
           try {
             const tx = await umswapFactoryWithSigner.newUmswap(collection, name, tokenIds, integrator, { value: tip });
-          //   this.order.txMessage.addOrder = tx.hash;
+            this.umswap.txHash = tx.hash;
             console.log("tx: " + JSON.stringify(tx));
           } catch (e) {
-          //   this.order.txMessage.addOrder = e.message.toString();
-            console.log("error: " + e.toString());
+            this.umswap.error = e.message.toString();
+            console.log("Umswap.newUmswap error: " + JSON.stringify(e));
           }
         }
       }).catch(err => {
-        // An error occurred
+        this.message.error = err.message.toString();
+        console.log("Umswap.newUmswap error: " + JSON.stringify(e));
       });
     },
     async sendMessage() {
+      this.message.txHash = null;
+      this.message.error = null;
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const umswapFactory = new ethers.Contract(UMSWAPFACTORYADDRESS, UMSWAPFACTORYABI, provider);
       const umswapFactoryWithSigner = umswapFactory.connect(provider.getSigner());
@@ -745,15 +769,16 @@ const Umswap = {
           event.preventDefault();
           try {
             const tx = await umswapFactoryWithSigner.sendMessage(to, umswap, topic, text, integrator, { value: tip });
-          //   this.order.txMessage.addOrder = tx.hash;
+            this.message.txHash = tx.hash;
             console.log("tx: " + JSON.stringify(tx));
           } catch (e) {
-          //   this.order.txMessage.addOrder = e.message.toString();
-            console.log("error: " + e.toString());
+            this.message.error = e.message.toString();
+            console.log("Umswap.sendMessage error: " + JSON.stringify(e));
           }
         }
       }).catch(err => {
-        // An error occurred
+        this.message.error = err.message.toString();
+        console.log("Umswap.sendMessage error: " + JSON.stringify(e));
       });
     },
     async updateCollection(syncMode, filterUpdate) {
