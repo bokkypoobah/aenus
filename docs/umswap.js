@@ -79,10 +79,10 @@ const Umswap = {
                       <b-form-input size="sm" v-model.trim="message.umswap" placeholder="0x3456... or blank for none"></b-form-input>
                     </b-form-group>
                     <b-form-group label-cols="3" label-size="sm" label-align="right" label="Topic" class="mx-0 my-1 p-0">
-                      <b-form-input size="sm" v-model.trim="message.topic" placeholder="0 to 48 characters"></b-form-input>
+                      <b-form-input size="sm" v-model.trim="message.topic" placeholder="Optional, 0 to 48 characters"></b-form-input>
                     </b-form-group>
                     <b-form-group label-cols="3" label-size="sm" label-align="right" label="Text" class="mx-0 my-1 p-0">
-                      <b-form-input size="sm" v-model.trim="message.text" placeholder="1 to 280 characters"></b-form-input>
+                      <b-form-input size="sm" v-model.trim="message.text" placeholder="Mandatory, 1 to 280 characters"></b-form-input>
                     </b-form-group>
                     <b-form-group label-cols="3" label-size="sm" label-align="right" label="Tip" class="mx-0 my-1 p-0">
                       <b-form-input size="sm" v-model.trim="message.tip" placeholder="In ETH, optional. e.g. 0.0001 or blank"></b-form-input>
