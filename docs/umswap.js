@@ -44,57 +44,55 @@ const Umswap = {
                 </b-row>
 
                 <!--
-                  // function sendMessage(address to, Umswap umswap, string calldata topic, string calldata text, address integrator) public payable reentrancyGuard
-                  -->
-                <b-card header="Send Message" class="mt-2" body-class="m-1 p-1" style="min-width: 36rem; max-width: 36rem;">
-                  <b-form-group label-cols="3" label-size="sm" label-align="right" label="To" class="mx-0 my-1 p-0">
-                    <b-form-input size="sm" v-model="sendMessage.to" placeholder="0x1234... or blank for none"></b-form-input>
-                  </b-form-group>
-                  <b-form-group label-cols="3" label-size="sm" label-align="right" label="Umswap" class="mx-0 my-1 p-0">
-                    <b-form-input size="sm" v-model="sendMessage.umswap" placeholder="0x3456... or blank for none"></b-form-input>
-                  </b-form-group>
-                  <b-form-group label-cols="3" label-size="sm" label-align="right" label="Topic" class="mx-0 my-1 p-0">
-                    <b-form-input size="sm" v-model="sendMessage.topic" placeholder="0 to 48 characters"></b-form-input>
-                  </b-form-group>
-                  <b-form-group label-cols="3" label-size="sm" label-align="right" label="Text" class="mx-0 my-1 p-0">
-                    <b-form-input size="sm" v-model="sendMessage.text" placeholder="1 to 280 characters"></b-form-input>
-                  </b-form-group>
-                  <b-form-group label-cols="3" label-size="sm" label-align="right" label="Tip" class="mx-0 my-1 p-0">
-                    <b-form-input size="sm" v-model="sendMessage.tip" placeholder="0.0001"></b-form-input>
-                  </b-form-group>
-                  <b-form-group label-cols="3" label-size="sm" label="">
-                    <b-button size="sm" @click="sendMessageNow" :disabled="sendMessage.text == null" variant="warning">Send</b-button>
-                  </b-form-group>
-                </b-card>
-
-
-                <!--
                   function newUmswap(IERC721Partial collection, string calldata name, uint[] calldata tokenIds, address integrator) public payable reentrancyGuard
                 -->
                 <b-card header="New Umswap" class="mt-2" body-class="m-1 p-1" style="min-width: 36rem; max-width: 36rem;">
                   <b-card-text>
 
                     <b-form-group label-cols="3" label-size="sm" label-align="right" label="Collection:" class="mx-0 my-1 p-0">
-                      <b-form-input type="text" size="sm" @change="recalculate('searchTokenId')" v-model.trim="settings.searchTokenId" debounce="600" placeholder="0x1234..."></b-form-input>
+                      <b-form-input type="text" size="sm" v-model.trim="umswap.collection" placeholder="0x1234..."></b-form-input>
                     </b-form-group>
                     <b-form-group label-cols="3" label-size="sm" label-align="right" label="Name:" class="mx-0 my-1 p-0">
-                      <b-form-input type="text" size="sm" @change="recalculate('searchTokenId')" v-model.trim="settings.searchTokenId" debounce="600" placeholder="{up to 48 alphanums with spaces}"></b-form-input>
+                      <b-form-input type="text" size="sm" v-model.trim="umswap.name" placeholder="{up to 48 alphanums with spaces}"></b-form-input>
                     </b-form-group>
                     <b-form-group label-cols="3" label-size="sm" label-align="right" label="TokenIds:" class="mx-0 my-1 p-0">
-                      <b-form-textarea size="sm" v-model.trim="settings.searchTokenId" placeholder="1 2-5 10\n15\n20 30 555 ..." rows="3" max-rows="100"></b-form-textarea>
+                      <b-form-textarea size="sm" v-model.trim="umswap.tokenIds" placeholder="Blank for all, or e.g., 1 2-5 10\n15\n20 30 555" rows="3" max-rows="100"></b-form-textarea>
                     </b-form-group>
                     <b-form-group label-cols="3" label-size="sm" label-align="right" label="Tip:" class="mx-0 my-1 p-0">
-                      <b-form-input type="text" size="sm" @change="recalculate('searchTokenId')" v-model.trim="settings.searchTokenId" debounce="600" placeholder="e.g. 0.0001 "></b-form-input>
+                      <b-form-input type="text" size="sm" v-model.trim="umswap.tip" placeholder="In ETH, optional. e.g. 0.0001 or blank"></b-form-input>
                     </b-form-group>
-
-                    <!--
-                    <b-form-input type="text" size="sm" @change="recalculate('searchTokenId')" v-model.trim="settings.searchTokenId" debounce="600" placeholder="1 2-5 10 15 ..."></b-form-input>
-                    <b-form-input type="text" size="sm" @change="recalculate('searchAccount')" v-model.trim="settings.searchAccount" debounce="600" placeholder="🔍 ENS1, ADDY2, ..." class="mb-2"></b-form-input>
-                    <b-form-input type="text" size="sm" @change="recalculate('searchLyrics')" v-model.trim="settings.searchLyrics" debounce="600" placeholder="🔍 LYRICS" class="mb-2"></b-form-input>
-                    <b-form-checkbox @change="recalculate('searchForSaleOnly')" v-model.trim="settings.searchForSaleOnly" debounce="600">For Sale Only (coming)</b-form-checkbox>
-                    -->
+                    <b-form-group label-cols="3" label-size="sm" label="" class="mx-0 my-1 p-0">
+                      <b-button size="sm" @click="newUmswap" :disabled="umswap.collection == null || umswap.name == null" variant="warning">Create</b-button>
+                    </b-form-group>
                   </b-card-text>
                 </b-card>
+
+                <!--
+                  // function sendMessage(address to, Umswap umswap, string calldata topic, string calldata text, address integrator) public payable reentrancyGuard
+                  -->
+                <b-card header="Send Message" class="mt-2" body-class="m-1 p-1" style="min-width: 36rem; max-width: 36rem;">
+                  <b-card-text>
+                    <b-form-group label-cols="3" label-size="sm" label-align="right" label="To" class="mx-0 my-1 p-0">
+                      <b-form-input size="sm" v-model.trim="message.to" placeholder="0x1234... or blank for none"></b-form-input>
+                    </b-form-group>
+                    <b-form-group label-cols="3" label-size="sm" label-align="right" label="Umswap" class="mx-0 my-1 p-0">
+                      <b-form-input size="sm" v-model.trim="message.umswap" placeholder="0x3456... or blank for none"></b-form-input>
+                    </b-form-group>
+                    <b-form-group label-cols="3" label-size="sm" label-align="right" label="Topic" class="mx-0 my-1 p-0">
+                      <b-form-input size="sm" v-model.trim="message.topic" placeholder="0 to 48 characters"></b-form-input>
+                    </b-form-group>
+                    <b-form-group label-cols="3" label-size="sm" label-align="right" label="Text" class="mx-0 my-1 p-0">
+                      <b-form-input size="sm" v-model.trim="message.text" placeholder="1 to 280 characters"></b-form-input>
+                    </b-form-group>
+                    <b-form-group label-cols="3" label-size="sm" label-align="right" label="Tip" class="mx-0 my-1 p-0">
+                      <b-form-input size="sm" v-model.trim="message.tip" placeholder="In ETH, optional. e.g. 0.0001 or blank"></b-form-input>
+                    </b-form-group>
+                    <b-form-group label-cols="3" label-size="sm" label="" class="mx-0 my-1 p-0">
+                      <b-button size="sm" @click="sendMessage" :disabled="message.text == null" variant="warning">Send</b-button>
+                    </b-form-group>
+                  </b-card-text>
+                </b-card>
+
               </b-card>
 
 
@@ -288,7 +286,14 @@ const Umswap = {
         },
       },
 
-      sendMessage: {
+      umswap: {
+        collection: "0x31385d3520bced94f77aae104b406994d8f2168c", // null,
+        name: "Testing", // null,
+        tokenIds: "1 2 23 3 4 5 6 7 8 9 1000 200 34", // null,
+        tip: null,
+      },
+
+      message: {
         to: null,
         umswap: null,
         topic: null,
@@ -519,8 +524,60 @@ const Umswap = {
     updateURL(where) {
       this.$router.push('/umswap/' + where);
     },
-    sendMessageNow() {
-      console.log("sendMessageNow");
+    newUmswap() {
+      console.log("newUmswap");
+      this.$bvModal.msgBoxConfirm('Create New Umswap?', {
+          title: 'Please Confirm',
+          size: 'sm',
+          buttonSize: 'sm',
+          okVariant: 'danger',
+          okTitle: 'Yes',
+          cancelTitle: 'No',
+          footerClass: 'p-2',
+          hideHeaderClose: false,
+          centered: true
+        })
+        .then(async value1 => {
+          if (value1) {
+            event.preventDefault();
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const umswapFactory = new ethers.Contract(UMSWAPFACTORYADDRESS, UMSWAPFACTORYABI, provider);
+            const umswapFactoryWithSigner = umswapFactory.connect(provider.getSigner());
+            const collection = this.umswap.collection == null || this.umswap.collection.trim().length == 0 ? null : this.umswap.collection.trim();
+            const name = this.umswap.name == null || this.umswap.name.trim().length == 0 ? null : this.umswap.name.trim();
+            const tokenIds = this.umswap.tokenIds == null || this.umswap.tokenIds.trim().length == 0 ? [] : this.umswap.tokenIds.split(/[, \t\n]+/).sort((a, b) => (BigInt(a) > BigInt(b))? 0 : -1);
+            const integrator = ADDRESS0;
+            const tip = this.umswap.tip == null || this.umswap.tip.trim().length == 0 ? 0 : ethers.utils.parseEther(this.umswap.tip);
+            console.log("collection: " + collection);
+            console.log("name: " + name);
+            console.log("tokenIds: " + JSON.stringify(tokenIds));
+            console.log("integrator: " + integrator);
+            console.log("tip: " + tip);
+            try {
+              const est = await umswapFactoryWithSigner.estimateGas.newUmswap(collection, name, tokenIds, integrator, { value: tip });
+              console.log("est: " + est.toString());
+            } catch (e) {
+              console.log("est error: " + e.toString());
+            }
+
+            try {
+              // function newUmswap(IERC721Partial collection, string calldata name, uint[] calldata tokenIds, address integrator) public payable reentrancyGuard {
+            //   const tx = await nixWithSigner.addOrder(this.order.token, taker, this.order.buyOrSell, this.order.anyOrAll, tokenIds, price, this.order.expiry, this.order.tradeMax, this.order.royaltyFactor, integrator, { value: tip });
+              const tx = await umswapFactoryWithSigner.newUmswap(collection, name, tokenIds, integrator, { value: tip });
+            //   this.order.txMessage.addOrder = tx.hash;
+              console.log("tx: " + JSON.stringify(tx));
+            } catch (e) {
+            //   this.order.txMessage.addOrder = e.message.toString();
+              console.log("error: " + e.toString());
+            }
+          }
+        })
+        .catch(err => {
+          // An error occurred
+        });
+    },
+    sendMessage() {
+      console.log("sendMessage");
       this.$bvModal.msgBoxConfirm('Send Message?', {
           title: 'Please Confirm',
           size: 'sm',
@@ -537,23 +594,14 @@ const Umswap = {
             event.preventDefault();
             const provider = new ethers.providers.Web3Provider(window.ethereum);
             const umswapFactory = new ethers.Contract(UMSWAPFACTORYADDRESS, UMSWAPFACTORYABI, provider);
-            // const nix = new ethers.Contract(store.getters['connection/network'].nixAddress, NIXABI, provider);
             const umswapFactoryWithSigner = umswapFactory.connect(provider.getSigner());
-            // const weth = await nix.weth();
-            const to = this.sendMessage.to == null || this.sendMessage.to.trim().length == 0 ? ADDRESS0 : this.sendMessage.to.trim();
-            const umswap = this.sendMessage.umswap == null || this.sendMessage.umswap.trim().length == 0 ? ADDRESS0 : this.sendMessage.umswap.trim();
-            const topic = this.sendMessage.topic == null || this.sendMessage.topic.trim().length == 0 ? "" : this.sendMessage.topic.trim();
-            const text = this.sendMessage.text == null || this.sendMessage.text.trim().length == 0 ? "" : this.sendMessage.text.trim();
+            const to = this.message.to == null || this.message.to.trim().length == 0 ? ADDRESS0 : this.message.to.trim();
+            const umswap = this.message.umswap == null || this.message.umswap.trim().length == 0 ? ADDRESS0 : this.message.umswap.trim();
+            const topic = this.message.topic == null || this.message.topic.trim().length == 0 ? "" : this.message.topic.trim();
+            const text = this.message.text == null || this.message.text.trim().length == 0 ? "" : this.message.text.trim();
             const integrator = ADDRESS0;
-            const tip = this.sendMessage.tip == null || this.sendMessage.tip.trim().length == 0 ? 0 : ethers.utils.parseEther(this.sendMessage.tip);
-            // console.log("to: " + to);
-            // console.log("umswap: " + umswap);
-            // console.log("topic: " + topic);
-            // console.log("text: " + text);
-            // console.log("integrator: " + integrator);
-            // console.log("tip: " + tip);
+            const tip = this.message.tip == null || this.message.tip.trim().length == 0 ? 0 : ethers.utils.parseEther(this.message.tip);
             try {
-            //   const tx = await nixWithSigner.addOrder(this.order.token, taker, this.order.buyOrSell, this.order.anyOrAll, tokenIds, price, this.order.expiry, this.order.tradeMax, this.order.royaltyFactor, integrator, { value: tip });
               const tx = await umswapFactoryWithSigner.sendMessage(to, umswap, topic, text, integrator, { value: tip });
             //   this.order.txMessage.addOrder = tx.hash;
               console.log("tx: " + JSON.stringify(tx));
