@@ -297,7 +297,7 @@ const Umswap = {
         to: null,
         umswap: null,
         topic: null,
-        text: "test", // null,
+        text: null,
         tip: null,
       },
 
@@ -584,7 +584,6 @@ const Umswap = {
       const text = this.message.text == null || this.message.text.trim().length == 0 ? "" : this.message.text.trim();
       const integrator = ADDRESS0;
       const tip = this.message.tip == null || this.message.tip.trim().length == 0 ? 0 : ethers.utils.parseEther(this.message.tip);
-      // console.log("to: " + to + ", umswap: " + umswap + ", topic: " + topic + ", text: " + text + ", integrator: " + integrator + ", tip: " + tip);
       const h = this.$createElement;
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const from = await provider.getSigner().getAddress();
@@ -670,8 +669,8 @@ const Umswap = {
         buttonSize: 'sm',
         centered: true,
         okVariant: 'danger',
-        okTitle: 'Yes',
-        cancelTitle: 'No',
+        okTitle: 'Confirm',
+        cancelTitle: 'Cancel',
       }).then( async value1 => {
         console.log("value1: " + value1);
         if (value1) {
