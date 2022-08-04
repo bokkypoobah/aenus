@@ -43,10 +43,7 @@ const Umswap = {
                   </b-col>
                 </b-row>
 
-                <!--
-                  function newUmswap(IERC721Partial collection, string calldata name, uint[] calldata tokenIds, address integrator) public payable reentrancyGuard
-                -->
-                <b-card header="New Umswap" class="mt-2" body-class="m-1 p-1" style="min-width: 48rem; max-width: 48rem;">
+                <b-card header="New Umswap" class="mt-2" body-class="m-1 p-1" style="min-width: 60rem; max-width: 60rem;">
                   <b-card-text>
                     <b-form-group label-cols="3" label-size="sm" label-align="right" label="Collection:" class="mx-0 my-1 p-0">
                       <b-form-input type="text" size="sm" v-model.trim="umswap.collection" placeholder="0x1234..."></b-form-input>
@@ -76,7 +73,7 @@ const Umswap = {
                   </b-card-text>
                 </b-card>
 
-                <b-card header="Send Message" class="mt-2" body-class="m-1 p-1" style="min-width: 48rem; max-width: 48rem;">
+                <b-card header="Send Message" class="mt-2" body-class="m-1 p-1" style="min-width: 60rem; max-width: 60rem;">
                   <b-card-text>
                     <b-form-group label-cols="3" label-size="sm" label-align="right" label="To" class="mx-0 my-1 p-0">
                       <b-form-input size="sm" v-model.trim="message.to" placeholder="0x1234... or blank for address(0)"></b-form-input>
