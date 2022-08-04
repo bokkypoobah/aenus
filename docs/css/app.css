@@ -151,3 +151,10 @@ img {
     width: 100%;
     height: 170px;
 }
+
+.confirm-modal {
+  background-color: #F8F8F8 !important;
+  font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+  font-size: 75%;
+  wrap: off !important;
+}

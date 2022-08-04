@@ -297,7 +297,7 @@ const Umswap = {
         to: null,
         umswap: null,
         topic: null,
-        text: null,
+        text: "test", // null,
         tip: null,
       },
 
@@ -576,44 +576,120 @@ const Umswap = {
           // An error occurred
         });
     },
-    sendMessage() {
-      console.log("sendMessage");
-      this.$bvModal.msgBoxConfirm('Send Message?', {
-          title: 'Please Confirm',
-          size: 'sm',
-          buttonSize: 'sm',
-          okVariant: 'danger',
-          okTitle: 'Yes',
-          cancelTitle: 'No',
-          footerClass: 'p-2',
-          hideHeaderClose: false,
-          centered: true
-        })
-        .then(async value1 => {
-          if (value1) {
-            event.preventDefault();
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const umswapFactory = new ethers.Contract(UMSWAPFACTORYADDRESS, UMSWAPFACTORYABI, provider);
-            const umswapFactoryWithSigner = umswapFactory.connect(provider.getSigner());
-            const to = this.message.to == null || this.message.to.trim().length == 0 ? ADDRESS0 : this.message.to.trim();
-            const umswap = this.message.umswap == null || this.message.umswap.trim().length == 0 ? ADDRESS0 : this.message.umswap.trim();
-            const topic = this.message.topic == null || this.message.topic.trim().length == 0 ? "" : this.message.topic.trim();
-            const text = this.message.text == null || this.message.text.trim().length == 0 ? "" : this.message.text.trim();
-            const integrator = ADDRESS0;
-            const tip = this.message.tip == null || this.message.tip.trim().length == 0 ? 0 : ethers.utils.parseEther(this.message.tip);
-            try {
-              const tx = await umswapFactoryWithSigner.sendMessage(to, umswap, topic, text, integrator, { value: tip });
-            //   this.order.txMessage.addOrder = tx.hash;
-              console.log("tx: " + JSON.stringify(tx));
-            } catch (e) {
-            //   this.order.txMessage.addOrder = e.message.toString();
-              console.log("error: " + e.toString());
-            }
+    async sendMessage() {
+      // console.log("sendMessage");
+      const to = this.message.to == null || this.message.to.trim().length == 0 ? ADDRESS0 : this.message.to.trim();
+      const umswap = this.message.umswap == null || this.message.umswap.trim().length == 0 ? ADDRESS0 : this.message.umswap.trim();
+      const topic = this.message.topic == null || this.message.topic.trim().length == 0 ? "" : this.message.topic.trim();
+      const text = this.message.text == null || this.message.text.trim().length == 0 ? "" : this.message.text.trim();
+      const integrator = ADDRESS0;
+      const tip = this.message.tip == null || this.message.tip.trim().length == 0 ? 0 : ethers.utils.parseEther(this.message.tip);
+      // console.log("to: " + to + ", umswap: " + umswap + ", topic: " + topic + ", text: " + text + ", integrator: " + integrator + ", tip: " + tip);
+      const h = this.$createElement;
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const from = await provider.getSigner().getAddress();
+      const messageVNode = h('div', { class: ['confirm-modal'] }, [
+        h('b-row', {
+          }, [
+            h('b-col', { class: ['text-right'], props: { cols: 3 } }, 'From:'),
+            h('b-col',
+              [
+                h('a', { class: ['blah'], attrs: { 'href': 'https://etherscan.io/address/' + from, 'target': '_blank' } }, from),
+              ]
+            ),
+          ]
+        ),
+        h('b-row', {
+          }, [
+            h('b-col', { class: ['text-right'], props: { cols: 3 } }, 'Contract:'),
+            h('b-col',
+              [
+                h('a', { class: ['blah'], attrs: { 'href': 'https://etherscan.io/address/' + UMSWAPFACTORYADDRESS + '#code', 'target': '_blank' } }, UMSWAPFACTORYADDRESS),
+              ]
+            ),
+          ]
+        ),
+        h('b-row', {
+          }, [
+            h('b-col', { class: ['text-right'], props: { cols: 3 } }, 'Function:'),
+            h('b-col', 'sendMessage(to, umswap, topic, text, integrator)'),
+          ]
+        ),
+        h('b-row', {
+          }, [
+            h('b-col', { class: ['text-right'], props: { cols: 3 } }, 'to:'),
+            h('b-col',
+              [
+                h('a', { class: ['blah'], attrs: { 'href': 'https://etherscan.io/address/' + to, 'target': '_blank' } }, to),
+              ]
+            ),
+          ]
+        ),
+        h('b-row', {
+          }, [
+            h('b-col', { class: ['text-right'], props: { cols: 3 } }, 'umswap:'),
+            h('b-col',
+              [
+                h('a', { class: ['blah'], attrs: { 'href': 'https://etherscan.io/address/' + umswap, 'target': '_blank' } }, umswap),
+              ]
+            ),
+          ]
+        ),
+        h('b-row', {
+          }, [
+            h('b-col', { class: ['text-right'], props: { cols: 3 } }, 'topic:'),
+            h('b-col', topic),
+          ]
+        ),
+        h('b-row', {
+          }, [
+            h('b-col', { class: ['text-right'], props: { cols: 3 } }, 'text:'),
+            h('b-col', text),
+          ]
+        ),
+        h('b-row', {
+          }, [
+            h('b-col', { class: ['text-right'], props: { cols: 3 } }, 'integrator:'),
+            h('b-col',
+              [
+                h('a', { class: ['blah'], attrs: { 'href': 'https://etherscan.io/address/' + integrator, 'target': '_blank' } }, integrator),
+              ]
+            ),
+          ]
+        ),
+        h('b-row', {
+          }, [
+            h('b-col', { class: ['text-right'], props: { cols: 3 } }, 'Tip:'),
+            h('b-col', ethers.utils.formatEther(tip)),
+          ]
+        ),
+      ])
+      this.$bvModal.msgBoxConfirm([messageVNode], {
+        title: 'Send Message Transaction',
+        size: 'lg',
+        buttonSize: 'sm',
+        centered: true,
+        okVariant: 'danger',
+        okTitle: 'Yes',
+        cancelTitle: 'No',
+      }).then( async value1 => {
+        console.log("value1: " + value1);
+        if (value1) {
+          event.preventDefault();
+          const umswapFactory = new ethers.Contract(UMSWAPFACTORYADDRESS, UMSWAPFACTORYABI, provider);
+          const umswapFactoryWithSigner = umswapFactory.connect(provider.getSigner());
+          try {
+            const tx = await umswapFactoryWithSigner.sendMessage(to, umswap, topic, text, integrator, { value: tip });
+          //   this.order.txMessage.addOrder = tx.hash;
+            console.log("tx: " + JSON.stringify(tx));
+          } catch (e) {
+          //   this.order.txMessage.addOrder = e.message.toString();
+            console.log("error: " + e.toString());
           }
-        })
-        .catch(err => {
-          // An error occurred
-        });
+        }
+      }).catch(err => {
+        // An error occurred
+      });
     },
     async updateCollection(syncMode, filterUpdate) {
       store.dispatch('umswap/updateCollection', { syncMode, filterUpdate });
