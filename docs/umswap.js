@@ -48,7 +48,6 @@ const Umswap = {
                 -->
                 <b-card header="New Umswap" class="mt-2" body-class="m-1 p-1" style="min-width: 36rem; max-width: 36rem;">
                   <b-card-text>
-
                     <b-form-group label-cols="3" label-size="sm" label-align="right" label="Collection:" class="mx-0 my-1 p-0">
                       <b-form-input type="text" size="sm" v-model.trim="umswap.collection" placeholder="0x1234..."></b-form-input>
                     </b-form-group>
@@ -92,11 +91,7 @@ const Umswap = {
                     </b-form-group>
                   </b-card-text>
                 </b-card>
-
               </b-card>
-
-
-
 
               <!-- Main Toolbar -->
               <div v-if="false" class="d-flex flex-wrap m-0 p-0">
@@ -524,57 +519,119 @@ const Umswap = {
     updateURL(where) {
       this.$router.push('/umswap/' + where);
     },
-    newUmswap() {
+    async newUmswap() {
       console.log("newUmswap");
-      this.$bvModal.msgBoxConfirm('Create New Umswap?', {
-          title: 'Please Confirm',
-          size: 'sm',
-          buttonSize: 'sm',
-          okVariant: 'danger',
-          okTitle: 'Yes',
-          cancelTitle: 'No',
-          footerClass: 'p-2',
-          hideHeaderClose: false,
-          centered: true
-        })
-        .then(async value1 => {
-          if (value1) {
-            event.preventDefault();
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const umswapFactory = new ethers.Contract(UMSWAPFACTORYADDRESS, UMSWAPFACTORYABI, provider);
-            const umswapFactoryWithSigner = umswapFactory.connect(provider.getSigner());
-            const collection = this.umswap.collection == null || this.umswap.collection.trim().length == 0 ? null : this.umswap.collection.trim();
-            const name = this.umswap.name == null || this.umswap.name.trim().length == 0 ? null : this.umswap.name.trim();
-            const tokenIds = this.umswap.tokenIds == null || this.umswap.tokenIds.trim().length == 0 ? [] : this.umswap.tokenIds.split(/[, \t\n]+/).sort((a, b) => (BigInt(a) > BigInt(b))? 0 : -1);
-            const integrator = ADDRESS0;
-            const tip = this.umswap.tip == null || this.umswap.tip.trim().length == 0 ? 0 : ethers.utils.parseEther(this.umswap.tip);
-            console.log("collection: " + collection);
-            console.log("name: " + name);
-            console.log("tokenIds: " + JSON.stringify(tokenIds));
-            console.log("integrator: " + integrator);
-            console.log("tip: " + tip);
-            try {
-              const est = await umswapFactoryWithSigner.estimateGas.newUmswap(collection, name, tokenIds, integrator, { value: tip });
-              console.log("est: " + est.toString());
-            } catch (e) {
-              console.log("est error: " + e.toString());
-            }
-
-            try {
-              // function newUmswap(IERC721Partial collection, string calldata name, uint[] calldata tokenIds, address integrator) public payable reentrancyGuard {
-            //   const tx = await nixWithSigner.addOrder(this.order.token, taker, this.order.buyOrSell, this.order.anyOrAll, tokenIds, price, this.order.expiry, this.order.tradeMax, this.order.royaltyFactor, integrator, { value: tip });
-              const tx = await umswapFactoryWithSigner.newUmswap(collection, name, tokenIds, integrator, { value: tip });
-            //   this.order.txMessage.addOrder = tx.hash;
-              console.log("tx: " + JSON.stringify(tx));
-            } catch (e) {
-            //   this.order.txMessage.addOrder = e.message.toString();
-              console.log("error: " + e.toString());
-            }
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const umswapFactory = new ethers.Contract(UMSWAPFACTORYADDRESS, UMSWAPFACTORYABI, provider);
+      const umswapFactoryWithSigner = umswapFactory.connect(provider.getSigner());
+      const from = await provider.getSigner().getAddress();
+      const collection = this.umswap.collection == null || this.umswap.collection.trim().length == 0 ? null : this.umswap.collection.trim();
+      const name = this.umswap.name == null || this.umswap.name.trim().length == 0 ? null : this.umswap.name.trim();
+      const tokenIds = this.umswap.tokenIds == null || this.umswap.tokenIds.trim().length == 0 ? [] : this.umswap.tokenIds.split(/[, \t\n]+/).sort((a, b) => (BigInt(a) > BigInt(b))? 0 : -1);
+      const integrator = ADDRESS0;
+      const tip = this.umswap.tip == null || this.umswap.tip.trim().length == 0 ? 0 : ethers.utils.parseEther(this.umswap.tip);
+      const h = this.$createElement;
+      const messageVNode = h('div', { class: ['confirm-modal'] }, [
+        h('b-row', {
+          }, [
+            h('b-col', { class: ['text-right'], props: { cols: 3 } }, 'From:'),
+            h('b-col',
+              [
+                h('a', { class: ['blah'], attrs: { 'href': 'https://etherscan.io/address/' + from, 'target': '_blank' } }, from),
+              ]
+            ),
+          ]
+        ),
+        h('b-row', {
+          }, [
+            h('b-col', { class: ['text-right'], props: { cols: 3 } }, 'To Contract:'),
+            h('b-col',
+              [
+                h('a', { class: ['blah'], attrs: { 'href': 'https://etherscan.io/address/' + UMSWAPFACTORYADDRESS + '#code', 'target': '_blank' } }, UMSWAPFACTORYADDRESS),
+              ]
+            ),
+          ]
+        ),
+        h('b-row', {
+          }, [
+            h('b-col', { class: ['text-right'], props: { cols: 3 } }, 'Function:'),
+            h('b-col', 'newUmswap('),
+          ]
+        ),
+        // function newUmswap(IERC721Partial collection, string calldata name, uint[] calldata tokenIds, address integrator)
+        h('b-row', {
+          }, [
+            h('b-col', { class: ['text-right'], props: { cols: 3 } }, ''),
+            h('b-col', { class: ['text-right'], props: { cols: 2 } }, 'collection:'),
+            h('b-col',
+              [
+                h('a', { class: ['blah'], attrs: { 'href': 'https://etherscan.io/address/' + collection, 'target': '_blank' } }, collection),
+              ]
+            ),
+          ]
+        ),
+        h('b-row', {
+          }, [
+            h('b-col', { class: ['text-right'], props: { cols: 3 } }, ''),
+            h('b-col', { class: ['text-right'], props: { cols: 2 } }, 'name:'),
+            h('b-col', name),
+          ]
+        ),
+        h('b-row', {
+          }, [
+            h('b-col', { class: ['text-right'], props: { cols: 3 } }, ''),
+            h('b-col', { class: ['text-right'], props: { cols: 2 } }, 'tokenIds:'),
+            h('b-col', tokenIds.join(", ")),
+          ]
+        ),
+        h('b-row', {
+          }, [
+            h('b-col', { class: ['text-right'], props: { cols: 3 } }, ''),
+            h('b-col', { class: ['text-right'], props: { cols: 2 } }, 'integrator:'),
+            h('b-col',
+              [
+                h('a', { class: ['blah'], attrs: { 'href': 'https://etherscan.io/address/' + integrator, 'target': '_blank' } }, integrator),
+              ]
+            ),
+          ]
+        ),
+        h('b-row', {
+          }, [
+            h('b-col', { class: ['text-right'], props: { cols: 3 } }, ''),
+            h('b-col', ')'),
+          ]
+        ),
+        h('b-row', {
+          }, [
+            h('b-col', { class: ['text-right'], props: { cols: 3 } }, 'Tip:'),
+            h('b-col', ethers.utils.formatEther(tip)),
+          ]
+        ),
+      ])
+      this.$bvModal.msgBoxConfirm([messageVNode], {
+        title: 'Send Transaction',
+        size: 'lg',
+        buttonSize: 'sm',
+        centered: true,
+        okVariant: 'danger',
+        okTitle: 'Confirm',
+        cancelTitle: 'Cancel',
+      }).then( async value1 => {
+        console.log("value1: " + value1);
+        if (value1) {
+          event.preventDefault();
+          try {
+            const tx = await umswapFactoryWithSigner.newUmswap(collection, name, tokenIds, integrator, { value: tip });
+          //   this.order.txMessage.addOrder = tx.hash;
+            console.log("tx: " + JSON.stringify(tx));
+          } catch (e) {
+          //   this.order.txMessage.addOrder = e.message.toString();
+            console.log("error: " + e.toString());
           }
-        })
-        .catch(err => {
-          // An error occurred
-        });
+        }
+      }).catch(err => {
+        // An error occurred
+      });
     },
     async sendMessage() {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
