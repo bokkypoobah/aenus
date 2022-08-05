@@ -2,24 +2,24 @@ const Umswap = {
   template: `
     <div class="m-0 p-0">
       <b-card no-body no-header class="border-0">
-        <b-card no-body class="p-0 mt-1">
+        <b-alert size="sm" show dismissible variant="danger" class="m-1">
+          Warning - Umswap v0.8.8 testing! Please use low value wallets when interacting on this site, initially. There is an <b-link :href="'https://twitter.com/BokkyPooBah/status/1553875661248270337'" target="_blank">OG 2017 MoonCat bug bounty</b-link> on the unaudited contracts.
+        </b-alert>
+        <b-alert size="sm" :show="!powerOn || network.chainId != 1" variant="primary" class="m-1">
+          Please connect to the Ethereum mainnet with a web3-enabled browser. Click the [Power] button on the top right.
+        </b-alert>
 
-          <!--
+        <b-card no-body class="m-1 mt-0 p-0">
           <b-tabs card align="left" no-body v-model="settings.tabIndex" active-tab-class="m-0 p-0">
-            <b-tab disabled title="Transfers (WIP)" @click="updateURL('transfers');">
+            <b-tab title="Umswaps" @click="updateURL('upswaps');">
             </b-tab>
-            <b-tab title="Collection" @click="updateURL('collection');">
+            <b-tab title="Umswap" @click="updateURL('umswap');">
             </b-tab>
-            <b-tab title="Mint Monitor" @click="updateURL('mintmonitor');">
+            <b-tab title="New Umswap" @click="updateURL('newumswap');">
+            </b-tab>
+            <b-tab title="Messages" @click="updateURL('messages');">
             </b-tab>
           </b-tabs>
-          -->
-          <b-alert size="sm" :show="!powerOn || network.chainId != 1" variant="primary" class="m-1">
-            Please connect to the Ethereum mainnet with a web3-enabled browser. Click the [Power] button on the top right.
-          </b-alert>
-          <b-alert size="sm" :show="powerOn && network.chainId == 1" dismissible variant="danger" class="m-1">
-            Warning - Umswap v0.8.8 testing! Please use low value wallets when interacting on this site, initially. There is an <b-link :href="'https://twitter.com/BokkyPooBah/status/1553875661248270337'" target="_blank">OG 2017 MoonCat bug bounty</b-link> on the unaudited contracts.
-          </b-alert>
 
           <b-card no-body no-header :img-src="settings.tabIndex == 1 && collectionInfo && collectionInfo.metadata && collectionInfo.metadata.bannerImageUrl || ''" img-top class="m-0 p-0 border-0">
 
@@ -40,6 +40,13 @@ const Umswap = {
                   </b-col>
                   <b-col class="mt-1">
                     <b-button size="sm" @click="updateCollection('sync', {})" :disabled="sync.inProgress" variant="primary">Query</b-button>
+                  </b-col>
+                </b-row>
+                <b-row>
+                  <b-col cols="2" class="text-right">
+                  </b-col>
+                  <b-col class="mt-1">
+                    {{ umswapFactory }}
                   </b-col>
                 </b-row>
 
@@ -285,7 +292,7 @@ const Umswap = {
       reschedule: true,
 
       settings: {
-        tabIndex: 50, // TODO: Delete?
+        tabIndex: 0,
         showFilter: true,
         sortOption: 'priceasc', // TODO 'idasc',
         collection: {
@@ -855,6 +862,7 @@ const umswapModule = {
     umswapFactory: {
       address: UMSWAPFACTORYADDRESS,
       umswaps: [],
+      collections: {},
       // umswapsLength: null,
     },
     messages: [],
@@ -929,8 +937,23 @@ const umswapModule = {
             " swappedIn: " + swappedIn + " swappedOut: " + swappedOut + " totalScores: " + totalScores + " totalSupply: " + totalSupply + " raters: " + raters);
           umswapsData.push({ index, address, symbol, name, collection, tokenIds, creator, swappedIn, swappedOut, totalScores, totalSupply, raters });
         }
-        console.log("umswapsData: " + JSON.stringify(umswapsData, null, 2));
-        console.log("collectionsMap: " + JSON.stringify(collectionsMap, null, 2));
+        state.umswapFactory.umswaps = umswapsData;
+
+        // console.log("umswapsData: " + JSON.stringify(umswapsData, null, 2));
+        // console.log("collectionsMap: " + JSON.stringify(collectionsMap, null, 2));
+        const collectionAddresses = Object.keys(collectionsMap);
+        const collectionsInfo = await erc721Helper.tokenInfo(collectionAddresses);
+        // console.log("collectionsInfo: " + JSON.stringify(collectionsInfo, null, 2));
+        const collections = {};
+        for (let i = 0; i < collectionsInfo[0].length; i++) {
+          const type = collectionsInfo[0][i];
+          const symbol = collectionsInfo[1][i];
+          const name = collectionsInfo[2][i];
+          const totalSupply = collectionsInfo[3][i];
+          console.log("type: " + type + " " + symbol + " " + name + " " + totalSupply.toString());
+          collections[collectionAddresses[i]] = { type, symbol, name, totalSupply };
+        }
+        state.umswapFactory.collections = collections;
 
         // TODO: Batch sync, persist and incremental updates
         const fromBlock = UMSWAPFACTORYDEPLOYMENTBLOCK;
@@ -950,7 +973,7 @@ const umswapModule = {
           const item = { name: logData.eventFragment.name };
           for (let i in logData.eventFragment.inputs) {
             const inp = logData.eventFragment.inputs[i];
-            console.log("  " + i + " " + inp.name + " " + inp.type + " " + logData.args[i]);
+            // console.log("  " + i + " " + inp.name + " " + inp.type + " " + logData.args[i]);
             // parameters.push({ name: inp.name, type: inp.type, value: logData.args[i] });
             item[inp.name] = {
               type: inp.type,
