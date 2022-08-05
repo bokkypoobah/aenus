@@ -854,7 +854,8 @@ const umswapModule = {
     },
     umswapFactory: {
       address: UMSWAPFACTORYADDRESS,
-      umswapsLength: null,
+      umswaps: [],
+      // umswapsLength: null,
     },
     messages: [],
     collectionInfo: {},
@@ -900,8 +901,36 @@ const umswapModule = {
         const debug = false;
 
         const umswapsLength = await umswapFactory.getUmswapsLength();
-        console.log("umswapsLength: " + umswapsLength);
-        state.umswapFactory.umswapsLength = umswapsLength;
+        // state.umswapFactory.umswapsLength = umswapsLength;
+        var umswapsIndices = generateRange(0, parseInt(umswapsLength) - 1, 1);
+        const umswaps = await umswapFactory.getUmswaps(umswapsIndices);
+
+        const umswapsData = [];
+        const collectionsMap = {};
+        for (let i = 0; i < umswaps[0].length; i++) {
+          const index = umswapsIndices[i];
+          const address = umswaps[0][i];
+          const symbol = umswaps[1][i];
+          const name = umswaps[2][i];
+          const collection = umswaps[3][i];
+          const tokenIds = umswaps[4][i];
+          const creator = umswaps[5][i];
+          const stats = umswaps[6][i];
+          const swappedIn = stats[0].toString();
+          const swappedOut = stats[1].toString();
+          const totalScores = stats[2].toString();
+          const totalSupply = stats[3].toString();
+          const raters = stats[4].toString();
+          if (!(collection in collectionsMap)) {
+            collectionsMap[collection] = true;
+          }
+          console.log(index + " " + address + " " + symbol + " " + name + " " + collection + " " +
+            JSON.stringify(tokenIds) + " " + creator +
+            " swappedIn: " + swappedIn + " swappedOut: " + swappedOut + " totalScores: " + totalScores + " totalSupply: " + totalSupply + " raters: " + raters);
+          umswapsData.push({ index, address, symbol, name, collection, tokenIds, creator, swappedIn, swappedOut, totalScores, totalSupply, raters });
+        }
+        console.log("umswapsData: " + JSON.stringify(umswapsData, null, 2));
+        console.log("collectionsMap: " + JSON.stringify(collectionsMap, null, 2));
 
         // TODO: Batch sync, persist and incremental updates
         const fromBlock = UMSWAPFACTORYDEPLOYMENTBLOCK;
@@ -937,7 +966,7 @@ const umswapModule = {
           // const from = logData.eventFragment.inputs.filter(x => x.name == 'from').map(x => x.type).join();
           // console.log("from: " + JSON.stringify(from));
         }
-        console.log("logs: " + JSON.stringify(logs, null, 2));
+        // console.log("logs: " + JSON.stringify(logs, null, 2));
 
         // // Retrieve prices
         // let continuation = null;
