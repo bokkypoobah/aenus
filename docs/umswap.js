@@ -21,7 +21,68 @@ const Umswap = {
             </b-tab>
           </b-tabs>
 
-          <b-card no-body no-header :img-src="settings.tabIndex == 1 && collectionInfo && collectionInfo.metadata && collectionInfo.metadata.bannerImageUrl || ''" img-top class="m-0 p-0 border-0">
+          <!-- Main Toolbar -->
+          <div class="d-flex flex-wrap m-0 p-0">
+            <div v-if="settings.tabIndex == 10" class="mt-1">
+              <b-button size="sm" :pressed.sync="settings.showFilter" variant="link" v-b-popover.hover.top="'Show collection filter'"><span v-if="settings.showFilter"><b-icon-layout-sidebar-inset shift-v="+1" font-scale="1.0"></b-icon-layout-sidebar-inset></span><span v-else><b-icon-layout-sidebar shift-v="+1" font-scale="1.0"></b-icon-layout-sidebar></span></b-button>
+            </div>
+            <div v-if="settings.tabIndex == 10" class="mt-1" style="width: 380px;">
+              <b-form-input type="text" size="sm" :value="filter.collection.address" @change="doIt('filterUpdate', { collection: { address: $event } })" :disabled="sync.inProgress" debounce="600" v-b-popover.hover.top="'Collection address'" placeholder="{ERC-721 address}"></b-form-input>
+            </div>
+            <div v-if="settings.tabIndex == 10" class="mt-1 pl-1">
+              <b-button size="sm" @click="doIt('sync', {})" :disabled="sync.inProgress" variant="primary">Sync IPC Collection</b-button>
+            </div>
+            <div class="mt-1 flex-grow-1">
+            </div>
+            <div v-if="settings.tabIndex == 10" class="mt-1">
+              <b-button size="sm" :pressed.sync="settings.collection.showInfo" variant="link" v-b-popover.hover.top="'Show collection info'"><span v-if="settings.collection.showInfo"><b-icon-info-circle-fill shift-v="+1" font-scale="1.0"></b-icon-info-circle-fill></span><span v-else><b-icon-info-circle shift-v="+1" font-scale="1.0"></b-icon-info-circle></span></b-button>
+            </div>
+            <div v-if="settings.tabIndex == 10" class="mt-1">
+              <b-badge variant="light">{{ collectionInfo && collectionInfo.name || '' }}</b-badge>
+            </div>
+
+            <div class="mt-1 flex-grow-1">
+            </div>
+
+            <div v-if="sync.inProgress" class="mt-1 pr-1 text-right">
+              <font size="-2" v-b-popover.hover.top="'Blah'">{{ sync.section }}</font>
+            </div>
+
+            <div class="mt-2" style="width: 200px;">
+              <b-progress v-if="true || sync.inProgress" height="1.5rem" :max="sync.total" :label="'((sync.completed/sync.total)*100).toFixed(2) + %'" show-progress :animated="sync.inProgress" :variant="sync.inProgress ? 'success' : 'secondary'" v-b-popover.hover.top="'Click on the Sync(ing) button to (un)pause'">
+                <b-progress-bar :value="sync.completed">
+                  {{ sync.completed + '/' + sync.total + ' ' + ((sync.completed / sync.total) * 100).toFixed(0) + '%' }}
+                </b-progress-bar>
+              </b-progress>
+            </div>
+            <div class="ml-0 mt-1">
+              <b-button v-if="true || sync.inProgress" size="sm" @click="halt" variant="link" v-b-popover.hover.top="'Halt'"><b-icon-stop-fill shift-v="+1" font-scale="1.0"></b-icon-stop-fill></b-button>
+            </div>
+
+            <div class="mt-1 flex-grow-1">
+            </div>
+
+            <div v-if="settings.tabIndex == 2" class="mt-2 pl-1">
+              <b-link size="sm" :to="getURL" v-b-popover.hover.top="'Share this link for the same search'" ><font size="-1">Share</font></b-link>
+            </div>
+
+            <div class="mt-1 flex-grow-1">
+            </div>
+            <div v-if="settings.tabIndex == 10" class="mt-1 pr-1">
+              <b-form-select size="sm" v-model="settings.sortOption" :options="sortOptions" v-b-popover.hover.top="'Yeah. Sort'"></b-form-select>
+            </div>
+            <div v-if="settings.tabIndex == 10" class="mt-1 pr-1">
+              <font size="-2" v-b-popover.hover.top="'Blah'">{{ filteredSortedCollectionTokens.length }}</font>
+            </div>
+            <div v-if="settings.tabIndex == 10" class="mt-1 pr-1">
+              <b-pagination size="sm" v-model="settings.collection.currentPage" :total-rows="filteredCollectionTokens.length" :per-page="settings.collection.pageSize" style="height: 0;"></b-pagination>
+            </div>
+            <div v-if="settings.tabIndex == 10" class="mt-1 pl-1">
+              <b-form-select size="sm" v-model="settings.collection.pageSize" :options="pageSizes" v-b-popover.hover.top="'Page size'"></b-form-select>
+            </div>
+          </div>
+
+          <b-card no-body no-header class="m-0 p-0 border-0">
 
             <b-card-body class="m-0 p-1">
               <b-card header="UmswapFactory" class="mt-2">
@@ -39,7 +100,7 @@ const Umswap = {
                   <b-col cols="2" class="text-right">
                   </b-col>
                   <b-col class="mt-1">
-                    <b-button size="sm" @click="updateCollection('sync', {})" :disabled="sync.inProgress" variant="primary">Query</b-button>
+                    <b-button size="sm" @click="doIt('sync', {})" :disabled="sync.inProgress" variant="primary">Query</b-button>
                   </b-col>
                 </b-row>
                 <b-row>
@@ -114,66 +175,6 @@ const Umswap = {
                 </b-card>
               </b-card>
 
-              <!-- Main Toolbar -->
-              <div v-if="false" class="d-flex flex-wrap m-0 p-0">
-                <div class="mt-1">
-                  <b-button size="sm" :pressed.sync="settings.showFilter" variant="link" v-b-popover.hover.top="'Show collection filter'"><span v-if="settings.showFilter"><b-icon-layout-sidebar-inset shift-v="+1" font-scale="1.0"></b-icon-layout-sidebar-inset></span><span v-else><b-icon-layout-sidebar shift-v="+1" font-scale="1.0"></b-icon-layout-sidebar></span></b-button>
-                </div>
-                <div v-if="settings.tabIndex == 1" class="mt-1" style="width: 380px;">
-                  <b-form-input type="text" size="sm" :value="filter.collection.address" @change="updateCollection('filterUpdate', { collection: { address: $event } })" :disabled="sync.inProgress" debounce="600" v-b-popover.hover.top="'Collection address'" placeholder="{ERC-721 address}"></b-form-input>
-                </div>
-                <div class="mt-1 pl-1">
-                  <b-button size="sm" @click="updateCollection('sync', {})" :disabled="sync.inProgress" variant="primary">Sync IPC Collection</b-button>
-                </div>
-                <div class="mt-1 flex-grow-1">
-                </div>
-                <div v-if="settings.tabIndex == 1" class="mt-1">
-                  <b-button size="sm" :pressed.sync="settings.collection.showInfo" variant="link" v-b-popover.hover.top="'Show collection info'"><span v-if="settings.collection.showInfo"><b-icon-info-circle-fill shift-v="+1" font-scale="1.0"></b-icon-info-circle-fill></span><span v-else><b-icon-info-circle shift-v="+1" font-scale="1.0"></b-icon-info-circle></span></b-button>
-                </div>
-                <div v-if="settings.tabIndex == 1" class="mt-1">
-                  <b-badge variant="light">{{ collectionInfo && collectionInfo.name || '' }}</b-badge>
-                </div>
-
-                <div class="mt-1 flex-grow-1">
-                </div>
-
-                <div v-if="sync.inProgress" class="mt-1 pr-1 text-right">
-                  <font size="-2" v-b-popover.hover.top="'Blah'">{{ sync.section }}</font>
-                </div>
-
-                <div class="mt-2" style="width: 200px;">
-                  <b-progress v-if="sync.inProgress" height="1.5rem" :max="sync.total" :label="'((sync.completed/sync.total)*100).toFixed(2) + %'" show-progress :animated="sync.inProgress" :variant="sync.inProgress ? 'success' : 'secondary'" v-b-popover.hover.top="'Click on the Sync(ing) button to (un)pause'">
-                    <b-progress-bar :value="sync.completed">
-                      {{ sync.completed + '/' + sync.total + ' ' + ((sync.completed / sync.total) * 100).toFixed(0) + '%' }}
-                    </b-progress-bar>
-                  </b-progress>
-                </div>
-                <div class="ml-0 mt-1">
-                  <b-button v-if="sync.inProgress" size="sm" @click="halt" variant="link" v-b-popover.hover.top="'Halt'"><b-icon-stop-fill shift-v="+1" font-scale="1.0"></b-icon-stop-fill></b-button>
-                </div>
-
-                <div class="mt-1 flex-grow-1">
-                </div>
-
-                <div v-if="settings.tabIndex == 2" class="mt-2 pl-1">
-                  <b-link size="sm" :to="getURL" v-b-popover.hover.top="'Share this link for the same search'" ><font size="-1">Share</font></b-link>
-                </div>
-
-                <div class="mt-1 flex-grow-1">
-                </div>
-                <div class="mt-1 pr-1">
-                  <b-form-select size="sm" v-model="settings.sortOption" :options="sortOptions" v-b-popover.hover.top="'Yeah. Sort'"></b-form-select>
-                </div>
-                <div class="mt-1 pr-1">
-                  <font size="-2" v-b-popover.hover.top="'Blah'">{{ filteredSortedCollectionTokens.length }}</font>
-                </div>
-                <div class="mt-1 pr-1">
-                  <b-pagination size="sm" v-model="settings.collection.currentPage" :total-rows="filteredCollectionTokens.length" :per-page="settings.collection.pageSize" style="height: 0;"></b-pagination>
-                </div>
-                <div class="mt-1 pl-1">
-                  <b-form-select size="sm" v-model="settings.collection.pageSize" :options="pageSizes" v-b-popover.hover.top="'Page size'"></b-form-select>
-                </div>
-              </div>
 
               <b-row v-if="false" class="m-0 p-0">
                 <!-- Collection Filter -->
@@ -785,8 +786,8 @@ const Umswap = {
         console.log("Umswap.sendMessage error: " + JSON.stringify(e));
       });
     },
-    async updateCollection(syncMode, filterUpdate) {
-      store.dispatch('umswap/updateCollection', { syncMode, filterUpdate });
+    async doIt(syncMode, filterUpdate) {
+      store.dispatch('umswap/doIt', { syncMode, filterUpdate });
     },
     async halt() {
       store.dispatch('umswap/halt');
@@ -884,11 +885,11 @@ const umswapModule = {
   },
   mutations: {
 
-    // --- updateCollection() ---
-    async updateCollection(state, { syncMode, filterUpdate }) {
+    // --- doIt() ---
+    async doIt(state, { syncMode, filterUpdate }) {
 
-      // --- updateCollection() start ---
-      logInfo("umswapModule", "mutations.updateCollection() - syncMode: " + syncMode + ", filterUpdate: " + JSON.stringify(filterUpdate));
+      // --- doIt() start ---
+      logInfo("umswapModule", "mutations.doIt() - syncMode: " + syncMode + ", filterUpdate: " + JSON.stringify(filterUpdate));
       if (window.ethereum) {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const umswapFactory = new ethers.Contract(UMSWAPFACTORYADDRESS, UMSWAPFACTORYABI, provider);
@@ -955,6 +956,76 @@ const umswapModule = {
         }
         state.umswapFactory.collections = collections;
 
+        //        https://api.reservoir.tools/tokens/v4?contract=0x31385d3520bCED94f77AaE104b406994D8F2168C&sortBy=tokenId&limit=20&includeTopBid=false
+        //      https://api.reservoir.tools/tokens/details/v4?contract=0x31385d3520bCED94f77AaE104b406994D8F2168C&sortBy=floorAskPrice&limit=50&includeTopBid=false
+
+        for (const collectionAddress of collectionAddresses) {
+
+          let url = "https://api.reservoir.tools/collection/v2?id=" + collectionAddress;
+          logInfo("umswapModule", "mutations.doIt() - url: " + url);
+          const collectionInfo = await fetch(url)
+            .then(handleErrors)
+            .then(response => response.json())
+            .catch(function(error) {
+               console.log("ERROR - doIt: " + error);
+               state.sync.error = true;
+               return [];
+            });
+          console.log("collectionInfo: " + JSON.stringify(collectionInfo, null, 2));
+          console.log("totalSupply: " + collectionInfo.collection.tokenCount);
+          // state.collectionInfo = collectionInfo && collectionInfo.collection || {};
+
+          let totalRecords = 0;
+          let continuation = null;
+          let tokens = {};
+          do {
+            let url = "https://api.reservoir.tools/tokens/details/v4?contract=" + collectionAddress +
+              "&limit=50" +
+              (continuation != null ? "&continuation=" + continuation : '');
+            logInfo("umswapModule", "mutations.doIt() - url: " + url);
+            const data = await fetch(url)
+              .then(handleErrors)
+              .then(response => response.json())
+              .catch(function(error) {
+                 console.log("ERROR - umswapModule.mutations.doIt(): " + error);
+                 state.sync.error = true;
+                 return [];
+              });
+            // console.log(JSON.stringify(data, null, 2));
+
+            if (data && data.tokens) {
+              // console.log(JSON.stringify(data.tokens, null, 2));
+              // console.log(JSON.stringify(data.tokens[0], null, 2));
+              // for (const record of data.tokens) {
+              //   const token = record.token;
+              //   tokens[token.tokenId] = {
+              //     tokenId: token.tokenId,
+              //     owner: token.owner,
+              //     name: token.name,
+              //     description: token.description,
+              //     attributes: token.attributes,
+              //     image: token.image,
+              //   };
+              // }
+            }
+
+            // console.log(JSON.stringify(tokens, null, 2));
+
+
+            // let numberOfRecords = state.sync.error ? 0 : await processSales(data);
+            // let numberOfRecords = state.sync.error ? 0 : data.tokens.length;
+            // totalRecords += numberOfRecords;
+            continuation = data.continuation;
+            // state.sync.completed = totalRecords;
+            // if (state.sync.total < totalRecords) {
+            //   state.sync.total = totalRecords;
+            // }
+          } while (continuation != null && !state.halt && !state.sync.error /* && totalRecords < 20 && totalRecords < state.sync.total*/);
+
+          // state.collectionTokens = tokens;
+        }
+
+
         // TODO: Batch sync, persist and incremental updates
         const fromBlock = UMSWAPFACTORYDEPLOYMENTBLOCK;
         const toBlock = blockNumber;
@@ -998,12 +1069,12 @@ const umswapModule = {
         //   let url = "https://api.reservoir.tools/tokens/bootstrap/v1?contract=" + IPCADDRESS +
         //     "&limit=500" +
         //     (continuation != null ? "&continuation=" + continuation : '');
-        //   // logInfo("nftsModule", "mutations.updateCollection() - url: " + url);
+        //   // logInfo("nftsModule", "mutations.doIt() - url: " + url);
         //   const data = await fetch(url)
         //     .then(handleErrors)
         //     .then(response => response.json())
         //     .catch(function(error) {
-        //        console.log("ERROR - updateCollection: " + error);
+        //        console.log("ERROR - doIt: " + error);
         //        state.sync.error = true;
         //        return [];
         //     });
@@ -1138,9 +1209,9 @@ const umswapModule = {
     },
   },
   actions: {
-    updateCollection(context, { syncMode, filterUpdate }) {
-      logInfo("umswapModule", "actions.updateCollection() - syncMode: " + syncMode + ", filterUpdate: " + JSON.stringify(filterUpdate));
-      context.commit('updateCollection', { syncMode, filterUpdate });
+    doIt(context, { syncMode, filterUpdate }) {
+      logInfo("umswapModule", "actions.doIt() - syncMode: " + syncMode + ", filterUpdate: " + JSON.stringify(filterUpdate));
+      context.commit('doIt', { syncMode, filterUpdate });
     },
     halt(context) {
       context.commit('halt');
