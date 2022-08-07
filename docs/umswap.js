@@ -914,8 +914,7 @@ const umswapModule = {
         var umswapsIndices = generateRange(0, parseInt(umswapsLength) - 1, 1);
         const umswaps = await umswapFactory.getUmswaps(umswapsIndices);
 
-        const umswapsData = [];
-        const collectionsMap = {};
+        const collections = {};
         for (let i = 0; i < umswaps[0].length; i++) {
           const index = umswapsIndices[i];
           const address = umswaps[0][i];
@@ -930,101 +929,106 @@ const umswapModule = {
           const totalScores = stats[2].toString();
           const totalSupply = stats[3].toString();
           const raters = stats[4].toString();
-          if (!(collection in collectionsMap)) {
-            collectionsMap[collection] = true;
-          }
           console.log(index + " " + address + " " + symbol + " " + name + " " + collection + " " +
             JSON.stringify(tokenIds) + " " + creator +
             " swappedIn: " + swappedIn + " swappedOut: " + swappedOut + " totalScores: " + totalScores + " totalSupply: " + totalSupply + " raters: " + raters);
-          umswapsData.push({ index, address, symbol, name, collection, tokenIds, creator, swappedIn, swappedOut, totalScores, totalSupply, raters });
+          if (!(collection in collections)) {
+            collections[collection] = { type: null, symbol: null, name: null, totalSupply: null, reservoirInfo: null, allTokens: [], sampleTokens: [], umswaps: [] };
+          }
+          collections[collection].umswaps.push({ index, address, symbol, name, collection, tokenIds, creator, swappedIn, swappedOut, totalScores, totalSupply, raters });
         }
-        state.umswapFactory.umswaps = umswapsData;
 
-        // console.log("umswapsData: " + JSON.stringify(umswapsData, null, 2));
-        // console.log("collectionsMap: " + JSON.stringify(collectionsMap, null, 2));
-        const collectionAddresses = Object.keys(collectionsMap);
-        const collectionsInfo = await erc721Helper.tokenInfo(collectionAddresses);
-        // console.log("collectionsInfo: " + JSON.stringify(collectionsInfo, null, 2));
-        const collections = {};
-        for (let i = 0; i < collectionsInfo[0].length; i++) {
-          const type = collectionsInfo[0][i];
-          const symbol = collectionsInfo[1][i];
-          const name = collectionsInfo[2][i];
-          const totalSupply = collectionsInfo[3][i];
-          console.log("type: " + type + " " + symbol + " " + name + " " + totalSupply.toString());
-          collections[collectionAddresses[i]] = { type, symbol, name, totalSupply };
-        }
-        state.umswapFactory.collections = collections;
+        for (const [address, collection] of Object.entries(collections)) {
+          const info = await erc721Helper.tokenInfo([address]);
+          collection.type = info[0][0].toString();
+          collection.symbol = info[1][0].toString();
+          collection.name = info[2][0].toString();
+          collection.totalSupply = info[3][0].toString();
 
-        //        https://api.reservoir.tools/tokens/v4?contract=0x31385d3520bCED94f77AaE104b406994D8F2168C&sortBy=tokenId&limit=20&includeTopBid=false
-        //      https://api.reservoir.tools/tokens/details/v4?contract=0x31385d3520bCED94f77AaE104b406994D8F2168C&sortBy=floorAskPrice&limit=50&includeTopBid=false
-
-        for (const collectionAddress of collectionAddresses) {
-
-          let url = "https://api.reservoir.tools/collection/v2?id=" + collectionAddress;
-          logInfo("umswapModule", "mutations.doIt() - url: " + url);
-          const collectionInfo = await fetch(url)
+          let url = "https://api.reservoir.tools/collection/v2?id=" + address;
+          // logInfo("umswapModule", "mutations.doIt() - url: " + url);
+          const reservoirInfo = await fetch(url)
             .then(handleErrors)
             .then(response => response.json())
             .catch(function(error) {
                console.log("ERROR - doIt: " + error);
-               state.sync.error = true;
+               // Want to work around API data unavailablity - state.sync.error = true;
                return [];
             });
-          console.log("collectionInfo: " + JSON.stringify(collectionInfo, null, 2));
-          console.log("totalSupply: " + collectionInfo.collection.tokenCount);
-          // state.collectionInfo = collectionInfo && collectionInfo.collection || {};
+          // console.log("reservoirInfo: " + JSON.stringify(reservoirInfo, null, 2));
+          collection.reservoirInfo = reservoirInfo && reservoirInfo.collection || null;
+          console.log("collection: " + JSON.stringify(collection, null, 2));
+        }
 
-          let totalRecords = 0;
-          let continuation = null;
-          let tokens = {};
-          do {
-            let url = "https://api.reservoir.tools/tokens/details/v4?contract=" + collectionAddress +
-              "&limit=50" +
-              (continuation != null ? "&continuation=" + continuation : '');
+        //        https://api.reservoir.tools/tokens/v4?contract=0x31385d3520bCED94f77AaE104b406994D8F2168C&sortBy=tokenId&limit=20&includeTopBid=false
+        //      https://api.reservoir.tools/tokens/details/v4?contract=0x31385d3520bCED94f77AaE104b406994D8F2168C&sortBy=floorAskPrice&limit=50&includeTopBid=false
+
+        if (false) {
+          for (const collectionAddress of collectionAddresses) {
+            let url = "https://api.reservoir.tools/collection/v2?id=" + collectionAddress;
             logInfo("umswapModule", "mutations.doIt() - url: " + url);
-            const data = await fetch(url)
+            const collectionInfo = await fetch(url)
               .then(handleErrors)
               .then(response => response.json())
               .catch(function(error) {
-                 console.log("ERROR - umswapModule.mutations.doIt(): " + error);
+                 console.log("ERROR - doIt: " + error);
                  state.sync.error = true;
                  return [];
               });
-            // console.log(JSON.stringify(data, null, 2));
+            console.log("collectionInfo: " + JSON.stringify(collectionInfo, null, 2));
+            console.log("totalSupply: " + collectionInfo.collection.tokenCount);
+            // state.collectionInfo = collectionInfo && collectionInfo.collection || {};
 
-            if (data && data.tokens) {
-              // console.log(JSON.stringify(data.tokens, null, 2));
-              // console.log(JSON.stringify(data.tokens[0], null, 2));
-              // for (const record of data.tokens) {
-              //   const token = record.token;
-              //   tokens[token.tokenId] = {
-              //     tokenId: token.tokenId,
-              //     owner: token.owner,
-              //     name: token.name,
-              //     description: token.description,
-              //     attributes: token.attributes,
-              //     image: token.image,
-              //   };
+            let totalRecords = 0;
+            let continuation = null;
+            let tokens = {};
+            do {
+              let url = "https://api.reservoir.tools/tokens/details/v4?contract=" + collectionAddress +
+                "&limit=50" +
+                (continuation != null ? "&continuation=" + continuation : '');
+              logInfo("umswapModule", "mutations.doIt() - url: " + url);
+              const data = await fetch(url)
+                .then(handleErrors)
+                .then(response => response.json())
+                .catch(function(error) {
+                   console.log("ERROR - umswapModule.mutations.doIt(): " + error);
+                   state.sync.error = true;
+                   return [];
+                });
+              // console.log(JSON.stringify(data, null, 2));
+
+              if (data && data.tokens) {
+                console.log(JSON.stringify(data.tokens, null, 2));
+                // console.log(JSON.stringify(data.tokens[0], null, 2));
+                // for (const record of data.tokens) {
+                //   const token = record.token;
+                //   tokens[token.tokenId] = {
+                //     tokenId: token.tokenId,
+                //     owner: token.owner,
+                //     name: token.name,
+                //     description: token.description,
+                //     attributes: token.attributes,
+                //     image: token.image,
+                //   };
+                // }
+              }
+
+              // console.log(JSON.stringify(tokens, null, 2));
+
+
+              // let numberOfRecords = state.sync.error ? 0 : await processSales(data);
+              // let numberOfRecords = state.sync.error ? 0 : data.tokens.length;
+              // totalRecords += numberOfRecords;
+              // TODO continuation = data.continuation;
+              // state.sync.completed = totalRecords;
+              // if (state.sync.total < totalRecords) {
+              //   state.sync.total = totalRecords;
               // }
-            }
+            } while (continuation != null && !state.halt && !state.sync.error /* && totalRecords < 20 && totalRecords < state.sync.total*/);
 
-            // console.log(JSON.stringify(tokens, null, 2));
-
-
-            // let numberOfRecords = state.sync.error ? 0 : await processSales(data);
-            // let numberOfRecords = state.sync.error ? 0 : data.tokens.length;
-            // totalRecords += numberOfRecords;
-            continuation = data.continuation;
-            // state.sync.completed = totalRecords;
-            // if (state.sync.total < totalRecords) {
-            //   state.sync.total = totalRecords;
-            // }
-          } while (continuation != null && !state.halt && !state.sync.error /* && totalRecords < 20 && totalRecords < state.sync.total*/);
-
-          // state.collectionTokens = tokens;
+            // state.collectionTokens = tokens;
+          }
         }
-
 
         // TODO: Batch sync, persist and incremental updates
         const fromBlock = UMSWAPFACTORYDEPLOYMENTBLOCK;
