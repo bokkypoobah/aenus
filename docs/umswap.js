@@ -65,7 +65,7 @@ const Umswap = {
             <div class="mt-1 flex-grow-1">
             </div>
 
-            <div v-if="settings.tabIndex == 2" class="mt-2 pl-1">
+            <div v-if="settings.tabIndex == 20" class="mt-2 pl-1">
               <b-link size="sm" :to="getURL" v-b-popover.hover.top="'Share this link for the same search'" ><font size="-1">Share</font></b-link>
             </div>
 
@@ -102,32 +102,91 @@ const Umswap = {
                     {{ data.item.umswapName }}
                   </b-link>
                 </template>
-                <template #cell(totalSupply)="data">
-                  {{ formatETH(data.item.totalSupply) }}
-                </template>
-                <template #cell(score)="data">
-                  {{ data.item.totalScores + '/' + data.item.raters }}
-                </template>
                 <template #cell(sampleTokens)="data">
                   <b-card-group deck>
                     <div v-for="(token, tokenIndex) in data.item.sampleTokens" :key="tokenIndex">
                       <b-card body-class="p-0" header-class="p-1" img-top class="m-1 p-0 border-0" style="max-width: 4rem;">
-                        <b-avatar rounded size="4rem" :src="token.image" style="background-color: #638596"></b-avatar>
-                        <!--
-                        {{ JSON.stringify(token) }}
-                        <b-link :href="'https://cryptopunks.app/cryptopunks/details/' + event.punkId" v-b-popover.hover.bottom="'View in original website'" target="_blank">
-                          <b-avatar rounded size="7rem" :src="'images/punks/punk' + event.punkId.toString().padStart(4, '0') + '.png'" style="background-color: #638596"></b-avatar>
+                        <b-link :href="'https://opensea.io/assets/ethereum/' + data.item.collectionAddress + '/' + token.tokenId" v-b-popover.hover.bottom="'View in Opensea.io'" target="_blank">
+                          <b-avatar rounded size="4rem" :src="token.image" style="background-color: #638596"></b-avatar>
                         </b-link>
-                        -->
                       </b-card>
                     </div>
                   </b-card-group deck>
-
+                </template>
+                <template #cell(score)="data">
+                  {{ data.item.totalScores + '/' + data.item.raters }}
+                </template>
+                <template #cell(totalSupply)="data">
+                  {{ formatETH(data.item.totalSupply) }}
                 </template>
               </b-table>
 
+              <!-- New Umswap -->
+              <b-card v-if="settings.tabIndex == 2" header="New Umswap" class="mt-2" body-class="m-1 p-1" style="min-width: 60rem; max-width: 60rem;">
+                <b-card-text>
+                  <b-form-group label-cols="3" label-size="sm" label-align="right" label="Collection:" class="mx-0 my-1 p-0">
+                    <b-form-input type="text" size="sm" v-model.trim="umswap.collection" placeholder="0x1234..."></b-form-input>
+                  </b-form-group>
+                  <b-form-group label-cols="3" label-size="sm" label-align="right" label="Name:" class="mx-0 my-1 p-0">
+                    <b-form-input type="text" size="sm" v-model.trim="umswap.name" placeholder="{up to 48 alphanums with spaces}"></b-form-input>
+                  </b-form-group>
+                  <b-form-group label-cols="3" label-size="sm" label-align="right" label="TokenIds:" class="mx-0 my-1 p-0">
+                    <b-form-textarea size="sm" v-model.trim="umswap.tokenIds" placeholder="Blank for all, or e.g., 1 2-5 10\n15\n20 30 555" rows="3" max-rows="100"></b-form-textarea>
+                  </b-form-group>
+                  <b-form-group label-cols="3" label-size="sm" label-align="right" label="Tip:" class="mx-0 my-1 p-0">
+                    <b-form-input type="text" size="sm" v-model.trim="umswap.tip" placeholder="In ETH, optional. e.g. 0.0001 or blank"></b-form-input>
+                  </b-form-group>
+                  <b-form-group label-cols="3" label-size="sm" label="" class="mx-0 my-1 p-0">
+                    <b-button size="sm" @click="newUmswap" :disabled="umswap.collection == null || umswap.name == null" variant="warning">Create</b-button>
+                  </b-form-group>
+                  <b-form-group label-cols="3" label-size="sm" label="" class="mx-0 my-1 p-0">
+                    <div v-if="umswap.txHash">
+                      <b-link :href="'https://etherscan.io/tx/' + umswap.txHash" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                        {{ umswap.txHash }}
+                      </b-link>
+                    </div>
+                    <div v-if="umswap.error">
+                      {{ umswap.error }}
+                    </div>
+                  </b-form-group>
+                </b-card-text>
+              </b-card>
 
+              <!-- Messages -->
+              <b-card v-if="settings.tabIndex == 3" header="Send Message" class="mt-2" body-class="m-1 p-1" style="min-width: 60rem; max-width: 60rem;">
+                <b-card-text>
+                  <b-form-group label-cols="3" label-size="sm" label-align="right" label="To" class="mx-0 my-1 p-0">
+                    <b-form-input size="sm" v-model.trim="message.to" placeholder="0x1234... or blank for address(0)"></b-form-input>
+                  </b-form-group>
+                  <b-form-group label-cols="3" label-size="sm" label-align="right" label="Umswap" class="mx-0 my-1 p-0">
+                    <b-form-input size="sm" v-model.trim="message.umswap" placeholder="0x3456... or blank for address(0)"></b-form-input>
+                  </b-form-group>
+                  <b-form-group label-cols="3" label-size="sm" label-align="right" label="Topic" class="mx-0 my-1 p-0">
+                    <b-form-input size="sm" v-model.trim="message.topic" placeholder="Optional, 0 to 48 characters"></b-form-input>
+                  </b-form-group>
+                  <b-form-group label-cols="3" label-size="sm" label-align="right" label="Text" class="mx-0 my-1 p-0">
+                    <b-form-input size="sm" v-model.trim="message.text" placeholder="Mandatory, 1 to 280 characters"></b-form-input>
+                  </b-form-group>
+                  <b-form-group label-cols="3" label-size="sm" label-align="right" label="Tip" class="mx-0 my-1 p-0">
+                    <b-form-input size="sm" v-model.trim="message.tip" placeholder="In ETH, optional. e.g. 0.0001 or blank for none"></b-form-input>
+                  </b-form-group>
+                  <b-form-group label-cols="3" label-size="sm" label="" class="mx-0 my-1 p-0">
+                    <b-button size="sm" @click="sendMessage" :disabled="message.text == null" variant="warning">Send</b-button>
+                  </b-form-group>
+                  <b-form-group label-cols="3" label-size="sm" label="" class="mx-0 my-1 p-0">
+                    <div v-if="message.txHash">
+                      <b-link :href="'https://etherscan.io/tx/' + message.txHash" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                        {{ message.txHash }}
+                      </b-link>
+                    </div>
+                    <div v-if="message.error">
+                      {{ message.error }}
+                    </div>
+                  </b-form-group>
+                </b-card-text>
+              </b-card>
 
+              <!--
               <b-card header="UmswapFactory" class="mt-2">
                 <b-row>
                   <b-col cols="2" class="text-right">
@@ -146,80 +205,8 @@ const Umswap = {
                     <b-button size="sm" @click="doIt('sync', {})" :disabled="sync.inProgress" variant="primary">Query</b-button>
                   </b-col>
                 </b-row>
-                <!--
-                <b-row>
-                  <b-col cols="2" class="text-right">
-                  </b-col>
-                  <b-col class="mt-1">
-                    {{ umswapFactory }}
-                  </b-col>
-                </b-row>
-                -->
-
-                <b-card header="New Umswap" class="mt-2" body-class="m-1 p-1" style="min-width: 60rem; max-width: 60rem;">
-                  <b-card-text>
-                    <b-form-group label-cols="3" label-size="sm" label-align="right" label="Collection:" class="mx-0 my-1 p-0">
-                      <b-form-input type="text" size="sm" v-model.trim="umswap.collection" placeholder="0x1234..."></b-form-input>
-                    </b-form-group>
-                    <b-form-group label-cols="3" label-size="sm" label-align="right" label="Name:" class="mx-0 my-1 p-0">
-                      <b-form-input type="text" size="sm" v-model.trim="umswap.name" placeholder="{up to 48 alphanums with spaces}"></b-form-input>
-                    </b-form-group>
-                    <b-form-group label-cols="3" label-size="sm" label-align="right" label="TokenIds:" class="mx-0 my-1 p-0">
-                      <b-form-textarea size="sm" v-model.trim="umswap.tokenIds" placeholder="Blank for all, or e.g., 1 2-5 10\n15\n20 30 555" rows="3" max-rows="100"></b-form-textarea>
-                    </b-form-group>
-                    <b-form-group label-cols="3" label-size="sm" label-align="right" label="Tip:" class="mx-0 my-1 p-0">
-                      <b-form-input type="text" size="sm" v-model.trim="umswap.tip" placeholder="In ETH, optional. e.g. 0.0001 or blank"></b-form-input>
-                    </b-form-group>
-                    <b-form-group label-cols="3" label-size="sm" label="" class="mx-0 my-1 p-0">
-                      <b-button size="sm" @click="newUmswap" :disabled="umswap.collection == null || umswap.name == null" variant="warning">Create</b-button>
-                    </b-form-group>
-                    <b-form-group label-cols="3" label-size="sm" label="" class="mx-0 my-1 p-0">
-                      <div v-if="umswap.txHash">
-                        <b-link :href="'https://etherscan.io/tx/' + umswap.txHash" v-b-popover.hover="'View in etherscan.io'" target="_blank">
-                          {{ umswap.txHash }}
-                        </b-link>
-                      </div>
-                      <div v-if="umswap.error">
-                        {{ umswap.error }}
-                      </div>
-                    </b-form-group>
-                  </b-card-text>
-                </b-card>
-
-                <b-card header="Send Message" class="mt-2" body-class="m-1 p-1" style="min-width: 60rem; max-width: 60rem;">
-                  <b-card-text>
-                    <b-form-group label-cols="3" label-size="sm" label-align="right" label="To" class="mx-0 my-1 p-0">
-                      <b-form-input size="sm" v-model.trim="message.to" placeholder="0x1234... or blank for address(0)"></b-form-input>
-                    </b-form-group>
-                    <b-form-group label-cols="3" label-size="sm" label-align="right" label="Umswap" class="mx-0 my-1 p-0">
-                      <b-form-input size="sm" v-model.trim="message.umswap" placeholder="0x3456... or blank for address(0)"></b-form-input>
-                    </b-form-group>
-                    <b-form-group label-cols="3" label-size="sm" label-align="right" label="Topic" class="mx-0 my-1 p-0">
-                      <b-form-input size="sm" v-model.trim="message.topic" placeholder="Optional, 0 to 48 characters"></b-form-input>
-                    </b-form-group>
-                    <b-form-group label-cols="3" label-size="sm" label-align="right" label="Text" class="mx-0 my-1 p-0">
-                      <b-form-input size="sm" v-model.trim="message.text" placeholder="Mandatory, 1 to 280 characters"></b-form-input>
-                    </b-form-group>
-                    <b-form-group label-cols="3" label-size="sm" label-align="right" label="Tip" class="mx-0 my-1 p-0">
-                      <b-form-input size="sm" v-model.trim="message.tip" placeholder="In ETH, optional. e.g. 0.0001 or blank for none"></b-form-input>
-                    </b-form-group>
-                    <b-form-group label-cols="3" label-size="sm" label="" class="mx-0 my-1 p-0">
-                      <b-button size="sm" @click="sendMessage" :disabled="message.text == null" variant="warning">Send</b-button>
-                    </b-form-group>
-                    <b-form-group label-cols="3" label-size="sm" label="" class="mx-0 my-1 p-0">
-                      <div v-if="message.txHash">
-                        <b-link :href="'https://etherscan.io/tx/' + message.txHash" v-b-popover.hover="'View in etherscan.io'" target="_blank">
-                          {{ message.txHash }}
-                        </b-link>
-                      </div>
-                      <div v-if="message.error">
-                        {{ message.error }}
-                      </div>
-                    </b-form-group>
-                  </b-card-text>
-                </b-card>
               </b-card>
-
+              -->
 
               <b-row v-if="false" class="m-0 p-0">
                 <!-- Collection Filter -->
