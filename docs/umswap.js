@@ -13,7 +13,7 @@ const Umswap = {
           <b-tabs card align="left" no-body v-model="settings.tabIndex" active-tab-class="m-0 p-0">
             <b-tab title="Umswaps" @click="updateURL('upswaps');">
             </b-tab>
-            <b-tab title="Umswap" @click="updateURL('umswap');">
+            <b-tab title="Umswap" :disabled="umswap.index == null" @click="updateURL('umswap');">
             </b-tab>
             <b-tab title="New Umswap" @click="updateURL('newumswap');">
             </b-tab>
@@ -88,8 +88,6 @@ const Umswap = {
           <b-card no-body no-header class="m-0 p-0 border-0">
             <b-card-body class="m-0 p-1">
 
-
-
               <!-- Umswaps -->
               <b-table v-if="settings.tabIndex == 0" small fixed striped :fields="umswapsFields" :items="umswaps" head-variant="light">
                 <template #cell(collection)="data">
@@ -113,12 +111,19 @@ const Umswap = {
                     </div>
                   </b-card-group deck>
                 </template>
+                <template #cell(stats)="data">
+                  Total Supply: {{ formatETH(data.item.totalSupply) }}
+                  <br />
+                  Score: {{ data.item.totalScores + '/' + data.item.raters }}
+                </template>
+                <!--
                 <template #cell(score)="data">
                   {{ data.item.totalScores + '/' + data.item.raters }}
                 </template>
                 <template #cell(totalSupply)="data">
                   {{ formatETH(data.item.totalSupply) }}
                 </template>
+                -->
               </b-table>
 
               <!-- New Umswap -->
@@ -186,132 +191,6 @@ const Umswap = {
                 </b-card-text>
               </b-card>
 
-              <!--
-              <b-card header="UmswapFactory" class="mt-2">
-                <b-row>
-                  <b-col cols="2" class="text-right">
-                    UmswapFactory:
-                  </b-col>
-                  <b-col>
-                    <b-link :href="'https://etherscan.io/address/' + umswapFactory.address + '#code'" v-b-popover.hover.bottom="'View in Etherscan.io'" target="_blank">
-                      {{ umswapFactory.address }}
-                    </b-link>
-                  </b-col>
-                </b-row>
-                <b-row>
-                  <b-col cols="2" class="text-right">
-                  </b-col>
-                  <b-col class="mt-1">
-                    <b-button size="sm" @click="doIt('sync', {})" :disabled="sync.inProgress" variant="primary">Query</b-button>
-                  </b-col>
-                </b-row>
-              </b-card>
-              -->
-
-              <b-row v-if="false" class="m-0 p-0">
-                <!-- Collection Filter -->
-                <b-col v-if="settings.showFilter" cols="2" class="m-0 p-0 border-0">
-                  <b-card no-header no-body class="m-0 p-0 border-0">
-                    <b-card-body class="m-0 p-1" style="flex-grow: 1; max-height: 2000px; overflow-y: auto;">
-                      <div v-for="(attributeKey, attributeIndex) in Object.keys(collectionTokensAttributesWithCounts).sort()" v-bind:key="attributeIndex">
-                        <b-card header-class="m-0 px-2 pt-2 pb-0" body-class="p-0" class="m-0 p-0 border-0">
-                          <template #header>
-                            <span variant="secondary" class="small truncate">
-                              {{ slugToTitle(attributeKey) }}
-                            </span>
-                          </template>
-                          <font size="-2">
-                            <b-table small fixed striped sticky-header="200px" :fields="collectionAttributeFields" :items="getSortedTraitsForCollectionTokensAttributes(attributeKey)" head-variant="light">
-                              <template #cell(select)="data">
-                                <b-form-checkbox size="sm" :checked="(collectionAttributeFilter[attributeKey] && collectionAttributeFilter[attributeKey].attributeOption) ? 1 : 0" value="1" @change="collectionFilterChange(attributeKey, data.item.attributeOption)"></b-form-checkbox>
-                              </template>
-                              <template #cell(attributeOption)="data">
-                                {{ data.item.attributeOption }}
-                              </template>
-                              <template #cell(attributeTotal)="data">
-                                {{ data.item.attributeTotal.length }}
-                              </template>
-                            </b-table>
-                          </font>
-                        </b-card>
-                      </div>
-                    </b-card-body>
-                  </b-card>
-                </b-col>
-                <b-col class="m-0 p-0">
-                  <!-- Collection -->
-                  <b-card no-header no-body class="mt-1">
-                    <b-table small fixed striped :fields="collectionTokensFields" :items="pagedFilteredCollectionTokens" head-variant="light">
-                      <template #cell(token_id)="data">
-                        <b-button :id="'popover-target-' + data.item.token_id" variant="link" class="m-0 p-0">
-                          {{ data.item.token_id }}
-                        </b-button>
-                        <b-popover :target="'popover-target-' + data.item.token_id" placement="right">
-                          <template #title>{{ data.item.token_id }}</template>
-                          <b-link :href="'https://opensea.io/assets/ethereum/0x011c77fa577c500deedad364b8af9e8540b808c0/' + data.item.token_id" v-b-popover.hover.bottom="'View in opensea.io'" target="_blank">
-                            OpenSea
-                          </b-link>
-                          <br />
-                          <b-link :href="'https://looksrare.org/collections/0x011c77fa577c500deedad364b8af9e8540b808c0/' + data.item.token_id" v-b-popover.hover.bottom="'View in looksrare.org'" target="_blank">
-                            LooksRare
-                          </b-link>
-                          <br />
-                          <b-link :href="'https://x2y2.io/eth/0x011c77fa577c500deedad364b8af9e8540b808c0/' + data.item.token_id" v-b-popover.hover.bottom="'View in x2y2.io'" target="_blank">
-                            X2Y2
-                          </b-link>
-                        </b-popover>
-                      </template>
-                      <template #cell(owner)="data">
-                        <b-button :id="'popover-target-owner-' + data.item.owner + '-' + data.index" variant="link" class="m-0 p-0">
-                          {{ getShortName(data.item.owner) }}
-                        </b-button>
-                        <b-popover :target="'popover-target-owner-' + data.item.owner + '-' + data.index" placement="right">
-                          <template #title>{{ getShortName(data.item.owner, 32) }}</template>
-                          <b-link :href="'https://opensea.io/' + data.item.owner" v-b-popover.hover.bottom="'View in opensea.io'" target="_blank">
-                            OpenSea
-                          </b-link>
-                          <br />
-                          <b-link :href="'https://looksrare.org/accounts/' + data.item.owner" v-b-popover.hover.bottom="'View in looksrare.org'" target="_blank">
-                            LooksRare
-                          </b-link>
-                          <br />
-                          <b-link :href="'https://x2y2.io/user/' + data.item.owner + '/items'" v-b-popover.hover.bottom="'View in x2y2.io'" target="_blank">
-                            X2Y2
-                          </b-link>
-                          <br />
-                          <b-link :href="'https://etherscan.io/address/' + data.item.owner" v-b-popover.hover.bottom="'View in etherscan.io'" target="_blank">
-                            EtherScan
-                          </b-link>
-                        </b-popover>
-                      </template>
-                      <template #cell(name)="data">
-                        <b-link :href="'http://myipc.io/' + data.item.token_id" v-b-popover.hover.bottom="'View in original website'" target="_blank">
-                          <b-avatar rounded size="7rem" :src="'http://myipc.io/sprites/' + data.item.token_id + '.gif'" style="background-color: #638596"></b-avatar>
-                        </b-link>
-                        <br />
-                        {{ data.item.name }}
-                        <div v-if="data.item.price" class="mt-2">
-                          <font size="-1">
-                            <b-badge variant="success" v-b-popover.hover.bottom="'On ' + data.item.price.source">{{ data.item.price.price }}</b-badge>
-                          </font>
-                        </div>
-                      </template>
-                      <template #cell(details)="data">
-                        <font size="-2">
-                          <b-row v-for="(attribute, i) in data.item.attributes" v-bind:key="i" class="m-0 p-0">
-                            <b-col cols="3" class="my-0 mx-1 py-0 px-1 text-right">{{ slugToTitle(attribute.trait_type) }}</b-col>
-                            <b-col class="my-0 mx-1 py-0 px-1 "><b>{{ attribute.value }}</b></b-col>
-                          </b-row>
-                        </font>
-                      </template>
-                      <template #cell(birth)="data">
-                        {{ formatTimestamp(data.item.birth) }}
-                      </template>
-                    </b-table>
-                  </b-card>
-                </b-col>
-              </b-row>
-
             </b-card-body>
           </b-card>
         </b-card>
@@ -354,45 +233,32 @@ const Umswap = {
         error: null,
       },
 
-      collectionAttributeFilter: {},
+      // collectionAttributeFilter: {},
 
-      sortOptions: [
-        { value: 'idasc', text: '▲ Id' },
-        { value: 'iddsc', text: '▼ Id' },
-        { value: 'priceasc', text: '▲ Price' },
-        { value: 'pricedsc', text: '▼ Price' },
-        { value: 'random', text: 'Random' },
-      ],
+      // sortOptions: [
+      //   { value: 'idasc', text: '▲ Id' },
+      //   { value: 'iddsc', text: '▼ Id' },
+      //   { value: 'priceasc', text: '▲ Price' },
+      //   { value: 'pricedsc', text: '▼ Price' },
+      //   { value: 'random', text: 'Random' },
+      // ],
 
-      pageSizes: [
-        { value: 10, text: '10' },
-        { value: 100, text: '100' },
-        { value: 500, text: '500' },
-        { value: 1000, text: '1k' },
-        { value: 2500, text: '2.5k' },
-        { value: 10000, text: '10k' },
-      ],
+      // pageSizes: [
+      //   { value: 10, text: '10' },
+      //   { value: 100, text: '100' },
+      //   { value: 500, text: '500' },
+      //   { value: 1000, text: '1k' },
+      //   { value: 2500, text: '2.5k' },
+      //   { value: 10000, text: '10k' },
+      // ],
 
       umswapsFields: [
         { key: 'collection', label: 'Collection', thStyle: 'width: 15%;' },
         { key: 'umswap', label: 'Umswap', thStyle: 'width: 15%;' },
-        { key: 'sampleTokens', label: 'Sample Tokens', thStyle: 'width: 50%;' },
-        { key: 'score', label: 'Score', thStyle: 'width: 10%;', thClass: 'text-right', tdClass: 'text-right' },
-        { key: 'totalSupply', label: 'Total Supply', thStyle: 'width: 10%;', thClass: 'text-right', tdClass: 'text-right' },
-      ],
-
-      collectionTokensFields: [
-        { key: 'token_id', label: '#', thStyle: 'width: 5%;', thClass: 'text-right', tdClass: 'text-right' },
-        { key: 'owner', label: 'Owner', thStyle: 'width: 15%;'},
-        { key: 'name', label: 'Name & Price', thStyle: 'width: 15%;'},
-        { key: 'details', label: 'Details', thStyle: 'width: 25%;'},
-        { key: 'birth', label: 'Birth', thStyle: 'width: 20%;'},
-      ],
-
-      collectionAttributeFields: [
-        { key: 'select', label: '', thStyle: 'width: 10%;' },
-        { key: 'attributeOption', label: 'Attribute' /*, sortable: true*/ },
-        { key: 'attributeTotal', label: 'Count', /*sortable: true,*/ thStyle: 'width: 30%;', thClass: 'text-right', tdClass: 'text-right' },
+        { key: 'sampleTokens', label: 'Sample Tokens', thStyle: 'width: 60%;' },
+        { key: 'stats', label: 'Stats', thStyle: 'width: 10%;', thClass: 'text-right', tdClass: 'text-right' },
+        // { key: 'score', label: 'Score', thStyle: 'width: 10%;', thClass: 'text-right', tdClass: 'text-right' },
+        // { key: 'totalSupply', label: 'Total Supply', thStyle: 'width: 10%;', thClass: 'text-right', tdClass: 'text-right' },
       ],
 
     }
@@ -422,12 +288,15 @@ const Umswap = {
     umswapFactory() {
       return store.getters['umswap/umswapFactory'];
     },
-    collectionInfo() {
-      return store.getters['umswap/collectionInfo'];
+    umswap() {
+      return store.getters['umswap/umswap'];
     },
-    collectionTokens() {
-      return store.getters['umswap/collectionTokens'];
-    },
+    // collectionInfo() {
+    //   return store.getters['umswap/collectionInfo'];
+    // },
+    // collectionTokens() {
+    //   return store.getters['umswap/collectionTokens'];
+    // },
     ensMap() {
       return store.getters['umswap/ensMap'];
     },
@@ -436,7 +305,7 @@ const Umswap = {
       const results = [];
       for (const [collectionAddress, collection] of Object.entries(this.umswapFactory.collections)) {
         for (const umswap of collection.umswaps) {
-          console.log(JSON.stringify(umswap, null, 2));
+          // console.log(JSON.stringify(umswap, null, 2));
 
           const sampleTokens = [];
 
@@ -463,93 +332,93 @@ const Umswap = {
     },
 
 
-    collectionTokensAttributesWithCounts() {
-      const collator = {};
-      for (const [tokenId, token] of Object.entries(this.collectionTokens)) {
-        for (let attribute of token.attributes) {
-            const trait_type = attribute.trait_type;
-            const value = attribute.value;
-            if (!collator[trait_type]) {
-              collator[trait_type] = {};
-            }
-            if (!collator[trait_type][value]) {
-              collator[trait_type][value] = [tokenId];
-            } else {
-              collator[trait_type][value].push(tokenId);
-            }
-        }
-      }
-      // console.log("collectionTokensAttributesWithCounts: " + JSON.stringify(collator, null, 2));
-      return collator;
-    },
-    filteredCollectionTokens() {
-      let results = [];
-      if (Object.keys(this.collectionAttributeFilter) == 0) {
-        for (const [tokenId, token] of Object.entries(this.collectionTokens)) {
-          results.push(token);
-        }
-      } else {
-        let selectedTokenIds = [];
-        for (const [trait, value] of Object.entries(this.collectionAttributeFilter)) {
-          let thisTraitTokenIds = [];
-          for (const selectedValue of Object.keys(value)) {
-            const tokenIds = this.collectionTokensAttributesWithCounts[trait][selectedValue];
-            thisTraitTokenIds = [...thisTraitTokenIds, ...tokenIds];
-          }
-          if (selectedTokenIds.length == 0) {
-            selectedTokenIds = thisTraitTokenIds;
-          } else {
-            selectedTokenIds = selectedTokenIds.filter(tokenId => thisTraitTokenIds.includes(tokenId));
-          }
-        }
-        results = Object.values(selectedTokenIds).map(tokenId => this.collectionTokens[tokenId]);
-      }
-      return results;
-    },
-    filteredSortedCollectionTokens() {
-      let results = this.filteredCollectionTokens;
-      if (this.settings.sortOption == 'idasc') {
-        results.sort((a, b) => a.token_id - b.token_id);
-      } else if (this.settings.sortOption == 'iddsc') {
-        results.sort((a, b) => b.token_id - a.token_id);
-      } else if (this.settings.sortOption == 'priceasc') {
-        results.sort((a, b) => {
-          const pricea = a.price && a.price.price || null;
-          const priceb = b.price && b.price.price || null;
-          if (pricea == priceb) {
-            return a.token_id - b.token_id;
-          } else if (pricea != null && priceb == null) {
-            return -1;
-          } else if (pricea == null && priceb != null) {
-            return 1;
-          } else {
-            return pricea - priceb;
-          }
-        });
-      } else if (this.settings.sortOption == 'pricedsc') {
-        results.sort((a, b) => {
-          const pricea = a.price && a.price.price || null;
-          const priceb = b.price && b.price.price || null;
-          if (pricea == priceb) {
-            return a.token_id - b.token_id;
-          } else if (pricea != null && priceb == null) {
-            return -1;
-          } else if (pricea == null && priceb != null) {
-            return 1;
-          } else {
-            return priceb - pricea;
-          }
-        });
-      } else {
-        results.sort(() => {
-          return Math.random() - 0.5;
-        });
-      }
-      return results;
-    },
-    pagedFilteredCollectionTokens() {
-      return this.filteredSortedCollectionTokens.slice((this.settings.collection.currentPage - 1) * this.settings.collection.pageSize, this.settings.collection.currentPage * this.settings.collection.pageSize);
-    },
+    // collectionTokensAttributesWithCounts() {
+    //   const collator = {};
+    //   for (const [tokenId, token] of Object.entries(this.collectionTokens)) {
+    //     for (let attribute of token.attributes) {
+    //         const trait_type = attribute.trait_type;
+    //         const value = attribute.value;
+    //         if (!collator[trait_type]) {
+    //           collator[trait_type] = {};
+    //         }
+    //         if (!collator[trait_type][value]) {
+    //           collator[trait_type][value] = [tokenId];
+    //         } else {
+    //           collator[trait_type][value].push(tokenId);
+    //         }
+    //     }
+    //   }
+    //   // console.log("collectionTokensAttributesWithCounts: " + JSON.stringify(collator, null, 2));
+    //   return collator;
+    // },
+    // filteredCollectionTokens() {
+    //   let results = [];
+    //   if (Object.keys(this.collectionAttributeFilter) == 0) {
+    //     for (const [tokenId, token] of Object.entries(this.collectionTokens)) {
+    //       results.push(token);
+    //     }
+    //   } else {
+    //     let selectedTokenIds = [];
+    //     for (const [trait, value] of Object.entries(this.collectionAttributeFilter)) {
+    //       let thisTraitTokenIds = [];
+    //       for (const selectedValue of Object.keys(value)) {
+    //         const tokenIds = this.collectionTokensAttributesWithCounts[trait][selectedValue];
+    //         thisTraitTokenIds = [...thisTraitTokenIds, ...tokenIds];
+    //       }
+    //       if (selectedTokenIds.length == 0) {
+    //         selectedTokenIds = thisTraitTokenIds;
+    //       } else {
+    //         selectedTokenIds = selectedTokenIds.filter(tokenId => thisTraitTokenIds.includes(tokenId));
+    //       }
+    //     }
+    //     results = Object.values(selectedTokenIds).map(tokenId => this.collectionTokens[tokenId]);
+    //   }
+    //   return results;
+    // },
+    // filteredSortedCollectionTokens() {
+    //   let results = this.filteredCollectionTokens;
+    //   if (this.settings.sortOption == 'idasc') {
+    //     results.sort((a, b) => a.token_id - b.token_id);
+    //   } else if (this.settings.sortOption == 'iddsc') {
+    //     results.sort((a, b) => b.token_id - a.token_id);
+    //   } else if (this.settings.sortOption == 'priceasc') {
+    //     results.sort((a, b) => {
+    //       const pricea = a.price && a.price.price || null;
+    //       const priceb = b.price && b.price.price || null;
+    //       if (pricea == priceb) {
+    //         return a.token_id - b.token_id;
+    //       } else if (pricea != null && priceb == null) {
+    //         return -1;
+    //       } else if (pricea == null && priceb != null) {
+    //         return 1;
+    //       } else {
+    //         return pricea - priceb;
+    //       }
+    //     });
+    //   } else if (this.settings.sortOption == 'pricedsc') {
+    //     results.sort((a, b) => {
+    //       const pricea = a.price && a.price.price || null;
+    //       const priceb = b.price && b.price.price || null;
+    //       if (pricea == priceb) {
+    //         return a.token_id - b.token_id;
+    //       } else if (pricea != null && priceb == null) {
+    //         return -1;
+    //       } else if (pricea == null && priceb != null) {
+    //         return 1;
+    //       } else {
+    //         return priceb - pricea;
+    //       }
+    //     });
+    //   } else {
+    //     results.sort(() => {
+    //       return Math.random() - 0.5;
+    //     });
+    //   }
+    //   return results;
+    // },
+    // pagedFilteredCollectionTokens() {
+    //   return this.filteredSortedCollectionTokens.slice((this.settings.collection.currentPage - 1) * this.settings.collection.pageSize, this.settings.collection.currentPage * this.settings.collection.pageSize);
+    // },
     getURL() {
       let url = '/umswap/mintmonitor/';
       const startBlockNumber = this.filter.startBlockNumber && parseInt(this.filter.startBlockNumber.toString().replace(/,/g, '')) || null;
@@ -598,29 +467,29 @@ const Umswap = {
     slugToTitle(slug) {
       return slugToTitle(slug);
     },
-    getSortedTraitsForCollectionTokensAttributes(category) {
-      const results = [];
-      for (let attributeKey in this.collectionTokensAttributesWithCounts[category]) {
-        const c = this.collectionTokensAttributesWithCounts[category][attributeKey];
-        results.push({ attributeOption: attributeKey, attributeTotal: c })
-      }
-      results.sort((a, b) => b.attributeTotal.length - a.attributeTotal.length);
-      return results;
-    },
-    collectionFilterChange(attribute, option) {
-      if (!this.collectionAttributeFilter[attribute]) {
-        Vue.set(this.collectionAttributeFilter, attribute, {});
-      }
-      if (this.collectionAttributeFilter[attribute][option]) {
-        Vue.delete(this.collectionAttributeFilter[attribute], option);
-        if (Object.keys(this.collectionAttributeFilter[attribute]) == 0) {
-          Vue.delete(this.collectionAttributeFilter, attribute);
-        }
-      } else {
-        Vue.set(this.collectionAttributeFilter[attribute], option, true);
-      }
-      // console.log("collectionFilterChange: " + JSON.stringify(this.collectionAttributeFilter));
-    },
+    // getSortedTraitsForCollectionTokensAttributes(category) {
+    //   const results = [];
+    //   for (let attributeKey in this.collectionTokensAttributesWithCounts[category]) {
+    //     const c = this.collectionTokensAttributesWithCounts[category][attributeKey];
+    //     results.push({ attributeOption: attributeKey, attributeTotal: c })
+    //   }
+    //   results.sort((a, b) => b.attributeTotal.length - a.attributeTotal.length);
+    //   return results;
+    // },
+    // collectionFilterChange(attribute, option) {
+    //   if (!this.collectionAttributeFilter[attribute]) {
+    //     Vue.set(this.collectionAttributeFilter, attribute, {});
+    //   }
+    //   if (this.collectionAttributeFilter[attribute][option]) {
+    //     Vue.delete(this.collectionAttributeFilter[attribute], option);
+    //     if (Object.keys(this.collectionAttributeFilter[attribute]) == 0) {
+    //       Vue.delete(this.collectionAttributeFilter, attribute);
+    //     }
+    //   } else {
+    //     Vue.set(this.collectionAttributeFilter[attribute], option, true);
+    //   }
+    //   // console.log("collectionFilterChange: " + JSON.stringify(this.collectionAttributeFilter));
+    // },
     updateURL(where) {
       this.$router.push('/umswap/' + where);
     },
@@ -943,11 +812,13 @@ const umswapModule = {
       address: UMSWAPFACTORYADDRESS,
       umswaps: [],
       collections: {},
-      // umswapsLength: null,
+    },
+    umswap: {
+      index: 1, // null,
     },
     messages: [],
-    collectionInfo: {},
-    collectionTokens: {},
+    // collectionInfo: {},
+    // collectionTokens: {},
     ensMap: {},
     halt: false,
     params: null,
@@ -956,9 +827,10 @@ const umswapModule = {
     filter: state => state.filter,
     sync: state => state.sync,
     umswapFactory: state => state.umswapFactory,
+    umswap: state => state.umswap,
     messages: state => state.messages,
-    collectionInfo: state => state.collectionInfo,
-    collectionTokens: state => state.collectionTokens,
+    // collectionInfo: state => state.collectionInfo,
+    // collectionTokens: state => state.collectionTokens,
     ensMap: state => state.ensMap,
     params: state => state.params,
   },
@@ -1008,9 +880,9 @@ const umswapModule = {
           const totalScores = stats[2].toString();
           const totalSupply = stats[3].toString();
           const raters = stats[4].toString();
-          console.log(index + " " + address + " " + symbol + " " + name + " " + collection + " " +
-            JSON.stringify(tokenIds) + " " + creator +
-            " swappedIn: " + swappedIn + " swappedOut: " + swappedOut + " totalScores: " + totalScores + " totalSupply: " + totalSupply + " raters: " + raters);
+          // console.log(index + " " + address + " " + symbol + " " + name + " " + collection + " " +
+          //   JSON.stringify(tokenIds) + " " + creator +
+          //   " swappedIn: " + swappedIn + " swappedOut: " + swappedOut + " totalScores: " + totalScores + " totalSupply: " + totalSupply + " raters: " + raters);
           if (!(collection in collections)) {
             collections[collection] = { type: null, symbol: null, name: null, totalSupply: null, reservoirInfo: null, allTokens: [], sampleTokens: [], umswaps: [] };
           }
@@ -1038,7 +910,7 @@ const umswapModule = {
             });
           collection.reservoirInfo = reservoirInfo && reservoirInfo.collection || null;
 
-          let tokensUrl = "https://api.reservoir.tools/tokens/details/v4?contract=" + address + "&limit=20";
+          let tokensUrl = "https://api.reservoir.tools/tokens/details/v4?contract=" + address + "&limit=22";
           const reservoirTokens = await fetch(tokensUrl)
             .then(handleErrors)
             .then(response => response.json())
@@ -1048,7 +920,7 @@ const umswapModule = {
                return [];
             });
           collection.sampleTokens = reservoirTokens && reservoirTokens.tokens || null;
-          console.log("collection: " + JSON.stringify(collection, null, 2));
+          // console.log("collection: " + JSON.stringify(collection, null, 2));
         }
         state.sync.completed = 2;
         state.umswapFactory.collections = collections;
