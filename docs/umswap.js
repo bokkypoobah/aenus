@@ -29,6 +29,9 @@ const Umswap = {
             <div v-if="settings.tabIndex == 10" class="mt-1" style="width: 380px;">
               <b-form-input type="text" size="sm" :value="filter.collection.address" @change="doIt('filterUpdate', { collection: { address: $event } })" :disabled="sync.inProgress" debounce="600" v-b-popover.hover.top="'Collection address'" placeholder="{ERC-721 address}"></b-form-input>
             </div>
+            <div v-if="settings.tabIndex == 0" class="mt-1 pl-1">
+              <b-button size="sm" @click="doIt('sync', {})" :disabled="sync.inProgress" variant="primary">Sync</b-button>
+            </div>
             <div v-if="settings.tabIndex == 10" class="mt-1 pl-1">
               <b-button size="sm" @click="doIt('sync', {})" :disabled="sync.inProgress" variant="primary">Sync IPC Collection</b-button>
             </div>
@@ -49,14 +52,14 @@ const Umswap = {
             </div>
 
             <div class="mt-2" style="width: 200px;">
-              <b-progress v-if="true || sync.inProgress" height="1.5rem" :max="sync.total" :label="'((sync.completed/sync.total)*100).toFixed(2) + %'" show-progress :animated="sync.inProgress" :variant="sync.inProgress ? 'success' : 'secondary'" v-b-popover.hover.top="'Click on the Sync(ing) button to (un)pause'">
+              <b-progress v-if="sync.inProgress" height="1.5rem" :max="sync.total" :label="'((sync.completed/sync.total)*100).toFixed(2) + %'" show-progress :animated="sync.inProgress" :variant="sync.inProgress ? 'success' : 'secondary'" v-b-popover.hover.top="'Click on the Sync(ing) button to (un)pause'">
                 <b-progress-bar :value="sync.completed">
                   {{ sync.completed + '/' + sync.total + ' ' + ((sync.completed / sync.total) * 100).toFixed(0) + '%' }}
                 </b-progress-bar>
               </b-progress>
             </div>
             <div class="ml-0 mt-1">
-              <b-button v-if="true || sync.inProgress" size="sm" @click="halt" variant="link" v-b-popover.hover.top="'Halt'"><b-icon-stop-fill shift-v="+1" font-scale="1.0"></b-icon-stop-fill></b-button>
+              <b-button v-if="sync.inProgress" size="sm" @click="halt" variant="link" v-b-popover.hover.top="'Halt'"><b-icon-stop-fill shift-v="+1" font-scale="1.0"></b-icon-stop-fill></b-button>
             </div>
 
             <div class="mt-1 flex-grow-1">
@@ -83,8 +86,48 @@ const Umswap = {
           </div>
 
           <b-card no-body no-header class="m-0 p-0 border-0">
-
             <b-card-body class="m-0 p-1">
+
+
+
+              <!-- Umswaps -->
+              <b-table v-if="settings.tabIndex == 0" small fixed striped :fields="umswapsFields" :items="umswaps" head-variant="light">
+                <template #cell(collection)="data">
+                  <b-link :href="'https://opensea.io/collection/' + data.item.collectionSlug" v-b-popover.hover.bottom="'View in Opensea.io'" target="_blank">
+                    {{ data.item.collectionName }}
+                  </b-link>
+                </template>
+                <template #cell(umswap)="data">
+                  <b-link :href="'https://opensea.io/collection/' + data.item.collectionSlug" v-b-popover.hover.bottom="'View in Opensea.io'" target="_blank">
+                    {{ data.item.umswapName }}
+                  </b-link>
+                </template>
+                <template #cell(totalSupply)="data">
+                  {{ formatETH(data.item.totalSupply) }}
+                </template>
+                <template #cell(score)="data">
+                  {{ data.item.totalScores + '/' + data.item.raters }}
+                </template>
+                <template #cell(sampleTokens)="data">
+                  <b-card-group deck>
+                    <div v-for="(token, tokenIndex) in data.item.sampleTokens" :key="tokenIndex">
+                      <b-card body-class="p-0" header-class="p-1" img-top class="m-1 p-0 border-0" style="max-width: 4rem;">
+                        <b-avatar rounded size="4rem" :src="token.image" style="background-color: #638596"></b-avatar>
+                        <!--
+                        {{ JSON.stringify(token) }}
+                        <b-link :href="'https://cryptopunks.app/cryptopunks/details/' + event.punkId" v-b-popover.hover.bottom="'View in original website'" target="_blank">
+                          <b-avatar rounded size="7rem" :src="'images/punks/punk' + event.punkId.toString().padStart(4, '0') + '.png'" style="background-color: #638596"></b-avatar>
+                        </b-link>
+                        -->
+                      </b-card>
+                    </div>
+                  </b-card-group deck>
+
+                </template>
+              </b-table>
+
+
+
               <b-card header="UmswapFactory" class="mt-2">
                 <b-row>
                   <b-col cols="2" class="text-right">
@@ -103,6 +146,7 @@ const Umswap = {
                     <b-button size="sm" @click="doIt('sync', {})" :disabled="sync.inProgress" variant="primary">Query</b-button>
                   </b-col>
                 </b-row>
+                <!--
                 <b-row>
                   <b-col cols="2" class="text-right">
                   </b-col>
@@ -110,6 +154,7 @@ const Umswap = {
                     {{ umswapFactory }}
                   </b-col>
                 </b-row>
+                -->
 
                 <b-card header="New Umswap" class="mt-2" body-class="m-1 p-1" style="min-width: 60rem; max-width: 60rem;">
                   <b-card-text>
@@ -341,6 +386,14 @@ const Umswap = {
         { value: 10000, text: '10k' },
       ],
 
+      umswapsFields: [
+        { key: 'collection', label: 'Collection', thStyle: 'width: 15%;' },
+        { key: 'umswap', label: 'Umswap', thStyle: 'width: 15%;' },
+        { key: 'sampleTokens', label: 'Sample Tokens', thStyle: 'width: 50%;' },
+        { key: 'score', label: 'Score', thStyle: 'width: 10%;', thClass: 'text-right', tdClass: 'text-right' },
+        { key: 'totalSupply', label: 'Total Supply', thStyle: 'width: 10%;', thClass: 'text-right', tdClass: 'text-right' },
+      ],
+
       collectionTokensFields: [
         { key: 'token_id', label: '#', thStyle: 'width: 5%;', thClass: 'text-right', tdClass: 'text-right' },
         { key: 'owner', label: 'Owner', thStyle: 'width: 15%;'},
@@ -391,6 +444,38 @@ const Umswap = {
     ensMap() {
       return store.getters['umswap/ensMap'];
     },
+
+    umswaps() {
+      const results = [];
+      for (const [collectionAddress, collection] of Object.entries(this.umswapFactory.collections)) {
+        for (const umswap of collection.umswaps) {
+          console.log(JSON.stringify(umswap, null, 2));
+
+          const sampleTokens = [];
+
+          for (const item of collection.sampleTokens) {
+            sampleTokens.push( { tokenId: item.token.tokenId, image: item.token.image } );
+          }
+
+          results.push({
+            umswapIndex: umswap.index,
+            collectionAddress: collectionAddress,
+            collectionName: collection.reservoirInfo.name,
+            collectionSlug: collection.reservoirInfo.slug,
+            umswapName: umswap.name,
+            totalSupply: umswap.totalSupply,
+            swappedIn: umswap.swappedIn,
+            swappedOut: umswap.swappedOut,
+            totalScores: umswap.totalScores,
+            raters: umswap.raters,
+            sampleTokens: sampleTokens,
+          });
+        }
+      }
+      return results;
+    },
+
+
     collectionTokensAttributesWithCounts() {
       const collator = {};
       for (const [tokenId, token] of Object.entries(this.collectionTokens)) {
@@ -498,6 +583,13 @@ const Umswap = {
     },
   },
   methods: {
+    formatETH(e) {
+      try {
+        return e ? ethers.utils.commify(ethers.utils.formatEther(e)) : null;
+      } catch (err) {
+      }
+      return e.toFixed(9);
+    },
     getShortName(address, length = 16) {
       const addressLower = address.toLowerCase();
       try {
@@ -945,9 +1037,9 @@ const umswapModule = {
           collection.name = info[2][0].toString();
           collection.totalSupply = info[3][0].toString();
 
-          let url = "https://api.reservoir.tools/collection/v2?id=" + address;
-          // logInfo("umswapModule", "mutations.doIt() - url: " + url);
-          const reservoirInfo = await fetch(url)
+          let infoUrl = "https://api.reservoir.tools/collection/v2?id=" + address;
+          // logInfo("umswapModule", "mutations.doIt() - infoUrl: " + infoUrl);
+          const reservoirInfo = await fetch(infoUrl)
             .then(handleErrors)
             .then(response => response.json())
             .catch(function(error) {
@@ -955,10 +1047,21 @@ const umswapModule = {
                // Want to work around API data unavailablity - state.sync.error = true;
                return [];
             });
-          // console.log("reservoirInfo: " + JSON.stringify(reservoirInfo, null, 2));
           collection.reservoirInfo = reservoirInfo && reservoirInfo.collection || null;
+
+          let tokensUrl = "https://api.reservoir.tools/tokens/details/v4?contract=" + address + "&limit=20";
+          const reservoirTokens = await fetch(tokensUrl)
+            .then(handleErrors)
+            .then(response => response.json())
+            .catch(function(error) {
+               console.log("ERROR - doIt: " + error);
+               // Want to work around API data unavailablity - state.sync.error = true;
+               return [];
+            });
+          collection.sampleTokens = reservoirTokens && reservoirTokens.tokens || null;
           console.log("collection: " + JSON.stringify(collection, null, 2));
         }
+        state.umswapFactory.collections = collections;
 
         //        https://api.reservoir.tools/tokens/v4?contract=0x31385d3520bCED94f77AaE104b406994D8F2168C&sortBy=tokenId&limit=20&includeTopBid=false
         //      https://api.reservoir.tools/tokens/details/v4?contract=0x31385d3520bCED94f77AaE104b406994D8F2168C&sortBy=floorAskPrice&limit=50&includeTopBid=false
