@@ -29,7 +29,7 @@ const routes = [{
     name: 'NFTs',
     props: true,
   }, {
-    path: '/umswap/:tab?/:blocks?/:search?',
+    path: '/umswap/:tab?/:search?',
     component: Umswap,
     name: 'Umswap',
     props: true,

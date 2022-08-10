@@ -13,7 +13,7 @@ const Umswap = {
           <b-tabs card align="left" no-body v-model="settings.tabIndex" active-tab-class="m-0 p-0">
             <b-tab title="Umswaps" @click="updateURL('upswaps');">
             </b-tab>
-            <b-tab title="Umswap" :disabled="umswap.index == null" @click="updateURL('umswap');">
+            <b-tab title="Umswap" @click="updateURL('umswap');">
             </b-tab>
             <b-tab title="New Umswap" @click="updateURL('newumswap');">
             </b-tab>
@@ -23,14 +23,14 @@ const Umswap = {
 
           <!-- Main Toolbar -->
           <div class="d-flex flex-wrap m-0 p-0">
+            <div v-if="settings.tabIndex == 1" class="mt-1 pl-1">
+              <b-form-select size="sm" :value="filter.umswapIndex" :options="umswapsAsOptions" @change="doIt('filterUpdate', { umswapIndex: $event })" v-b-popover.hover.top="'Select a Umswap'"></b-form-select>
+            </div>
             <div v-if="settings.tabIndex == 10" class="mt-1">
               <b-button size="sm" :pressed.sync="settings.showFilter" variant="link" v-b-popover.hover.top="'Show collection filter'"><span v-if="settings.showFilter"><b-icon-layout-sidebar-inset shift-v="+1" font-scale="1.0"></b-icon-layout-sidebar-inset></span><span v-else><b-icon-layout-sidebar shift-v="+1" font-scale="1.0"></b-icon-layout-sidebar></span></b-button>
             </div>
             <div v-if="settings.tabIndex == 10" class="mt-1" style="width: 380px;">
               <b-form-input type="text" size="sm" :value="filter.collection.address" @change="doIt('filterUpdate', { collection: { address: $event } })" :disabled="sync.inProgress" debounce="600" v-b-popover.hover.top="'Collection address'" placeholder="{ERC-721 address}"></b-form-input>
-            </div>
-            <div v-if="settings.tabIndex == 0" class="mt-1 pl-1">
-              <b-button size="sm" @click="doIt('sync', {})" :disabled="sync.inProgress" variant="primary">Sync</b-button>
             </div>
             <div v-if="settings.tabIndex == 10" class="mt-1 pl-1">
               <b-button size="sm" @click="doIt('sync', {})" :disabled="sync.inProgress" variant="primary">Sync IPC Collection</b-button>
@@ -45,6 +45,10 @@ const Umswap = {
             </div>
 
             <div class="mt-1 flex-grow-1">
+            </div>
+
+            <div v-if="(settings.tabIndex == 0 || settings.tabIndex == 1) && !sync.inProgress" class="mt-1 pl-1">
+              <b-button size="sm" @click="doIt('sync', {})" :disabled="sync.inProgress" variant="primary">Sync</b-button>
             </div>
 
             <div v-if="sync.inProgress" class="mt-1 pr-1 text-right">
@@ -127,7 +131,12 @@ const Umswap = {
               </b-table>
 
               <!-- New Umswap -->
-              <b-card v-if="settings.tabIndex == 2" header="New Umswap" class="mt-2" body-class="m-1 p-1" style="min-width: 60rem; max-width: 60rem;">
+              <b-card v-if="settings.tabIndex == 1" header="Umswap" class="mt-1" body-class="m-1 p-1" style="min-width: 60rem; max-width: 60rem;">
+                {{ umswap }}
+              </b-card>
+
+              <!-- New Umswap -->
+              <b-card v-if="settings.tabIndex == 2" header="New Umswap" class="mt-1" body-class="m-1 p-1" style="min-width: 60rem; max-width: 60rem;">
                 <b-card-text>
                   <b-form-group label-cols="3" label-size="sm" label-align="right" label="Collection:" class="mx-0 my-1 p-0">
                     <b-form-input type="text" size="sm" v-model.trim="newUmswap.collection" placeholder="0x1234..."></b-form-input>
@@ -158,7 +167,7 @@ const Umswap = {
               </b-card>
 
               <!-- Messages -->
-              <b-card v-if="settings.tabIndex == 3" header="Send Message" class="mt-2" body-class="m-1 p-1" style="min-width: 60rem; max-width: 60rem;">
+              <b-card v-if="settings.tabIndex == 3" header="Send Message" class="mt-1" body-class="m-1 p-1" style="min-width: 60rem; max-width: 60rem;">
                 <b-card-text>
                   <b-form-group label-cols="3" label-size="sm" label-align="right" label="To" class="mx-0 my-1 p-0">
                     <b-form-input size="sm" v-model.trim="newMessage.to" placeholder="0x1234... or blank for address(0)"></b-form-input>
@@ -197,7 +206,7 @@ const Umswap = {
       </b-card>
     </div>
   `,
-  props: ['tab', 'blocks', 'search'],
+  props: ['tab', 'search'],
   data: function() {
     return {
       count: 0,
@@ -306,13 +315,10 @@ const Umswap = {
       for (const [collectionAddress, collection] of Object.entries(this.umswapFactory.collections)) {
         for (const umswap of collection.umswaps) {
           // console.log(JSON.stringify(umswap, null, 2));
-
           const sampleTokens = [];
-
           for (const item of collection.sampleTokens) {
             sampleTokens.push( { tokenId: item.token.tokenId, image: item.token.image } );
           }
-
           results.push({
             umswapIndex: umswap.index,
             collectionAddress: collectionAddress,
@@ -331,6 +337,25 @@ const Umswap = {
       return results;
     },
 
+    umswapsAsOptions() {
+      const results = [];
+      results.push( { value: null, text: '(select one)' });
+      for (const umswap of this.umswaps) {
+        results.push( { value: umswap.umswapIndex, text: umswap.collectionName + ': ' + umswap.umswapName });
+      }
+      return results;
+    },
+
+    // umswap() {
+    //   console.log("umswap() - this.filter: " + JSON.stringify(this.filter));
+    //   for (const umswap of this.umswaps) {
+    //     if (umswap.index == this.filter.umswapIndex) {
+    //       console.log("umswap() - umswap: " + JSON.stringify(umswap));
+    //       return umswap;
+    //     }
+    //   }
+    //   return null;
+    // },
 
     // collectionTokensAttributesWithCounts() {
     //   const collator = {};
@@ -755,32 +780,44 @@ const Umswap = {
     logDebug("Umswap", "beforeDestroy()");
   },
   mounted() {
-    logInfo("Umswap", "mounted() $route: " + JSON.stringify(this.$route.params) + ", props['tab']: " + this.tab + ", props['blocks']: " + this.blocks + ", props['search']: " + this.search);
-    if (this.tab == "transfers") {
+    logInfo("Umswap", "mounted() $route: " + JSON.stringify(this.$route.params) + ", props['tab']: " + this.tab + ", props['search']: " + this.search);
+    if (this.tab == null || this.tab == "umswaps") {
       this.settings.tabIndex = 0;
-    } else if (this.tab == "collection") {
+    } else if (this.tab == "umswap") {
       this.settings.tabIndex = 1;
-    } else if (this.tab == "mintmonitor") {
-      this.settings.tabIndex = 2;
-      let startBlockNumber = null;
-      let endBlockNumber = null;
-      if (this.blocks != null) {
-        if (new RegExp('^[0-9,]+$').test(this.blocks)) {
-          startBlockNumber = this.blocks;
-          endBlockNumber = this.blocks;
-        } else if (new RegExp('^[0-9,]+\s*\-\s*[0-9,]+$').test(this.blocks)) {
-          startBlockNumber = this.blocks.replace(/\s*\-.*$/, '');
-          endBlockNumber = this.blocks.replace(/^.*\-\s*/, '');
-        }
+      if (this.search != null) {
         const filterUpdate = {
-          startBlockNumber: ethers.utils.commify(parseInt(startBlockNumber)),
-          endBlockNumber: ethers.utils.commify(parseInt(endBlockNumber)),
-          searchString: this.search,
+          umswapIndex: this.search,
         };
         setTimeout(function() {
-          store.dispatch('umswap/monitorMints', { syncMode: 'scan', filterUpdate });
+          store.dispatch('umswap/doIt', { syncMode: 'scan', filterUpdate });
         }, 1000);
       }
+    // } else if (this.tab == "mintmonitor") {
+    //   this.settings.tabIndex = 2;
+    //   let startBlockNumber = null;
+    //   let endBlockNumber = null;
+    //   if (this.blocks != null) {
+    //     if (new RegExp('^[0-9,]+$').test(this.blocks)) {
+    //       startBlockNumber = this.blocks;
+    //       endBlockNumber = this.blocks;
+    //     } else if (new RegExp('^[0-9,]+\s*\-\s*[0-9,]+$').test(this.blocks)) {
+    //       startBlockNumber = this.blocks.replace(/\s*\-.*$/, '');
+    //       endBlockNumber = this.blocks.replace(/^.*\-\s*/, '');
+    //     }
+    //     const filterUpdate = {
+    //       startBlockNumber: ethers.utils.commify(parseInt(startBlockNumber)),
+    //       endBlockNumber: ethers.utils.commify(parseInt(endBlockNumber)),
+    //       searchString: this.search,
+    //     };
+    //     setTimeout(function() {
+    //       store.dispatch('umswap/monitorMints', { syncMode: 'scan', filterUpdate });
+    //     }, 1000);
+    //   }
+    } else if (this.tab == "newumswap") {
+      this.settings.tabIndex = 2;
+    } else if (this.tab == "messages") {
+      this.settings.tabIndex = 3;
     }
     this.reschedule = true;
     logDebug("Umswap", "Calling timeoutCallback()");
@@ -795,11 +832,12 @@ const umswapModule = {
   namespaced: true,
   state: {
     filter: {
-      collection: {
-        address: null, // "0x31385d3520bced94f77aae104b406994d8f2168c",
-        startBlockNumber: 4000000,
-      },
-      searchString: null,
+      umswapIndex: null,
+      // collection: {
+      //   address: null, // "0x31385d3520bced94f77aae104b406994d8f2168c",
+      //   startBlockNumber: 4000000,
+      // },
+      // searchString: null,
     },
     sync: {
       inProgress: false,
@@ -813,9 +851,10 @@ const umswapModule = {
       umswaps: [],
       collections: {},
     },
-    umswap: {
-      index: 1, // null,
-    },
+    umswap: null,
+    // umswap: {
+    //   index: 1, // null,
+    // },
     messages: [],
     // collectionInfo: {},
     // collectionTokens: {},
@@ -852,81 +891,99 @@ const umswapModule = {
           state.filter = { ...state.filter, ...filterUpdate };
         }
 
-        state.sync.inProgress = true;
-        state.sync.section = "Retrieving umswaps";
-        state.sync.completed = 0;
-        state.sync.total = 2;
-        state.sync.error = false;
-
         const debug = false;
 
-        const umswapsLength = await umswapFactory.getUmswapsLength();
-        // state.umswapFactory.umswapsLength = umswapsLength;
-        var umswapsIndices = generateRange(0, parseInt(umswapsLength) - 1, 1);
-        const umswaps = await umswapFactory.getUmswaps(umswapsIndices);
+        if (syncMode != 'filterUpdate' || Object.keys(state.umswapFactory.collections) == 0) {
+          state.sync.inProgress = true;
+          state.sync.section = "Retrieving umswaps";
+          state.sync.completed = 0;
+          state.sync.total = 2;
+          state.sync.error = false;
+          const umswapsLength = await umswapFactory.getUmswapsLength();
+          // state.umswapFactory.umswapsLength = umswapsLength;
+          var umswapsIndices = generateRange(0, parseInt(umswapsLength) - 1, 1);
+          const umswaps = await umswapFactory.getUmswaps(umswapsIndices);
 
-        const collections = {};
-        for (let i = 0; i < umswaps[0].length; i++) {
-          const index = umswapsIndices[i];
-          const address = umswaps[0][i];
-          const symbol = umswaps[1][i];
-          const name = umswaps[2][i];
-          const collection = umswaps[3][i];
-          const tokenIds = umswaps[4][i];
-          const creator = umswaps[5][i];
-          const stats = umswaps[6][i];
-          const swappedIn = stats[0].toString();
-          const swappedOut = stats[1].toString();
-          const totalScores = stats[2].toString();
-          const totalSupply = stats[3].toString();
-          const raters = stats[4].toString();
-          // console.log(index + " " + address + " " + symbol + " " + name + " " + collection + " " +
-          //   JSON.stringify(tokenIds) + " " + creator +
-          //   " swappedIn: " + swappedIn + " swappedOut: " + swappedOut + " totalScores: " + totalScores + " totalSupply: " + totalSupply + " raters: " + raters);
-          if (!(collection in collections)) {
-            collections[collection] = { type: null, symbol: null, name: null, totalSupply: null, reservoirInfo: null, allTokens: [], sampleTokens: [], umswaps: [] };
+          const collections = {};
+          for (let i = 0; i < umswaps[0].length; i++) {
+            const index = umswapsIndices[i];
+            const address = umswaps[0][i];
+            const symbol = umswaps[1][i];
+            const name = umswaps[2][i];
+            const collection = umswaps[3][i];
+            const tokenIds = umswaps[4][i];
+            const creator = umswaps[5][i];
+            const stats = umswaps[6][i];
+            const swappedIn = stats[0].toString();
+            const swappedOut = stats[1].toString();
+            const totalScores = stats[2].toString();
+            const totalSupply = stats[3].toString();
+            const raters = stats[4].toString();
+            // console.log(index + " " + address + " " + symbol + " " + name + " " + collection + " " +
+            //   JSON.stringify(tokenIds) + " " + creator +
+            //   " swappedIn: " + swappedIn + " swappedOut: " + swappedOut + " totalScores: " + totalScores + " totalSupply: " + totalSupply + " raters: " + raters);
+            if (!(collection in collections)) {
+              collections[collection] = { type: null, symbol: null, name: null, totalSupply: null, reservoirInfo: null, allTokens: [], sampleTokens: [], umswaps: [] };
+            }
+            const umswap = { index, address, symbol, name, collection, tokenIds, creator, swappedIn, swappedOut, totalScores, totalSupply, raters };
+            collections[collection].umswaps.push(umswap);
+
+            // if (index == state.filter.umswapIndex) {
+            //   logInfo("umswapModule", "mutations.doIt() - state.filter.umswapIndex: " + state.filter.umswapIndex);
+            //   state.umswap = umswap;
+            // }
           }
-          collections[collection].umswaps.push({ index, address, symbol, name, collection, tokenIds, creator, swappedIn, swappedOut, totalScores, totalSupply, raters });
+          state.sync.completed = 1;
+
+          state.sync.section = "Retrieving collection summary info";
+          for (const [address, collection] of Object.entries(collections)) {
+            const info = await erc721Helper.tokenInfo([address]);
+            collection.type = info[0][0].toString();
+            collection.symbol = info[1][0].toString();
+            collection.name = info[2][0].toString();
+            collection.totalSupply = info[3][0].toString();
+
+            let infoUrl = "https://api.reservoir.tools/collection/v2?id=" + address;
+            // logInfo("umswapModule", "mutations.doIt() - infoUrl: " + infoUrl);
+            const reservoirInfo = await fetch(infoUrl)
+              .then(handleErrors)
+              .then(response => response.json())
+              .catch(function(error) {
+                 console.log("ERROR - doIt: " + error);
+                 // Want to work around API data unavailablity - state.sync.error = true;
+                 return [];
+              });
+            collection.reservoirInfo = reservoirInfo && reservoirInfo.collection || null;
+
+            let tokensUrl = "https://api.reservoir.tools/tokens/details/v4?contract=" + address + "&limit=22";
+            const reservoirTokens = await fetch(tokensUrl)
+              .then(handleErrors)
+              .then(response => response.json())
+              .catch(function(error) {
+                 console.log("ERROR - doIt: " + error);
+                 // Want to work around API data unavailablity - state.sync.error = true;
+                 return [];
+              });
+            collection.sampleTokens = reservoirTokens && reservoirTokens.tokens || null;
+            // console.log("collection: " + JSON.stringify(collection, null, 2));
+          }
+          state.sync.completed = 2;
+          state.umswapFactory.collections = collections;
         }
-        state.sync.completed = 1;
-
-        state.sync.section = "Retrieving collection summary info";
-        for (const [address, collection] of Object.entries(collections)) {
-          const info = await erc721Helper.tokenInfo([address]);
-          collection.type = info[0][0].toString();
-          collection.symbol = info[1][0].toString();
-          collection.name = info[2][0].toString();
-          collection.totalSupply = info[3][0].toString();
-
-          let infoUrl = "https://api.reservoir.tools/collection/v2?id=" + address;
-          // logInfo("umswapModule", "mutations.doIt() - infoUrl: " + infoUrl);
-          const reservoirInfo = await fetch(infoUrl)
-            .then(handleErrors)
-            .then(response => response.json())
-            .catch(function(error) {
-               console.log("ERROR - doIt: " + error);
-               // Want to work around API data unavailablity - state.sync.error = true;
-               return [];
-            });
-          collection.reservoirInfo = reservoirInfo && reservoirInfo.collection || null;
-
-          let tokensUrl = "https://api.reservoir.tools/tokens/details/v4?contract=" + address + "&limit=22";
-          const reservoirTokens = await fetch(tokensUrl)
-            .then(handleErrors)
-            .then(response => response.json())
-            .catch(function(error) {
-               console.log("ERROR - doIt: " + error);
-               // Want to work around API data unavailablity - state.sync.error = true;
-               return [];
-            });
-          collection.sampleTokens = reservoirTokens && reservoirTokens.tokens || null;
-          // console.log("collection: " + JSON.stringify(collection, null, 2));
-        }
-        state.sync.completed = 2;
-        state.umswapFactory.collections = collections;
 
         //        https://api.reservoir.tools/tokens/v4?contract=0x31385d3520bCED94f77AaE104b406994D8F2168C&sortBy=tokenId&limit=20&includeTopBid=false
         //      https://api.reservoir.tools/tokens/details/v4?contract=0x31385d3520bCED94f77AaE104b406994D8F2168C&sortBy=floorAskPrice&limit=50&includeTopBid=false
+
+        if (state.filter.umswapIndex != null) {
+          logInfo("umswapModule", "mutations.doIt() - state.filter.umswapIndex: " + state.filter.umswapIndex);
+          for (const [address, collection] of Object.entries(state.umswapFactory.collections)) {
+            for (const umswap of collection.umswaps) {
+              if (umswap.index == state.filter.umswapIndex) {
+                state.umswap = umswap;
+              }
+            }
+          }
+        }
 
         if (false) {
           for (const collectionAddress of collectionAddresses) {
