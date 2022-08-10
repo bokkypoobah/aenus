@@ -131,8 +131,56 @@ const Umswap = {
               </b-table>
 
               <!-- New Umswap -->
-              <b-card v-if="settings.tabIndex == 1" header="Umswap" class="mt-1" body-class="m-1 p-1" style="min-width: 60rem; max-width: 60rem;">
-                {{ current }}
+              <b-card v-if="settings.tabIndex == 1 && current.umswap != null" header="Umswap" class="mt-1" body-class="m-1 p-1">
+                <b-card-text>
+                  <b-form-group label-cols="3" label-size="sm" label-align="right" label="Index:" class="mx-0 my-1 p-0">
+                    <b-form-input type="text" readonly size="sm" :value="current.umswap.index" class="w-50"></b-form-input>
+                  </b-form-group>
+                  <b-form-group label-cols="3" label-size="sm" label-align="right" label="Address:" class="mx-0 my-1 p-0">
+                    <b-link :href="'https://etherscan.io/token/' + current.umswap.address" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                      {{ current.umswap.address }}
+                    </b-link>
+                  </b-form-group>
+                  <b-form-group label-cols="3" label-size="sm" label-align="right" label="Symbol:" class="mx-0 my-1 p-0">
+                    <b-form-input type="text" readonly size="sm" :value="current.umswap.symbol" class="w-50"></b-form-input>
+                  </b-form-group>
+                  <b-form-group label-cols="3" label-size="sm" label-align="right" label="Name:" class="mx-0 my-1 p-0">
+                    <b-form-input type="text" readonly size="sm" :value="current.umswap.name"></b-form-input>
+                  </b-form-group>
+                  <b-form-group label-cols="3" label-size="sm" label-align="right" label="Creator:" class="mx-0 my-1 p-0">
+                    <b-link :href="'https://etherscan.io/address/' + current.umswap.creator" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                      {{ current.umswap.creator }}
+                    </b-link>
+                  </b-form-group>
+                  <b-form-group label-cols="3" label-size="sm" label-align="right" label="Total Supply:" class="mx-0 my-1 p-0">
+                    <b-form-input type="text" readonly size="sm" :value="current.umswap.totalSupply" class="w-50"></b-form-input>
+                  </b-form-group>
+                  <b-form-group label-cols="3" label-size="sm" label-align="right" label="Swapped In:" class="mx-0 my-1 p-0">
+                    <b-form-input type="text" readonly size="sm" :value="current.umswap.swappedIn" class="w-50"></b-form-input>
+                  </b-form-group>
+                  <b-form-group label-cols="3" label-size="sm" label-align="right" label="Swapped Out:" class="mx-0 my-1 p-0">
+                    <b-form-input type="text" readonly size="sm" :value="current.umswap.swappedOut" class="w-50"></b-form-input>
+                  </b-form-group>
+                  <b-form-group label-cols="3" label-size="sm" label-align="right" label="Total Scores:" class="mx-0 my-1 p-0">
+                    <b-form-input type="text" readonly size="sm" :value="current.umswap.totalScores" class="w-50"></b-form-input>
+                  </b-form-group>
+                  <b-form-group label-cols="3" label-size="sm" label-align="right" label="Raters:" class="mx-0 my-1 p-0">
+                    <b-form-input type="text" readonly size="sm" :value="current.umswap.raters" class="w-50"></b-form-input>
+                  </b-form-group>
+                  <b-form-group label-cols="3" label-size="sm" label-align="right" label="Collection:" class="mx-0 my-1 p-0">
+                    <b-link :href="'https://etherscan.io/token/' + current.umswap.collection" v-b-popover.hover="'View in etherscan.io'" target="_blank">
+                      {{ current.umswap.collection }}
+                    </b-link>
+                  </b-form-group>
+                  <b-form-group label-cols="3" label-size="sm" label-align="right" label="TokenIds:" class="mx-0 my-1 p-0">
+                    <div v-if="current.umswap.tokenIds.length == 0">
+                      All tokenIds
+                    </div>
+                    <div v-else>
+                      <b-form-textarea type="text" readonly size="sm" :value="current.umswap.tokenIds.map(i => i.toString()).join(',')" rows="3" max-rows="100"></b-form-textarea>
+                    </div>
+                  </b-form-group>
+                </b-card-text>
               </b-card>
 
               <!-- New Umswap -->
