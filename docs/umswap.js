@@ -58,7 +58,12 @@ const Umswap = {
             <div class="mt-2" style="width: 200px;">
               <b-progress v-if="sync.inProgress" height="1.5rem" :max="sync.total" :label="'((sync.completed/sync.total)*100).toFixed(2) + %'" show-progress :animated="sync.inProgress" :variant="sync.inProgress ? 'success' : 'secondary'" v-b-popover.hover.top="'Click on the Sync(ing) button to (un)pause'">
                 <b-progress-bar :value="sync.completed">
-                  {{ sync.completed + '/' + sync.total + ' ' + ((sync.completed / sync.total) * 100).toFixed(0) + '%' }}
+                  <div v-if="sync.total == null">
+                  {{ sync.completed }}
+                  </div>
+                  <div v-else>
+                    {{ sync.completed + '/' + sync.total + ' ' + ((sync.completed / sync.total) * 100).toFixed(0) + '%' }}
+                  </div>
                 </b-progress-bar>
               </b-progress>
             </div>
@@ -130,7 +135,7 @@ const Umswap = {
                 -->
               </b-table>
 
-              <!-- New Umswap -->
+              <!-- Umswap -->
               <b-card v-if="settings.tabIndex == 1 && current.umswap != null" header="Umswap" class="mt-1" body-class="m-1 p-1">
                 <b-card-text>
                   <b-form-group label-cols="3" label-size="sm" label-align="right" label="Index:" class="mx-0 my-1 p-0">
@@ -180,6 +185,14 @@ const Umswap = {
                       <b-form-textarea type="text" readonly size="sm" :value="current.umswap.tokenIds.map(i => i.toString()).join(',')" rows="3" max-rows="100"></b-form-textarea>
                     </div>
                   </b-form-group>
+
+                  {{ tokensOfPool }}
+
+                  {{ tokensOfOwner }}
+
+                  <!--
+                  {{ current }}
+                  -->
                 </b-card-text>
               </b-card>
 
@@ -394,6 +407,33 @@ const Umswap = {
       return results;
     },
 
+    tokensOfOwner() {
+      // console.log("tokensOfOwner: " + this.coinbase);
+      // const owner = this.coinbase && this.coinbase.toLowerCase() || null;
+      const results = [];
+      if (this.current.tokens != null) {
+        for (const [tokenId, token] of Object.entries(this.current.tokens)) {
+          if (token.owner == this.coinbase) {
+            results.push(token);
+          }
+        }
+      }
+      return results;
+    },
+
+    tokensOfPool() {
+      const results = [];
+      if (this.current.tokens != null && this.current.umswap != null) {
+        // const owner = this.current.umswap && this.current.umswap.address.toLowerCase() || null;
+        // console.log("tokensOfPool: " + owner);
+        for (const [tokenId, token] of Object.entries(this.current.tokens)) {
+          if (token.owner == this.current.umswap.address) {
+            results.push(token);
+          }
+        }
+      }
+      return results;
+    },
     // umswap() {
     //   console.log("umswap() - this.filter: " + JSON.stringify(this.filter));
     //   for (const umswap of this.umswaps) {
@@ -902,6 +942,7 @@ const umswapModule = {
     current: {
       umswap: null,
       collection: null,
+      tokens: null,
     },
     // umswap: {
     //   index: 1, // null,
@@ -974,7 +1015,7 @@ const umswapModule = {
             //   JSON.stringify(tokenIds) + " " + creator +
             //   " swappedIn: " + swappedIn + " swappedOut: " + swappedOut + " totalScores: " + totalScores + " totalSupply: " + totalSupply + " raters: " + raters);
             if (!(collection in collections)) {
-              collections[collection] = { type: null, symbol: null, name: null, totalSupply: null, reservoirInfo: null, allTokens: [], sampleTokens: [], umswaps: [] };
+              collections[collection] = { address: collection, type: null, symbol: null, name: null, totalSupply: null, reservoirInfo: null, allTokens: [], sampleTokens: [], umswaps: [] };
             }
             const umswap = { index, address, symbol, name, collection, tokenIds, creator, swappedIn, swappedOut, totalScores, totalSupply, raters };
             collections[collection].umswaps.push(umswap);
@@ -1025,16 +1066,92 @@ const umswapModule = {
         //        https://api.reservoir.tools/tokens/v4?contract=0x31385d3520bCED94f77AaE104b406994D8F2168C&sortBy=tokenId&limit=20&includeTopBid=false
         //      https://api.reservoir.tools/tokens/details/v4?contract=0x31385d3520bCED94f77AaE104b406994D8F2168C&sortBy=floorAskPrice&limit=50&includeTopBid=false
 
-        if (state.filter.umswapIndex != null) {
+        if (state.filter.umswapIndex == null) {
+          state.current.umswap = null;
+          state.current.collection = null;
+          state.current.tokens = null;
+        } else {
+          // TODO: Handle non-existant #
           logInfo("umswapModule", "mutations.doIt() - state.filter.umswapIndex: " + state.filter.umswapIndex);
           for (const [address, collection] of Object.entries(state.umswapFactory.collections)) {
             for (const umswap of collection.umswaps) {
               if (umswap.index == state.filter.umswapIndex) {
                 state.current.umswap = umswap;
+                state.current.collection = collection;
+                break;
               }
             }
           }
+          // console.log("current: " + JSON.stringify(state.current, null, 2));
+
+          if (state.current.collection != null) {
+            state.sync.inProgress = true;
+            state.sync.section = "Retrieving token metadata";
+            state.sync.total = state.current.collection.reservoirInfo.tokenCount;
+            let totalRecords = 0;
+            let continuation = null;
+            let tokens = {};
+            do {
+              let url = "https://api.reservoir.tools/tokens/details/v4?contract=" + state.current.collection.address +
+                "&limit=50" +
+                (continuation != null ? "&continuation=" + continuation : '');
+              // logInfo("umswapModule", "mutations.doIt() - url: " + url);
+              const data = await fetch(url)
+                .then(handleErrors)
+                .then(response => response.json())
+                .catch(function(error) {
+                   console.log("ERROR - umswapModule.mutations.doIt(): " + error);
+                   state.sync.error = true;
+                   return [];
+                });
+              if (data && data.tokens) {
+                // console.log(JSON.stringify(data.tokens[0], null, 2));
+                for (const record of data.tokens) {
+                  const token = record.token;
+                  tokens[token.tokenId] = {
+                    tokenId: token.tokenId,
+                    owner: null, // token.owner,
+                    name: token.name,
+                    // description: token.description,
+                    // attributes: token.attributes,
+                    image: token.image,
+                  };
+                }
+              }
+              let numberOfRecords = state.sync.error ? 0 : data.tokens.length;
+              totalRecords += numberOfRecords;
+              continuation = data.continuation;
+              state.sync.completed = totalRecords;
+            } while (continuation != null && !state.halt && !state.sync.error /* && totalRecords < 20 && totalRecords < state.sync.total*/);
+
+            const tokenIds = Object.keys(tokens);
+            state.sync.section = "Retrieving token owners";
+            state.sync.total = tokenIds.length;
+            state.sync.completed = 0;
+            totalRecords = 0;
+            const ERC721OWNERBATCHSIZE = 250;
+            if (!state.halt) {
+              for (let i = 0; i < tokenIds.length; i += ERC721OWNERBATCHSIZE) {
+                const batch = tokenIds.slice(i, parseInt(i) + ERC721OWNERBATCHSIZE);
+                const ownerData = await erc721Helper.ownersByTokenIds(state.current.collection.address, batch);
+                for (let j = 0; j < batch.length; j++) {
+                  const tokenId = batch[j];
+                  const owner = ownerData[0][j] && ownerData[1][j] || null;
+                  tokens[tokenId].owner = owner;
+                }
+                totalRecords = parseInt(totalRecords) + batch.length;
+                state.sync.completed = totalRecords;
+                if (state.halt) {
+                  break;
+                }
+              }
+            }
+            state.current.tokens = tokens;
+            console.log(JSON.stringify(tokens, null, 2).substring(0, 5000));
+          }
         }
+        state.sync.inProgress = false;
+
 
         if (false) {
           for (const collectionAddress of collectionAddresses) {
