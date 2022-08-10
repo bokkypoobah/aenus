@@ -188,6 +188,8 @@ const Umswap = {
 
                   {{ tokensOfPool }}
 
+                  <br />
+
                   {{ tokensOfOwner }}
 
                   <!--
@@ -411,10 +413,16 @@ const Umswap = {
       // console.log("tokensOfOwner: " + this.coinbase);
       // const owner = this.coinbase && this.coinbase.toLowerCase() || null;
       const results = [];
-      if (this.current.tokens != null) {
+      if (this.current.tokens != null && this.current.umswap != null) {
+        // console.log("tokensOfOwner: " + this.coinbase);
+        // console.log("this.current.umswap: " + JSON.stringify(this.current.umswap, null, 2));
+        const validTokenIds = this.current.umswap.tokenIds.length == 0 ? null : this.current.umswap.tokenIds.map(t => t.toString());
+        // console.log("validTokenIds: " + JSON.stringify(validTokenIds, null, 2));
         for (const [tokenId, token] of Object.entries(this.current.tokens)) {
           if (token.owner == this.coinbase) {
-            results.push(token);
+            if (validTokenIds == null || validTokenIds.includes(tokenId)) {
+              results.push(token);
+            }
           }
         }
       }
@@ -424,11 +432,14 @@ const Umswap = {
     tokensOfPool() {
       const results = [];
       if (this.current.tokens != null && this.current.umswap != null) {
-        // const owner = this.current.umswap && this.current.umswap.address.toLowerCase() || null;
-        // console.log("tokensOfPool: " + owner);
+        const validTokenIds = this.current.umswap.tokenIds.length == 0 ? null : this.current.umswap.tokenIds.map(t => t.toString());
+        // TODO dev - const owner = this.current.umswap.address;
+        const owner = "0x7a2FE221bd3ab0f0d7fbd5843AA24fC3d00bd366";
         for (const [tokenId, token] of Object.entries(this.current.tokens)) {
-          if (token.owner == this.current.umswap.address) {
-            results.push(token);
+          if (token.owner == owner) {
+            if (validTokenIds == null || validTokenIds.includes(tokenId)) {
+              results.push(token);
+            }
           }
         }
       }
@@ -1062,9 +1073,6 @@ const umswapModule = {
           state.sync.completed = 2;
           state.umswapFactory.collections = collections;
         }
-
-        //        https://api.reservoir.tools/tokens/v4?contract=0x31385d3520bCED94f77AaE104b406994D8F2168C&sortBy=tokenId&limit=20&includeTopBid=false
-        //      https://api.reservoir.tools/tokens/details/v4?contract=0x31385d3520bCED94f77AaE104b406994D8F2168C&sortBy=floorAskPrice&limit=50&includeTopBid=false
 
         if (state.filter.umswapIndex == null) {
           state.current.umswap = null;
