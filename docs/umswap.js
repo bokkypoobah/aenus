@@ -132,7 +132,7 @@ const Umswap = {
 
               <!-- New Umswap -->
               <b-card v-if="settings.tabIndex == 1" header="Umswap" class="mt-1" body-class="m-1 p-1" style="min-width: 60rem; max-width: 60rem;">
-                {{ umswap }}
+                {{ current }}
               </b-card>
 
               <!-- New Umswap -->
@@ -297,8 +297,8 @@ const Umswap = {
     umswapFactory() {
       return store.getters['umswap/umswapFactory'];
     },
-    umswap() {
-      return store.getters['umswap/umswap'];
+    current() {
+      return store.getters['umswap/current'];
     },
     // collectionInfo() {
     //   return store.getters['umswap/collectionInfo'];
@@ -851,7 +851,10 @@ const umswapModule = {
       umswaps: [],
       collections: {},
     },
-    umswap: null,
+    current: {
+      umswap: null,
+      collection: null,
+    },
     // umswap: {
     //   index: 1, // null,
     // },
@@ -866,7 +869,7 @@ const umswapModule = {
     filter: state => state.filter,
     sync: state => state.sync,
     umswapFactory: state => state.umswapFactory,
-    umswap: state => state.umswap,
+    current: state => state.current,
     messages: state => state.messages,
     // collectionInfo: state => state.collectionInfo,
     // collectionTokens: state => state.collectionTokens,
@@ -979,7 +982,7 @@ const umswapModule = {
           for (const [address, collection] of Object.entries(state.umswapFactory.collections)) {
             for (const umswap of collection.umswaps) {
               if (umswap.index == state.filter.umswapIndex) {
-                state.umswap = umswap;
+                state.current.umswap = umswap;
               }
             }
           }
