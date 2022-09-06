@@ -826,9 +826,9 @@ const ENSSearch = {
         { value: 'digit999', text: 'Digits 000 to 999 [Club999]' },
         { value: 'digit9999', text: 'Digits 0000 to 9999 [Club10k]' },
         { value: 'digit99999', text: 'Digits 00000 to 99999 [Club100k]' },
-        { value: 'digit999999', text: 'Digits 000000 to 999999' },
-        { value: 'digit9999999', text: 'Digits 0000000 to 9999999' },
-        { value: 'digit99999999', text: 'Digits 00000000 to 99999999' },
+        { value: 'digit999999', text: 'Digits 000000 to 999999 [Club1m]' },
+        { value: 'digit9999999', text: 'Digits 0000000 to 9999999 [Club10m]' },
+        { value: 'digit99999999', text: 'Digits 00000000 to 99999999 [Club100m]' },
         { value: 'hours', text: 'Hours 00h00 to 23h59' },
       ],
 
