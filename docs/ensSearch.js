@@ -98,6 +98,20 @@ const ENSSearch = {
                     </b-form-group>
                   </b-col>
                 </b-row>
+                <b-row v-if="'minMaxRepeatedCount' in settings.setAttributes[settings.selectedSet]" class="m-0 p-0">
+                  <b-col sm="6" class="m-0 p-0">
+                    <b-form-group label-cols="3" content-cols="9" label="Min repeated chars" label-class="m-0 p-0" class="text-right">
+                      <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].minMaxRepeatedCount"></b-form-input>
+                    </b-form-group>
+                  </b-col>
+                </b-row>
+                <b-row v-if="'minMaxConsecutiveCount' in settings.setAttributes[settings.selectedSet]" class="m-0 p-0">
+                  <b-col sm="6" class="m-0 p-0">
+                    <b-form-group label-cols="3" content-cols="9" label="Min consecutive chars" label-class="m-0 p-0" class="text-right">
+                      <b-form-input type="text" size="sm" v-model.trim="settings.setAttributes[settings.selectedSet].minMaxConsecutiveCount"></b-form-input>
+                    </b-form-group>
+                  </b-col>
+                </b-row>
                 <b-row v-if="'prefix' in settings.setAttributes[settings.selectedSet]" class="m-0 p-0">
                   <b-col sm="6" class="m-0 p-0">
                     <b-form-group label-cols="3" content-cols="9" label="Prefix" label-class="m-0 p-0" class="text-right">
@@ -718,6 +732,8 @@ const ENSSearch = {
             length: 1,
             regex: null,
             palindrome: false,
+            minMaxRepeatedCount: 1,
+            minMaxConsecutiveCount: 1,
             prefix: null,
             postfix: null,
           },
@@ -729,6 +745,8 @@ const ENSSearch = {
             length: 2,
             regex: null,
             palindrome: false,
+            minMaxRepeatedCount: 1,
+            minMaxConsecutiveCount: 1,
             prefix: null,
             postfix: null,
           },
@@ -740,6 +758,8 @@ const ENSSearch = {
             length: 3,
             regex: null,
             palindrome: false,
+            minMaxRepeatedCount: 1,
+            minMaxConsecutiveCount: 1,
             prefix: null,
             postfix: null,
           },
@@ -751,6 +771,8 @@ const ENSSearch = {
             length: 4,
             regex: null,
             palindrome: false,
+            minMaxRepeatedCount: 1,
+            minMaxConsecutiveCount: 1,
             prefix: null,
             postfix: null,
           },
@@ -762,6 +784,8 @@ const ENSSearch = {
             length: 5,
             regex: null,
             palindrome: false,
+            minMaxRepeatedCount: 1,
+            minMaxConsecutiveCount: 1,
             prefix: null,
             postfix: null,
           },
@@ -773,6 +797,8 @@ const ENSSearch = {
             length: 6,
             regex: null,
             palindrome: false,
+            minMaxRepeatedCount: 1,
+            minMaxConsecutiveCount: 1,
             prefix: null,
             postfix: null,
           },
@@ -784,6 +810,8 @@ const ENSSearch = {
             length: 7,
             regex: null,
             palindrome: false,
+            minMaxRepeatedCount: 1,
+            minMaxConsecutiveCount: 1,
             prefix: null,
             postfix: null,
           },
@@ -795,6 +823,8 @@ const ENSSearch = {
             length: 8,
             regex: null,
             palindrome: false,
+            minMaxRepeatedCount: 1,
+            minMaxConsecutiveCount: 1,
             prefix: null,
             postfix: null,
           },
@@ -1399,6 +1429,20 @@ const ensSearchModule = {
           if (setAttributes.palindrome) {
             const reverse = number.split('').reverse().join('');
             if (number !== reverse) {
+              include = false;
+            }
+          }
+          if (include && setAttributes.minMaxRepeatedCount > 1) {
+            const maxRepeatedCount = maxCharacterCount(number);
+            if (maxRepeatedCount < setAttributes.minMaxRepeatedCount) {
+              include = false;
+            }
+          }
+          if (include && setAttributes.minMaxConsecutiveCount > 1) {
+            const parts = number.match(/(.)\1*/g);
+            parts.sort((a, b) => b.length - a.length);
+            const maxConsecutiveCount = parts[0].length;
+            if (maxConsecutiveCount < setAttributes.minMaxConsecutiveCount) {
               include = false;
             }
           }
