@@ -1481,6 +1481,15 @@ const ensSearchModule = {
             lastTransfer = { blockNumber: events[0].blockNumber, txHash: events[0].transactionID };
           }
 
+          const maxCount = maxCharacterCount(registration.labelName);
+
+          let maxConsecutiveCount = 0;
+          if (registration.labelName.length > 0) {
+            const parts = registration.labelName.match(/(.)\1*/g);
+            parts.sort((a, b) => b.length - a.length);
+            maxConsecutiveCount = parts[0].length;
+          }
+
           state.tempResults[registration.domain.name] = {
             labelName: registration.labelName,
             registrationDate: registration.registrationDate,
@@ -1501,6 +1510,8 @@ const ensSearchModule = {
             nameType: nameType,
             creation,
             lastTransfer,
+            maxCount,
+            maxConsecutiveCount,
           };
           // console.log("state.tempResults[registration.domain.name]: " + JSON.stringify(state.tempResults[registration.domain.name]));
         }

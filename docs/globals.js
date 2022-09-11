@@ -617,3 +617,18 @@ function handleErrors(response) {
   }
   return response;
 }
+
+// https://stackoverflow.com/a/22590126
+function maxCharacterCount(input) {
+    const {max, ...counts} = (input || "").split("").reduce(
+    (a, c) => {
+        a[c] = a[c] ? a[c] + 1 : 1;
+        a.max = a.max < a[c] ? a[c] : a.max;
+        return a;
+    },
+    { max: 0 }
+    );
+
+    // return Object.entries(counts).filter(([k, v]) => v === max);
+    return max;
+}
