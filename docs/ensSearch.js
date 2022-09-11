@@ -1455,6 +1455,32 @@ const ensSearchModule = {
           } else {
             nameType = "4";
           }
+
+          let creation = null;
+          const domainEvents = registration.domain.events.filter(e => (e.__typename === "NewOwner" || e.__typename === "NameTransferred"));
+          if (domainEvents.length > 0) {
+            domainEvents.sort((a, b) => a.blockNumber - b.blockNumber);
+            let era = null;
+            // reliancesteel prepunk1000 3698485
+            if (domainEvents[0].blockNumber <= 3698485) {
+              era = "prepunk1k";
+            // wangyue.eth prepunk 10k 3740344
+            } else if (domainEvents[0].blockNumber <= 3740344) {
+              era = "prepunk10k";
+            // holtrenfrew.eth prepunk 3919717
+            } else if (domainEvents[0].blockNumber <= 3919717) {
+              era = "prepunk";
+            }
+            creation = { blockNumber: domainEvents[0].blockNumber, txHash: domainEvents[0].transactionID, era };
+          }
+
+          let lastTransfer = null;
+          const events = registration.events.filter(e => (e.__typename === "NewOwner" || e.__typename === "NameTransferred"));
+          if (events.length > 0) {
+            events.sort((a, b) => b.blockNumber - a.blockNumber);
+            lastTransfer = { blockNumber: events[0].blockNumber, txHash: events[0].transactionID };
+          }
+
           state.tempResults[registration.domain.name] = {
             labelName: registration.labelName,
             registrationDate: registration.registrationDate,
@@ -1473,7 +1499,10 @@ const ensSearchModule = {
             warn: registration.expiryDate < now ? 'red' : registration.expiryDate < warningDate ? 'orange' : null,
             hasAvatar: registration.domain.resolver && registration.domain.resolver.texts && registration.domain.resolver.texts.includes("avatar"),
             nameType: nameType,
+            creation,
+            lastTransfer,
           };
+          // console.log("state.tempResults[registration.domain.name]: " + JSON.stringify(state.tempResults[registration.domain.name]));
         }
       }
       async function fetchRegistrationsByNames(batch) {

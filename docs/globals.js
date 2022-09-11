@@ -95,6 +95,12 @@ const ENSSUBGRAPHNAMECONTAINSQUERY = `
         owner {
           id
         }
+        events {
+          id
+          blockNumber
+          transactionID
+          __typename
+        }
       }
     }
   }
@@ -133,7 +139,13 @@ const ENSSUBGRAPHNAMESTARTSWITHQUERY = `
         owner {
           id
         }
-      }
+        events {
+          id
+          blockNumber
+          transactionID
+          __typename
+        }
+    }
     }
   }
 `;
@@ -170,6 +182,12 @@ const ENSSUBGRAPHNAMEENDSWITHQUERY = `
         }
         owner {
           id
+        }
+        events {
+          id
+          blockNumber
+          transactionID
+          __typename
         }
       }
     }
