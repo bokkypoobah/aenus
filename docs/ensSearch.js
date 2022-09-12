@@ -983,6 +983,10 @@ const ENSSearch = {
         { value: 'expirydsc', text: '▼ Expiry' },
         { value: 'registrationasc', text: '▲ Registration' },
         { value: 'registrationdsc', text: '▼ Registration' },
+        { value: 'latesttransferdateasc', text: '▲ Latest Transfer Date' },
+        { value: 'latesttransferdatedsc', text: '▼ Latest Transfer Date' },
+        { value: 'creationdateasc', text: '▲ Creation Date' },
+        { value: 'creationdatedsc', text: '▼ Creation Date' },
         { value: 'lengthname', text: '▲ Length, ▲ Name' },
         { value: 'random', text: 'Random' },
       ],
@@ -1171,6 +1175,62 @@ const ENSSearch = {
       } else if (this.settings.sortOption == 'registrationdsc') {
         results.sort((a, b) => {
           return b.registrationDate - a.registrationDate;
+        });
+      } else if (this.settings.sortOption == 'latesttransferdateasc') {
+        results.sort((a, b) => {
+          const lastTransferBlockNumberA = a.lastTransfer && a.lastTransfer.blockNumber || null;
+          const lastTransferBlockNumberB = b.lastTransfer && b.lastTransfer.blockNumber || null;
+          if (lastTransferBlockNumberA == lastTransferBlockNumberB) {
+            return ('' + a.labelName).localeCompare(b.labelName);
+          } else if (lastTransferBlockNumberA != null && lastTransferBlockNumberB == null) {
+            return -1;
+          } else if (lastTransferBlockNumberA == null && lastTransferBlockNumberB != null) {
+            return 1;
+          } else {
+            return lastTransferBlockNumberA - lastTransferBlockNumberB;
+          }
+        });
+      } else if (this.settings.sortOption == 'latesttransferdatedsc') {
+        results.sort((a, b) => {
+          const lastTransferBlockNumberA = a.lastTransfer && a.lastTransfer.blockNumber || null;
+          const lastTransferBlockNumberB = b.lastTransfer && b.lastTransfer.blockNumber || null;
+          if (lastTransferBlockNumberA == lastTransferBlockNumberB) {
+            return ('' + a.labelName).localeCompare(b.labelName);
+          } else if (lastTransferBlockNumberA != null && lastTransferBlockNumberB == null) {
+            return -1;
+          } else if (lastTransferBlockNumberA == null && lastTransferBlockNumberB != null) {
+            return 1;
+          } else {
+            return lastTransferBlockNumberB - lastTransferBlockNumberA;
+          }
+        });
+      } else if (this.settings.sortOption == 'creationdateasc') {
+        results.sort((a, b) => {
+          const creationBlockNumberA = a.creation && a.creation.blockNumber || null;
+          const creationBlockNumberB = b.creation && b.creation.blockNumber || null;
+          if (creationBlockNumberA == creationBlockNumberB) {
+            return ('' + a.labelName).localeCompare(b.labelName);
+          } else if (creationBlockNumberA != null && creationBlockNumberB == null) {
+            return -1;
+          } else if (creationBlockNumberA == null && creationBlockNumberB != null) {
+            return 1;
+          } else {
+            return creationBlockNumberA - creationBlockNumberB;
+          }
+        });
+      } else if (this.settings.sortOption == 'creationdatedsc') {
+        results.sort((a, b) => {
+          const creationBlockNumberA = a.creation && a.creation.blockNumber || null;
+          const creationBlockNumberB = b.creation && b.creation.blockNumber || null;
+          if (creationBlockNumberA == creationBlockNumberB) {
+            return ('' + a.labelName).localeCompare(b.labelName);
+          } else if (creationBlockNumberA != null && creationBlockNumberB == null) {
+            return -1;
+          } else if (creationBlockNumberA == null && creationBlockNumberB != null) {
+            return 1;
+          } else {
+            return creationBlockNumberB - creationBlockNumberA;
+          }
         });
       } else if (this.settings.sortOption == 'lengthname') {
         results.sort((a, b) => {
