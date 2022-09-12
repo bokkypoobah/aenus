@@ -1729,30 +1729,35 @@ const ensSearchModule = {
       }
       // get prices
       let keys = Object.keys(state.results);
-      const GETPRICEBATCHSIZE = 20;
+      const GETPRICEBATCHSIZE = 50;
       records = 0;
       const prices = {};
       const DELAYINMILLIS = 1000;
       for (let i = 0; i < keys.length && !state.halt; i += GETPRICEBATCHSIZE) {
         const batch = keys.slice(i, parseInt(i) + GETPRICEBATCHSIZE);
-        let url = "https://api.reservoir.tools/tokens/v5?";
-        let separator = "";
-        for (let j = 0; j < batch.length; j++) {
-          const record = state.results[batch[j]];
-          url = url + separator + "tokens=" + ENSADDRESS + "%3A" + record.tokenId;
-          separator = "&";
-        }
-        const data = await fetch(url).then(response => response.json());
-        records = records + data.tokens.length;
-        state.message = "Retrieving prices " + records;
-        // console.log(JSON.stringify(data, null, 2));
-        for (price of data.tokens) {
-          prices[price.token.tokenId] = {
-            floorAskPrice: price.market && price.market.floorAsk && price.market.floorAsk.price && price.market.floorAsk.price.amount && price.market.floorAsk.price.amount.decimal || null,
-            source: price.market && price.market.floorAsk && price.market.floorAsk.source && price.market.floorAsk.source.name || null,
-          };
-        }
-        await delay(DELAYINMILLIS);
+        let continuation = null;
+        do {
+          let url = "https://api.reservoir.tools/tokens/v5?";
+          let separator = "";
+          for (let j = 0; j < batch.length; j++) {
+            const record = state.results[batch[j]];
+            url = url + separator + "tokens=" + ENSADDRESS + "%3A" + record.tokenId;
+            separator = "&";
+          }
+          url = url + (continuation != null ? "&continuation=" + continuation : '');
+          const data = await fetch(url).then(response => response.json());
+          records = records + data.tokens.length;
+          continuation = data.continuation;
+          state.message = "Retrieving prices " + records;
+          // console.log(JSON.stringify(data, null, 2));
+          for (price of data.tokens) {
+            prices[price.token.tokenId] = {
+              floorAskPrice: price.market && price.market.floorAsk && price.market.floorAsk.price && price.market.floorAsk.price.amount && price.market.floorAsk.price.amount.decimal || null,
+              source: price.market && price.market.floorAsk && price.market.floorAsk.source && price.market.floorAsk.source.name || null,
+            };
+          }
+          await delay(DELAYINMILLIS);
+        } while (continuation != null /*&& !state.halt && !state.sync.error */);
       }
       // console.log(JSON.stringify(prices, null, 2));
       state.prices = prices;
