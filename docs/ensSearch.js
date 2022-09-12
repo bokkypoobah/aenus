@@ -254,7 +254,7 @@ const ENSSearch = {
                       </span>
                     </b-button>
                     <span v-if="prices[result.tokenId]">
-                      <font shift-v="+3" size="-1"><b-badge v-b-popover.hover.bottom="'Floor ask price in ETH'" variant="success">{{ prices[result.tokenId].floorAskPrice }}</b-badge></font>
+                      <font shift-v="+3" size="-1"><b-badge v-b-popover.hover.bottom="'Floor ask price in ETH from ' + prices[result.tokenId].source" variant="success">{{ prices[result.tokenId].floorAskPrice }}</b-badge></font>
                     </span>
                     <b-popover :target="'popover-target-' + result.labelName + '-' + resultIndex" placement="right">
                       <template #title>{{ result.name }} links</template>
@@ -1735,7 +1735,7 @@ const ensSearchModule = {
       const DELAYINMILLIS = 1000;
       for (let i = 0; i < keys.length && !state.halt; i += GETPRICEBATCHSIZE) {
         const batch = keys.slice(i, parseInt(i) + GETPRICEBATCHSIZE);
-        let url = "https://api.reservoir.tools/tokens/v4?";
+        let url = "https://api.reservoir.tools/tokens/v5?";
         let separator = "";
         for (let j = 0; j < batch.length; j++) {
           const record = state.results[batch[j]];
@@ -1747,14 +1747,14 @@ const ensSearchModule = {
         state.message = "Retrieving prices " + records;
         // console.log(JSON.stringify(data, null, 2));
         for (price of data.tokens) {
-          prices[price.tokenId] = {
-            floorAskPrice: price.floorAskPrice,
-            source: price.source,
-            name: price.name,
+          prices[price.token.tokenId] = {
+            floorAskPrice: price.market && price.market.floorAsk && price.market.floorAsk.price && price.market.floorAsk.price.amount && price.market.floorAsk.price.amount.decimal || null,
+            source: price.market && price.market.floorAsk && price.market.floorAsk.source && price.market.floorAsk.source.name || null,
           };
         }
         await delay(DELAYINMILLIS);
       }
+      // console.log(JSON.stringify(prices, null, 2));
       state.prices = prices;
       state.message = null;
       state.halt = false;
