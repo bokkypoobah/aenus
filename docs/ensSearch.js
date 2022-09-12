@@ -1519,7 +1519,7 @@ const ensSearchModule = {
           }
 
           let lastTransfer = null;
-          const events = registration.events.filter(e => (e.__typename === "NewOwner" || e.__typename === "NameTransferred"));
+          const events = registration.events && registration.events.filter(e => (e.__typename === "NewOwner" || e.__typename === "NameTransferred")) || [];
           if (events.length > 0) {
             events.sort((a, b) => b.blockNumber - a.blockNumber);
             lastTransfer = { blockNumber: events[0].blockNumber, txHash: events[0].transactionID };
