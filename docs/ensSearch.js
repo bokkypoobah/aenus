@@ -1724,6 +1724,9 @@ const ensSearchModule = {
       state.tempUnregistered = [];
       state.tempRegistrants = {};
 
+      if (state.halt) {
+        state.halt = false;
+      }
       // get prices
       let keys = Object.keys(state.results);
       const GETPRICEBATCHSIZE = 20;
