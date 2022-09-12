@@ -1735,7 +1735,7 @@ const ensSearchModule = {
       const DELAYINMILLIS = 1000;
       for (let i = 0; i < keys.length && !state.halt; i += GETPRICEBATCHSIZE) {
         const batch = keys.slice(i, parseInt(i) + GETPRICEBATCHSIZE);
-        let url = "https://api.reservoir.tools/tokens/v5?";
+        let url = "https://api.reservoir.tools/tokens/v4?";
         let separator = "";
         for (let j = 0; j < batch.length; j++) {
           const record = state.results[batch[j]];
