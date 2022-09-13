@@ -1458,18 +1458,12 @@ const ensSearchModule = {
     prices: [],
     message: null,
     halt: false,
-
-    params: null,
-    executing: false,
-    executionQueue: [],
   },
   getters: {
     results: state => state.results,
     unregistered: state => state.unregistered,
     prices: state => state.prices,
     message: state => state.message,
-    params: state => state.params,
-    executionQueue: state => state.executionQueue,
   },
   mutations: {
     // --- Scan ---
