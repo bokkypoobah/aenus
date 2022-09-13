@@ -137,6 +137,8 @@ const ENSSearch = {
               <b-row>
                 <b-col sm="6" class="mt-2">
                   <div class="d-flex flex-wrap m-0 p-0">
+                    <div class="mt-1 flex-grow-1">
+                    </div>
                     <div class="mt-2" style="width: 200px;">
                       <b-progress v-if="progress.message != null" height="1.5rem" :max="progress.total" show-progress :animated="progress.message != null" :variant="progress.message != null ? 'success' : 'secondary'" v-b-popover.hover.top="'Click on the Sync(ing) button to (un)pause'">
                         <b-progress-bar :value="progress.completed">
@@ -144,11 +146,12 @@ const ENSSearch = {
                         </b-progress-bar>
                       </b-progress>
                     </div>
-                    <div class="mt-1 flex-grow-1">
+                    <div class="ml-0 mt-1">
+                      <b-button v-if="progress.message != null" size="sm" @click="halt" variant="link" v-b-popover.hover.top="'Halt'"><b-icon-stop-fill shift-v="+1" font-scale="1.0"></b-icon-stop-fill></b-button>
                     </div>
                     <div class="mt-1">
                       <b-button v-if="progress.message == null" size="sm" @click="scan( { searchType: tabs[settings.searchTabIndex].name, search: settings.searchString, group: settings.selectedGroup, setAttributes: settings.setAttributes[settings.selectedSet] } );" variant="primary" class="float-right">Search</b-button>
-                      <b-button v-if="progress.message != null" size="sm" @click="halt" variant="primary" class="float-right">Halt</b-button>
+                      <!-- <b-button v-if="progress.message != null" size="sm" @click="halt" variant="primary" class="float-right">Halt</b-button> -->
                     </div>
                   </div>
                 </b-col>
@@ -1802,7 +1805,7 @@ const ensSearchModule = {
       state.progress.total = keys.length;
       state.progress.completed = 0;
       state.progress.message = "Prices";
-      const GETPRICEBATCHSIZE = 50;
+      const GETPRICEBATCHSIZE = 20;
       const prices = {};
       const DELAYINMILLIS = 1000;
       for (let i = 0; i < keys.length && !state.halt; i += GETPRICEBATCHSIZE) {
@@ -1819,7 +1822,7 @@ const ensSearchModule = {
           url = url + (continuation != null ? "&continuation=" + continuation : '');
           const data = await fetch(url).then(response => response.json());
           state.progress.completed = parseInt(state.progress.completed) + data.tokens.length;
-          continuation = data.continuation;
+          // continuation = data.continuation;
           // console.log(JSON.stringify(data, null, 2));
           for (price of data.tokens) {
             prices[price.token.tokenId] = {
