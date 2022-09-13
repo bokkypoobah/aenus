@@ -140,7 +140,7 @@ const ENSSearch = {
                     <div class="mt-1 flex-grow-1">
                     </div>
                     <div class="mt-2" style="width: 200px;">
-                      <b-progress v-if="progress.message != null" height="1.5rem" :max="progress.total" show-progress :animated="progress.message != null" :variant="progress.message != null ? 'success' : 'secondary'" v-b-popover.hover.top="'Click on the Sync(ing) button to (un)pause'">
+                      <b-progress v-if="progress.message != null" height="1.5rem" :max="progress.total" show-progress :animated="progress.message != null" :variant="progress.message != null ? 'success' : 'secondary'" v-b-popover.hover.top="'Click button on the right to end this stage'">
                         <b-progress-bar :value="progress.completed">
                           {{ progress.total == null ? (progress.completed + ' ' + progress.message) : (progress.completed + '/' + progress.total + ' ' + ((progress.completed / progress.total) * 100).toFixed(0) + '% ' + progress.message) }}
                         </b-progress-bar>
@@ -1802,6 +1802,7 @@ const ensSearchModule = {
       }
       // get prices
       let keys = Object.keys(state.results);
+      state.progress.message = null;
       state.progress.total = keys.length;
       state.progress.completed = 0;
       state.progress.message = "Prices";
