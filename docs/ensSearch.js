@@ -136,11 +136,21 @@ const ENSSearch = {
               </div>
               <b-row>
                 <b-col sm="6" class="mt-2">
-                  <font size="-2">
-                    {{ searchMessage }}
-                  </font>
-                  <b-button v-if="searchMessage == null" size="sm" @click="scan( { searchType: tabs[settings.searchTabIndex].name, search: settings.searchString, group: settings.selectedGroup, setAttributes: settings.setAttributes[settings.selectedSet] } );" variant="primary" class="float-right">Search</b-button>
-                  <b-button v-if="searchMessage != null" size="sm" @click="halt" variant="primary" class="float-right">Halt</b-button>
+                  <div class="d-flex flex-wrap m-0 p-0">
+                    <div class="mt-2" style="width: 200px;">
+                      <b-progress v-if="progress.message != null" height="1.5rem" :max="progress.total" show-progress :animated="progress.message != null" :variant="progress.message != null ? 'success' : 'secondary'" v-b-popover.hover.top="'Click on the Sync(ing) button to (un)pause'">
+                        <b-progress-bar :value="progress.completed">
+                          {{ progress.total == null ? (progress.completed + ' ' + progress.message) : (progress.completed + '/' + progress.total + ' ' + ((progress.completed / progress.total) * 100).toFixed(0) + '% ' + progress.message) }}
+                        </b-progress-bar>
+                      </b-progress>
+                    </div>
+                    <div class="mt-1 flex-grow-1">
+                    </div>
+                    <div class="mt-1">
+                      <b-button v-if="progress.message == null" size="sm" @click="scan( { searchType: tabs[settings.searchTabIndex].name, search: settings.searchString, group: settings.selectedGroup, setAttributes: settings.setAttributes[settings.selectedSet] } );" variant="primary" class="float-right">Search</b-button>
+                      <b-button v-if="progress.message != null" size="sm" @click="halt" variant="primary" class="float-right">Halt</b-button>
+                    </div>
+                  </div>
                 </b-col>
               </b-row>
             </b-card-text>
@@ -1028,8 +1038,8 @@ const ENSSearch = {
     unregistered() {
       return store.getters['ensSearch/unregistered'];
     },
-    searchMessage() {
-      return store.getters['ensSearch/message'];
+    progress() {
+      return store.getters['ensSearch/progress'];
     },
     groups() {
       return store.getters['config/groups'];
@@ -1456,14 +1466,18 @@ const ensSearchModule = {
     tempUnregistered: [],
     tempRegistrants: [],
     prices: [],
-    message: null,
     halt: false,
+    progress: {
+      message: null,
+      completed: null,
+      total: null,
+    },
   },
   getters: {
     results: state => state.results,
     unregistered: state => state.unregistered,
     prices: state => state.prices,
-    message: state => state.message,
+    progress: state => state.progress,
   },
   mutations: {
     // --- Scan ---
@@ -1630,7 +1644,7 @@ const ensSearchModule = {
           .catch(function(e) {
             console.log("error: " + e);
           });
-        state.message = "Retrieved " + Object.keys(state.tempResults).length;
+        state.progress.completed = Object.keys(state.tempResults).length;
         const namesFound = Object.keys(state.tempResults).map(name => name.replace(/\.eth.*$/, ''));
         const unregistered = batch.filter(name => !namesFound.includes(name));
         state.tempUnregistered.push(...unregistered);
@@ -1667,7 +1681,7 @@ const ensSearchModule = {
           } else {
             processRegistrations(data.data.registrations)
           }
-          state.message = "Retrieved " + Object.keys(state.tempResults).length;
+          state.progress.completed = Object.keys(state.tempResults).length;
           skip += ENSSUBGRAPHBATCHSIZE;
         }
       }
@@ -1693,7 +1707,7 @@ const ensSearchModule = {
             } else {
               processRegistrations(data.data.account.registrations);
             }
-            state.message = "Retrieved " + Object.keys(state.tempResults).length;
+            state.progress.completed = Object.keys(state.tempResults).length;
             skip += ENSSUBGRAPHBATCHSIZE;
           }
         }
@@ -1725,7 +1739,9 @@ const ensSearchModule = {
       const now = parseInt(new Date().valueOf() / 1000);
       const expiryDate = parseInt(now) - 90 * SECONDSPERDAY;
       const warningDate = parseInt(now) + 90 * SECONDSPERDAY;
-      state.message = "Retrieving";
+      state.progress.total = null;
+      state.progress.completed = 0;
+      state.progress.message = "Names";
 
       if (generator) {
         if (['contains', 'startswith', 'endswith'].includes(options.searchType)) {
@@ -1783,8 +1799,10 @@ const ensSearchModule = {
       }
       // get prices
       let keys = Object.keys(state.results);
+      state.progress.total = keys.length;
+      state.progress.completed = 0;
+      state.progress.message = "Prices";
       const GETPRICEBATCHSIZE = 50;
-      records = 0;
       const prices = {};
       const DELAYINMILLIS = 1000;
       for (let i = 0; i < keys.length && !state.halt; i += GETPRICEBATCHSIZE) {
@@ -1800,9 +1818,8 @@ const ensSearchModule = {
           }
           url = url + (continuation != null ? "&continuation=" + continuation : '');
           const data = await fetch(url).then(response => response.json());
-          records = records + data.tokens.length;
+          state.progress.completed = parseInt(state.progress.completed) + data.tokens.length;
           continuation = data.continuation;
-          state.message = "Retrieving prices " + records;
           // console.log(JSON.stringify(data, null, 2));
           for (price of data.tokens) {
             prices[price.token.tokenId] = {
@@ -1815,7 +1832,7 @@ const ensSearchModule = {
       }
       // console.log(JSON.stringify(prices, null, 2));
       state.prices = prices;
-      state.message = null;
+      state.progress.message = null;
       state.halt = false;
     },
 
