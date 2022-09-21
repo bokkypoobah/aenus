@@ -107,6 +107,18 @@ $ anywhere -h localhost</pre>
                   <b-link href="https://bokkypoobah.github.io/ExploringCryptoPunksOnChain/" target="_blank">https://bokkypoobah.github.io/ExploringCryptoPunksOnChain/</b-link>
                 </li>
                 <li>
+                  <b-link href="https://bokkypoobah.github.io/CryptoDickButtsOnChain/" target="_blank">https://bokkypoobah.github.io/CryptoDickButtsOnChain/</b-link>
+                </li>
+                <li>
+                  <b-link href="https://bokkypoobah.github.io/CryptoCatsInfo/" target="_blank">https://bokkypoobah.github.io/CryptoCatsInfo/</b-link>
+                </li>
+                <li>
+                  <b-link href="https://bokkypoobah.github.io/ProofOfPepesInfo/" target="_blank">https://bokkypoobah.github.io/ProofOfPepesInfo/</b-link>
+                </li>
+                <li>
+                  <b-link href="https://bokkypoobah.github.io/MyFinalFormInfo/" target="_blank">https://bokkypoobah.github.io/MyFinalFormInfo/</b-link>
+                </li>
+                <li>
                   <b-link href="https://bokkypoobah.github.io/MoonCatExplainer/" target="_blank">https://bokkypoobah.github.io/MoonCatExplainer/</b-link>
                 </li>
                 <li>
