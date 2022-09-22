@@ -394,7 +394,7 @@ const ENSSearch = {
                 </template>
                 <template #cell(registrant)="data">
                   <b-button :id="'popover-target-registrant-' + data.index" variant="link" class="m-0 p-0">
-                    {{ data.item.registrant }}
+                    {{ getName(data.item.registrant) }}
                   </b-button>
                   <b-popover :target="'popover-target-registrant-' + data.index" placement="right">
                     <template #title>Registrant: {{ data.item.registrant.substring(0, 12) }}:</template>
@@ -418,7 +418,7 @@ const ENSSearch = {
                   <br />
                   <font size="-2">
                     <b-button size="sm" :id="'popover-target-owner-' + data.index" variant="link" class="m-0 p-0">
-                      C: {{ data.item.owner }}
+                      C: {{ getName(data.item.owner) }}
                     </b-button>
                     <b-popover :target="'popover-target-owner-' + data.index" placement="right">
                       <template #title>Controller: {{ data.item.owner.substring(0, 12) }}:</template>
@@ -442,7 +442,7 @@ const ENSSearch = {
                   <br />
                   <font size="-2">
                     <b-button size="sm" :id="'popover-target-resolvedAddress-' + data.index" variant="link" class="m-0 p-0">
-                      RA: {{ data.item.resolvedAddress }}
+                      RA: {{ getName(data.item.resolvedAddress) }}
                     </b-button>
                     <b-popover :target="'popover-target-resolvedAddress-' + data.index" placement="right">
                       <template #title>Resolved Addr: {{ data.item.resolvedAddress.substring(0, 12) }}:</template>
@@ -509,7 +509,7 @@ const ENSSearch = {
                 </template>
                 <template #cell(registrant)="data">
                   <b-button :id="'popover-target-owner-' + data.item.registrant + '-' + data.index" variant="link" class="m-0 p-0">
-                    {{ data.item.registrant }}
+                    {{ getName(data.item.registrant) }}
                   </b-button>
                   <b-popover :target="'popover-target-owner-' + data.item.registrant + '-' + data.index" placement="right">
                     <template #title>Registrant: {{ data.item.registrant.substring(0, 12) }}:</template>
@@ -1050,6 +1050,9 @@ const ENSSearch = {
     prices() {
       return store.getters['ensSearch/prices'];
     },
+    ensMap() {
+      return store.getters['ensSearch/ensMap'];
+    },
 
     groupOptions() {
       const results = [];
@@ -1358,6 +1361,13 @@ const ENSSearch = {
         }
       }
     },
+    getName(a, length = 42) {
+      const aLower = a.toLowerCase();
+      if (aLower in this.ensMap) {
+        return this.ensMap[aLower].substring(0, length);
+      }
+      return a == null ? null : a.substring(0, length);
+    },
 
     setPowerOn() {
       store.dispatch('connection/setPowerOn', true);
@@ -1469,6 +1479,7 @@ const ensSearchModule = {
     tempUnregistered: [],
     tempRegistrants: [],
     prices: [],
+    ensMap: {},
     halt: false,
     progress: {
       message: null,
@@ -1480,6 +1491,7 @@ const ensSearchModule = {
     results: state => state.results,
     unregistered: state => state.unregistered,
     prices: state => state.prices,
+    ensMap: state => state.ensMap,
     progress: state => state.progress,
   },
   mutations: {
@@ -1797,10 +1809,10 @@ const ensSearchModule = {
       state.tempUnregistered = [];
       state.tempRegistrants = {};
 
+      // Get prices
       if (state.halt) {
         state.halt = false;
       }
-      // get prices
       let keys = Object.keys(state.results);
       state.progress.message = null;
       state.progress.total = keys.length;
@@ -1836,6 +1848,46 @@ const ensSearchModule = {
       }
       // console.log(JSON.stringify(prices, null, 2));
       state.prices = prices;
+
+      // Get ENS
+      if (state.halt) {
+        state.halt = false;
+      }
+      const ensMap = {};
+      if (window.ethereum) {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        for (const [k, v] of Object.entries(state.results)) {
+          for (const a of [v.registrant, v.owner, v.resolver, v.resolvedAddress]) {
+            if (a) {
+              const aLower = a.toLowerCase();
+              if (!ensMap[aLower]) {
+                ensMap[aLower] = aLower;
+              }
+            }
+          }
+        }
+        // console.log(JSON.stringify(ensMap, null, 2));
+        let addresses = Object.keys(ensMap);
+        state.progress.message = null;
+        state.progress.total = addresses.length;
+        state.progress.completed = 0;
+        state.progress.message = "ENS";
+        const ensReverseRecordsContract = new ethers.Contract(ENSREVERSERECORDSADDRESS, ENSREVERSERECORDSABI, provider);
+        const ENSOWNERBATCHSIZE = 200; // 500 fails occassionally
+        for (let i = 0; i < addresses.length; i += ENSOWNERBATCHSIZE) {
+          const batch = addresses.slice(i, parseInt(i) + ENSOWNERBATCHSIZE);
+          const allnames = await ensReverseRecordsContract.getNames(batch);
+          for (let j = 0; j < batch.length; j++) {
+            const address = batch[j];
+            const name = allnames[j];
+            ensMap[address] = name != null && name.length > 0 ? name : address;
+        //     // const normalized = normalize(address);
+          }
+          state.progress.completed = parseInt(state.progress.completed) + batch.length;
+        }
+        state.ensMap = ensMap;
+      }
+
       state.progress.message = null;
       state.halt = false;
     },
