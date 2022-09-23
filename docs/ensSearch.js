@@ -1873,22 +1873,33 @@ const ensSearchModule = {
         state.progress.completed = 0;
         state.progress.message = "ENS";
         const ensReverseRecordsContract = new ethers.Contract(ENSREVERSERECORDSADDRESS, ENSREVERSERECORDSABI, provider);
-        const ENSOWNERBATCHSIZE = 1; // 100 fails
-        // for (let i = 0; i < addresses.length; i += ENSOWNERBATCHSIZE) {
-        //   const batch = addresses.slice(i, parseInt(i) + ENSOWNERBATCHSIZE);
-        //   try {
-        //     const allnames = await ensReverseRecordsContract.getNames(batch);
-        //     for (let j = 0; j < batch.length; j++) {
-        //       const address = batch[j];
-        //       const name = allnames[j];
-        //       ensMap[address] = name != null && name.length > 0 ? name : address;
-        //   //     // const normalized = normalize(address);
-        //     }
-        //   } catch (e) {
-        //     console.log("ENS reverse records failed for: " + JSON.stringify(batch));
-        //   }
-        //   state.progress.completed = parseInt(state.progress.completed) + batch.length;
-        // }
+        const ENSOWNERBATCHSIZE = 10; // Can do 200, but incorrectly misconfigured reverse ENS causes the whole call to fail
+        for (let i = 0; i < addresses.length; i += ENSOWNERBATCHSIZE) {
+          const batch = addresses.slice(i, parseInt(i) + ENSOWNERBATCHSIZE);
+          try {
+            const allnames = await ensReverseRecordsContract.getNames(batch);
+            for (let j = 0; j < batch.length; j++) {
+              const address = batch[j];
+              const name = allnames[j];
+              ensMap[address] = name != null && name.length > 0 ? name : address;
+              // const normalized = normalize(address);
+            }
+          } catch (e) {
+            console.log("Retrying individually as ENS reverse record search failed for batch: " + JSON.stringify(batch));
+            // Retry individually
+            for (let k = 0; k < batch.length; k++) {
+              const address = batch[k];
+              try {
+                const onename = await ensReverseRecordsContract.getNames([address]);
+                ensMap[address] = onename[0] != null && onename[0].length > 0 ? onename[0] : address;
+                // const normalized = normalize(address);
+              } catch (e1) {
+                console.log("ENS reverse records failed for: " + address);
+              }
+            }
+          }
+          state.progress.completed = parseInt(state.progress.completed) + batch.length;
+        }
         state.ensMap = ensMap;
       }
 
