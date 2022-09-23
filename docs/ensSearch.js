@@ -1362,11 +1362,11 @@ const ENSSearch = {
       }
     },
     getName(a, length = 42) {
-      const aLower = a.toLowerCase();
+      const aLower = a && a.toLowerCase() || null;
       if (aLower in this.ensMap) {
         return this.ensMap[aLower].substring(0, length);
       }
-      return a == null ? null : a.substring(0, length);
+      return a && a.substring(0, length) || null;
     },
 
     setPowerOn() {
@@ -1873,18 +1873,22 @@ const ensSearchModule = {
         state.progress.completed = 0;
         state.progress.message = "ENS";
         const ensReverseRecordsContract = new ethers.Contract(ENSREVERSERECORDSADDRESS, ENSREVERSERECORDSABI, provider);
-        const ENSOWNERBATCHSIZE = 200; // 500 fails occassionally
-        for (let i = 0; i < addresses.length; i += ENSOWNERBATCHSIZE) {
-          const batch = addresses.slice(i, parseInt(i) + ENSOWNERBATCHSIZE);
-          const allnames = await ensReverseRecordsContract.getNames(batch);
-          for (let j = 0; j < batch.length; j++) {
-            const address = batch[j];
-            const name = allnames[j];
-            ensMap[address] = name != null && name.length > 0 ? name : address;
-        //     // const normalized = normalize(address);
-          }
-          state.progress.completed = parseInt(state.progress.completed) + batch.length;
-        }
+        const ENSOWNERBATCHSIZE = 1; // 100 fails
+        // for (let i = 0; i < addresses.length; i += ENSOWNERBATCHSIZE) {
+        //   const batch = addresses.slice(i, parseInt(i) + ENSOWNERBATCHSIZE);
+        //   try {
+        //     const allnames = await ensReverseRecordsContract.getNames(batch);
+        //     for (let j = 0; j < batch.length; j++) {
+        //       const address = batch[j];
+        //       const name = allnames[j];
+        //       ensMap[address] = name != null && name.length > 0 ? name : address;
+        //   //     // const normalized = normalize(address);
+        //     }
+        //   } catch (e) {
+        //     console.log("ENS reverse records failed for: " + JSON.stringify(batch));
+        //   }
+        //   state.progress.completed = parseInt(state.progress.completed) + batch.length;
+        // }
         state.ensMap = ensMap;
       }
 
