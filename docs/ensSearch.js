@@ -1818,7 +1818,7 @@ const ensSearchModule = {
       state.progress.total = keys.length;
       state.progress.completed = 0;
       state.progress.message = "Prices";
-      const GETPRICEBATCHSIZE = 20;
+      const GETPRICEBATCHSIZE = 50;
       const prices = {};
       const DELAYINMILLIS = 1000;
       for (let i = 0; i < keys.length && !state.halt; i += GETPRICEBATCHSIZE) {
@@ -1833,6 +1833,7 @@ const ensSearchModule = {
             separator = "&";
           }
           url = url + (continuation != null ? "&continuation=" + continuation : '');
+          url = url + "&limit=50";
           const data = await fetch(url).then(response => response.json());
           state.progress.completed = parseInt(state.progress.completed) + data.tokens.length;
           // continuation = data.continuation;
