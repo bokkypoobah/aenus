@@ -1820,7 +1820,7 @@ const ensSearchModule = {
       state.progress.message = "Prices";
       const GETPRICEBATCHSIZE = 50;
       const prices = {};
-      const DELAYINMILLIS = 1000;
+      const DELAYINMILLIS = 2000;
       for (let i = 0; i < keys.length && !state.halt; i += GETPRICEBATCHSIZE) {
         const batch = keys.slice(i, parseInt(i) + GETPRICEBATCHSIZE);
         let continuation = null;
