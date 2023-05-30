@@ -275,7 +275,7 @@ const ENSSearch = {
                         ENS
                       </b-link>
                       <br />
-                      <b-link :href="'https://opensea.io/assets/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + result.tokenId" v-b-popover.hover.bottom="'View in opensea.io'" target="_blank">
+                      <b-link :href="'https://opensea.io/assets/ethereum/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + result.tokenId" v-b-popover.hover.bottom="'View in opensea.io'" target="_blank">
                         OpenSea
                       </b-link>
                       <br />
@@ -345,7 +345,7 @@ const ENSSearch = {
                       ENS
                     </b-link>
                     <br />
-                    <b-link :href="'https://opensea.io/assets/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + data.item.tokenId" v-b-popover.hover.bottom="'View in opensea.io'" target="_blank">
+                    <b-link :href="'https://opensea.io/assets/ethereum/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + data.item.tokenId" v-b-popover.hover.bottom="'View in opensea.io'" target="_blank">
                       OpenSea
                     </b-link>
                     <br />
@@ -548,7 +548,7 @@ const ENSSearch = {
                         ENS
                       </b-link>
                       <br />
-                      <b-link :href="'https://opensea.io/assets/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + result.tokenId" v-b-popover.hover.bottom="'View in opensea.io'" target="_blank">
+                      <b-link :href="'https://opensea.io/assets/ethereum/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + result.tokenId" v-b-popover.hover.bottom="'View in opensea.io'" target="_blank">
                         OpenSea
                       </b-link>
                       <br />
@@ -642,7 +642,7 @@ const ENSSearch = {
                           ENS
                         </b-link>
                         <br />
-                        <b-link :href="'https://opensea.io/assets/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + hhmm.tokenId" v-b-popover.hover.bottom="'View in opensea.io'" target="_blank">
+                        <b-link :href="'https://opensea.io/assets/ethereum/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/' + hhmm.tokenId" v-b-popover.hover.bottom="'View in opensea.io'" target="_blank">
                           OpenSea
                         </b-link>
                         <br />
