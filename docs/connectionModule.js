@@ -356,8 +356,8 @@ const Connection = {
         if (this.connected && !this.listenersInstalled) {
           logInfo("Connection", "execWeb3() Installing listeners");
           function handleChainChanged(_chainId) {
-            alert('Ethereum chain has changed - reloading this page.')
-            window.location.reload();
+            alert('Ethereum chain has changed. Please manually refresh this page.')
+            // window.location.reload();
           }
           window.ethereum.on('chainChanged', handleChainChanged);
 
